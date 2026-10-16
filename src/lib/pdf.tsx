@@ -118,3 +118,101 @@ export function buildStoryDocument(story: Story): JSX.Element {
 export async function renderStoryPdf(story: Story): Promise<Buffer> {
   return renderToBuffer(buildStoryDocument(story));
 }
+
+// ---------------------------------------------------------------------------
+// Cahier de coloriage : version en noir et blanc à imprimer et colorier.
+// ---------------------------------------------------------------------------
+const coloring = StyleSheet.create({
+  page: {
+    flexDirection: "column",
+    backgroundColor: "#ffffff",
+    padding: 36,
+    justifyContent: "center",
+  },
+  cover: { fontSize: 32, textAlign: "center", color: "#1f2937", marginBottom: 10 },
+  coverSub: { fontSize: 13, textAlign: "center", color: "#6b7280" },
+  image: {
+    width: "100%",
+    height: 420,
+    objectFit: "contain",
+    marginBottom: 14,
+  },
+  legend: { fontSize: 13, textAlign: "center", color: "#374151" },
+  num: { position: "absolute", bottom: 20, right: 40, fontSize: 11, color: "#9ca3af" },
+});
+
+/**
+ * Construit le PDF « cahier de coloriage ». `coloringUrls[i]` est le dessin au
+ * trait de la page i (ou null si indisponible).
+ */
+export function buildColoringDocument(
+  story: Story,
+  coloringUrls: (string | null)[],
+): JSX.Element {
+  return (
+    <Document title={`${story.titre} — à colorier`} author="Mon Livre Magique">
+      <Page size="A4" orientation="landscape" style={coloring.page}>
+        <Text style={coloring.cover}>{story.titre}</Text>
+        <Text style={coloring.coverSub}>Cahier de coloriage · à imprimer et colorier</Text>
+      </Page>
+      {story.pages.map((p, i) => (
+        <Page key={i} size="A4" orientation="landscape" style={coloring.page}>
+          {coloringUrls[i] ? <Image src={coloringUrls[i] as string} style={coloring.image} /> : null}
+          <Text style={coloring.legend}>{p.texte}</Text>
+          <Text style={coloring.num}>{i + 1}</Text>
+        </Page>
+      ))}
+    </Document>
+  );
+}
+
+export async function renderColoringPdf(
+  story: Story,
+  coloringUrls: (string | null)[],
+): Promise<Buffer> {
+  return renderToBuffer(buildColoringDocument(story, coloringUrls));
+}
+
+// ---------------------------------------------------------------------------
+// Poster : une affiche du héros à imprimer (A4 portrait).
+// ---------------------------------------------------------------------------
+const poster = StyleSheet.create({
+  page: {
+    flexDirection: "column",
+    backgroundColor: STYLE_CONFIG.couleurs.fond,
+    padding: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  image: {
+    width: "100%",
+    height: 460,
+    objectFit: "cover",
+    borderRadius: 16,
+    marginBottom: 30,
+  },
+  title: {
+    fontSize: 34,
+    textAlign: "center",
+    color: STYLE_CONFIG.couleurs.primaire,
+  },
+  sub: { fontSize: 15, textAlign: "center", color: STYLE_CONFIG.couleurs.texteClair, marginTop: 12 },
+});
+
+/** Construit le PDF « poster » (affiche A4 portrait). */
+export function buildPosterDocument(story: Story, childName: string): JSX.Element {
+  const image = story.couvertureUrl ?? story.pages[0]?.imageUrl ?? null;
+  return (
+    <Document title={`${story.titre} — poster`} author="Mon Livre Magique">
+      <Page size="A4" style={poster.page}>
+        {image ? <Image src={image} style={poster.image} /> : null}
+        <Text style={poster.title}>{story.titre}</Text>
+        <Text style={poster.sub}>Les aventures de {childName}</Text>
+      </Page>
+    </Document>
+  );
+}
+
+export async function renderPosterPdf(story: Story, childName: string): Promise<Buffer> {
+  return renderToBuffer(buildPosterDocument(story, childName));
+}

@@ -19,6 +19,9 @@ export default function BookReader({ story }: { story: Story }) {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [voiceURI, setVoiceURI] = useState<string>("");
   const [enLecture, setEnLecture] = useState(false);
+  // Mode projection murale (plein écran, idéal pour caster sur TV / projecteur).
+  const [projection, setProjection] = useState(false);
+  const [autoDefile, setAutoDefile] = useState(false);
   const voixDisponible =
     typeof window !== "undefined" && "speechSynthesis" in window;
 
@@ -93,6 +96,31 @@ export default function BookReader({ story }: { story: Story }) {
 
   // Arrête la lecture quand on quitte le composant.
   useEffect(() => arreter, [arreter]);
+
+  // Défilement automatique en mode projection.
+  useEffect(() => {
+    if (!projection || !autoDefile) return;
+    const id = setInterval(() => {
+      setIndex((i) => {
+        const next = Math.min(totalEcrans - 1, i + 1);
+        return next;
+      });
+    }, 8000);
+    return () => clearInterval(id);
+  }, [projection, autoDefile, totalEcrans]);
+
+  // Échap pour quitter la projection.
+  useEffect(() => {
+    if (!projection) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setProjection(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [projection]);
+
+  const imageCourante =
+    index === 0 ? story.couvertureUrl : story.pages[index - 1]?.imageUrl;
 
   return (
     <div className="space-y-4">
@@ -181,6 +209,77 @@ export default function BookReader({ story }: { story: Story }) {
         <p className="text-sm text-magique-texteClair">
           La lecture à voix haute n'est pas disponible sur ce navigateur.
         </p>
+      )}
+
+      {/* Mode projection murale */}
+      <button className="btn-secondaire w-full" onClick={() => setProjection(true)}>
+        🔆 Projeter sur le mur / la TV
+      </button>
+
+      {projection && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-[#0b0922] text-white">
+          <div className="flex items-center justify-between px-6 py-4">
+            <span className="text-sm text-white/60">
+              🌙 Projection —{" "}
+              {index === 0 ? "Couverture" : `Page ${index} / ${story.pages.length}`}
+            </span>
+            <div className="flex items-center gap-3">
+              <button
+                className="rounded-full border border-white/30 px-4 py-1.5 text-sm"
+                onClick={() => setAutoDefile((a) => !a)}
+              >
+                {autoDefile ? "⏸ Défilement auto" : "▶ Défilement auto"}
+              </button>
+              <button
+                className="rounded-full border border-white/30 px-4 py-1.5 text-sm"
+                onClick={() => setProjection(false)}
+              >
+                ✕ Quitter
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+            {imageCourante && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={imageCourante}
+                alt=""
+                className="mb-8 max-h-[55vh] w-auto rounded-2xl object-contain"
+              />
+            )}
+            {index === 0 ? (
+              <h2 className="text-4xl font-bold sm:text-6xl">{story.titre}</h2>
+            ) : (
+              <p className="max-w-4xl text-2xl leading-relaxed sm:text-4xl">
+                {texteCourant}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center justify-between px-8 py-6">
+            <button
+              className="rounded-full border border-white/30 px-6 py-3 text-lg disabled:opacity-30"
+              onClick={precedent}
+              disabled={index === 0}
+              aria-label="Page précédente"
+            >
+              ←
+            </button>
+            <button
+              className="rounded-full bg-white/10 px-6 py-3 text-lg"
+              onClick={lire}
+            >
+              🔊 Lire
+            </button>
+            <button
+              className="rounded-full border border-white/30 px-6 py-3 text-lg disabled:opacity-30"
+              onClick={suivant}
+              disabled={index === totalEcrans - 1}
+              aria-label="Page suivante"
+            >
+              →
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

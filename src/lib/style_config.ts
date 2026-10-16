@@ -78,6 +78,15 @@ export const BASE_IMAGE_PROMPT =
   "no scary elements, no violence, soft lighting, high quality, centered composition";
 
 /**
+ * Style « cahier de coloriage » : dessin au trait noir et blanc, sans couleur,
+ * à imprimer et colorier. Remplace le fragment de style quand coloring=true.
+ */
+export const COLORING_PROMPT =
+  "black and white coloring book page for children, clean bold black outlines, " +
+  "line art only, no shading, no color, pure white background, simple shapes, " +
+  "no text, no watermark, child-friendly, wholesome";
+
+/**
  * Construit le prompt d'image final à partir du style, de la scène et, si
  * disponibles, du nom du héros et d'une description d'apparence (jamais la photo
  * elle-même). Résultat en anglais pour une meilleure qualité de rendu.
@@ -87,14 +96,16 @@ export function buildIllustrationPrompt(opts: {
   scene: string;
   heroName?: string;
   appearance?: string;
+  /** true : version dessin au trait pour le cahier de coloriage. */
+  coloring?: boolean;
 }): string {
-  const parts = [ILLUSTRATION_STYLES[opts.style].prompt];
+  const parts = [opts.coloring ? COLORING_PROMPT : ILLUSTRATION_STYLES[opts.style].prompt];
   if (opts.heroName) parts.push(`main character named ${opts.heroName}`);
   if (opts.appearance && opts.appearance.trim().length > 0) {
     parts.push(`character appearance: ${opts.appearance.trim()}`);
   }
   parts.push(`scene: ${opts.scene}`);
-  parts.push(BASE_IMAGE_PROMPT);
-  return parts.join(". ");
+  parts.push(opts.coloring ? "" : BASE_IMAGE_PROMPT);
+  return parts.filter(Boolean).join(". ");
 }
 

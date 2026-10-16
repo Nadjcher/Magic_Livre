@@ -10,6 +10,7 @@ import { env } from "@/lib/env";
 import { storySchema } from "@/lib/storySchema";
 import BookReader from "@/components/BookReader";
 import PurchaseDownload from "@/components/PurchaseDownload";
+import BookExtras from "@/components/BookExtras";
 import DeleteBookButton from "@/components/DeleteBookButton";
 import Notice from "@/components/Notice";
 
@@ -99,6 +100,7 @@ export default async function LivrePage({
                 </p>
                 <PurchaseDownload bookId={book.id} paid={paid} prix={formatPrix()} />
               </div>
+              {paid && <BookExtras bookId={book.id} />}
             </>
           );
         })()

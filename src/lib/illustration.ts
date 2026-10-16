@@ -27,6 +27,8 @@ export interface IllustrationRequest {
   appearance?: string;
   /** Graine pour obtenir une image stable d'un rendu à l'autre. */
   seed?: number;
+  /** true : dessin au trait noir et blanc pour le cahier de coloriage. */
+  coloring?: boolean;
 }
 
 export interface IllustrationResult {

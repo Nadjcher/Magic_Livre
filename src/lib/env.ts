@@ -39,6 +39,8 @@ export const env = {
 
   // Voix / images
   voiceProvider: () => optional("VOICE_PROVIDER", "browser"),
+  elevenLabsApiKey: () => optional("ELEVENLABS_API_KEY", ""),
+  elevenLabsVoiceId: () => optional("ELEVENLABS_VOICE_ID", "EXAVITQu4vr4xnSDxMaL"),
   // "none" (défaut, sûr) | "pollinations" (gratuit) | "gemini"
   imageProvider: () => optional("IMAGE_PROVIDER", "none"),
   geminiApiKey: () => optional("GEMINI_API_KEY", ""),
