@@ -8,6 +8,7 @@
 import type { LongueurKey } from "./validation";
 import { LONGUEURS } from "./validation";
 import { findHeroById } from "./heroes";
+import type { IllustrationStyle } from "./style_config";
 
 /** Prompt système fixe (indépendant de la saisie). */
 export const SYSTEM_PROMPT = `Tu es un auteur de contes pour enfants de 3 à 10 ans, en français.
@@ -39,6 +40,10 @@ export interface StoryRequest {
   heroId?: string;
   prompt?: string;
   longueur: LongueurKey;
+  /** Style d'illustration choisi (sert aussi à teinter le ton du texte). */
+  style?: IllustrationStyle;
+  /** Description d'apparence de l'enfant (facultative, jamais une photo). */
+  appearance?: string;
 }
 
 /**
@@ -68,8 +73,17 @@ export function buildUserMessage(req: StoryRequest): string {
     lignes.push(`Idée d'aventure proposée par le parent : « ${req.prompt} »`);
   }
 
+  if (req.appearance && req.appearance.trim().length > 0) {
+    lignes.push(
+      `Apparence de l'enfant (à refléter avec délicatesse) : ${req.appearance.trim()}.`,
+    );
+  }
+
   lignes.push(
     "Écris une histoire complète, douce et joyeuse, avec une fin rassurante.",
+  );
+  lignes.push(
+    "Pour chaque page, le champ scene_illustration doit décrire une scène claire et illustrable (décor, personnages, action), en une phrase.",
   );
   lignes.push("Réponds UNIQUEMENT avec le JSON strict demandé.");
 

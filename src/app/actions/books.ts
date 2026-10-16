@@ -16,9 +16,10 @@ import { getCurrentUser, hasParentalConsent } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { createBookSchema, checkUserText } from "@/lib/validation";
 import { checkDailyBookLimit } from "@/lib/rateLimit";
-import { generateStory } from "@/lib/storyGenerator";
+import { generateStory, describeAppearanceFromPhoto } from "@/lib/storyGenerator";
 import { findHeroById } from "@/lib/heroes";
 import type { LongueurKey } from "@/lib/validation";
+import type { IllustrationStyle } from "@/lib/style_config";
 
 export interface CreateBookResult {
   ok: boolean;
@@ -46,6 +47,10 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
     heroId: formData.get("heroId") ? String(formData.get("heroId")) : undefined,
     prompt: formData.get("prompt") ? String(formData.get("prompt")) : undefined,
     longueur: String(formData.get("longueur") ?? ""),
+    style: formData.get("style") ? String(formData.get("style")) : undefined,
+    appearance: formData.get("appearance")
+      ? String(formData.get("appearance"))
+      : undefined,
   });
 
   if (!parsed.success) {
@@ -57,6 +62,19 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
   if (input.mode === "libre" && input.prompt) {
     const check = checkUserText(input.prompt);
     if (!check.ok) return { ok: false, message: check.message };
+  }
+
+  // Détermine l'apparence du héros : description saisie, ou extraite d'une photo
+  // optionnelle via vision (la photo n'est NI stockée NI mise dans le livre).
+  let appearance = input.appearance ?? "";
+  if (appearance.length > 0) {
+    const check = checkUserText(appearance);
+    if (!check.ok) return { ok: false, message: check.message };
+  }
+  const photo = formData.get("photo");
+  if (typeof photo === "string" && photo.startsWith("data:image")) {
+    const depuisPhoto = await describeAppearanceFromPhoto(photo);
+    if (depuisPhoto.length > 0) appearance = depuisPhoto;
   }
 
   // Vérifie que l'enfant appartient bien à l'utilisateur.
@@ -94,6 +112,8 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
     heroId: input.heroId,
     prompt: input.prompt,
     longueur: input.longueur as LongueurKey,
+    style: input.style as IllustrationStyle,
+    appearance: appearance.length > 0 ? appearance : undefined,
   });
 
   if (!result.ok) {

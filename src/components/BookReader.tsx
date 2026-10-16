@@ -100,15 +100,33 @@ export default function BookReader({ story }: { story: Story }) {
       <div className="carte flex min-h-[320px] flex-col items-center justify-center text-center">
         {index === 0 ? (
           <>
+            {story.couvertureUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={story.couvertureUrl}
+                alt={`Couverture : ${story.titre}`}
+                className="mb-5 max-h-72 w-full max-w-xl rounded-2xl object-cover"
+              />
+            )}
             <h2 className="text-3xl font-bold text-magique-primaire">{story.titre}</h2>
             <p className="mt-4 text-magique-texteClair">Tournez la page pour commencer →</p>
           </>
         ) : (
           <>
+            {story.pages[index - 1]?.imageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={story.pages[index - 1]!.imageUrl!}
+                alt={story.pages[index - 1]?.scene_illustration ?? ""}
+                className="mb-5 max-h-80 w-full max-w-2xl rounded-2xl object-cover"
+              />
+            )}
             <p className="max-w-2xl text-2xl leading-relaxed">{texteCourant}</p>
-            <p className="mt-6 text-xs italic text-magique-texteClair">
-              ✦ {story.pages[index - 1]?.scene_illustration}
-            </p>
+            {!story.pages[index - 1]?.imageUrl && (
+              <p className="mt-6 text-xs italic text-magique-texteClair">
+                ✦ {story.pages[index - 1]?.scene_illustration}
+              </p>
+            )}
           </>
         )}
       </div>

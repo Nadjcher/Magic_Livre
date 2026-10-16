@@ -14,6 +14,8 @@ export const storyPageSchema = z.object({
   scene_illustration: z
     .string()
     .min(1, "La description de l'illustration est vide."),
+  // URL de l'illustration générée (ajoutée après la génération du texte).
+  imageUrl: z.string().url().nullable().optional(),
 });
 
 export const storySchema = z.object({
@@ -22,6 +24,10 @@ export const storySchema = z.object({
     .array(storyPageSchema)
     .min(8, "L'histoire doit contenir au moins 8 pages.")
     .max(12, "L'histoire ne doit pas dépasser 12 pages."),
+  // Illustration de couverture (optionnelle).
+  couvertureUrl: z.string().url().nullable().optional(),
+  // Style d'illustration retenu (mémoire, utile pour un « tome » suivant).
+  style: z.enum(["aventure", "feerique", "manga"]).optional(),
 });
 
 export type Story = z.infer<typeof storySchema>;

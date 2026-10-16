@@ -12,6 +12,7 @@ import {
   Page,
   Text,
   View,
+  Image,
   StyleSheet,
   renderToBuffer,
 } from "@react-pdf/renderer";
@@ -58,6 +59,21 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: STYLE_CONFIG.couleurs.texteClair,
   },
+  illustration: {
+    width: "100%",
+    height: 340,
+    objectFit: "cover",
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  coverImage: {
+    width: 420,
+    height: 260,
+    objectFit: "cover",
+    borderRadius: 12,
+    marginBottom: 28,
+    alignSelf: "center",
+  },
 });
 
 /**
@@ -69,6 +85,7 @@ export function buildStoryDocument(story: Story): JSX.Element {
     <Document title={story.titre} author="Mon Livre Magique">
       {/* Page de couverture */}
       <Page size="A4" orientation="landscape" style={styles.page}>
+        {story.couvertureUrl ? <Image src={story.couvertureUrl} style={styles.coverImage} /> : null}
         <Text style={styles.coverTitle}>{story.titre}</Text>
         <Text style={styles.coverSubtitle}>Un livre créé avec Mon Livre Magique</Text>
       </Page>
@@ -82,8 +99,11 @@ export function buildStoryDocument(story: Story): JSX.Element {
           style={styles.page}
         >
           <View>
+            {p.imageUrl ? <Image src={p.imageUrl} style={styles.illustration} /> : null}
             <Text style={styles.storyText}>{p.texte}</Text>
-            <Text style={styles.sceneHint}>✦ {p.scene_illustration}</Text>
+            {!p.imageUrl ? (
+              <Text style={styles.sceneHint}>✦ {p.scene_illustration}</Text>
+            ) : null}
           </View>
           <Text style={styles.pageNumber}>{index + 1}</Text>
         </Page>

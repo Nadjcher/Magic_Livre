@@ -13,6 +13,8 @@ import { SYSTEM_PROMPT, buildUserMessage, type StoryRequest } from "./storyPromp
 import { parseStory, type Story } from "./storySchema";
 import { filterStory } from "./contentFilter";
 import { findProtectedNames } from "./protectedCharacters";
+import { findHeroById } from "./heroes";
+import { generateIllustration, illustrationsEnabled } from "./illustration";
 
 export type GenerateResult =
   | { ok: true; story: Story }
@@ -94,8 +96,112 @@ export async function generateStory(req: StoryRequest): Promise<GenerateResult> 
       continue;
     }
 
-    return { ok: true, story: parsed.story };
+    // Texte validé : on ajoute les illustrations si la génération est activée.
+    const story = await addIllustrations(parsed.story, req);
+    return { ok: true, story };
   }
 
   return { ok: false, message: lastMessage };
+}
+
+/** Petit hachage stable pour dériver une graine d'image reproductible. */
+function hashSeed(text: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return Math.abs(h) % 1_000_000;
+}
+
+/**
+ * Ajoute une illustration à chaque page (et une couverture) si la génération
+ * d'images est activée. En cas d'échec, l'URL reste nulle : le livre reste lisible.
+ */
+async function addIllustrations(story: Story, req: StoryRequest): Promise<Story> {
+  const style = req.style ?? "feerique";
+  if (!illustrationsEnabled()) {
+    return { ...story, style };
+  }
+
+  const heroName =
+    req.mode === "hero" && req.heroId
+      ? findHeroById(req.heroId)?.nom
+      : req.childFirstName;
+  const base = hashSeed(story.titre + req.childFirstName);
+
+  const pages = await Promise.all(
+    story.pages.map(async (p, i) => {
+      const { imageUrl } = await generateIllustration({
+        style,
+        scene: p.scene_illustration,
+        heroName,
+        appearance: req.appearance,
+        seed: base + i + 1,
+      });
+      return { ...p, imageUrl };
+    }),
+  );
+
+  const cover = await generateIllustration({
+    style,
+    scene: `couverture de livre : ${story.titre}`,
+    heroName,
+    appearance: req.appearance,
+    seed: base,
+  });
+
+  return { ...story, pages, couvertureUrl: cover.imageUrl, style };
+}
+
+/**
+ * Décrit en quelques mots l'apparence physique d'un enfant à partir d'une photo,
+ * via Claude (multimodal). La photo n'est NI stockée NI renvoyée : seule une
+ * courte description textuelle est produite, puis réutilisée pour dessiner un
+ * personnage inspiré (jamais la vraie photo dans le livre).
+ *
+ * Renvoie "" en cas d'absence de photo valide ou d'échec.
+ */
+export async function describeAppearanceFromPhoto(
+  dataUrl: string,
+): Promise<string> {
+  const match = /^data:(image\/(?:png|jpeg|jpg|webp));base64,(.+)$/i.exec(dataUrl);
+  if (!match) return "";
+  const mediaType = (match[1] === "image/jpg" ? "image/jpeg" : match[1]) as
+    | "image/png"
+    | "image/jpeg"
+    | "image/webp";
+  const data = match[2] ?? "";
+  if (data.length === 0) return "";
+
+  try {
+    const client = createClient();
+    const response = await client.messages.create({
+      model: env.anthropicModel(),
+      max_tokens: 120,
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: mediaType, data } },
+            {
+              type: "text",
+              text:
+                "Décris en 10 mots maximum, en français, l'apparence physique générale " +
+                "de l'enfant sur cette photo (couleur de cheveux, coupe, couleur des yeux, " +
+                "lunettes éventuelles, teint). N'identifie jamais la personne, ne donne pas " +
+                "de nom, reste factuel et neutre. Réponds uniquement par la description.",
+            },
+          ],
+        },
+      ],
+    });
+    const texte = response.content
+      .map((b) => (b.type === "text" ? b.text : ""))
+      .join(" ")
+      .trim();
+    return texte.slice(0, 160);
+  } catch {
+    return "";
+  }
 }

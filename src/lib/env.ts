@@ -39,7 +39,10 @@ export const env = {
 
   // Voix / images
   voiceProvider: () => optional("VOICE_PROVIDER", "browser"),
+  // "none" (défaut, sûr) | "pollinations" (gratuit) | "gemini"
   imageProvider: () => optional("IMAGE_PROVIDER", "none"),
+  geminiApiKey: () => optional("GEMINI_API_KEY", ""),
+  geminiImageModel: () => optional("GEMINI_IMAGE_MODEL", "gemini-2.5-flash-image"),
 
   // URL publique
   authUrl: () => optional("AUTH_URL", "http://localhost:3000"),

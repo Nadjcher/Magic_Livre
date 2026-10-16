@@ -51,6 +51,14 @@ export const createBookSchema = z
       .max(300, "La description de l'aventure est limitée à 300 caractères.")
       .optional(),
     longueur: z.enum(["courte", "moyenne", "longue"]),
+    // Style d'illustration (défaut : féerique).
+    style: z.enum(["aventure", "feerique", "manga"]).default("feerique"),
+    // Description libre de l'apparence (facultative, limitée).
+    appearance: z
+      .string()
+      .trim()
+      .max(160, "La description est trop longue.")
+      .optional(),
   })
   .superRefine((data, ctx) => {
     if (data.mode === "hero" && !data.heroId) {
