@@ -5,16 +5,17 @@
 
 import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
+import Logo from "./Logo";
 
 export default async function Header() {
   const session = await auth();
   const connecte = Boolean(session?.user);
 
   return (
-    <header className="border-b border-black/5 bg-white/80 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-white/40 bg-white/70 backdrop-blur-md">
       <nav className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" className="text-xl font-bold text-magique-primaire">
-          ✨ Mon Livre Magique
+        <Link href="/" aria-label="Accueil Mon Livre Magique">
+          <Logo />
         </Link>
         <div className="flex flex-wrap items-center gap-3 text-sm">
           {connecte ? (

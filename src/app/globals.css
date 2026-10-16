@@ -6,23 +6,83 @@
   color-scheme: light;
 }
 
+/* Fond magique : dégradé doux + halos colorés fixés en arrière-plan. */
 body {
-  background-color: #fff9f0;
   color: #1f2937;
+  background-color: #fff9f0;
+  background-image:
+    radial-gradient(42rem 42rem at 12% -8%, rgba(124, 58, 237, 0.14), transparent 60%),
+    radial-gradient(38rem 38rem at 108% 4%, rgba(245, 158, 11, 0.16), transparent 60%),
+    radial-gradient(44rem 44rem at 50% 118%, rgba(16, 185, 129, 0.12), transparent 60%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
 }
 
-/* Classes utilitaires réutilisables pour garder une cohérence visuelle. */
 @layer components {
+  /* Bouton principal : dégradé magique + relief au survol. */
   .btn-primaire {
-    @apply inline-flex items-center justify-center rounded-full bg-magique-primaire px-6 py-3 font-semibold text-white shadow transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-semibold text-white shadow-lg shadow-magique-primaire/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-magique-primaire/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+    background-image: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
   }
   .btn-secondaire {
-    @apply inline-flex items-center justify-center rounded-full border-2 border-magique-primaire px-6 py-3 font-semibold text-magique-primaire transition hover:bg-magique-primaire hover:text-white;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-magique-primaire bg-white/70 px-6 py-3 font-semibold text-magique-primaire backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:bg-magique-primaire hover:text-white;
   }
+  /* Carte : verre doux + léger soulèvement au survol. */
   .carte {
-    @apply rounded-2xl border border-black/5 bg-white p-6 shadow-sm;
+    @apply rounded-3xl border border-white/60 bg-white/80 p-6 shadow-sm backdrop-blur-sm transition-all duration-200;
+  }
+  .carte-interactive {
+    @apply hover:-translate-y-1 hover:shadow-xl hover:shadow-magique-primaire/10;
   }
   .champ {
-    @apply w-full rounded-xl border border-gray-300 px-4 py-2 outline-none focus:border-magique-primaire focus:ring-2 focus:ring-magique-primaire/30;
+    @apply w-full rounded-xl border border-gray-300 bg-white/90 px-4 py-2 outline-none transition focus:border-magique-primaire focus:ring-2 focus:ring-magique-primaire/30;
+  }
+}
+
+@layer utilities {
+  /* Texte en dégradé pour les titres. */
+  .text-gradient {
+    background-image: linear-gradient(120deg, #7c3aed 0%, #a855f7 45%, #f59e0b 110%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  /* Flottement doux (emojis décoratifs). */
+  .anim-flotte {
+    animation: flotte 6s ease-in-out infinite;
+  }
+  /* Scintillement des étoiles. */
+  .anim-scintille {
+    animation: scintille 3s ease-in-out infinite;
+  }
+}
+
+@keyframes flotte {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(4deg);
+  }
+}
+
+@keyframes scintille {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+/* Respecte la préférence de réduction des animations. */
+@media (prefers-reduced-motion: reduce) {
+  .anim-flotte,
+  .anim-scintille {
+    animation: none;
   }
 }

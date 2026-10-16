@@ -4,9 +4,17 @@ import "./globals.css";
 import Header from "@/components/Header";
 
 export const metadata: Metadata = {
-  title: "Mon Livre Magique",
+  title: {
+    default: "Mon Livre Magique",
+    template: "%s · Mon Livre Magique",
+  },
   description:
     "Créez des livres illustrés personnalisés pour vos enfants, en français, avec des héros originaux.",
+  applicationName: "Mon Livre Magique",
+};
+
+export const viewport = {
+  themeColor: "#7C3AED",
 };
 
 export default function RootLayout({
