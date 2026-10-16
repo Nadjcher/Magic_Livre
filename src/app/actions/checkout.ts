@@ -38,22 +38,30 @@ export async function startCheckout(bookId: string): Promise<CheckoutResult> {
   }
 
   try {
-    const checkout = await createCheckoutSession({
-      userId: user.id,
-      bookId: book.id,
-      bookTitle: book.title,
-    });
-
-    // Enregistre la commande en attente, reliée à la session Stripe.
-    await prisma.order.create({
+    // 1. On crée d'abord la commande en attente (sans stripeSessionId).
+    const order = await prisma.order.create({
       data: {
         userId: user.id,
         bookId: book.id,
-        stripeSessionId: checkout.sessionId,
         status: "pending",
         amount: env.bookPriceCents(),
         currency: env.bookCurrency(),
       },
+    });
+
+    // 2. On crée la session Stripe en lui passant l'identifiant de commande.
+    const checkout = await createCheckoutSession({
+      userId: user.id,
+      bookId: book.id,
+      orderId: order.id,
+      bookTitle: book.title,
+    });
+
+    // 3. On relie la session à la commande (le webhook sait de toute façon
+    //    retrouver la commande via orderId présent dans les métadonnées).
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { stripeSessionId: checkout.sessionId },
     });
 
     return { ok: true, message: "", url: checkout.url };

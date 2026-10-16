@@ -10,7 +10,15 @@
  * accents, pour éviter les faux positifs (ex : « simba » dans un autre mot).
  */
 
-/** Noms protégés (univers Disney, Pixar, Marvel, DC, Nintendo, Pokémon, etc.). */
+/**
+ * Noms protégés (univers Disney, Pixar, Marvel, DC, Nintendo, Pokémon, etc.).
+ *
+ * Note : on exclut volontairement les prénoms usuels qui sont aussi des
+ * personnages (Anna, Jasmine, Ariel, Marcus, Chase, Flash, Link, Peach) afin de
+ * ne pas bloquer un enfant qui porte réellement ce prénom. Chaque univers reste
+ * détectable via d'autres entrées (ex : « frozen », « aladdin », « pat
+ * patrouille », « mario »).
+ */
 export const PROTECTED_NAMES: readonly string[] = [
   // Disney / Pixar
   "mickey",
@@ -19,15 +27,12 @@ export const PROTECTED_NAMES: readonly string[] = [
   "dingo",
   "pluto",
   "elsa",
-  "anna",
   "olaf",
   "la reine des neiges",
   "frozen",
   "simba",
   "le roi lion",
   "aladdin",
-  "jasmine",
-  "ariel",
   "la petite sirene",
   "cendrillon",
   "blanche neige",
@@ -77,20 +82,17 @@ export const PROTECTED_NAMES: readonly string[] = [
   "batman",
   "superman",
   "wonder woman",
-  "flash",
   "aquaman",
   "joker",
 
   // Nintendo
   "mario",
   "luigi",
-  "peach",
   "bowser",
   "yoshi",
   "toad",
   "donkey kong",
   "zelda",
-  "link",
   "kirby",
 
   // Pokémon
@@ -120,8 +122,6 @@ export const PROTECTED_NAMES: readonly string[] = [
   "la pat patrouille",
   "pat patrouille",
   "paw patrol",
-  "chase",
-  "marcus",
   "peppa pig",
   "peppa",
   "les minions",
@@ -158,6 +158,10 @@ export const PROTECTED_NAMES: readonly string[] = [
 export function normalizeForMatch(input: string): string {
   return input
     .toLowerCase()
+    // Uniformise les apostrophes et guillemets typographiques (’ ‘ ‛ ʼ) vers
+    // l'apostrophe droite, afin qu'une saisie « Buzz l’Eclair » corresponde
+    // bien à l'entrée « buzz l'eclair ».
+    .replace(/[‘’‛ʼ]/g, "'")
     .normalize("NFD")
     // Supprime les diacritiques (accents).
     .replace(/[̀-ͯ]/g, "")

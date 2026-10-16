@@ -27,10 +27,15 @@ export async function checkDailyBookLimit(
   const limit = env.maxBooksPerDay();
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
+  // On ne compte que les livres réellement produits (ou en cours) et non
+  // supprimés : un échec de génération ou un livre supprimé ne doit pas
+  // consommer le quota quotidien de l'utilisateur.
   const used = await prisma.book.count({
     where: {
       userId,
       createdAt: { gte: since },
+      deletedAt: null,
+      status: { not: "failed" },
     },
   });
 

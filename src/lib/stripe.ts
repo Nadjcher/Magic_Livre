@@ -28,6 +28,7 @@ export function getStripe(): Stripe {
 export async function createCheckoutSession(params: {
   userId: string;
   bookId: string;
+  orderId: string;
   bookTitle: string;
 }): Promise<{ sessionId: string; url: string }> {
   const stripe = getStripe();
@@ -49,9 +50,12 @@ export async function createCheckoutSession(params: {
       },
     ],
     // On rattache les identifiants pour les retrouver dans le webhook.
+    // orderId permet de valider la commande même si l'enregistrement du
+    // stripeSessionId a échoué côté application.
     metadata: {
       userId: params.userId,
       bookId: params.bookId,
+      orderId: params.orderId,
     },
     success_url: `${baseUrl}/bibliotheque/${params.bookId}?paiement=succes`,
     cancel_url: `${baseUrl}/bibliotheque/${params.bookId}?paiement=annule`,

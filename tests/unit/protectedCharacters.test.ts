@@ -38,4 +38,20 @@ describe("liste des personnages protégés", () => {
   it("normalise correctement les accents et espaces", () => {
     expect(normalizeForMatch("  Pokémon   GO ")).toBe("pokemon go");
   });
+
+  it("détecte un nom protégé écrit avec une apostrophe typographique", () => {
+    // « Buzz l’Eclair » (apostrophe courbe ’) doit être détecté.
+    expect(containsProtectedName("une histoire avec Buzz l’Eclair")).toBe(true);
+  });
+
+  it("n'oublie pas les phrases du filtre avec apostrophe courbe", () => {
+    expect(normalizeForMatch("l’eau de javel")).toBe("l'eau de javel");
+  });
+
+  it("autorise les prénoms usuels qui sont aussi des personnages", () => {
+    // Ces prénoms réels ne doivent pas être bloqués.
+    for (const prenom of ["Anna", "Jasmine", "Ariel", "Marcus", "Chase", "Peach", "Link"]) {
+      expect(containsProtectedName(prenom)).toBe(false);
+    }
+  });
 });

@@ -31,21 +31,25 @@ export async function POST(req: Request): Promise<Response> {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    const bookId = session.metadata?.bookId;
+    const orderId = session.metadata?.orderId;
 
-    if (bookId && session.payment_status === "paid") {
-      // Marque la commande liée à cette session comme payée.
+    if (orderId && session.payment_status === "paid") {
+      // On retrouve la commande via orderId (robuste même si l'enregistrement
+      // du stripeSessionId avait échoué). On rattache la session au passage.
       await prisma.order.updateMany({
-        where: { stripeSessionId: session.id },
-        data: { status: "paid" },
+        where: { id: orderId },
+        data: { status: "paid", stripeSessionId: session.id },
       });
     }
   } else if (event.type === "checkout.session.expired") {
     const session = event.data.object as Stripe.Checkout.Session;
-    await prisma.order.updateMany({
-      where: { stripeSessionId: session.id },
-      data: { status: "failed" },
-    });
+    const orderId = session.metadata?.orderId;
+    if (orderId) {
+      await prisma.order.updateMany({
+        where: { id: orderId },
+        data: { status: "failed" },
+      });
+    }
   }
 
   // Stripe attend une réponse 200 pour cesser de renvoyer l'événement.

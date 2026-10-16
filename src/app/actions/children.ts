@@ -87,7 +87,26 @@ export async function deleteChild(childId: string): Promise<ActionResult> {
   });
   if (!existing) return { ok: false, message: "Enfant introuvable." };
 
-  // La suppression en cascade retire aussi les livres liés à cet enfant.
+  // Protection : la suppression d'un enfant supprime en cascade ses livres et
+  // les commandes associées. On refuse donc la suppression si l'enfant a au
+  // moins un livre acheté, pour ne pas détruire un contenu payé ni son
+  // enregistrement comptable. La suppression complète reste possible via la
+  // suppression du compte (RGPD).
+  const paidOrder = await prisma.order.findFirst({
+    where: { userId: user.id, status: "paid", book: { childId } },
+  });
+  if (paidOrder) {
+    return {
+      ok: false,
+      message:
+        "Cet enfant a au moins un livre acheté. Pour conserver vos achats, " +
+        "la suppression n'est pas possible ici. Vous pouvez supprimer les " +
+        "livres non payés, ou supprimer l'ensemble de vos données depuis la " +
+        "page « Mon compte ».",
+    };
+  }
+
+  // Aucun achat : la suppression en cascade ne retire que des livres non payés.
   await prisma.child.delete({ where: { id: childId } });
 
   revalidatePath("/enfants");
