@@ -1,0 +1,149 @@
+// Schéma Prisma pour « Mon Livre Magique ».
+// Base de données : PostgreSQL. La suppression d'un utilisateur supprime en
+// cascade ses enfants, ses livres et ses commandes (voir onDelete: Cascade).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// Utilisateur et consentement parental
+// -----------------------------------------------------------------------------
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  emailVerified     DateTime?
+  createdAt         DateTime  @default(now())
+
+  // Consentement parental : date d'acceptation et version des CGU acceptées.
+  // Null tant que le parent n'a pas donné son consentement.
+  parentalConsentAt DateTime?
+  termsVersion      String?
+
+  children Child[]
+  books    Book[]
+  orders   Order[]
+
+  // Tables requises par l'adaptateur Auth.js (connexion par lien magique).
+  accounts Account[]
+  sessions Session[]
+}
+
+// -----------------------------------------------------------------------------
+// Enfant (bénéficiaire du livre)
+// -----------------------------------------------------------------------------
+model Child {
+  id        String   @id @default(cuid())
+  userId    String
+  firstName String
+  age       Int
+  createdAt DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  books Book[]
+
+  @@index([userId])
+}
+
+// -----------------------------------------------------------------------------
+// Livre généré
+// -----------------------------------------------------------------------------
+enum BookStatus {
+  draft
+  generating
+  ready
+  failed
+}
+
+model Book {
+  id        String     @id @default(cuid())
+  userId    String
+  childId   String
+  title     String
+  theme     String
+  status    BookStatus @default(draft)
+  // Pages stockées en JSON : { titre, pages: [{ texte, scene_illustration }] }
+  pages     Json?
+  // Message d'erreur en français en cas d'échec de génération.
+  errorMessage String?
+  createdAt DateTime   @default(now())
+  // Suppression logique (soft delete) : renseigné lors de la suppression.
+  deletedAt DateTime?
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  child  Child   @relation(fields: [childId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@index([userId])
+  @@index([childId])
+}
+
+// -----------------------------------------------------------------------------
+// Commande (paiement Stripe)
+// -----------------------------------------------------------------------------
+enum OrderStatus {
+  pending
+  paid
+  failed
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String
+  bookId          String
+  stripeSessionId String?     @unique
+  status          OrderStatus @default(pending)
+  amount          Int // montant en centimes
+  currency        String      @default("eur")
+  createdAt       DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([bookId])
+}
+
+// -----------------------------------------------------------------------------
+// Tables Auth.js (NextAuth) — adaptateur Prisma
+// -----------------------------------------------------------------------------
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}

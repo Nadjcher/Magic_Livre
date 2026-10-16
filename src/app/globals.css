@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-color: #fff9f0;
+  color: #1f2937;
+}
+
+/* Classes utilitaires réutilisables pour garder une cohérence visuelle. */
+@layer components {
+  .btn-primaire {
+    @apply inline-flex items-center justify-center rounded-full bg-magique-primaire px-6 py-3 font-semibold text-white shadow transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-secondaire {
+    @apply inline-flex items-center justify-center rounded-full border-2 border-magique-primaire px-6 py-3 font-semibold text-magique-primaire transition hover:bg-magique-primaire hover:text-white;
+  }
+  .carte {
+    @apply rounded-2xl border border-black/5 bg-white p-6 shadow-sm;
+  }
+  .champ {
+    @apply w-full rounded-xl border border-gray-300 px-4 py-2 outline-none focus:border-magique-primaire focus:ring-2 focus:ring-magique-primaire/30;
+  }
+}

@@ -1,0 +1,46 @@
+/**
+ * Accès centralisé et typé aux variables d'environnement (côté serveur
+ * uniquement). Aucune de ces valeurs ne doit être exposée au navigateur.
+ */
+
+import "server-only";
+
+function required(name: string): string {
+  const value = process.env[name];
+  if (!value || value.length === 0) {
+    throw new Error(
+      `Variable d'environnement manquante : ${name}. Voir .env.example.`,
+    );
+  }
+  return value;
+}
+
+function optional(name: string, fallback: string): string {
+  const value = process.env[name];
+  return value && value.length > 0 ? value : fallback;
+}
+
+export const env = {
+  // Anthropic
+  anthropicApiKey: () => required("ANTHROPIC_API_KEY"),
+  anthropicModel: () => optional("ANTHROPIC_MODEL", "claude-sonnet-4-5"),
+
+  // Stripe
+  stripeSecretKey: () => required("STRIPE_SECRET_KEY"),
+  stripeWebhookSecret: () => required("STRIPE_WEBHOOK_SECRET"),
+  bookPriceCents: () => Number(optional("BOOK_PRICE_CENTS", "499")),
+  bookCurrency: () => optional("BOOK_CURRENCY", "eur"),
+
+  // Limites
+  maxBooksPerDay: () => Number(optional("MAX_BOOKS_PER_DAY", "5")),
+
+  // CGU
+  termsVersion: () => optional("TERMS_VERSION", "2026-01-01"),
+
+  // Voix / images
+  voiceProvider: () => optional("VOICE_PROVIDER", "browser"),
+  imageProvider: () => optional("IMAGE_PROVIDER", "none"),
+
+  // URL publique
+  authUrl: () => optional("AUTH_URL", "http://localhost:3000"),
+} as const;
