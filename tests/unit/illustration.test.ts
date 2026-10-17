@@ -25,7 +25,18 @@ describe("construction du prompt d'illustration", () => {
   it("ajoute toujours le socle de sécurité enfant", () => {
     const p = buildIllustrationPrompt({ style: "feerique", scene: "une forêt" });
     expect(p).toContain("no text");
-    expect(p).toContain("no violence");
+    expect(p).toContain("child-safe");
+  });
+
+  it("construit une fiche personnage cohérente et la réutilise", () => {
+    const p = buildIllustrationPrompt({
+      style: "feerique",
+      scene: "dans la forêt",
+      heroName: "Lila",
+      appearance: "renarde orange",
+    });
+    expect(p).toContain("same consistent character design");
+    expect(p).toContain("Lila");
   });
 
   it("propose exactement trois styles", () => {
