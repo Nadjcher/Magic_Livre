@@ -126,6 +126,7 @@ export default function BookReader({ story }: { story: Story }) {
     <div className="space-y-4">
       {/* Écran du livre */}
       <div className="carte flex min-h-[320px] flex-col items-center justify-center text-center">
+        <div key={index} className="anim-page flex w-full flex-col items-center">
         {index === 0 ? (
           <>
             {story.couvertureUrl && (
@@ -157,6 +158,7 @@ export default function BookReader({ story }: { story: Story }) {
             )}
           </>
         )}
+        </div>
       </div>
 
       {/* Barre de navigation */}

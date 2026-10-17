@@ -13,6 +13,7 @@ import type { Hero } from "@/lib/heroes";
 import type { ChildView } from "./ChildrenManager";
 import { ILLUSTRATION_STYLES, type IllustrationStyle } from "@/lib/style_config";
 import Notice from "./Notice";
+import GenerationOverlay from "./GenerationOverlay";
 import Link from "next/link";
 
 const STYLE_KEYS = Object.keys(ILLUSTRATION_STYLES) as IllustrationStyle[];
@@ -128,7 +129,7 @@ export default function CreateBookForm({
             {heroes.map((h, i) => (
               <label
                 key={h.id}
-                className="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 p-3 hover:border-magique-primaire"
+                className="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 p-3 transition hover:border-magique-primaire has-[:checked]:border-magique-primaire has-[:checked]:bg-magique-primaire/5 has-[:checked]:shadow-or"
               >
                 <input
                   type="radio"
@@ -182,7 +183,7 @@ export default function CreateBookForm({
               onClick={() => setStyle(s)}
               className={`rounded-xl border-2 p-3 text-left transition ${
                 style === s
-                  ? "border-magique-primaire bg-magique-primaire/5"
+                  ? "anim-pulse-or border-magique-primaire bg-magique-primaire/5"
                   : "border-gray-200 hover:border-magique-primaire"
               }`}
             >
@@ -245,16 +246,7 @@ export default function CreateBookForm({
         {pending ? "Création de l'histoire en cours…" : "Créer le livre"}
       </button>
 
-      {pending && (
-        <Notice kind="info">
-          Nous écrivons l'histoire… Cela prend généralement moins d'une minute.
-          Vous pouvez aussi{" "}
-          <Link href="/bibliotheque" className="underline">
-            revenir à votre bibliothèque
-          </Link>
-          .
-        </Notice>
-      )}
+      {pending && <GenerationOverlay />}
     </form>
   );
 }

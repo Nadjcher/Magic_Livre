@@ -43,8 +43,12 @@ export default async function BibliothequePage() {
         </p>
       ) : (
         <ul className="space-y-3">
-          {books.map((book) => (
-            <li key={book.id} className="carte flex items-center justify-between gap-4">
+          {books.map((book, i) => (
+            <li
+              key={book.id}
+              className="carte anim-apparait flex items-center justify-between gap-4"
+              style={{ animationDelay: `${i * 0.06}s` }}
+            >
               <div>
                 <Link
                   href={`/bibliotheque/${book.id}`}
