@@ -175,8 +175,9 @@ export async function describeAppearanceFromPhoto(
     | "image/jpeg"
     | "image/webp";
   const data = match[2] ?? "";
-  // Garde-fou de taille : on refuse une image trop lourde (≈ 2,6 Mo encodés).
-  if (data.length === 0 || data.length > 3_600_000) return "";
+  // Garde-fou de taille, aligné sur la limite de corps des Server Actions (4 Mo) :
+  // au-delà, la requête n'aurait de toute façon pas pu arriver jusqu'ici.
+  if (data.length === 0 || data.length > 4_000_000) return "";
 
   try {
     const client = createClient();

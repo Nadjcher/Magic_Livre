@@ -17,10 +17,11 @@ export async function GET(
   const acc = await getPaidBookStory(params.id);
   if (!acc.ok) return NextResponse.json({ error: acc.error }, { status: acc.status });
 
-  // Résout l'image du poster (couverture, ou 1re illustration) en data URL.
-  const image = await fetchAsDataUrl(
-    acc.story.couvertureUrl ?? acc.story.pages[0]?.imageUrl,
-  );
+  // Résout l'image du poster : couverture, et à défaut (absente OU injoignable)
+  // la première illustration de page.
+  const image =
+    (await fetchAsDataUrl(acc.story.couvertureUrl)) ??
+    (await fetchAsDataUrl(acc.story.pages[0]?.imageUrl));
   const story = {
     ...acc.story,
     couvertureUrl: image,

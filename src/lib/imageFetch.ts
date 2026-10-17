@@ -1,10 +1,10 @@
 /**
- * Récupération robuste d'images côté serveur pour la génération des PDF.
+ * Récupération robuste de ressources distantes côté serveur.
  *
- * On télécharge chaque image en data URL (avec délai maximal et garde-fou de
- * taille) AVANT de construire le PDF, plutôt que de laisser @react-pdf aller
- * chercher les URL lui-même : une image lente, absente ou trop lourde ne fait
- * alors jamais échouer tout le document (elle est simplement ignorée).
+ * Le délai maximal couvre AUSSI la lecture du corps (pas seulement l'arrivée des
+ * en-têtes) : un flux qui se bloque après les en-têtes est donc bien interrompu.
+ * Un garde-fou de taille (Content-Length puis taille réelle) évite de charger en
+ * mémoire une réponse démesurée.
  */
 
 import "server-only";
@@ -12,16 +12,43 @@ import "server-only";
 const DEFAULT_TIMEOUT_MS = 20_000;
 const MAX_IMAGE_BYTES = 8_000_000; // 8 Mo par image
 
-/** `fetch` avec abandon automatique au bout de `timeoutMs`. */
-export async function fetchWithTimeout(
+export interface FetchResult {
+  ok: boolean;
+  status: number;
+  contentType: string;
+  bytes: Buffer | null;
+  tooLarge: boolean;
+}
+
+/**
+ * `fetch` dont le délai couvre la requête ET la lecture complète du corps.
+ * `maxBytes` : si connu via Content-Length, on abandonne avant de télécharger ;
+ * sinon on vérifie après lecture.
+ */
+export async function fetchAllWithTimeout(
   url: string,
   init: RequestInit = {},
-  timeoutMs = DEFAULT_TIMEOUT_MS,
-): Promise<Response> {
+  { timeoutMs = DEFAULT_TIMEOUT_MS, maxBytes }: { timeoutMs?: number; maxBytes?: number } = {},
+): Promise<FetchResult> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetch(url, { ...init, signal: controller.signal });
+    const res = await fetch(url, { ...init, signal: controller.signal });
+    const contentType = res.headers.get("content-type") ?? "";
+
+    if (maxBytes) {
+      const declared = Number(res.headers.get("content-length") ?? "0");
+      if (declared > maxBytes) {
+        controller.abort();
+        return { ok: res.ok, status: res.status, contentType, bytes: null, tooLarge: true };
+      }
+    }
+
+    const bytes = Buffer.from(await res.arrayBuffer());
+    if (maxBytes && bytes.length > maxBytes) {
+      return { ok: res.ok, status: res.status, contentType, bytes: null, tooLarge: true };
+    }
+    return { ok: res.ok, status: res.status, contentType, bytes, tooLarge: false };
   } finally {
     clearTimeout(timer);
   }
@@ -35,13 +62,11 @@ export async function fetchAsDataUrl(
   if (!url) return null;
   if (url.startsWith("data:")) return url;
   try {
-    const res = await fetchWithTimeout(url, {}, timeoutMs);
-    if (!res.ok) return null;
-    const type = res.headers.get("content-type") ?? "image/jpeg";
-    if (!type.startsWith("image/")) return null;
-    const buf = Buffer.from(await res.arrayBuffer());
-    if (buf.length === 0 || buf.length > MAX_IMAGE_BYTES) return null;
-    return `data:${type};base64,${buf.toString("base64")}`;
+    const res = await fetchAllWithTimeout(url, {}, { timeoutMs, maxBytes: MAX_IMAGE_BYTES });
+    if (!res.ok || res.tooLarge || !res.bytes) return null;
+    if (!res.contentType.startsWith("image/")) return null;
+    if (res.bytes.length === 0) return null;
+    return `data:${res.contentType};base64,${res.bytes.toString("base64")}`;
   } catch {
     return null;
   }

@@ -6,7 +6,7 @@
 
 import { NextResponse } from "next/server";
 import { getPaidBookStory, safeFileName } from "@/lib/bookAccess";
-import { fetchWithTimeout } from "@/lib/imageFetch";
+import { fetchAllWithTimeout } from "@/lib/imageFetch";
 import { env } from "@/lib/env";
 
 export const runtime = "nodejs";
@@ -36,7 +36,7 @@ export async function GET(
     .slice(0, 2500);
 
   try {
-    const res = await fetchWithTimeout(
+    const res = await fetchAllWithTimeout(
       `https://api.elevenlabs.io/v1/text-to-speech/${env.elevenLabsVoiceId()}`,
       {
         method: "POST",
@@ -50,15 +50,15 @@ export async function GET(
           model_id: "eleven_multilingual_v2",
         }),
       },
-      45_000,
+      { timeoutMs: 45_000, maxBytes: 30_000_000 },
     );
-    if (!res.ok) {
+    if (!res.ok || !res.bytes) {
       return NextResponse.json(
         { error: "La génération audio a échoué. Réessayez plus tard." },
         { status: 502 },
       );
     }
-    const audio = Buffer.from(await res.arrayBuffer());
+    const audio = res.bytes;
     return new NextResponse(new Uint8Array(audio), {
       status: 200,
       headers: {
