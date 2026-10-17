@@ -28,7 +28,7 @@ export default function AccueilPage() {
     <div className="space-y-20">
       {/* ─── Héros : la nuit où commence l'histoire ─── */}
       <section
-        className="relative overflow-hidden rounded-[2.5rem] px-6 py-16 sm:px-12"
+        className="relative overflow-hidden rounded-[2.5rem] px-6 py-12 ring-1 ring-white/10 sm:px-12 sm:py-16"
         style={{
           backgroundImage:
             "radial-gradient(70% 55% at 82% 20%, rgba(154,122,224,.45), rgba(154,122,224,0) 60%), radial-gradient(60% 50% at 10% 92%, rgba(57,165,143,.28), rgba(57,165,143,0) 60%), linear-gradient(180deg,#171338,#1b1544 55%,#15103a)",
@@ -70,21 +70,21 @@ export default function AccueilPage() {
           <span className="anim-derive absolute h-1 w-1 rounded-full bg-or-clair" style={{ bottom: "28%", left: "36%", animationDelay: "5s" }} />
         </div>
 
-        <div className="relative z-10 grid items-center gap-10 md:grid-cols-[1.05fr_.95fr]">
+        <div className="relative z-10 grid items-center gap-8 sm:gap-10 md:grid-cols-[1.05fr_.95fr]">
           <div>
-            <div className="mb-5 flex" style={{ animation: "eclore 1s .1s both" }}>
+            <div className="mb-5 flex" style={{ animation: "eclore .8s .05s both" }}>
               <LogoMark className="h-14 w-14 drop-shadow-md anim-flotte" />
             </div>
             <p
               className="flex items-center gap-2 font-serif text-[15px] italic text-or-clair"
-              style={{ animation: "monter .8s .2s both" }}
+              style={{ animation: "monter .6s .08s both" }}
             >
               <Etoile className="h-3.5 w-3.5 text-or" />
               Une histoire unique, écrite pour votre enfant
             </p>
             <h1
               className="mt-4 text-4xl leading-[1.05] text-white sm:text-6xl"
-              style={{ animation: "monter .8s .35s both" }}
+              style={{ animation: "monter .6s .16s both" }}
             >
               Il était une fois…
               <br />
@@ -92,13 +92,13 @@ export default function AccueilPage() {
             </h1>
             <p
               className="mt-5 max-w-[32ch] text-lg leading-relaxed text-[#dcd6f4]"
-              style={{ animation: "monter .8s .5s both" }}
+              style={{ animation: "monter .6s .24s both" }}
             >
               Un prénom, quelques traits — et, si vous le souhaitez, une photo. Nous
               écrivons un conte doux à l'image de votre enfant, parfait pour le
               rituel du soir et à écouter à voix haute.
             </p>
-            <div className="mt-8 flex flex-wrap gap-4" style={{ animation: "monter .8s .65s both" }}>
+            <div className="mt-8 flex flex-wrap gap-4" style={{ animation: "monter .6s .32s both" }}>
               <Link href="/connexion" className="btn-primaire">
                 Créer notre histoire
               </Link>
@@ -112,7 +112,7 @@ export default function AccueilPage() {
           </div>
 
           {/* Le livre d'où s'échappe un monde (illustration) */}
-          <div className="relative" style={{ animation: "eclore 1s .4s both" }}>
+          <div className="relative mx-auto max-w-sm md:max-w-none" style={{ animation: "eclore .9s .2s both" }}>
             <div
               className="halo-pulse pointer-events-none absolute inset-0"
               style={{
