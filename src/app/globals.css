@@ -6,83 +6,103 @@
   color-scheme: light;
 }
 
-/* Fond magique : dégradé doux + halos colorés fixés en arrière-plan. */
+/* Fond parchemin avec halos colorés doux (lumière de conte), fixés. */
 body {
-  color: #1f2937;
-  background-color: #fff9f0;
+  color: #2a2443;
+  background-color: #fbf2df;
   background-image:
-    radial-gradient(42rem 42rem at 12% -8%, rgba(124, 58, 237, 0.14), transparent 60%),
-    radial-gradient(38rem 38rem at 108% 4%, rgba(245, 158, 11, 0.16), transparent 60%),
-    radial-gradient(44rem 44rem at 50% 118%, rgba(16, 185, 129, 0.12), transparent 60%);
+    radial-gradient(44rem 44rem at 10% -10%, rgba(109, 59, 209, 0.12), transparent 60%),
+    radial-gradient(40rem 40rem at 110% 6%, rgba(233, 169, 75, 0.16), transparent 60%),
+    radial-gradient(46rem 46rem at 50% 120%, rgba(57, 165, 143, 0.1), transparent 60%);
   background-attachment: fixed;
   background-repeat: no-repeat;
 }
 
+/* Les titres parlent la langue du conte : Fraunces. */
+h1, h2, h3, .serif {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Accessibilité : focus clavier toujours visible. */
+:focus-visible {
+  outline: 3px solid rgba(109, 59, 209, 0.55);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
 @layer components {
-  /* Bouton principal : dégradé magique + relief au survol. */
+  /* Bouton principal : or en relief, léger soulèvement au survol. */
   .btn-primaire {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-semibold text-white shadow-lg shadow-magique-primaire/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-magique-primaire/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
-    background-image: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-bold text-[#3a2708] shadow-or transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+    background-image: linear-gradient(180deg, #f0b863, #e39a37);
   }
   .btn-secondaire {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-magique-primaire bg-white/70 px-6 py-3 font-semibold text-magique-primaire backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:bg-magique-primaire hover:text-white;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-magique-primaire bg-white/70 px-6 py-3 font-bold text-magique-primaire backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:bg-magique-primaire hover:text-white;
   }
-  /* Carte : verre doux + léger soulèvement au survol. */
+  /* Carte parchemin, verre doux. */
   .carte {
-    @apply rounded-3xl border border-white/60 bg-white/80 p-6 shadow-sm backdrop-blur-sm transition-all duration-200;
+    @apply rounded-3xl border border-magique-trait bg-white/80 p-6 shadow-sm backdrop-blur-sm transition-all duration-200;
   }
   .carte-interactive {
-    @apply hover:-translate-y-1 hover:shadow-xl hover:shadow-magique-primaire/10;
+    @apply hover:-translate-y-1 hover:shadow-conte;
   }
   .champ {
-    @apply w-full rounded-xl border border-gray-300 bg-white/90 px-4 py-2 outline-none transition focus:border-magique-primaire focus:ring-2 focus:ring-magique-primaire/30;
+    @apply w-full rounded-xl border border-magique-trait bg-white/90 px-4 py-2 outline-none transition focus:border-magique-primaire focus:ring-2 focus:ring-magique-primaire/30;
   }
 }
 
 @layer utilities {
-  /* Texte en dégradé pour les titres. */
+  /* Titre en dégradé plume → or (réservé à la marque et aux grands titres). */
   .text-gradient {
-    background-image: linear-gradient(120deg, #7c3aed 0%, #a855f7 45%, #f59e0b 110%);
+    background-image: linear-gradient(118deg, #6d3bd1 0%, #9a5ae0 42%, #e9a94b 110%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
-  /* Flottement doux (emojis décoratifs). */
   .anim-flotte {
     animation: flotte 6s ease-in-out infinite;
   }
-  /* Scintillement des étoiles. */
   .anim-scintille {
     animation: scintille 3s ease-in-out infinite;
   }
 }
 
+/* Ornement doré : deux filets autour d'une étoile (marque les sections). */
+.ornement {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #e9a94b;
+}
+.ornement::before,
+.ornement::after {
+  content: "";
+  height: 1.5px;
+  width: 56px;
+}
+.ornement::before { background: linear-gradient(90deg, transparent, #e9a94b); }
+.ornement::after { background: linear-gradient(90deg, #e9a94b, transparent); }
+
 @keyframes flotte {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-12px) rotate(4deg);
-  }
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(3deg); }
 }
-
 @keyframes scintille {
-  0%,
-  100% {
-    opacity: 0.35;
-    transform: scale(0.9);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.1);
-  }
+  0%, 100% { opacity: 0.3; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+/* Entrée d'ouverture (une seule fois, au chargement). */
+@keyframes monter {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes eclore {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: none; }
 }
 
-/* Respecte la préférence de réduction des animations. */
 @media (prefers-reduced-motion: reduce) {
-  .anim-flotte,
-  .anim-scintille {
-    animation: none;
-  }
+  .anim-flotte, .anim-scintille { animation: none; }
 }

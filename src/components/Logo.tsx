@@ -51,7 +51,7 @@ export default function Logo() {
   return (
     <span className="flex items-center gap-2">
       <LogoMark className="h-9 w-9 drop-shadow-sm" />
-      <span className="text-xl font-bold text-gradient">Mon Livre Magique</span>
+      <span className="font-serif text-xl font-bold text-gradient">Mon Livre Magique</span>
     </span>
   );
 }
