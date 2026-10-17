@@ -35,7 +35,7 @@ h1, h2, h3, .serif {
 @layer components {
   /* Bouton principal : or en relief, léger soulèvement au survol. */
   .btn-primaire {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-bold text-[#3a2708] shadow-or transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+    @apply relative overflow-hidden inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-bold text-[#3a2708] shadow-or transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
     background-image: linear-gradient(180deg, #f0b863, #e39a37);
   }
   .btn-secondaire {
@@ -103,6 +103,50 @@ h1, h2, h3, .serif {
   to { opacity: 1; transform: none; }
 }
 
+/* Reflet doré qui balaie le bouton principal. */
+.btn-primaire::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.7),
+    rgba(255, 255, 255, 0)
+  );
+  transform: skewX(-18deg);
+  animation: reflet 4.5s ease-in-out infinite;
+}
+@keyframes reflet {
+  0%, 18% { left: -60%; }
+  45%, 100% { left: 130%; }
+}
+
+/* Halo qui respire derrière l'illustration du héros. */
+.halo-pulse { animation: halo 6s ease-in-out infinite; }
+@keyframes halo {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.95; transform: scale(1.08); }
+}
+
+/* Poussière d'étoiles qui s'élève lentement puis disparaît. */
+.anim-derive { animation: derive 9s ease-in-out infinite; }
+@keyframes derive {
+  0% { opacity: 0; transform: translateY(10px) scale(0.7); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-46px) scale(1.1); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .anim-flotte, .anim-scintille { animation: none; }
+  .anim-flotte,
+  .anim-scintille,
+  .anim-derive,
+  .halo-pulse,
+  .btn-primaire::after {
+    animation: none;
+  }
+  .btn-primaire::after { display: none; }
 }

@@ -42,13 +42,13 @@ export default function AccueilPage() {
           aria-hidden="true"
         >
           <g fill="#ffffff">
-            <circle cx="120" cy="90" r="1.6" opacity=".7" />
+            <circle className="anim-scintille" cx="120" cy="90" r="1.8" />
             <circle cx="300" cy="150" r="1.1" opacity=".5" />
-            <circle cx="520" cy="80" r="1.3" opacity=".6" />
+            <circle className="anim-scintille" cx="520" cy="80" r="1.4" style={{ animationDelay: "0.6s" }} />
             <circle cx="760" cy="120" r="1.2" opacity=".5" />
-            <circle cx="980" cy="70" r="1.5" opacity=".7" />
+            <circle className="anim-scintille" cx="980" cy="70" r="1.6" style={{ animationDelay: "1.2s" }} />
             <circle cx="1120" cy="160" r="1.2" opacity=".5" />
-            <circle cx="200" cy="320" r="1.2" opacity=".5" />
+            <circle className="anim-scintille" cx="200" cy="320" r="1.3" style={{ animationDelay: "1.8s" }} />
             <circle cx="1060" cy="330" r="1.3" opacity=".55" />
           </g>
           <g transform="translate(1080,110)">
@@ -57,6 +57,18 @@ export default function AccueilPage() {
           </g>
           <Etoile className="h-6 w-6" style={{ color: "#f6d79a", transform: "translate(250px,330px)" }} />
         </svg>
+
+        {/* Poussière d'étoiles flottante */}
+        <div className="pointer-events-none absolute inset-0 z-[1]" aria-hidden="true">
+          <Etoile className="anim-scintille absolute h-3 w-3 text-or-clair" style={{ top: "16%", left: "30%" }} />
+          <Etoile className="anim-scintille absolute h-4 w-4 text-or" style={{ top: "70%", left: "8%", animationDelay: "1.1s" }} />
+          <Etoile className="anim-scintille absolute h-3 w-3 text-magique-rose" style={{ top: "30%", right: "16%", animationDelay: "0.5s" }} />
+          <Etoile className="anim-scintille absolute h-2.5 w-2.5 text-or-clair" style={{ bottom: "14%", right: "26%", animationDelay: "1.7s" }} />
+          <span className="anim-derive absolute h-1.5 w-1.5 rounded-full bg-or-clair" style={{ bottom: "20%", left: "44%" }} />
+          <span className="anim-derive absolute h-1 w-1 rounded-full bg-or" style={{ bottom: "24%", left: "56%", animationDelay: "2s" }} />
+          <span className="anim-derive absolute h-1.5 w-1.5 rounded-full bg-white/80" style={{ bottom: "16%", left: "64%", animationDelay: "3.5s" }} />
+          <span className="anim-derive absolute h-1 w-1 rounded-full bg-or-clair" style={{ bottom: "28%", left: "36%", animationDelay: "5s" }} />
+        </div>
 
         <div className="relative z-10 grid items-center gap-10 md:grid-cols-[1.05fr_.95fr]">
           <div>
@@ -101,11 +113,19 @@ export default function AccueilPage() {
 
           {/* Le livre d'où s'échappe un monde (illustration) */}
           <div className="relative" style={{ animation: "eclore 1s .4s both" }}>
+            <div
+              className="halo-pulse pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(50% 45% at 50% 46%, rgba(246,215,154,.5), rgba(246,215,154,0) 70%)",
+              }}
+              aria-hidden="true"
+            />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/illustrations/hero.jpg"
+              src="/illustrations/hero.webp"
               alt="Un livre ouvert d'où s'élève un château enchanté sous un ciel étoilé"
-              className="anim-flotte w-full rounded-[2rem] shadow-conte"
+              className="anim-flotte relative w-full rounded-[2rem] shadow-conte"
             />
           </div>
         </div>
