@@ -21,14 +21,32 @@ const nunito = Nunito({
   display: "swap",
 });
 
+const APP_URL = process.env.AUTH_URL ?? "http://localhost:3000";
+const DESCRIPTION =
+  "Créez des livres illustrés personnalisés pour vos enfants, en français, avec des héros originaux.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(APP_URL),
   title: {
     default: "Mon Livre Magique",
     template: "%s · Mon Livre Magique",
   },
-  description:
-    "Créez des livres illustrés personnalisés pour vos enfants, en français, avec des héros originaux.",
+  description: DESCRIPTION,
   applicationName: "Mon Livre Magique",
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    siteName: "Mon Livre Magique",
+    title: "Mon Livre Magique",
+    description: DESCRIPTION,
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Mon Livre Magique" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Mon Livre Magique",
+    description: DESCRIPTION,
+    images: ["/og-image.png"],
+  },
 };
 
 export const viewport = {
