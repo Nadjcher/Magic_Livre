@@ -5,6 +5,8 @@ const nextConfig = {
   // afin d'éviter des erreurs de regroupement (bundling) dans les routes API.
   experimental: {
     serverComponentsExternalPackages: ["@react-pdf/renderer"],
+    // La création de livre peut recevoir une photo (redimensionnée) en data URL.
+    serverActions: { bodySizeLimit: "4mb" },
   },
 };
 

@@ -13,6 +13,7 @@
 
 import "server-only";
 import { env } from "./env";
+import { fetchWithTimeout } from "./imageFetch";
 import {
   buildIllustrationPrompt,
   type IllustrationStyle,
@@ -86,13 +87,15 @@ async function geminiImage(prompt: string): Promise<string | null> {
   const url =
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-    }),
-  });
+  const res = await fetchWithTimeout(
+    url,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+    },
+    30_000,
+  );
 
   if (!res.ok) return null;
   const data = (await res.json()) as {

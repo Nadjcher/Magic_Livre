@@ -32,13 +32,16 @@ function createClient(): Anthropic {
  * Appelle le modèle une fois et renvoie le texte brut de la réponse.
  */
 async function callModel(client: Anthropic, userMessage: string): Promise<string> {
-  const response = await client.messages.create({
-    model: env.anthropicModel(),
-    max_tokens: 4096,
-    temperature: 0.8,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: userMessage }],
-  });
+  const response = await client.messages.create(
+    {
+      model: env.anthropicModel(),
+      max_tokens: 4096,
+      temperature: 0.8,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: userMessage }],
+    },
+    { timeout: 90_000 },
+  );
 
   // Concatène les blocs de texte de la réponse.
   return response.content
@@ -172,30 +175,34 @@ export async function describeAppearanceFromPhoto(
     | "image/jpeg"
     | "image/webp";
   const data = match[2] ?? "";
-  if (data.length === 0) return "";
+  // Garde-fou de taille : on refuse une image trop lourde (≈ 2,6 Mo encodés).
+  if (data.length === 0 || data.length > 3_600_000) return "";
 
   try {
     const client = createClient();
-    const response = await client.messages.create({
-      model: env.anthropicModel(),
-      max_tokens: 120,
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "image", source: { type: "base64", media_type: mediaType, data } },
-            {
-              type: "text",
-              text:
-                "Décris en 10 mots maximum, en français, l'apparence physique générale " +
-                "de l'enfant sur cette photo (couleur de cheveux, coupe, couleur des yeux, " +
-                "lunettes éventuelles, teint). N'identifie jamais la personne, ne donne pas " +
-                "de nom, reste factuel et neutre. Réponds uniquement par la description.",
-            },
-          ],
-        },
-      ],
-    });
+    const response = await client.messages.create(
+      {
+        model: env.anthropicModel(),
+        max_tokens: 120,
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "image", source: { type: "base64", media_type: mediaType, data } },
+              {
+                type: "text",
+                text:
+                  "Décris en 10 mots maximum, en français, l'apparence physique générale " +
+                  "de l'enfant sur cette photo (couleur de cheveux, coupe, couleur des yeux, " +
+                  "lunettes éventuelles, teint). N'identifie jamais la personne, ne donne pas " +
+                  "de nom, reste factuel et neutre. Réponds uniquement par la description.",
+              },
+            ],
+          },
+        ],
+      },
+      { timeout: 25_000 },
+    );
     const texte = response.content
       .map((b) => (b.type === "text" ? b.text : ""))
       .join(" ")

@@ -6,6 +6,7 @@
 import { NextResponse } from "next/server";
 import { getPaidBookStory, safeFileName } from "@/lib/bookAccess";
 import { generateIllustration, illustrationsEnabled } from "@/lib/illustration";
+import { resolveImages } from "@/lib/imageFetch";
 import { renderColoringPdf } from "@/lib/pdf";
 
 export const runtime = "nodejs";
@@ -37,7 +38,9 @@ export async function GET(
     }),
   );
 
-  const pdf = await renderColoringPdf(acc.story, urls);
+  // Résout les dessins au trait en data URL avant le rendu (fiabilité).
+  const resolved = await resolveImages(urls);
+  const pdf = await renderColoringPdf(acc.story, resolved);
   return new NextResponse(new Uint8Array(pdf), {
     status: 200,
     headers: {

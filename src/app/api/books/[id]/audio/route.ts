@@ -6,6 +6,7 @@
 
 import { NextResponse } from "next/server";
 import { getPaidBookStory, safeFileName } from "@/lib/bookAccess";
+import { fetchWithTimeout } from "@/lib/imageFetch";
 import { env } from "@/lib/env";
 
 export const runtime = "nodejs";
@@ -35,7 +36,7 @@ export async function GET(
     .slice(0, 2500);
 
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `https://api.elevenlabs.io/v1/text-to-speech/${env.elevenLabsVoiceId()}`,
       {
         method: "POST",
@@ -49,6 +50,7 @@ export async function GET(
           model_id: "eleven_multilingual_v2",
         }),
       },
+      45_000,
     );
     if (!res.ok) {
       return NextResponse.json(
