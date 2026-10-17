@@ -99,9 +99,14 @@ export default function AccueilPage() {
             </div>
           </div>
 
-          {/* Le livre d'où s'échappe un monde */}
+          {/* Le livre d'où s'échappe un monde (illustration) */}
           <div className="relative" style={{ animation: "eclore 1s .4s both" }}>
-            <HeroBook />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/illustrations/hero.jpg"
+              alt="Un livre ouvert d'où s'élève un château enchanté sous un ciel étoilé"
+              className="anim-flotte w-full rounded-[2rem] shadow-conte"
+            />
           </div>
         </div>
       </section>
@@ -215,70 +220,3 @@ export default function AccueilPage() {
   );
 }
 
-/** Illustration du héros : livre ouvert, halo, monde qui s'élève. */
-function HeroBook() {
-  return (
-    <svg viewBox="0 0 480 440" className="w-full" aria-hidden="true">
-      <defs>
-        <radialGradient id="halo" cx="50%" cy="44%" r="55%">
-          <stop offset="0" stopColor="#f6d79a" stopOpacity=".9" />
-          <stop offset="100%" stopColor="#f6d79a" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id="tour" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#b9a6f0" />
-          <stop offset="1" stopColor="#8f79d6" />
-        </linearGradient>
-      </defs>
-      <ellipse cx="240" cy="250" rx="220" ry="190" fill="url(#halo)" />
-
-      {/* spirale de poussière d'étoiles */}
-      <path
-        d="M240 250 C150 220 150 130 250 120 C340 112 350 58 262 44"
-        fill="none"
-        stroke="#f3cd8f"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        opacity=".7"
-        strokeDasharray="2 10"
-      />
-      {/* château flottant */}
-      <g transform="translate(250,86)">
-        <rect x="-34" y="0" width="68" height="30" rx="3" fill="url(#tour)" />
-        <rect x="-34" y="-20" width="12" height="20" fill="url(#tour)" />
-        <rect x="-6" y="-26" width="12" height="26" fill="url(#tour)" />
-        <rect x="22" y="-20" width="12" height="20" fill="url(#tour)" />
-        <path d="M-28 -20 l6 -8 6 8z M0 -26 l6 -8 6 8z M28 -20 l6 -8 6 8z" fill="#f0b863" />
-      </g>
-      {/* planète à anneau */}
-      <g transform="translate(336,150)">
-        <circle r="16" fill="#7aa8e8" />
-        <ellipse cx="-5" cy="-4" rx="7" ry="4" fill="#9fd0b0" />
-        <ellipse rx="26" ry="8" fill="none" stroke="#f3cd8f" strokeWidth="2.2" transform="rotate(-20)" />
-      </g>
-      {/* ombre + livre */}
-      <ellipse cx="240" cy="378" rx="150" ry="15" fill="#0a0820" opacity=".3" />
-      <g transform="translate(240,300)">
-        <path d="M0 -36 C-48 -66 -128 -66 -176 -36 L-176 70 C-128 40 -48 40 0 70 Z" fill="#fffdf7" stroke="#e6dcc4" />
-        <path d="M0 -36 C48 -66 128 -66 176 -36 L176 70 C128 40 48 40 0 70 Z" fill="#fbeccd" stroke="#e6dcc4" />
-        <path d="M0 -36 L0 70" stroke="#caa15f" strokeWidth="2" />
-        <g stroke="#d9c79b" strokeWidth="4" strokeLinecap="round" opacity=".8">
-          <path d="M-150 -28 L-34 -28" />
-          <path d="M-150 -4 L-34 -4" />
-          <path d="M-150 20 L-56 20" />
-          <path d="M34 -28 L150 -28" />
-          <path d="M34 -4 L150 -4" />
-          <path d="M56 20 L150 20" />
-        </g>
-      </g>
-      {/* renard conteur */}
-      <g transform="translate(104,300)">
-        <ellipse cx="0" cy="24" rx="26" ry="22" fill="#e0763f" />
-        <path d="M-20 6 l-8 -22 16 8z M20 6 l8 -22 -16 8z" fill="#e0763f" />
-        <ellipse cx="0" cy="30" rx="13" ry="11" fill="#fbeccd" />
-        <circle cx="-8" cy="20" r="2.6" fill="#2a2443" />
-        <circle cx="8" cy="20" r="2.6" fill="#2a2443" />
-        <circle cx="0" cy="28" r="2.4" fill="#2a2443" />
-      </g>
-    </svg>
-  );
-}
