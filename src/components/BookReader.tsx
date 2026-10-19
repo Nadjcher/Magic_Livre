@@ -1,37 +1,57 @@
 "use client";
 
 /**
- * Lecteur de livre page par page.
+ * Lecteur de livre page par page, style « conte enchanté ».
  *
  * Fonctions : navigation précédent/suivant, navigation au clavier (flèches),
- * lecture à voix haute via la synthèse vocale du navigateur (Web Speech API)
- * avec choix de la voix, pause et arrêt.
+ * lecture à voix haute (Web Speech API) avec choix de la voix, pause et arrêt,
+ * et mode projection murale plein écran.
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Story } from "@/lib/storySchema";
 
+/* --- Petites icônes au trait (plus soignées que des emojis) --- */
+const ico = "stroke-current";
+function IChevron({ dir }: { dir: "g" | "d" }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className={ico} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={dir === "g" ? "M15 18l-6-6 6-6" : "M9 18l6-6-6-6"} />
+    </svg>
+  );
+}
+function ISon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={ico} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4Z" /><path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12" /></svg>
+  );
+}
+function IPause() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className={ico} strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M8 5v14M16 5v14" /></svg>;
+}
+function IStop() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className={ico} strokeWidth="2" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>;
+}
+function IProjeter() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={ico} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></svg>;
+}
+
 export default function BookReader({ story }: { story: Story }) {
-  // Index 0 = couverture, puis une page par page d'histoire.
   const totalEcrans = story.pages.length + 1;
   const [index, setIndex] = useState(0);
 
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [voiceURI, setVoiceURI] = useState<string>("");
   const [enLecture, setEnLecture] = useState(false);
-  // Mode projection murale (plein écran, idéal pour caster sur TV / projecteur).
   const [projection, setProjection] = useState(false);
   const [autoDefile, setAutoDefile] = useState(false);
   const voixDisponible =
     typeof window !== "undefined" && "speechSynthesis" in window;
 
-  // Texte de l'écran courant.
   const texteCourant = useMemo(() => {
     if (index === 0) return story.titre;
     return story.pages[index - 1]?.texte ?? "";
   }, [index, story]);
 
-  // Charge les voix françaises disponibles.
   useEffect(() => {
     if (!voixDisponible) return;
     const charger = () => {
@@ -84,7 +104,6 @@ export default function BookReader({ story }: { story: Story }) {
     setIndex((i) => Math.min(totalEcrans - 1, i + 1));
   }, [arreter, totalEcrans]);
 
-  // Navigation au clavier.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft") precedent();
@@ -94,22 +113,16 @@ export default function BookReader({ story }: { story: Story }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [precedent, suivant]);
 
-  // Arrête la lecture quand on quitte le composant.
   useEffect(() => arreter, [arreter]);
 
-  // Défilement automatique en mode projection.
   useEffect(() => {
     if (!projection || !autoDefile) return;
     const id = setInterval(() => {
-      setIndex((i) => {
-        const next = Math.min(totalEcrans - 1, i + 1);
-        return next;
-      });
+      setIndex((i) => Math.min(totalEcrans - 1, i + 1));
     }, 8000);
     return () => clearInterval(id);
   }, [projection, autoDefile, totalEcrans]);
 
-  // Échap pour quitter la projection.
   useEffect(() => {
     if (!projection) return;
     const onKey = (e: KeyboardEvent) => {
@@ -121,78 +134,104 @@ export default function BookReader({ story }: { story: Story }) {
 
   const imageCourante =
     index === 0 ? story.couvertureUrl : story.pages[index - 1]?.imageUrl;
+  const pageCourante = index === 0 ? null : story.pages[index - 1];
 
   return (
-    <div className="space-y-4">
-      {/* Écran du livre */}
-      <div className="carte flex min-h-[320px] flex-col items-center justify-center text-center">
-        <div key={index} className="anim-page flex w-full flex-col items-center">
-        {index === 0 ? (
-          <>
-            {story.couvertureUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={story.couvertureUrl}
-                alt={`Couverture : ${story.titre}`}
-                className="mb-5 max-h-72 w-full max-w-xl rounded-2xl object-cover"
-              />
-            )}
-            <h2 className="text-3xl font-bold text-magique-primaire">{story.titre}</h2>
-            <p className="mt-4 text-magique-texteClair">Tournez la page pour commencer →</p>
-          </>
-        ) : (
-          <>
-            {story.pages[index - 1]?.imageUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={story.pages[index - 1]!.imageUrl!}
-                alt={story.pages[index - 1]?.scene_illustration ?? ""}
-                className="mb-5 max-h-80 w-full max-w-2xl rounded-2xl object-cover"
-              />
-            )}
-            <p className="max-w-2xl text-2xl leading-relaxed">{texteCourant}</p>
-            {!story.pages[index - 1]?.imageUrl && (
-              <p className="mt-6 text-xs italic text-magique-texteClair">
-                ✦ {story.pages[index - 1]?.scene_illustration}
+    <div className="space-y-5">
+      {/* ─── La page du livre ─── */}
+      <div className="relative overflow-hidden rounded-3xl border border-magique-trait bg-gradient-to-b from-white to-parch shadow-conte">
+        <div
+          key={index}
+          className="anim-page flex min-h-[360px] flex-col items-center justify-center px-6 py-10 text-center sm:px-12"
+        >
+          {index === 0 ? (
+            <>
+              {story.couvertureUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={story.couvertureUrl}
+                  alt={`Couverture : ${story.titre}`}
+                  className="mb-6 max-h-80 w-full max-w-xl rounded-2xl object-cover shadow-conte"
+                />
+              )}
+              <p className="font-serif text-lg italic text-or-fonce">Il était une fois…</p>
+              <h2 className="mt-1 text-gradient text-3xl sm:text-4xl">{story.titre}</h2>
+              <p className="mt-4 text-magique-texteClair">Tournez la page pour commencer</p>
+            </>
+          ) : (
+            <>
+              {pageCourante?.imageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={pageCourante.imageUrl}
+                  alt={pageCourante.scene_illustration}
+                  className="mb-6 max-h-80 w-full max-w-2xl rounded-2xl object-cover shadow-conte"
+                />
+              )}
+              <p className="max-w-[46ch] text-2xl leading-relaxed text-magique-texte">
+                {texteCourant}
               </p>
-            )}
-          </>
-        )}
+              {!pageCourante?.imageUrl && (
+                <p className="mt-6 text-xs italic text-magique-texteClair">
+                  ✦ {pageCourante?.scene_illustration}
+                </p>
+              )}
+            </>
+          )}
         </div>
+        <span className="pointer-events-none absolute inset-x-0 bottom-3 text-center font-serif text-sm italic text-magique-texteClair">
+          {index === 0 ? "✦" : `— ${index} —`}
+        </span>
       </div>
 
-      {/* Barre de navigation */}
+      {/* ─── Navigation ─── */}
       <div className="flex items-center justify-between">
-        <button className="btn-secondaire" onClick={precedent} disabled={index === 0}>
-          ← Précédent
-        </button>
-        <span className="text-sm text-magique-texteClair">
-          {index === 0 ? "Couverture" : `Page ${index} / ${story.pages.length}`}
-        </span>
         <button
-          className="btn-secondaire"
+          onClick={precedent}
+          disabled={index === 0}
+          aria-label="Page précédente"
+          className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-magique-trait bg-white text-magique-primaire transition hover:-translate-y-0.5 hover:border-magique-primaire disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
+        >
+          <IChevron dir="g" />
+        </button>
+        <div className="flex items-center gap-1.5" aria-hidden="true">
+          {Array.from({ length: totalEcrans }).map((_, k) => (
+            <span
+              key={k}
+              className={`h-2 rounded-full transition-all ${
+                k === index ? "w-6 bg-or" : "w-2 bg-magique-trait"
+              }`}
+            />
+          ))}
+        </div>
+        <button
           onClick={suivant}
           disabled={index === totalEcrans - 1}
+          aria-label="Page suivante"
+          className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-magique-trait bg-white text-magique-primaire transition hover:-translate-y-0.5 hover:border-magique-primaire disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
         >
-          Suivant →
+          <IChevron dir="d" />
         </button>
       </div>
+      <p className="text-center text-sm text-magique-texteClair">
+        {index === 0 ? "Couverture" : `Page ${index} sur ${story.pages.length}`}
+      </p>
 
-      {/* Lecture à voix haute */}
+      {/* ─── Lecture à voix haute ─── */}
       {voixDisponible ? (
         <div className="carte flex flex-wrap items-center gap-3">
           <button className="btn-primaire" onClick={lire} disabled={enLecture}>
-            🔊 Lire à voix haute
+            <ISon /> Lire à voix haute
           </button>
           <button className="btn-secondaire" onClick={pause} disabled={!enLecture}>
-            ⏸ Pause
+            <IPause /> Pause
           </button>
           <button className="btn-secondaire" onClick={arreter}>
-            ⏹ Arrêt
+            <IStop /> Arrêt
           </button>
           {voices.length > 1 && (
-            <label className="ml-auto flex items-center gap-2 text-sm">
-              Voix :
+            <label className="ml-auto flex items-center gap-2 text-sm text-magique-texteClair">
+              Voix
               <select
                 className="champ w-auto py-1"
                 value={voiceURI}
@@ -213,13 +252,22 @@ export default function BookReader({ story }: { story: Story }) {
         </p>
       )}
 
-      {/* Mode projection murale */}
-      <button className="btn-secondaire w-full" onClick={() => setProjection(true)}>
-        🔆 Projeter sur le mur / la TV
+      {/* ─── Mode projection ─── */}
+      <button
+        className="flex w-full items-center justify-center gap-2 rounded-full bg-nuit py-3 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-nuit-2"
+        onClick={() => setProjection(true)}
+      >
+        <IProjeter /> Projeter sur le mur / la TV
       </button>
 
       {projection && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-[#0b0922] text-white">
+        <div
+          className="fixed inset-0 z-50 flex flex-col text-white"
+          style={{
+            backgroundImage:
+              "radial-gradient(60% 50% at 50% 35%, rgba(154,122,224,.4), rgba(154,122,224,0) 60%), linear-gradient(180deg,#0b0922,#15103a)",
+          }}
+        >
           <div className="flex items-center justify-between px-6 py-4">
             <span className="text-sm text-white/60">
               🌙 Projection —{" "}
@@ -227,58 +275,52 @@ export default function BookReader({ story }: { story: Story }) {
             </span>
             <div className="flex items-center gap-3">
               <button
-                className="rounded-full border border-white/30 px-4 py-1.5 text-sm"
+                className="rounded-full border border-white/30 px-4 py-1.5 text-sm hover:bg-white/10"
                 onClick={() => setAutoDefile((a) => !a)}
               >
                 {autoDefile ? "⏸ Défilement auto" : "▶ Défilement auto"}
               </button>
               <button
-                className="rounded-full border border-white/30 px-4 py-1.5 text-sm"
+                className="rounded-full border border-white/30 px-4 py-1.5 text-sm hover:bg-white/10"
                 onClick={() => setProjection(false)}
               >
                 ✕ Quitter
               </button>
             </div>
           </div>
-          <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+          <div key={index} className="anim-page flex flex-1 flex-col items-center justify-center px-8 text-center">
             {imageCourante && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={imageCourante}
-                alt=""
-                className="mb-8 max-h-[55vh] w-auto rounded-2xl object-contain"
-              />
+              <img src={imageCourante} alt="" className="mb-8 max-h-[55vh] w-auto rounded-2xl object-contain shadow-conte" />
             )}
             {index === 0 ? (
-              <h2 className="text-4xl font-bold sm:text-6xl">{story.titre}</h2>
+              <h2 className="font-serif text-4xl sm:text-6xl">{story.titre}</h2>
             ) : (
-              <p className="max-w-4xl text-2xl leading-relaxed sm:text-4xl">
-                {texteCourant}
-              </p>
+              <p className="max-w-4xl text-2xl leading-relaxed sm:text-4xl">{texteCourant}</p>
             )}
           </div>
           <div className="flex items-center justify-between px-8 py-6">
             <button
-              className="rounded-full border border-white/30 px-6 py-3 text-lg disabled:opacity-30"
+              className="flex h-14 w-14 items-center justify-center rounded-full border border-white/30 hover:bg-white/10 disabled:opacity-30"
               onClick={precedent}
               disabled={index === 0}
               aria-label="Page précédente"
             >
-              ←
+              <IChevron dir="g" />
             </button>
             <button
-              className="rounded-full bg-white/10 px-6 py-3 text-lg"
+              className="flex items-center gap-2 rounded-full bg-white/10 px-6 py-3 hover:bg-white/20"
               onClick={lire}
             >
-              🔊 Lire
+              <ISon /> Lire
             </button>
             <button
-              className="rounded-full border border-white/30 px-6 py-3 text-lg disabled:opacity-30"
+              className="flex h-14 w-14 items-center justify-center rounded-full border border-white/30 hover:bg-white/10 disabled:opacity-30"
               onClick={suivant}
               disabled={index === totalEcrans - 1}
               aria-label="Page suivante"
             >
-              →
+              <IChevron dir="d" />
             </button>
           </div>
         </div>
