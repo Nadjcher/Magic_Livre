@@ -7,6 +7,8 @@
 import Link from "next/link";
 import { LogoMark } from "@/components/Logo";
 import Tilt3D from "@/components/Tilt3D";
+import ExtrasShowcase from "@/components/ExtrasShowcase";
+import Temoignages from "@/components/Temoignages";
 
 /** Petite étoile dorée à quatre branches (motif récurrent). */
 function Etoile({ className = "", style }: { className?: string; style?: React.CSSProperties }) {
@@ -35,53 +37,27 @@ function Gage({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Les « petits plus » du livre, avec leurs icônes. */
-const EXTRAS = [
-  {
-    titre: "Livre de coloriage",
-    texte: "La même histoire en pages à colorier, prêtes à imprimer pour les après-midis pluvieux.",
-    icone: (
-      <>
-        <path d="M12 19c-4.5 0-8-2.9-8-6.5S7.5 4 12 4s8 3.6 8 7.5c0 2-1.6 3.5-3.6 3.5H15c-.8 0-1.4.6-1.4 1.4 0 .4.2.7.4 1 .3.3.4.6.4 1 0 .4-.6.6-2.4.6z" fill="none" stroke="currentColor" strokeWidth="1.6" />
-        <circle cx="8" cy="11" r="1.1" />
-        <circle cx="12" cy="8.5" r="1.1" />
-        <circle cx="16" cy="11" r="1.1" />
-      </>
-    ),
-  },
-  {
-    titre: "Projection murale",
-    texte: "Un mode veilleuse qui projette les illustrations au plafond, pour s'endormir dans l'histoire.",
-    icone: (
-      <>
-        <rect x="3" y="9" width="8" height="6" rx="1.4" fill="none" stroke="currentColor" strokeWidth="1.6" />
-        <path d="M11 10.5l9-3v9l-9-3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-        <circle cx="6.5" cy="12" r="1" />
-      </>
-    ),
-  },
-  {
-    titre: "Histoire audio",
-    texte: "La voix qui raconte, en MP3, pour les trajets en voiture et les yeux déjà fermés.",
-    icone: (
-      <>
-        <path d="M4 10v4h3l4 3V7L7 10H4z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-        <path d="M15 9.5a3.5 3.5 0 010 5M17.5 7a7 7 0 010 10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      </>
-    ),
-  },
-  {
-    titre: "Poster du héros",
-    texte: "Le portrait du héros en grand format, à afficher fièrement au-dessus du lit.",
-    icone: (
-      <>
-        <rect x="5" y="3.5" width="14" height="17" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
-        <path d="M7.5 15l3-3.5 2.5 2.5 2-2.5 1.5 2" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
-        <circle cx="10" cy="8" r="1.3" />
-      </>
-    ),
-  },
-];
+/** Pile d'avatars (preuve sociale discrète dans le héros). */
+function PileAvatars() {
+  const a = [
+    { c: "#6d3bd1", l: "C" },
+    { c: "#39a58f", l: "T" },
+    { c: "#d4698c", l: "I" },
+  ];
+  return (
+    <div className="flex -space-x-2" aria-hidden="true">
+      {a.map((x) => (
+        <span
+          key={x.l}
+          className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold text-white ring-2 ring-nuit-2"
+          style={{ backgroundColor: x.c }}
+        >
+          {x.l}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 export default function AccueilPage() {
   return (
@@ -169,7 +145,13 @@ export default function AccueilPage() {
                 En savoir plus
               </Link>
             </div>
-            <div className="mt-6 flex flex-wrap gap-2" style={{ animation: "monter .6s .4s both" }}>
+            <div className="mt-6 flex items-center gap-3" style={{ animation: "monter .6s .38s both" }}>
+              <PileAvatars />
+              <p className="text-sm text-[#dcd6f4]">
+                <span className="text-or">★★★★★</span> Adoré par les familles
+              </p>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2" style={{ animation: "monter .6s .44s both" }}>
               <Gage>Héros 100% originaux</Gage>
               <Gage>Photo jamais stockée</Gage>
               <Gage>Conforme RGPD</Gage>
@@ -269,24 +251,11 @@ export default function AccueilPage() {
             chambre bien après le mot « fin ».
           </p>
         </header>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2">
-          {EXTRAS.map((e) => (
-            <article key={e.titre} data-tilt className="carte-relief flex items-start gap-5 p-7">
-              <span className="relief-avant flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-magique-primaire/10 text-magique-primaire">
-                <svg viewBox="0 0 24 24" className="h-7 w-7" aria-hidden="true">
-                  {e.icone}
-                </svg>
-              </span>
-              <div>
-                <h3 className="relief-milieu text-xl">{e.titre}</h3>
-                <p className="mt-1.5 text-[15px] leading-relaxed text-magique-texteClair">
-                  {e.texte}
-                </p>
-              </div>
-            </article>
-          ))}
-        </div>
+        <ExtrasShowcase />
       </section>
+
+      {/* ─── Avis des familles ─── */}
+      <Temoignages />
 
       {/* ─── Garanties : un bandeau de réassurance (forme différente des cartes) ─── */}
       <section className="carte-relief overflow-hidden p-8 sm:p-10">
@@ -347,10 +316,36 @@ export default function AccueilPage() {
             pleine d'étoiles.
           </div>
         </div>
-        <div className="p-8 text-center">
-          <Link href="/connexion" className="btn-primaire">
-            Créer l'histoire de mon enfant
-          </Link>
+      </section>
+
+      {/* ─── Appel final : la nuit, comme le héros ─── */}
+      <section
+        className="relative overflow-hidden rounded-[2.5rem] px-6 py-14 text-center shadow-conte ring-1 ring-white/10 sm:px-12 sm:py-16"
+        style={{
+          backgroundImage:
+            "radial-gradient(60% 60% at 50% 0%, rgba(154,122,224,.5), rgba(154,122,224,0) 60%), linear-gradient(180deg,#1b1544,#15103a)",
+        }}
+      >
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          <Etoile className="anim-scintille absolute h-3 w-3 text-or-clair" style={{ top: "22%", left: "18%" }} />
+          <Etoile className="anim-scintille absolute h-4 w-4 text-or" style={{ top: "30%", right: "16%", animationDelay: "0.8s" }} />
+          <Etoile className="anim-scintille absolute h-2.5 w-2.5 text-magique-rose" style={{ bottom: "22%", left: "30%", animationDelay: "1.5s" }} />
+        </div>
+        <div className="relative">
+          <LogoMark className="anim-flotte mx-auto h-12 w-12 drop-shadow-md" />
+          <h2 className="mt-5 text-3xl text-white sm:text-4xl">
+            Ce soir, l'histoire parle de <span className="text-gradient italic">votre enfant.</span>
+          </h2>
+          <p className="mx-auto mt-4 max-w-[42ch] text-[#dcd6f4]">
+            Créez un conte en quelques minutes. Lecture gratuite à l'écran, et le
+            joli PDF à imprimer dès 4,99 €.
+          </p>
+          <div className="mt-8 flex justify-center">
+            <Link href="/connexion" className="btn-primaire text-lg">
+              Créer l'histoire de mon enfant
+            </Link>
+          </div>
+          <p className="mt-4 text-sm text-[#b7aee0]">Sans abonnement — vous ne payez que les livres que vous aimez.</p>
         </div>
       </section>
     </div>
