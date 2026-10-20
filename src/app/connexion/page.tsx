@@ -7,6 +7,7 @@
 import { useState, useTransition } from "react";
 import { signIn } from "next-auth/react";
 import Notice from "@/components/Notice";
+import EnTetePage from "@/components/EnTetePage";
 
 export default function ConnexionPage() {
   const [email, setEmail] = useState("");
@@ -36,13 +37,12 @@ export default function ConnexionPage() {
 
   return (
     <div className="mx-auto max-w-md">
-      <h1 className="text-3xl font-bold text-magique-primaire">Connexion</h1>
-      <p className="mt-2 text-magique-texteClair">
-        Saisissez votre adresse email. Vous recevrez un lien de connexion
-        sécurisé, sans mot de passe.
-      </p>
+      <EnTetePage surtitre="Sans mot de passe" titre="Connexion">
+        Saisissez votre adresse email : vous recevrez un lien de connexion
+        sécurisé, et c'est tout.
+      </EnTetePage>
 
-      <form onSubmit={handleSubmit} className="carte mt-6 space-y-4">
+      <form onSubmit={handleSubmit} className="carte-relief mt-6 space-y-4 p-6">
         <label className="block text-sm font-semibold" htmlFor="email">
           Adresse email
         </label>

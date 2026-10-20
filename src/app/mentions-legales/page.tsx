@@ -8,7 +8,7 @@
 export default function MentionsLegalesPage() {
   return (
     <article className="prose mx-auto max-w-2xl space-y-4">
-      <h1 className="text-3xl font-bold text-magique-primaire">Mentions légales</h1>
+      <h1 className="text-3xl sm:text-4xl">Mentions légales</h1>
 
       <h2 className="text-xl font-semibold">Éditeur du site</h2>
       <p className="text-magique-texteClair">

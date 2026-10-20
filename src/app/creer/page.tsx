@@ -10,6 +10,7 @@ import { env } from "@/lib/env";
 import { HEROES } from "@/lib/heroes";
 import CreateBookForm from "@/components/CreateBookForm";
 import ConsentForm from "@/components/ConsentForm";
+import EnTetePage from "@/components/EnTetePage";
 
 export default async function CreerPage() {
   const user = await getCurrentUser();
@@ -19,13 +20,10 @@ export default async function CreerPage() {
   if (!hasParentalConsent(user)) {
     return (
       <div className="mx-auto max-w-2xl space-y-6">
-        <h1 className="text-3xl font-bold text-magique-primaire">
-          Consentement parental
-        </h1>
-        <p className="text-magique-texteClair">
+        <EnTetePage surtitre="Une dernière étape" titre="Consentement parental">
           Avant de créer un livre, nous avons besoin de votre consentement
           explicite.
-        </p>
+        </EnTetePage>
         <ConsentForm termsVersion={env.termsVersion()} />
       </div>
     );
@@ -39,7 +37,10 @@ export default async function CreerPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-magique-primaire">Créer un livre</h1>
+      <EnTetePage surtitre="Le studio de création" titre="Créer un livre">
+        En quelques étapes, composez une histoire unique à l'image de votre
+        enfant.
+      </EnTetePage>
       <CreateBookForm enfants={children} heroes={HEROES} />
     </div>
   );

@@ -6,6 +6,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, hasParentalConsent } from "@/lib/session";
 import DeleteAccountButton from "@/components/DeleteAccountButton";
+import EnTetePage from "@/components/EnTetePage";
 
 export default async function ComptePage() {
   const user = await getCurrentUser();
@@ -15,9 +16,9 @@ export default async function ComptePage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <h1 className="text-3xl font-bold text-magique-primaire">Mon compte</h1>
+      <EnTetePage surtitre="Vos informations" titre="Mon compte" />
 
-      <div className="carte space-y-2">
+      <div data-tilt className="carte-relief space-y-2 p-6">
         <p>
           <span className="font-semibold">Email :</span> {user.email}
         </p>
@@ -34,8 +35,8 @@ export default async function ComptePage() {
         </p>
       </div>
 
-      <div className="carte space-y-3">
-        <h2 className="text-xl font-semibold">Supprimer mon compte</h2>
+      <div className="carte-relief space-y-3 p-6">
+        <h2 className="text-xl">Supprimer mon compte</h2>
         <p className="text-sm text-magique-texteClair">
           Conformément au RGPD, vous pouvez supprimer votre compte et toutes les
           données associées (enfants, livres, commandes). Cette action est

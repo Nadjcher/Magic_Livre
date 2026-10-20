@@ -9,7 +9,7 @@ import { env } from "@/lib/env";
 export default function CguPage() {
   return (
     <article className="mx-auto max-w-2xl space-y-4">
-      <h1 className="text-3xl font-bold text-magique-primaire">
+      <h1 className="text-3xl sm:text-4xl">
         Conditions générales d'utilisation
       </h1>
       <p className="text-sm text-magique-texteClair">Version : {env.termsVersion()}</p>

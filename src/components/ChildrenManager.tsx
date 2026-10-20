@@ -36,7 +36,7 @@ export default function ChildrenManager({ initial }: { initial: ChildView[] }) {
 
       {/* Formulaire d'ajout */}
       <form
-        className="carte flex flex-wrap items-end gap-4"
+        className="carte-relief flex flex-wrap items-end gap-4 p-6"
         action={(formData) => run(() => addChild(formData), () => {
           // Réinitialise le formulaire après ajout réussi.
           (document.getElementById("form-ajout") as HTMLFormElement | null)?.reset();
@@ -74,7 +74,11 @@ export default function ChildrenManager({ initial }: { initial: ChildView[] }) {
           <li className="text-magique-texteClair">Aucun enfant enregistré pour l'instant.</li>
         )}
         {initial.map((child) => (
-          <li key={child.id} className="carte">
+          <li
+            key={child.id}
+            {...(editId === child.id ? {} : { "data-tilt": true })}
+            className="carte-relief p-5"
+          >
             {editId === child.id ? (
               <form
                 className="flex flex-wrap items-end gap-4"
@@ -117,8 +121,18 @@ export default function ChildrenManager({ initial }: { initial: ChildView[] }) {
               </form>
             ) : (
               <div className="flex items-center justify-between gap-4">
-                <span>
-                  <strong>{child.firstName}</strong> — {child.age} ans
+                <span className="flex items-center gap-3">
+                  <span
+                    className="relief-avant flex h-11 w-11 flex-none items-center justify-center rounded-full font-serif text-lg text-white shadow-or"
+                    style={{ backgroundImage: "linear-gradient(160deg,#9a5ae0,#6d28d9)" }}
+                    aria-hidden="true"
+                  >
+                    {child.firstName.trim().charAt(0).toUpperCase()}
+                  </span>
+                  <span className="relief-milieu leading-tight">
+                    <span className="block font-serif text-lg text-magique-texte">{child.firstName}</span>
+                    <span className="block text-sm text-magique-texteClair">{child.age} ans</span>
+                  </span>
                 </span>
                 <div className="flex gap-3">
                   <button

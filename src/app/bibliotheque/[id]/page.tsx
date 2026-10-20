@@ -47,7 +47,7 @@ export default async function LivrePage({
           <Link href="/bibliotheque" className="text-sm text-magique-texteClair hover:underline">
             ← Ma bibliothèque
           </Link>
-          <h1 className="text-3xl font-bold text-magique-primaire">{book.title}</h1>
+          <h1 className="mt-1 text-3xl sm:text-4xl">{book.title}</h1>
           <p className="text-sm text-magique-texteClair">Pour {book.child.firstName}</p>
         </div>
         <DeleteBookButton bookId={book.id} title={book.title} redirectAfter="/bibliotheque" />

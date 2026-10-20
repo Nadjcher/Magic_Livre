@@ -7,7 +7,7 @@
 export default function ConfidentialitePage() {
   return (
     <article className="mx-auto max-w-2xl space-y-4">
-      <h1 className="text-3xl font-bold text-magique-primaire">
+      <h1 className="text-3xl sm:text-4xl">
         Politique de confidentialité
       </h1>
 
