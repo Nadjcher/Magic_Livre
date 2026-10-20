@@ -103,7 +103,7 @@ export default function CreateBookForm({
       }
     >
       {/* Choix de l'enfant */}
-      <div className="carte">
+      <div data-tilt className="carte">
         <Etape n="1">
           <label htmlFor="childId">Pour quel enfant&nbsp;?</label>
         </Etape>
@@ -117,7 +117,7 @@ export default function CreateBookForm({
       </div>
 
       {/* Mode : héros ou aventure libre */}
-      <div className="carte space-y-4">
+      <div data-tilt className="carte space-y-4">
         <Etape n="2">Quel genre d'aventure&nbsp;?</Etape>
         <div className="flex gap-4">
           <button
@@ -185,7 +185,7 @@ export default function CreateBookForm({
       </div>
 
       {/* Style des illustrations */}
-      <div className="carte">
+      <div data-tilt className="carte">
         <Etape n="3">Le style des illustrations</Etape>
         <input type="hidden" name="style" value={style} />
         <div className="grid gap-3 sm:grid-cols-3">
@@ -210,7 +210,7 @@ export default function CreateBookForm({
       </div>
 
       {/* Apparence : description et/ou photo (optionnel) */}
-      <div className="carte space-y-3">
+      <div data-tilt className="carte space-y-3">
         <Etape n="4">
           <label htmlFor="appearance">
             À quoi ressemble l'enfant&nbsp;?{" "}
@@ -245,7 +245,7 @@ export default function CreateBookForm({
       </div>
 
       {/* Longueur */}
-      <div className="carte">
+      <div data-tilt className="carte">
         <Etape n="5">
           <label htmlFor="longueur">La longueur de l'histoire</label>
         </Etape>
