@@ -140,6 +140,15 @@ h1, h2, h3, .serif {
   100% { opacity: 0; transform: translateY(-46px) scale(1.1); }
 }
 
+/* Profondeur 3D légère (inclinaison au pointeur). */
+.tilt3d { perspective: 1000px; }
+.tilt3d > .tilt3d-inner {
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
 /* Apparition en douceur (listes, cartes qui arrivent). */
 .anim-apparait { opacity: 0; animation: monter 0.6s ease forwards; }
 
@@ -208,4 +217,5 @@ h1, h2, h3, .serif {
   .anim-apparait { opacity: 1; }
   .btn-primaire::after,
   .btn-primaire::before { display: none; }
+  .tilt3d > .tilt3d-inner { transform: none !important; transition: none; }
 }

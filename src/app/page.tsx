@@ -5,6 +5,7 @@
 
 import Link from "next/link";
 import { LogoMark } from "@/components/Logo";
+import Tilt3D from "@/components/Tilt3D";
 
 /** Petite étoile dorée à quatre branches (motif récurrent). */
 function Etoile({ className = "", style }: { className?: string; style?: React.CSSProperties }) {
@@ -111,22 +112,24 @@ export default function AccueilPage() {
             </div>
           </div>
 
-          {/* Le livre d'où s'échappe un monde (illustration) */}
+          {/* Le livre d'où s'échappe un monde (illustration, profondeur 3D) */}
           <div className="relative mx-auto max-w-sm md:max-w-none" style={{ animation: "eclore .9s .2s both" }}>
-            <div
-              className="halo-pulse pointer-events-none absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(50% 45% at 50% 46%, rgba(246,215,154,.5), rgba(246,215,154,0) 70%)",
-              }}
-              aria-hidden="true"
-            />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/illustrations/hero.webp"
-              alt="Un livre ouvert d'où s'élève un château enchanté sous un ciel étoilé"
-              className="anim-flotte relative w-full rounded-[2rem] shadow-conte"
-            />
+            <Tilt3D>
+              <div
+                className="halo-pulse pointer-events-none absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(50% 45% at 50% 46%, rgba(246,215,154,.5), rgba(246,215,154,0) 70%)",
+                }}
+                aria-hidden="true"
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/illustrations/hero.webp"
+                alt="Un livre ouvert d'où s'élève un château enchanté sous un ciel étoilé"
+                className="anim-flotte relative w-full rounded-[2rem] shadow-conte"
+              />
+            </Tilt3D>
           </div>
         </div>
       </section>

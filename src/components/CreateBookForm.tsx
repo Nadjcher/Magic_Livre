@@ -18,6 +18,18 @@ import Link from "next/link";
 
 const STYLE_KEYS = Object.keys(ILLUSTRATION_STYLES) as IllustrationStyle[];
 
+/** En-tête d'étape : pastille dorée numérotée + intitulé en serif. */
+function Etape({ n, children }: { n: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-3 flex items-center gap-3">
+      <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-parch-2 font-serif font-semibold text-or-fonce">
+        {n}
+      </span>
+      <span className="font-serif text-xl">{children}</span>
+    </div>
+  );
+}
+
 export default function CreateBookForm({
   enfants,
   heroes,
@@ -92,10 +104,10 @@ export default function CreateBookForm({
     >
       {/* Choix de l'enfant */}
       <div className="carte">
-        <label htmlFor="childId" className="block font-semibold">
-          Pour quel enfant ?
-        </label>
-        <select id="childId" name="childId" required className="champ mt-2">
+        <Etape n="1">
+          <label htmlFor="childId">Pour quel enfant&nbsp;?</label>
+        </Etape>
+        <select id="childId" name="childId" required className="champ">
           {enfants.map((c) => (
             <option key={c.id} value={c.id}>
               {c.firstName} ({c.age} ans)
@@ -106,6 +118,7 @@ export default function CreateBookForm({
 
       {/* Mode : héros ou aventure libre */}
       <div className="carte space-y-4">
+        <Etape n="2">Quel genre d'aventure&nbsp;?</Etape>
         <div className="flex gap-4">
           <button
             type="button"
@@ -173,9 +186,9 @@ export default function CreateBookForm({
 
       {/* Style des illustrations */}
       <div className="carte">
-        <span className="block font-semibold">Style des illustrations</span>
+        <Etape n="3">Le style des illustrations</Etape>
         <input type="hidden" name="style" value={style} />
-        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-3">
           {STYLE_KEYS.map((s) => (
             <button
               key={s}
@@ -198,9 +211,12 @@ export default function CreateBookForm({
 
       {/* Apparence : description et/ou photo (optionnel) */}
       <div className="carte space-y-3">
-        <label htmlFor="appearance" className="block font-semibold">
-          À quoi ressemble l'enfant ? <span className="font-normal text-magique-texteClair">(optionnel)</span>
-        </label>
+        <Etape n="4">
+          <label htmlFor="appearance">
+            À quoi ressemble l'enfant&nbsp;?{" "}
+            <span className="text-base font-normal not-italic text-magique-texteClair">(optionnel)</span>
+          </label>
+        </Etape>
         <input
           id="appearance"
           name="appearance"
@@ -230,10 +246,10 @@ export default function CreateBookForm({
 
       {/* Longueur */}
       <div className="carte">
-        <label htmlFor="longueur" className="block font-semibold">
-          Longueur de l'histoire
-        </label>
-        <select id="longueur" name="longueur" defaultValue="moyenne" className="champ mt-2">
+        <Etape n="5">
+          <label htmlFor="longueur">La longueur de l'histoire</label>
+        </Etape>
+        <select id="longueur" name="longueur" defaultValue="moyenne" className="champ">
           <option value="courte">Courte (8-9 pages)</option>
           <option value="moyenne">Moyenne (10-11 pages)</option>
           <option value="longue">Longue (11-12 pages)</option>
@@ -242,8 +258,8 @@ export default function CreateBookForm({
 
       {erreur && <Notice kind="erreur">{erreur}</Notice>}
 
-      <button type="submit" className="btn-primaire w-full" disabled={pending}>
-        {pending ? "Création de l'histoire en cours…" : "Créer le livre"}
+      <button type="submit" className="btn-primaire w-full text-lg" disabled={pending}>
+        {pending ? "Création de l'histoire en cours…" : "✦ Créer le livre"}
       </button>
 
       {pending && <GenerationOverlay />}
