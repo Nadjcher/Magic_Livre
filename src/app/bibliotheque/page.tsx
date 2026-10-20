@@ -70,7 +70,8 @@ export default async function BibliothequePage() {
             return (
               <li
                 key={book.id}
-                className="carte carte-interactive anim-apparait flex gap-4"
+                data-tilt
+                className="carte anim-fade flex gap-4"
                 style={{ animationDelay: `${i * 0.06}s` }}
               >
                 {/* Couverture ou médaillon */}

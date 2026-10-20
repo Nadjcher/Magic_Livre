@@ -165,7 +165,7 @@ export default function AccueilPage() {
                 "Page par page, avec lecture à voix haute. Puis un joli PDF à imprimer et à garder.",
             },
           ].map((c) => (
-            <article key={c.chap} className="carte carte-interactive">
+            <article key={c.chap} data-tilt className="carte">
               <p className="font-serif italic text-or-fonce">{c.chap}</p>
               <h3 className="mt-1 text-xl">{c.titre}</h3>
               <p className="mt-2 text-[15px] leading-relaxed text-magique-texteClair">
@@ -200,7 +200,7 @@ export default function AccueilPage() {
                 "Chaque création exige le consentement explicite d'un parent. Données conformes au RGPD.",
             },
           ].map((g) => (
-            <article key={g.titre} className="carte carte-interactive flex gap-3">
+            <article key={g.titre} data-tilt className="carte flex gap-3">
               <Etoile className="mt-1 h-5 w-5 shrink-0 text-or" />
               <div>
                 <h3 className="text-lg">{g.titre}</h3>

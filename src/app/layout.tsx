@@ -4,6 +4,7 @@ import Link from "next/link";
 import "./globals.css";
 import Header from "@/components/Header";
 import MagicParticles from "@/components/MagicParticles";
+import TiltProvider from "@/components/TiltProvider";
 
 // Fraunces : serif de conte, caractérielle (titres). Nunito : ronde et
 // chaleureuse (texte/UI). Chargées sans FOUT via next/font.
@@ -62,6 +63,7 @@ export default function RootLayout({
     <html lang="fr" className={`${fraunces.variable} ${nunito.variable}`}>
       <body className="flex min-h-screen flex-col font-sans">
         <MagicParticles />
+        <TiltProvider />
         <Header />
         <main className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
         <footer className="relative z-10 mt-8 bg-nuit px-4 py-8 text-sm text-[#b7aee0]">
