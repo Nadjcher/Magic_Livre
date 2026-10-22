@@ -19,6 +19,8 @@ export async function GET() {
       params: Object.fromEntries(u.searchParams),
       hasUser: Boolean(u.username),
       hasPassword: Boolean(u.password),
+      passwordLength: u.password.length,
+      passwordLooksMasked: /^\*+$/.test(u.password),
     };
   } catch (e) {
     out.dbUrlInfo = "parse_error: " + String((e as Error)?.message ?? e).slice(0, 120);
