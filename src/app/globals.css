@@ -1,0 +1,271 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+/* Fond parchemin avec halos colorés doux (lumière de conte), fixés. */
+body {
+  color: #2a2443;
+  background-color: #fbf2df;
+  background-image:
+    radial-gradient(44rem 44rem at 10% -10%, rgba(109, 59, 209, 0.12), transparent 60%),
+    radial-gradient(40rem 40rem at 110% 6%, rgba(233, 169, 75, 0.16), transparent 60%),
+    radial-gradient(46rem 46rem at 50% 120%, rgba(57, 165, 143, 0.1), transparent 60%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+/* Les titres parlent la langue du conte : Fraunces. */
+h1, h2, h3, .serif {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Accessibilité : focus clavier toujours visible. */
+:focus-visible {
+  outline: 3px solid rgba(109, 59, 209, 0.55);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@layer components {
+  /* Bouton principal : or en relief, léger soulèvement au survol. */
+  .btn-primaire {
+    @apply relative overflow-hidden inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-bold text-[#3a2708] shadow-or transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+    background-image: linear-gradient(180deg, #f0b863, #e39a37);
+  }
+  .btn-secondaire {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-magique-primaire bg-white/70 px-6 py-3 font-bold text-magique-primaire backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:bg-magique-primaire hover:text-white;
+  }
+  /* Carte parchemin, verre doux. */
+  .carte {
+    @apply rounded-3xl border border-magique-trait bg-white/80 p-6 shadow-sm backdrop-blur-sm transition-all duration-200;
+  }
+  .carte-interactive {
+    @apply hover:-translate-y-1 hover:shadow-conte;
+  }
+  .champ {
+    @apply w-full rounded-xl border border-magique-trait bg-white/90 px-4 py-2 outline-none transition focus:border-magique-primaire focus:ring-2 focus:ring-magique-primaire/30;
+  }
+}
+
+@layer utilities {
+  /* Titre en dégradé plume → or (réservé à la marque et aux grands titres). */
+  .text-gradient {
+    background-image: linear-gradient(118deg, #6d3bd1 0%, #9a5ae0 42%, #e9a94b 110%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .anim-flotte {
+    animation: flotte 6s ease-in-out infinite;
+  }
+  .anim-scintille {
+    animation: scintille 3s ease-in-out infinite;
+  }
+}
+
+/* Ornement doré : deux filets autour d'une étoile (marque les sections). */
+.ornement {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #e9a94b;
+}
+.ornement::before,
+.ornement::after {
+  content: "";
+  height: 1.5px;
+  width: 56px;
+}
+.ornement::before { background: linear-gradient(90deg, transparent, #e9a94b); }
+.ornement::after { background: linear-gradient(90deg, #e9a94b, transparent); }
+
+@keyframes flotte {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(3deg); }
+}
+@keyframes scintille {
+  0%, 100% { opacity: 0.3; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+/* Entrée d'ouverture (une seule fois, au chargement). */
+@keyframes monter {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes eclore {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Reflet doré qui balaie le bouton principal. */
+.btn-primaire::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.7),
+    rgba(255, 255, 255, 0)
+  );
+  transform: skewX(-18deg);
+  animation: reflet 4.5s ease-in-out infinite;
+}
+@keyframes reflet {
+  0%, 18% { left: -60%; }
+  45%, 100% { left: 130%; }
+}
+
+/* Halo qui respire derrière l'illustration du héros. */
+.halo-pulse { animation: halo 6s ease-in-out infinite; }
+@keyframes halo {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.95; transform: scale(1.08); }
+}
+
+/* Poussière d'étoiles qui s'élève lentement puis disparaît. */
+.anim-derive { animation: derive 9s ease-in-out infinite; }
+@keyframes derive {
+  0% { opacity: 0; transform: translateY(10px) scale(0.7); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-46px) scale(1.1); }
+}
+
+/* Profondeur 3D légère (inclinaison au pointeur). */
+.tilt3d { perspective: 1000px; }
+.tilt3d > .tilt3d-inner {
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Inclinaison déléguée : tout élément [data-tilt] suit le pointeur (TiltProvider). */
+[data-tilt] {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transform-style: preserve-3d;
+  transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.25s;
+  will-change: transform;
+}
+
+/* Carte en relief : parchemin épais, filet doré, ombre portée profonde.
+   Associée à [data-tilt], elle se comporte comme un objet physique. */
+.carte-relief {
+  position: relative;
+  border-radius: 1.5rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(252, 246, 233, 0.92));
+  border: 1px solid rgba(230, 220, 196, 0.9);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 2px 5px rgba(20, 17, 49, 0.05),
+    0 14px 28px -16px rgba(20, 17, 49, 0.2),
+    0 34px 60px -36px rgba(20, 17, 49, 0.28);
+  transition: box-shadow 0.25s, transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.carte-relief::before {
+  content: "";
+  position: absolute;
+  inset: 0 18% auto;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #e9a94b, transparent);
+  opacity: 0.75;
+}
+[data-tilt].carte-relief:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 4px 10px rgba(20, 17, 49, 0.08),
+    0 24px 44px -20px rgba(20, 17, 49, 0.3),
+    0 50px 80px -40px rgba(20, 17, 49, 0.4);
+}
+
+/* Élément qui « avance » vers le lecteur dans une carte inclinée (parallaxe 3D). */
+.relief-avant { transform: translateZ(38px); }
+.relief-milieu { transform: translateZ(18px); }
+
+/* Apparition en douceur, sans transform (compatible avec l'inclinaison). */
+.anim-fade { opacity: 0; animation: apparition 0.5s ease forwards; }
+@keyframes apparition { to { opacity: 1; } }
+
+/* Apparition en douceur (listes, cartes qui arrivent). */
+.anim-apparait { opacity: 0; animation: monter 0.6s ease forwards; }
+
+/* Pulsation dorée d'un élément sélectionné. */
+.anim-pulse-or { animation: pulse-or 2.4s ease-in-out infinite; }
+@keyframes pulse-or {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(233, 169, 75, 0); }
+  50% { box-shadow: 0 0 0 7px rgba(233, 169, 75, 0.18); }
+}
+
+/* Tourne-page du lecteur (rejoué à chaque changement de page). */
+.anim-page { animation: tourne-page 0.5s ease; transform-origin: left center; }
+@keyframes tourne-page {
+  0% { opacity: 0.25; transform: perspective(1400px) rotateY(-16deg) translateX(-14px); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* Orbite (étoiles tournant autour du livre de génération). */
+.anim-orbite { animation: orbite 7s linear infinite; transform-origin: center; }
+@keyframes orbite { to { transform: rotate(360deg); } }
+
+/* Barre de progression chatoyante (écran de génération). */
+.anim-balaie {
+  background-size: 200% 100%;
+  animation: balaie 1.6s ease-in-out infinite;
+}
+@keyframes balaie {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Étincelle au survol du bouton principal. */
+.btn-primaire::before {
+  content: "";
+  position: absolute;
+  top: 16%;
+  right: 12%;
+  width: 9px;
+  height: 9px;
+  background: radial-gradient(circle, #fff 0 35%, rgba(255, 255, 255, 0) 62%);
+  opacity: 0;
+  transform: scale(0);
+  transition: opacity 0.25s, transform 0.25s;
+  pointer-events: none;
+}
+.btn-primaire:hover::before {
+  opacity: 1;
+  transform: scale(1);
+  animation: scintille 1.1s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-flotte,
+  .anim-scintille,
+  .anim-derive,
+  .halo-pulse,
+  .anim-apparait,
+  .anim-pulse-or,
+  .anim-page,
+  .anim-orbite,
+  .anim-balaie,
+  .btn-primaire::after,
+  .btn-primaire:hover::before {
+    animation: none;
+  }
+  .anim-apparait { opacity: 1; }
+  .anim-fade { opacity: 1; }
+  .btn-primaire::after,
+  .btn-primaire::before { display: none; }
+  .tilt3d > .tilt3d-inner { transform: none !important; transition: none; }
+  [data-tilt] { transform: none !important; transition: none; }
+  .relief-avant,
+  .relief-milieu { transform: none !important; }
+}

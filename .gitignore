@@ -1,0 +1,42 @@
+# Dépendances
+/node_modules
+/.pnp
+.pnp.js
+
+# Tests
+/coverage
+/test-results
+/playwright-report
+/playwright/.cache
+
+# Next.js
+/.next/
+/out/
+next-env.d.ts
+
+# Production
+/build
+
+# Divers
+.DS_Store
+*.pem
+
+# Journaux
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Variables d'environnement locales (ne jamais committer les clés réelles)
+.env
+.env*.local
+.env.production
+
+# Prisma
+/prisma/*.db
+/prisma/migrations/dev.db*
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
