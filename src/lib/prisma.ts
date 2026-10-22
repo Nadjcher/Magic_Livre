@@ -13,13 +13,30 @@ import ws from "ws";
 
 // Node (runtime serverless Vercel) n'a pas de WebSocket natif : on fournit `ws`.
 neonConfig.webSocketConstructor = ws;
+// Les requêtes simples passent par HTTP (fetch) : plus robuste en serverless et
+// réveille le compute en veille sans « Connection terminated unexpectedly ».
+neonConfig.poolQueryViaFetch = true;
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
+/** Chaîne de connexion nettoyée des paramètres propres à Prisma/pgbouncer. */
+function neonConnectionString(): string {
+  const raw = process.env.DATABASE_URL ?? "";
+  try {
+    const u = new URL(raw);
+    ["pgbouncer", "connection_limit", "channel_binding"].forEach((p) =>
+      u.searchParams.delete(p),
+    );
+    return u.toString();
+  } catch {
+    return raw;
+  }
+}
+
 function createPrisma(): PrismaClient {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const pool = new Pool({ connectionString: neonConnectionString() });
   const adapter = new PrismaNeon(pool);
   return new PrismaClient({
     adapter,
