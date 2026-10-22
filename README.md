@@ -136,9 +136,11 @@ Le téléchargement du PDF **n'est débloqué qu'après** réception d'un webhoo
 3. Renseignez **toutes** les variables de `.env.example` dans les
    *Environment Variables* du projet Vercel.
 4. Définissez `AUTH_URL` sur l'URL publique de production.
-5. Appliquez les migrations Prisma sur la base de production
-   (`npm run prisma:deploy`, par exemple via une étape de build ou en local
-   pointant sur la base distante).
+5. Appliquez les migrations Prisma sur la base de production. La migration
+   initiale est fournie (`prisma/migrations/0_init`). Depuis votre machine,
+   pointée sur la base distante :
+   `DATABASE_URL="<url_prod>" npx prisma migrate deploy`
+   (ou ajoutez `prisma migrate deploy` à la commande de build Vercel).
 6. Configurez le webhook Stripe de production (voir ci-dessus).
 
 ## Règles légales et de sécurité
