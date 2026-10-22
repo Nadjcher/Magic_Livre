@@ -1,15 +1,15 @@
 /**
- * Page d'accueil « conte enchanté », épurée : un héros, le déroulé de création,
- * un rappel sobre des prolongements du livre, puis un appel final. Illustration
- * du héros 100 % vectorielle ; profondeur via les cartes en relief inclinables.
+ * Page d'accueil « monde illustré chaleureux » : héros clair et accueillant avec
+ * une vraie illustration, un déroulé illustré, un rappel sobre des plus, et un
+ * appel final « nuit » pour le rituel du soir.
+ *
+ * Illustrations : unDraw (licence libre, sans attribution), recolorisées à la
+ * palette de la marque. Fichiers dans /public/illustrations/undraw.
  */
 
 import Link from "next/link";
-import { LogoMark } from "@/components/Logo";
 import Tilt3D from "@/components/Tilt3D";
-import HeroIllustration from "@/components/HeroIllustration";
 
-/** Étoile dorée à quatre branches (motif, employé avec parcimonie). */
 function Etoile({ className = "", style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <svg viewBox="0 0 24 24" className={className} style={style} fill="currentColor" aria-hidden="true">
@@ -26,87 +26,51 @@ function Ornement() {
   );
 }
 
-/** Les prolongements du livre : icône au trait, homogène et sobre. */
+/** Illustration unDraw servie depuis /public (SVG recolorisé). */
+function Illu({ nom, alt, className = "" }: { nom: string; alt: string; className?: string }) {
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={`/illustrations/undraw/${nom}.svg`} alt={alt} className={className} />;
+}
+
+const ETAPES = [
+  { num: "I", illu: "day-dreaming", titre: "Vous imaginez", texte: "Le prénom, l'âge, puis un héros original ou votre propre idée d'aventure." },
+  { num: "II", illu: "book-lover", titre: "La plume s'anime", texte: "Une histoire douce et illustrée s'écrit en moins d'une minute." },
+  { num: "III", illu: "reading", titre: "Vous lisez ensemble", texte: "Page par page, à voix haute. Puis un joli PDF à imprimer et à garder." },
+];
+
 const PLUS = [
-  {
-    titre: "À colorier",
-    texte: "L'histoire en pages à imprimer.",
-    icone: (
-      <>
-        <path d="M12 20c-4.4 0-8-3-8-7s3.6-8 8-8 8 3.4 8 7.5c0 2-1.7 3.5-3.7 3.5H15a1.4 1.4 0 00-1 2.4c.3.4.4.7.4 1.1 0 .6-.8 1-2.4 1z" />
-        <circle cx="8" cy="11" r=".9" fill="currentColor" stroke="none" />
-        <circle cx="12" cy="8.5" r=".9" fill="currentColor" stroke="none" />
-        <circle cx="16" cy="11" r=".9" fill="currentColor" stroke="none" />
-      </>
-    ),
-  },
-  {
-    titre: "Projection",
-    texte: "Les images projetées au mur.",
-    icone: (
-      <>
-        <rect x="3" y="9" width="7.5" height="6" rx="1.4" />
-        <path d="M10.5 10.5l9.5-3.2v9.4l-9.5-3.2" />
-      </>
-    ),
-  },
-  {
-    titre: "Audio",
-    texte: "La voix qui raconte, en MP3.",
-    icone: (
-      <>
-        <path d="M4 10v4h3l4 3V7L7 10H4z" />
-        <path d="M15.5 9.5a3.5 3.5 0 010 5M18 7a7 7 0 010 10" />
-      </>
-    ),
-  },
-  {
-    titre: "Poster",
-    texte: "Le héros en grand, au mur.",
-    icone: (
-      <>
-        <rect x="5" y="3.5" width="14" height="17" rx="1.5" />
-        <path d="M7.5 15l3-3.5 2.5 2.5 2-2.5 1.5 2" />
-        <circle cx="10" cy="8" r="1.1" fill="currentColor" stroke="none" />
-      </>
-    ),
-  },
+  { titre: "À colorier", texte: "L'histoire en pages à imprimer.", icone: (<><path d="M12 20c-4.4 0-8-3-8-7s3.6-8 8-8 8 3.4 8 7.5c0 2-1.7 3.5-3.7 3.5H15a1.4 1.4 0 00-1 2.4c.3.4.4.7.4 1.1 0 .6-.8 1-2.4 1z" /><circle cx="8" cy="11" r=".9" fill="currentColor" stroke="none" /><circle cx="12" cy="8.5" r=".9" fill="currentColor" stroke="none" /><circle cx="16" cy="11" r=".9" fill="currentColor" stroke="none" /></>) },
+  { titre: "Projection", texte: "Les images projetées au mur.", icone: (<><rect x="3" y="9" width="7.5" height="6" rx="1.4" /><path d="M10.5 10.5l9.5-3.2v9.4l-9.5-3.2" /></>) },
+  { titre: "Audio", texte: "La voix qui raconte, en MP3.", icone: (<><path d="M4 10v4h3l4 3V7L7 10H4z" /><path d="M15.5 9.5a3.5 3.5 0 010 5M18 7a7 7 0 010 10" /></>) },
+  { titre: "Poster", texte: "Le héros en grand, au mur.", icone: (<><rect x="5" y="3.5" width="14" height="17" rx="1.5" /><path d="M7.5 15l3-3.5 2.5 2.5 2-2.5 1.5 2" /><circle cx="10" cy="8" r="1.1" fill="currentColor" stroke="none" /></>) },
 ];
 
 export default function AccueilPage() {
   return (
     <div className="space-y-24">
-      {/* ─── Héros ─── */}
+      {/* ─── Héros clair et chaleureux ─── */}
       <section
-        className="relative overflow-hidden rounded-[2.5rem] px-6 py-14 shadow-conte ring-1 ring-white/10 sm:px-12 sm:py-20"
+        className="relative overflow-hidden rounded-[2.5rem] border border-magique-trait px-6 py-12 sm:px-12 sm:py-16"
         style={{
           backgroundImage:
-            "radial-gradient(75% 60% at 80% 18%, rgba(154,122,224,.4), rgba(154,122,224,0) 60%), linear-gradient(180deg,#171338,#1b1544 55%,#15103a)",
+            "radial-gradient(60% 55% at 85% 25%, rgba(246,215,154,.55), rgba(246,215,154,0) 60%), radial-gradient(55% 60% at 8% 95%, rgba(109,59,209,.12), rgba(109,59,209,0) 60%), linear-gradient(180deg,#fffaf0,#fbf2df)",
         }}
       >
-        {/* Ciel étoilé discret */}
-        <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <g fill="#ffffff">
-            <circle className="anim-scintille" cx="140" cy="90" r="1.5" />
-            <circle cx="360" cy="150" r="1" opacity=".5" />
-            <circle className="anim-scintille" cx="980" cy="80" r="1.4" style={{ animationDelay: "1.2s" }} />
-            <circle cx="1120" cy="200" r="1.1" opacity=".5" />
-            <circle className="anim-scintille" cx="220" cy="340" r="1.2" style={{ animationDelay: "1.8s" }} />
-          </g>
-        </svg>
+        <Etoile className="anim-scintille pointer-events-none absolute left-[8%] top-[18%] h-4 w-4 text-or" aria-hidden="true" />
+        <Etoile className="anim-scintille pointer-events-none absolute right-[10%] top-[14%] h-3 w-3 text-or-fonce" style={{ animationDelay: "1s" }} aria-hidden="true" />
 
-        <div className="relative z-10 grid items-center gap-10 md:grid-cols-[1.05fr_.95fr]">
+        <div className="relative z-10 grid items-center gap-10 md:grid-cols-[1.02fr_.98fr]">
           <div>
-            <p className="flex items-center gap-2 font-serif text-[15px] italic text-or-clair" style={{ animation: "monter .6s .05s both" }}>
+            <p className="flex items-center gap-2 font-serif text-[15px] italic text-or-fonce" style={{ animation: "monter .6s .05s both" }}>
               <Etoile className="h-3.5 w-3.5 text-or" />
               Une histoire unique, écrite pour votre enfant
             </p>
-            <h1 className="mt-4 text-4xl leading-[1.05] text-white sm:text-6xl" style={{ animation: "monter .6s .13s both" }}>
+            <h1 className="mt-4 text-4xl leading-[1.05] sm:text-6xl" style={{ animation: "monter .6s .13s both" }}>
               Il était une fois…
               <br />
               <span className="text-gradient italic">votre enfant.</span>
             </h1>
-            <p className="mt-5 max-w-[34ch] text-lg leading-relaxed text-[#dcd6f4]" style={{ animation: "monter .6s .21s both" }}>
+            <p className="mt-5 max-w-[34ch] text-lg leading-relaxed text-magique-texteClair" style={{ animation: "monter .6s .21s both" }}>
               Un prénom, quelques traits, et nous écrivons un conte doux et illustré
               à son image — parfait pour le rituel du soir.
             </p>
@@ -114,30 +78,24 @@ export default function AccueilPage() {
               <Link href="/connexion" className="btn-primaire">
                 Créer notre histoire
               </Link>
-              <Link href="/cgu" className="font-semibold text-or-clair underline-offset-4 hover:underline">
+              <Link href="/cgu" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">
                 Comment ça marche
               </Link>
             </div>
-            <p className="mt-6 text-sm text-[#b7aee0]" style={{ animation: "monter .6s .36s both" }}>
+            <p className="mt-6 text-sm text-magique-texteClair" style={{ animation: "monter .6s .36s both" }}>
               Héros originaux, sans personnage sous droits. Aucune photo conservée.
             </p>
           </div>
 
-          {/* Illustration vectorielle, profondeur 3D légère */}
           <div className="relative mx-auto w-full max-w-md" style={{ animation: "eclore .9s .18s both" }}>
             <Tilt3D>
-              <div
-                className="halo-pulse pointer-events-none absolute inset-0"
-                style={{ background: "radial-gradient(50% 45% at 50% 42%, rgba(246,215,154,.45), rgba(246,215,154,0) 70%)" }}
-                aria-hidden="true"
-              />
-              <HeroIllustration className="anim-flotte relative w-full" />
+              <Illu nom="reading-a-book" alt="Un enfant lit un livre illustré" className="anim-flotte relative w-full" />
             </Tilt3D>
           </div>
         </div>
       </section>
 
-      {/* ─── Comment naît le conte (séquence : chapitres) ─── */}
+      {/* ─── Comment naît le conte (illustré) ─── */}
       <section>
         <header className="text-center">
           <h2 className="text-3xl sm:text-4xl">Comment naît votre conte ?</h2>
@@ -146,30 +104,24 @@ export default function AccueilPage() {
             Trois étapes, quelques minutes, et le livre est prêt à lire ensemble.
           </p>
         </header>
-        <div className="relative mt-12">
-          <div className="pointer-events-none absolute left-[16.6%] right-[16.6%] top-[34px] hidden border-t-2 border-dashed border-or/40 sm:block" aria-hidden="true" />
-          <div className="grid gap-6 sm:grid-cols-3">
-            {[
-              { num: "I", titre: "Vous imaginez", texte: "Le prénom, l'âge, puis un héros original ou votre propre idée d'aventure." },
-              { num: "II", titre: "La plume s'anime", texte: "Une histoire douce et illustrée s'écrit en moins d'une minute." },
-              { num: "III", titre: "Vous lisez ensemble", texte: "Page par page, à voix haute. Puis un joli PDF à imprimer et à garder." },
-            ].map((c) => (
-              <article key={c.num} data-tilt className="carte-relief p-7 text-center">
-                <div
-                  className="relief-avant mx-auto flex h-16 w-16 items-center justify-center rounded-full font-serif text-2xl text-white shadow-or"
-                  style={{ backgroundImage: "linear-gradient(160deg,#9a5ae0,#6d28d9)" }}
-                >
-                  {c.num}
-                </div>
-                <h3 className="relief-milieu mt-4 text-xl">{c.titre}</h3>
-                <p className="mt-2 text-[15px] leading-relaxed text-magique-texteClair">{c.texte}</p>
-              </article>
-            ))}
-          </div>
+        <div className="mt-10 grid gap-6 sm:grid-cols-3">
+          {ETAPES.map((e) => (
+            <article key={e.num} data-tilt className="carte-relief flex flex-col items-center p-7 text-center">
+              <Illu nom={e.illu} alt="" className="relief-milieu mb-4 h-36 w-full object-contain" />
+              <div className="flex items-center gap-2 font-serif italic text-or-fonce">
+                <span className="relief-avant flex h-8 w-8 items-center justify-center rounded-full bg-parch-2 text-sm not-italic text-or-fonce">
+                  {e.num}
+                </span>
+                Chapitre {e.num}
+              </div>
+              <h3 className="relief-milieu mt-2 text-xl">{e.titre}</h3>
+              <p className="mt-2 text-[15px] leading-relaxed text-magique-texteClair">{e.texte}</p>
+            </article>
+          ))}
         </div>
       </section>
 
-      {/* ─── Un rappel sobre des prolongements ─── */}
+      {/* ─── Rappel sobre des prolongements ─── */}
       <section className="carte-relief p-8 sm:p-10">
         <header className="text-center">
           <h2 className="text-2xl sm:text-3xl">Bien plus qu'un simple livre</h2>
@@ -190,25 +142,31 @@ export default function AccueilPage() {
         </div>
       </section>
 
-      {/* ─── Appel final ─── */}
+      {/* ─── Appel final : le rituel du soir (nuit) ─── */}
       <section
-        className="relative overflow-hidden rounded-[2.5rem] px-6 py-16 text-center shadow-conte ring-1 ring-white/10 sm:px-12"
+        className="relative overflow-hidden rounded-[2.5rem] px-6 py-12 shadow-conte ring-1 ring-white/10 sm:px-12 sm:py-14"
         style={{
           backgroundImage:
-            "radial-gradient(60% 60% at 50% 0%, rgba(154,122,224,.45), rgba(154,122,224,0) 60%), linear-gradient(180deg,#1b1544,#15103a)",
+            "radial-gradient(60% 70% at 15% 20%, rgba(154,122,224,.4), rgba(154,122,224,0) 60%), linear-gradient(180deg,#1b1544,#15103a)",
         }}
       >
-        <LogoMark className="anim-flotte mx-auto h-12 w-12 drop-shadow-md" />
-        <h2 className="mt-5 text-3xl text-white sm:text-4xl">
-          Ce soir, l'histoire parle de <span className="text-gradient italic">votre enfant.</span>
-        </h2>
-        <p className="mx-auto mt-4 max-w-[42ch] text-[#dcd6f4]">
-          Lecture gratuite à l'écran, et le joli PDF à imprimer dès 4,99 €. Sans abonnement.
-        </p>
-        <div className="mt-8 flex justify-center">
-          <Link href="/connexion" className="btn-primaire text-lg">
-            Créer l'histoire de mon enfant
-          </Link>
+        <div className="relative z-10 grid items-center gap-8 md:grid-cols-[1fr_.8fr]">
+          <div>
+            <h2 className="text-3xl text-white sm:text-4xl">
+              Ce soir, l'histoire parle de <span className="text-gradient italic">votre enfant.</span>
+            </h2>
+            <p className="mt-4 max-w-[42ch] text-[#dcd6f4]">
+              Lecture gratuite à l'écran, et le joli PDF à imprimer dès 4,99 €. Sans abonnement.
+            </p>
+            <div className="mt-8">
+              <Link href="/connexion" className="btn-primaire text-lg">
+                Créer l'histoire de mon enfant
+              </Link>
+            </div>
+          </div>
+          <div className="mx-auto w-full max-w-xs">
+            <Illu nom="moonlight" alt="Une scène paisible sous la lune" className="anim-flotte w-full rounded-3xl" />
+          </div>
         </div>
       </section>
     </div>
