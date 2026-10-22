@@ -35,7 +35,7 @@ function neonConnectionString(): string {
   const params = raw
     .slice(q + 1)
     .split("&")
-    .filter((kv) => kv && !retire.has(kv.split("=")[0]));
+    .filter((kv) => kv && !retire.has(kv.split("=")[0] ?? ""));
   return params.length ? `${base}?${params.join("&")}` : base;
 }
 
