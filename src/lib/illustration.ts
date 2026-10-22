@@ -92,7 +92,10 @@ async function geminiImage(prompt: string): Promise<string | null> {
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseModalities: ["IMAGE"] },
+      }),
     },
     { timeoutMs: 30_000, maxBytes: 25_000_000 },
   );

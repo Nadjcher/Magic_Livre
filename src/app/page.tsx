@@ -26,16 +26,16 @@ function Ornement() {
   );
 }
 
-/** Illustration unDraw servie depuis /public (SVG recolorisé). */
+/** Illustration servie depuis /public (générée en amont, format webp). */
 function Illu({ nom, alt, className = "" }: { nom: string; alt: string; className?: string }) {
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={`/illustrations/undraw/${nom}.svg`} alt={alt} className={className} />;
+  return <img src={`/illustrations/gen/${nom}.webp`} alt={alt} className={className} />;
 }
 
 const ETAPES = [
-  { num: "I", illu: "day-dreaming", titre: "Vous imaginez", texte: "Le prénom, l'âge, puis un héros original ou votre propre idée d'aventure." },
-  { num: "II", illu: "book-lover", titre: "La plume s'anime", texte: "Une histoire douce et illustrée s'écrit en moins d'une minute." },
-  { num: "III", illu: "reading", titre: "Vous lisez ensemble", texte: "Page par page, à voix haute. Puis un joli PDF à imprimer et à garder." },
+  { num: "I", illu: "imagine", titre: "Vous imaginez", texte: "Le prénom, l'âge, puis un héros original ou votre propre idée d'aventure." },
+  { num: "II", illu: "write", titre: "La plume s'anime", texte: "Une histoire douce et illustrée s'écrit en moins d'une minute." },
+  { num: "III", illu: "together", titre: "Vous lisez ensemble", texte: "Page par page, à voix haute. Puis un joli PDF à imprimer et à garder." },
 ];
 
 const PLUS = [
@@ -89,7 +89,7 @@ export default function AccueilPage() {
 
           <div className="relative mx-auto w-full max-w-md" style={{ animation: "eclore .9s .18s both" }}>
             <Tilt3D>
-              <Illu nom="reading-a-book" alt="Un enfant lit un livre illustré" className="anim-flotte relative w-full" />
+              <Illu nom="hero" alt="Un enfant lit un livre qui brille sous un ciel étoilé" className="anim-flotte relative w-full rounded-[2rem]" />
             </Tilt3D>
           </div>
         </div>
@@ -165,7 +165,7 @@ export default function AccueilPage() {
             </div>
           </div>
           <div className="mx-auto w-full max-w-xs">
-            <Illu nom="moonlight" alt="Une scène paisible sous la lune" className="anim-flotte w-full rounded-3xl" />
+            <Illu nom="nuit" alt="Un enfant lit au lit sous la lune et les étoiles" className="anim-flotte w-full rounded-3xl" />
           </div>
         </div>
       </section>
