@@ -47,10 +47,13 @@ export default async function BibliothequePage() {
       </div>
 
       {books.length === 0 ? (
-        <div className="carte flex flex-col items-center gap-4 py-14 text-center">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="#e9a94b" aria-hidden="true">
-            <path d="M12 2l2.4 6.5L21 11l-6.6 2.5L12 20l-2.4-6.5L3 11l6.6-2.5z" />
-          </svg>
+        <div className="carte-relief flex flex-col items-center gap-3 py-12 text-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/illustrations/gen/shelf.webp"
+            alt="Une étagère douillette qui attend ses contes"
+            className="anim-flotte h-44 w-44 object-contain"
+          />
           <h2 className="text-2xl">Votre étagère est encore vide</h2>
           <p className="max-w-sm text-magique-texteClair">
             Le premier conte de votre enfant n'attend que vous.

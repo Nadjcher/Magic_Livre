@@ -37,10 +37,18 @@ export default async function CreerPage() {
 
   return (
     <div className="space-y-6">
-      <EnTetePage surtitre="Le studio de création" titre="Créer un livre">
-        En quelques étapes, composez une histoire unique à l'image de votre
-        enfant.
-      </EnTetePage>
+      <div className="flex items-center justify-between gap-6">
+        <EnTetePage surtitre="Le studio de création" titre="Créer un livre">
+          En quelques étapes, composez une histoire unique à l'image de votre
+          enfant.
+        </EnTetePage>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/illustrations/gen/write.webp"
+          alt=""
+          className="anim-flotte hidden h-28 w-28 flex-none object-contain sm:block"
+        />
+      </div>
       <CreateBookForm enfants={children} heroes={HEROES} />
     </div>
   );

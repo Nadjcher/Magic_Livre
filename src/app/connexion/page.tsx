@@ -36,7 +36,8 @@ export default function ConnexionPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto grid max-w-4xl items-center gap-10 md:grid-cols-2">
+      <div className="order-2 md:order-1">
       <EnTetePage surtitre="Sans mot de passe" titre="Connexion">
         Saisissez votre adresse email : vous recevrez un lien de connexion
         sécurisé, et c'est tout.
@@ -61,6 +62,15 @@ export default function ConnexionPage() {
         {message && <Notice kind="succes">{message}</Notice>}
         {erreur && <Notice kind="erreur">{erreur}</Notice>}
       </form>
+      </div>
+      <div className="order-1 mx-auto max-w-xs md:order-2 md:max-w-none">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/illustrations/gen/login.webp"
+          alt="Une enveloppe scellée d'une étoile dorée"
+          className="anim-flotte w-full"
+        />
+      </div>
     </div>
   );
 }

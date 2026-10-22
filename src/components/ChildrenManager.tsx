@@ -71,7 +71,17 @@ export default function ChildrenManager({ initial }: { initial: ChildView[] }) {
       {/* Liste des enfants */}
       <ul className="space-y-3">
         {initial.length === 0 && (
-          <li className="text-magique-texteClair">Aucun enfant enregistré pour l'instant.</li>
+          <li className="carte-relief flex flex-col items-center gap-2 py-10 text-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/illustrations/gen/imagine.webp"
+              alt="Un enfant qui rêve son histoire"
+              className="anim-flotte h-40 w-40 object-contain"
+            />
+            <p className="text-magique-texteClair">
+              Aucun enfant pour l'instant. Ajoutez-en un pour commencer la première histoire.
+            </p>
+          </li>
         )}
         {initial.map((child) => (
           <li
