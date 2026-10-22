@@ -35,8 +35,8 @@ h1, h2, h3, .serif {
 @layer components {
   /* Bouton principal : or en relief, léger soulèvement au survol. */
   .btn-primaire {
-    @apply relative overflow-hidden inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-bold text-[#3a2708] shadow-or transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
-    background-image: linear-gradient(180deg, #f0b863, #e39a37);
+    @apply relative overflow-hidden inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-bold text-white shadow-or transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+    background-image: linear-gradient(135deg, #8b4fd4, #c45bb0);
   }
   .btn-secondaire {
     @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-magique-primaire bg-white/70 px-6 py-3 font-bold text-magique-primaire backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:bg-magique-primaire hover:text-white;
@@ -56,7 +56,7 @@ h1, h2, h3, .serif {
 @layer utilities {
   /* Titre en dégradé plume → or (réservé à la marque et aux grands titres). */
   .text-gradient {
-    background-image: linear-gradient(118deg, #6d3bd1 0%, #9a5ae0 42%, #e9a94b 110%);
+    background-image: linear-gradient(118deg, #6d3bd1 0%, #9a5ae0 42%, #de6fb5 110%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -74,7 +74,7 @@ h1, h2, h3, .serif {
   display: flex;
   align-items: center;
   gap: 14px;
-  color: #e9a94b;
+  color: #de6fb5;
 }
 .ornement::before,
 .ornement::after {
@@ -82,8 +82,8 @@ h1, h2, h3, .serif {
   height: 1.5px;
   width: 56px;
 }
-.ornement::before { background: linear-gradient(90deg, transparent, #e9a94b); }
-.ornement::after { background: linear-gradient(90deg, #e9a94b, transparent); }
+.ornement::before { background: linear-gradient(90deg, transparent, #de6fb5); }
+.ornement::after { background: linear-gradient(90deg, #de6fb5, transparent); }
 
 @keyframes flotte {
   0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -176,7 +176,7 @@ h1, h2, h3, .serif {
   position: absolute;
   inset: 0 18% auto;
   height: 3px;
-  background: linear-gradient(90deg, transparent, #e9a94b, transparent);
+  background: linear-gradient(90deg, transparent, #de6fb5, transparent);
   opacity: 0.75;
 }
 [data-tilt].carte-relief:hover {

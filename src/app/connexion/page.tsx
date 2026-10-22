@@ -68,7 +68,7 @@ export default function ConnexionPage() {
         <img
           src="/illustrations/gen/login.webp"
           alt="Une enveloppe scellée d'une étoile dorée"
-          className="anim-flotte w-full"
+          className="w-full"
         />
       </div>
     </div>

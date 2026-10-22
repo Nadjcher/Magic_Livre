@@ -53,7 +53,7 @@ export default function AccueilPage() {
         className="relative overflow-hidden rounded-[2.5rem] border border-magique-trait px-6 py-12 sm:px-12 sm:py-16"
         style={{
           backgroundImage:
-            "radial-gradient(60% 55% at 85% 25%, rgba(246,215,154,.55), rgba(246,215,154,0) 60%), radial-gradient(55% 60% at 8% 95%, rgba(109,59,209,.12), rgba(109,59,209,0) 60%), linear-gradient(180deg,#fffaf0,#fbf2df)",
+            "radial-gradient(60% 55% at 85% 25%, rgba(240,180,222,.55), rgba(240,180,222,0) 60%), radial-gradient(55% 60% at 8% 95%, rgba(109,59,209,.12), rgba(109,59,209,0) 60%), linear-gradient(180deg,#fffaf0,#fbf2df)",
         }}
       >
         <Etoile className="anim-scintille pointer-events-none absolute left-[8%] top-[18%] h-4 w-4 text-or" aria-hidden="true" />
@@ -89,7 +89,7 @@ export default function AccueilPage() {
 
           <div className="relative mx-auto w-full max-w-md" style={{ animation: "eclore .9s .18s both" }}>
             <Tilt3D>
-              <Illu nom="hero" alt="Un enfant lit un livre qui brille sous un ciel étoilé" className="anim-flotte relative w-full rounded-[2rem]" />
+              <Illu nom="hero" alt="Un enfant lit un livre qui brille sous un ciel étoilé" className="relative w-full rounded-[2rem]" />
             </Tilt3D>
           </div>
         </div>
@@ -165,7 +165,7 @@ export default function AccueilPage() {
             </div>
           </div>
           <div className="mx-auto w-full max-w-xs">
-            <Illu nom="nuit" alt="Un enfant lit au lit sous la lune et les étoiles" className="anim-flotte w-full rounded-3xl" />
+            <Illu nom="nuit" alt="Un enfant lit au lit sous la lune et les étoiles" className="w-full rounded-3xl" />
           </div>
         </div>
       </section>

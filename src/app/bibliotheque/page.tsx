@@ -52,7 +52,7 @@ export default async function BibliothequePage() {
           <img
             src="/illustrations/gen/shelf.webp"
             alt="Une étagère douillette qui attend ses contes"
-            className="anim-flotte h-44 w-44 object-contain"
+            className="h-44 w-44 object-contain"
           />
           <h2 className="text-2xl">Votre étagère est encore vide</h2>
           <p className="max-w-sm text-magique-texteClair">

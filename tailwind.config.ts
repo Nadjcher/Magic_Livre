@@ -9,7 +9,7 @@ const config: Config = {
       colors: {
         nuit: { DEFAULT: "#141131", 2: "#1b1544", doux: "#38316f" },
         parch: { DEFAULT: "#fbf2df", 2: "#f4e7cc" },
-        or: { DEFAULT: "#e9a94b", clair: "#f6d79a", fonce: "#b9792a" },
+        or: { DEFAULT: "#e07cc0", clair: "#f6b8e0", fonce: "#a93e82" },
         // On conserve l'échelle « magique » (déjà utilisée partout) en la
         // ré-accordant à la nouvelle palette féerique.
         magique: {
@@ -31,7 +31,7 @@ const config: Config = {
       },
       boxShadow: {
         conte: "0 30px 60px -32px rgba(20,17,49,.45)",
-        or: "0 10px 26px rgba(233,169,75,.4)",
+        or: "0 10px 26px rgba(141,75,208,.42)",
       },
     },
   },

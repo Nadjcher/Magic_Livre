@@ -46,7 +46,7 @@ export default async function CreerPage() {
         <img
           src="/illustrations/gen/write.webp"
           alt=""
-          className="anim-flotte hidden h-28 w-28 flex-none object-contain sm:block"
+          className="hidden h-28 w-28 flex-none object-contain sm:block"
         />
       </div>
       <CreateBookForm enfants={children} heroes={HEROES} />

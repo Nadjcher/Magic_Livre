@@ -76,7 +76,7 @@ export default function ChildrenManager({ initial }: { initial: ChildView[] }) {
             <img
               src="/illustrations/gen/imagine.webp"
               alt="Un enfant qui rêve son histoire"
-              className="anim-flotte h-40 w-40 object-contain"
+              className="h-40 w-40 object-contain"
             />
             <p className="text-magique-texteClair">
               Aucun enfant pour l'instant. Ajoutez-en un pour commencer la première histoire.
