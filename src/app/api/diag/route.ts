@@ -9,6 +9,21 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const out: Record<string, unknown> = {};
 
+  // Forme de l'URL (sans le mot de passe)
+  try {
+    const u = new URL(process.env.DATABASE_URL ?? "");
+    out.dbUrlInfo = {
+      protocol: u.protocol,
+      host: u.host,
+      database: u.pathname,
+      params: Object.fromEntries(u.searchParams),
+      hasUser: Boolean(u.username),
+      hasPassword: Boolean(u.password),
+    };
+  } catch (e) {
+    out.dbUrlInfo = "parse_error: " + String((e as Error)?.message ?? e).slice(0, 120);
+  }
+
   // Base de données
   try {
     out.userCount = await prisma.user.count();
