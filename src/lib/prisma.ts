@@ -21,18 +21,22 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-/** Chaîne de connexion nettoyée des paramètres propres à Prisma/pgbouncer. */
+/**
+ * Chaîne de connexion nettoyée des paramètres propres à Prisma/pgbouncer.
+ * Opère uniquement sur la query (après « ? ») pour ne JAMAIS ré-encoder le
+ * mot de passe (ce que ferait `new URL().toString()`).
+ */
 function neonConnectionString(): string {
   const raw = process.env.DATABASE_URL ?? "";
-  try {
-    const u = new URL(raw);
-    ["pgbouncer", "connection_limit", "channel_binding"].forEach((p) =>
-      u.searchParams.delete(p),
-    );
-    return u.toString();
-  } catch {
-    return raw;
-  }
+  const q = raw.indexOf("?");
+  if (q === -1) return raw;
+  const base = raw.slice(0, q);
+  const retire = new Set(["pgbouncer", "connection_limit", "channel_binding"]);
+  const params = raw
+    .slice(q + 1)
+    .split("&")
+    .filter((kv) => kv && !retire.has(kv.split("=")[0]));
+  return params.length ? `${base}?${params.join("&")}` : base;
 }
 
 function createPrisma(): PrismaClient {
