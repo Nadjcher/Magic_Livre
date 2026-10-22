@@ -21,7 +21,11 @@ export default function ConnexionPage() {
     setErreur(null);
     startTransition(async () => {
       try {
-        const res = await signIn("nodemailer", { email, redirect: false });
+        const res = await signIn("nodemailer", {
+          email,
+          redirect: false,
+          callbackUrl: "/bibliotheque",
+        });
         if (res?.error) {
           setErreur("L'envoi du lien a échoué. Vérifiez votre adresse et réessayez.");
         } else {
