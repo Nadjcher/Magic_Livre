@@ -3,7 +3,8 @@
 // cascade ses enfants, ses livres et ses commandes (voir onDelete: Cascade).
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
