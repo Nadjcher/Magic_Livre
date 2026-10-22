@@ -8,6 +8,7 @@
 
 import NextAuth from "next-auth";
 import Nodemailer from "next-auth/providers/nodemailer";
+import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "./prisma";
 
@@ -19,6 +20,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     verifyRequest: "/connexion/verifier",
   },
   providers: [
+    // Connexion Google en un clic. Active uniquement si les clés sont présentes.
+    Google({ allowDangerousEmailAccountLinking: true }),
     Nodemailer({
       server: {
         host: process.env.EMAIL_SERVER_HOST,
