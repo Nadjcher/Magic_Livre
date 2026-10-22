@@ -78,8 +78,8 @@ export default function AccueilPage() {
               <Link href="/connexion" className="btn-primaire">
                 Créer notre histoire
               </Link>
-              <Link href="/cgu" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">
-                Comment ça marche
+              <Link href="/demo" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">
+                Voir un exemple ✦
               </Link>
             </div>
             <p className="mt-6 text-sm text-magique-texteClair" style={{ animation: "monter .6s .36s both" }}>
