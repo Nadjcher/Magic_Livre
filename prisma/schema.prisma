@@ -21,6 +21,9 @@ model User {
   emailVerified     DateTime?
   createdAt         DateTime  @default(now())
 
+  // Mot de passe haché (bcrypt) pour la connexion email + mot de passe.
+  passwordHash      String?
+
   // Consentement parental : date d'acceptation et version des CGU acceptées.
   // Null tant que le parent n'a pas donné son consentement.
   parentalConsentAt DateTime?
