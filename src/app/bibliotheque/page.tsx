@@ -50,7 +50,7 @@ export default async function BibliothequePage() {
         <div className="carte-relief flex flex-col items-center gap-3 py-12 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/illustrations/gen/shelf.webp"
+            src="/illustrations/feerique/shelf.webp"
             alt="Une étagère douillette qui attend ses contes"
             className="h-44 w-44 object-contain"
           />

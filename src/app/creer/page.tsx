@@ -11,7 +11,6 @@ import { HEROES } from "@/lib/heroes";
 import CreateBookForm from "@/components/CreateBookForm";
 import ConsentForm from "@/components/ConsentForm";
 import EnTetePage from "@/components/EnTetePage";
-import { SceneIllustration } from "@/components/Illustrations";
 
 function euros(cents: number): string {
   return `${(cents / 100).toFixed(2).replace(".", ",")} €`;
@@ -51,10 +50,11 @@ export default async function CreerPage() {
           En quelques étapes, composez une histoire unique à l'image de votre
           enfant.
         </EnTetePage>
-        <SceneIllustration
-          name="write"
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/illustrations/feerique/write.webp"
           alt=""
-          className="hidden h-28 w-28 flex-none sm:block"
+          className="hidden h-28 w-28 flex-none object-contain sm:block"
         />
       </div>
       <CreateBookForm

@@ -9,7 +9,6 @@
 
 import Link from "next/link";
 import Tilt3D from "@/components/Tilt3D";
-import { SceneIllustration, type SceneName } from "@/components/Illustrations";
 
 const APP_URL = (process.env.AUTH_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
@@ -66,12 +65,16 @@ function Ornement() {
   );
 }
 
-/** Vignette vectorielle de la marque (voir components/Illustrations). */
-function Illu({ nom, alt, className = "" }: { nom: SceneName; alt: string; className?: string }) {
-  return <SceneIllustration name={nom} alt={alt} className={className} />;
+/**
+ * Illustration peinte de la marque, harmonisée en bleu nuit féerique (fond
+ * détouré, accents dorés refroidis). Fichiers dans /public/illustrations/feerique.
+ */
+function Illu({ nom, alt, className = "" }: { nom: string; alt: string; className?: string }) {
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={`/illustrations/feerique/${nom}.webp`} alt={alt} className={className} />;
 }
 
-const ETAPES: { num: string; illu: SceneName; titre: string; texte: string }[] = [
+const ETAPES = [
   { num: "I", illu: "imagine", titre: "Vous imaginez", texte: "Le prénom, l'âge, puis un héros original ou votre propre idée d'aventure." },
   { num: "II", illu: "write", titre: "La plume s'anime", texte: "Une histoire douce et illustrée s'écrit en moins d'une minute." },
   { num: "III", illu: "together", titre: "Vous lisez ensemble", texte: "Page par page, à voix haute. Puis un joli PDF à imprimer et à garder." },

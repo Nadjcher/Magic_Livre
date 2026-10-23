@@ -18,32 +18,32 @@ export const metadata: Metadata = {
 /** Livre-démo (contenu d'exemple, illustrations fournies avec le site). */
 const DEMO: Story = {
   titre: "La nuit où le livre s'est allumé",
-  couvertureUrl: "/illustrations/gen/hero.webp",
+  couvertureUrl: "/illustrations/feerique/hero.webp",
   style: "feerique",
   pages: [
     {
       texte:
         "Ce soir-là, Lina n'avait pas du tout sommeil. À peine ouvrit-elle son livre qu'un petit château et un dragon farceur jaillirent d'un nuage, juste au-dessus de son lit.",
       scene_illustration: "Une enfant imagine un château et un dragon au-dessus de son lit.",
-      imageUrl: "/illustrations/gen/imagine.webp",
+      imageUrl: "/illustrations/feerique/imagine.webp",
     },
     {
       texte:
         "Une plume dorée se mit à écrire toute seule sur les pages. « C'est TON histoire », chuchota-t-elle, et chaque mot scintillait comme une étoile filante.",
       scene_illustration: "Un livre magique dont une plume d'or écrit toute seule.",
-      imageUrl: "/illustrations/gen/write.webp",
+      imageUrl: "/illustrations/feerique/write.webp",
     },
     {
       texte:
         "Maman vint se blottir tout près. Ensemble, elles suivirent Lina et le dragon à travers la forêt des lucioles, de clairière en clairière.",
       scene_illustration: "Un parent et un enfant lisent le conte, blottis l'un contre l'autre.",
-      imageUrl: "/illustrations/gen/together.webp",
+      imageUrl: "/illustrations/feerique/together.webp",
     },
     {
       texte:
         "À la toute dernière page, le dragon souffla une pluie d'étoiles. Lina ferma les yeux, le cœur tout chaud, et s'endormit paisiblement dans son histoire.",
       scene_illustration: "L'enfant s'endort au lit sous la lune et les étoiles.",
-      imageUrl: "/illustrations/gen/nuit.webp",
+      imageUrl: "/illustrations/feerique/nuit.webp",
     },
   ],
 };

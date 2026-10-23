@@ -94,7 +94,7 @@ export default function ConnexionPage() {
       <div className="order-1 mx-auto max-w-xs md:order-2 md:max-w-none">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/illustrations/gen/login.webp"
+          src="/illustrations/feerique/login.webp"
           alt="Une enveloppe scellée d'une étoile"
           className="w-full"
         />

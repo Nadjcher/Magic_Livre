@@ -74,7 +74,7 @@ export default function ChildrenManager({ initial }: { initial: ChildView[] }) {
           <li className="carte-relief flex flex-col items-center gap-2 py-10 text-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/illustrations/gen/imagine.webp"
+              src="/illustrations/feerique/imagine.webp"
               alt="Un enfant qui rêve son histoire"
               className="h-40 w-40 object-contain"
             />
