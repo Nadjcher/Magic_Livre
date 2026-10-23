@@ -126,10 +126,11 @@ async function geminiImage(
   if (reference) {
     parts.push({ inlineData: { mimeType: reference.mime, data: reference.base64 } });
     texte =
-      "Using the attached reference photo ONLY to capture the child's likeness " +
-      "(hairstyle, hair color, eye color, skin tone, approximate face shape), " +
-      "redraw this child as an original, warm children's book character. " +
-      "Do NOT reproduce the photo; produce a stylized illustration. " +
+      "The attached photo is the child who is the hero of this book. " +
+      "Draw this SAME child as the main character, keeping a clearly recognizable likeness: " +
+      "same hairstyle and hair color, same eye color, same skin tone, same face shape and age. " +
+      "Keep that likeness identical across every page. Stylize them as a charming children's book " +
+      "character (not a photo copy, no realism), matching the requested art style. " +
       prompt;
   }
   parts.push({ text: texte });

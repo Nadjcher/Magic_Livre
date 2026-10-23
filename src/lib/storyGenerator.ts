@@ -38,8 +38,8 @@ async function callModel(client: OpenAI, userMessage: string): Promise<string> {
   const response = await client.chat.completions.create(
     {
       model: env.groqModel(),
-      max_tokens: 4096,
-      temperature: 0.8,
+      max_tokens: 6000,
+      temperature: 0.9,
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: SYSTEM_PROMPT },

@@ -35,7 +35,7 @@ Format de sortie OBLIGATOIRE : réponds UNIQUEMENT avec un objet JSON strict, sa
   ]
 }
 
-Le champ "texte" contient le texte de la page (2 à 4 phrases riches et imagées, adaptées à l'âge).
+Le champ "texte" contient le texte de la page (3 à 5 phrases riches et imagées, adaptées à l'âge ; développe vraiment l'intrigue page après page : rencontres, découvertes, petit défi doux, entraide, avant une résolution tendre).
 Le champ "scene_illustration" décrit précisément la scène à dessiner EN ANGLAIS (décor, personnages, action, émotion, lumière), en une phrase détaillée, sans aucun texte écrit ni personnage protégé.`;
 
 export interface StoryRequest {

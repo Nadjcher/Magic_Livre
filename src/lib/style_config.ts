@@ -58,9 +58,11 @@ export const ILLUSTRATION_STYLES: Record<
     label: "Féerique",
     description: "Pastel, étoiles, douceur",
     prompt:
-      "dreamy fairytale storybook illustration, soft pastel palette of lavender, rose, cream and gold, " +
-      "luminous magical glow and floating stardust, delicate linework, gentle bokeh, " +
-      "tender bedtime atmosphere, ethereal and soothing, painterly soft edges",
+      "dreamy fairytale storybook illustration in a SOFT COOL PASTEL palette: " +
+      "lavender, periwinkle blue, soft rose pink, mint green and moonlit silver, " +
+      "with only tiny delicate gold sparkle accents; AVOID heavy yellow, orange or golden-hour lighting; " +
+      "cool magical twilight glow, floating stardust, delicate linework, gentle bokeh, " +
+      "tender ethereal bedtime atmosphere, painterly soft edges",
   },
   manga: {
     label: "Manga",
@@ -78,8 +80,10 @@ export const ILLUSTRATION_STYLES: Record<
  * suivent mieux ainsi.
  */
 export const BASE_IMAGE_PROMPT =
-  "professional children's book illustration, highly detailed, cohesive color palette, " +
-  "soft rim lighting, balanced storybook composition, beautiful and polished; " +
+  "professional children's book illustration, highly detailed, beautiful and polished, " +
+  "balanced storybook composition; " +
+  "KEEP THE EXACT SAME art style, rendering technique and color palette as the other pages of this same book, " +
+  "so every page looks like one consistent illustrated album; " +
   "absolutely no text, no letters, no words, no numbers, no watermark, no logo, no signature; " +
   "wholesome and child-safe, no scary, no violent, no sad or dark elements";
 
