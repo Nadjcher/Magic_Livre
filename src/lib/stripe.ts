@@ -62,8 +62,8 @@ export async function createCheckoutSession(params: {
       bookId: params.bookId,
       orderId: params.orderId,
     },
-    success_url: `${baseUrl}/bibliotheque/${params.bookId}?paiement=succes`,
-    cancel_url: `${baseUrl}/bibliotheque/${params.bookId}?paiement=annule`,
+    success_url: `${baseUrl}/bibliotheque/${params.bookId}/boutique?paiement=succes`,
+    cancel_url: `${baseUrl}/bibliotheque/${params.bookId}/boutique?paiement=annule`,
   });
 
   if (!session.url) {

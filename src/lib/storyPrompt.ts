@@ -11,14 +11,16 @@ import { findHeroById } from "./heroes";
 import type { IllustrationStyle } from "./style_config";
 
 /** Prompt système fixe (indépendant de la saisie). */
-export const SYSTEM_PROMPT = `Tu es un auteur reconnu de contes illustrés pour enfants de 3 à 10 ans, en français. Tu écris comme les plus beaux albums jeunesse : tendre, imagé, musical.
+export const SYSTEM_PROMPT = `Tu es un auteur reconnu de contes illustrés pour enfants, en français. Tu écris comme les plus beaux albums jeunesse : tendre, imagé, musical.
 
-Qualité d'écriture (très important) :
-- Raconte une vraie HISTOIRE avec un arc : un début qui installe un décor et une envie, un petit obstacle ou une quête douce, puis une résolution chaleureuse et une fin rassurante.
-- Langue soignée et poétique mais accessible : images sensorielles (couleurs, sons, odeurs, lumière), comparaisons simples et jolies, un peu de rythme et de répétition douce (par ex. une phrase-refrain qui revient).
-- Varie les phrases : surtout courtes, parfois une plus longue qui chante. Évite les phrases plates et les redites inutiles.
-- Donne de la personnalité et des émotions tendres aux personnages ; de petits dialogues vivants sont les bienvenus.
-- Chaque page fait avancer l'histoire (pas de remplissage). Un fil conducteur relie toutes les pages.
+RÈGLE N°1 — ADAPTER À L'ÂGE (la plus importante) :
+Tu reçois l'âge exact de l'enfant. Tu DOIS adapter rigoureusement le vocabulaire, la longueur des phrases, la structure et les thèmes à cet âge. Une histoire pour un enfant de 2 ans n'a RIEN à voir avec une histoire pour 8 ans. Respecte à la lettre les consignes d'âge données dans la demande (longueur des phrases, mots simples, répétitions…). Un texte trop compliqué ou trop long pour l'âge est un échec.
+
+Qualité d'écriture :
+- Raconte une vraie HISTOIRE claire et facile à suivre : un début qui pose le décor, une petite quête ou un petit souci, puis une résolution chaleureuse et une fin rassurante. L'enfant (et le parent qui lit) doit comprendre immédiatement ce qui se passe.
+- Langue accessible et jolie : images sensorielles simples (couleurs, sons, lumière), rythme, et une phrase-refrain douce qui revient (surtout pour les petits).
+- Donne des émotions tendres aux personnages ; de petits dialogues vivants quand l'âge s'y prête.
+- Chaque page fait avancer l'histoire (pas de remplissage). Un fil conducteur clair relie toutes les pages.
 
 Règles impératives :
 - Ton doux, bienveillant, jamais effrayant ni triste durablement. Fin heureuse et rassurante.
@@ -35,7 +37,7 @@ Format de sortie OBLIGATOIRE : réponds UNIQUEMENT avec un objet JSON strict, sa
   ]
 }
 
-Le champ "texte" contient le texte de la page (3 à 5 phrases riches et imagées, adaptées à l'âge ; développe vraiment l'intrigue page après page : rencontres, découvertes, petit défi doux, entraide, avant une résolution tendre).
+Le champ "texte" contient le texte de la page, dont la longueur et la complexité suivent STRICTEMENT les consignes d'âge de la demande (d'une seule phrase très courte pour un tout-petit, jusqu'à plusieurs phrases riches pour un grand).
 Le champ "scene_illustration" décrit précisément la scène à dessiner EN ANGLAIS (décor, personnages, action, émotion, lumière), en une phrase détaillée, sans aucun texte écrit ni personnage protégé.`;
 
 export interface StoryRequest {
@@ -59,6 +61,55 @@ export interface StoryRequest {
 }
 
 /**
+ * Consignes d'écriture précises selon l'âge de l'enfant. C'est le levier
+ * principal de qualité : chaque tranche d'âge a ses règles (longueur des
+ * phrases, vocabulaire, structure, thèmes).
+ */
+export function ageGuidance(age: number): string {
+  if (age <= 2) {
+    return [
+      "ÂGE 0–2 ANS (tout-petit) :",
+      "- UNE seule phrase TRÈS courte par page (3 à 7 mots maximum).",
+      "- Mots du quotidien, ultra-simples et concrets (doudou, câlin, dodo, maman, papa, animaux, couleurs).",
+      "- Beaucoup de répétition : une même phrase-refrain revient presque à chaque page.",
+      "- Des sons rigolos (« Plouf ! », « Coucou ! », « Hop ! »).",
+      "- Pas d'intrigue compliquée : juste de petits moments tendres et rassurants, qui finissent par un câlin ou un dodo.",
+    ].join("\n");
+  }
+  if (age <= 4) {
+    return [
+      "ÂGE 3–4 ANS :",
+      "- 1 à 2 phrases courtes et simples par page.",
+      "- Vocabulaire courant, concret ; une petite quête douce et facile à suivre.",
+      "- Une phrase-refrain qui revient, un peu de répétition rassurante.",
+      "- Thèmes proches de l'enfant : amitié, partage, peur du noir apprivoisée, découverte.",
+    ].join("\n");
+  }
+  if (age <= 6) {
+    return [
+      "ÂGE 5–6 ANS :",
+      "- 2 à 3 phrases par page, claires et imagées.",
+      "- Une vraie petite intrigue avec un défi doux et une résolution ; un soupçon d'humour.",
+      "- Émotions nommées simplement (fier, timide, courageux).",
+    ].join("\n");
+  }
+  if (age <= 8) {
+    return [
+      "ÂGE 7–8 ANS :",
+      "- 3 à 4 phrases par page, vocabulaire plus riche.",
+      "- Une aventure construite avec un petit rebondissement et une morale douce.",
+      "- Dialogues vivants, personnages avec du caractère.",
+    ].join("\n");
+  }
+  return [
+    "ÂGE 9–10 ANS :",
+    "- 4 à 5 phrases par page, langue soignée et nuancée.",
+    "- Intrigue développée (début, péripéties, résolution), émotions plus fines.",
+    "- Descriptions évocatrices, un brin d'humour ou de mystère doux.",
+  ].join("\n");
+}
+
+/**
  * Construit le message utilisateur (les consignes variables) à partir de la
  * demande. La saisie libre a déjà été filtrée en amont.
  */
@@ -68,7 +119,11 @@ export function buildUserMessage(req: StoryRequest): string {
   const lignes: string[] = [
     `Prénom de l'enfant (personnage principal) : ${req.childFirstName}`,
     `Âge de l'enfant : ${req.childAge} ans`,
-    `Nombre de pages souhaité : entre ${minPages} et ${maxPages}.`,
+    "",
+    "Consignes d'âge À RESPECTER STRICTEMENT :",
+    ageGuidance(req.childAge),
+    "",
+    `Nombre de pages souhaité : entre ${minPages} et ${maxPages} (garde chaque page à la longueur imposée par l'âge ci-dessus, même s'il y a beaucoup de pages).`,
   ];
 
   if (req.mode === "hero") {
@@ -92,7 +147,7 @@ export function buildUserMessage(req: StoryRequest): string {
   }
 
   lignes.push(
-    "Écris une histoire complète et marquante, avec un vrai fil narratif (début, petite quête douce, résolution tendre), une fin rassurante, des images sensorielles et, si possible, une phrase-refrain qui revient.",
+    "Écris une histoire claire et facile à comprendre, avec un fil narratif simple (début, petite quête douce, résolution tendre) et une fin rassurante — SANS JAMAIS dépasser la longueur de phrase et le vocabulaire imposés par l'âge ci-dessus.",
   );
   lignes.push(
     `Garde ${req.childFirstName} au cœur de chaque page, avec des émotions tendres et un décor vivant.`,

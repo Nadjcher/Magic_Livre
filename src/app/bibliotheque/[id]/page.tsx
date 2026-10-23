@@ -6,20 +6,10 @@ import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { env } from "@/lib/env";
 import { storySchema } from "@/lib/storySchema";
 import BookReader from "@/components/BookReader";
-import PurchaseDownload from "@/components/PurchaseDownload";
-import BookExtras from "@/components/BookExtras";
-import DeluxeShop from "@/components/DeluxeShop";
 import DeleteBookButton from "@/components/DeleteBookButton";
 import Notice from "@/components/Notice";
-import { DELUXE_PRODUCTS } from "@/lib/products";
-
-function formatPrix(cents: number): string {
-  const euros = (cents / 100).toFixed(2).replace(".", ",");
-  return `${euros} €`;
-}
 
 export default async function LivrePage({
   params,
@@ -37,15 +27,7 @@ export default async function LivrePage({
   });
   if (!book) notFound();
 
-  const paidOrders = await prisma.order.findMany({
-    where: { bookId: book.id, userId: user.id, status: "paid" },
-    select: { sku: true },
-  });
-  const skusPayes = paidOrders.map((o) => o.sku);
-  const paid = skusPayes.includes("book");
-
   const premium = book.tier === "premium";
-  const prix = formatPrix(premium ? env.bookPricePremiumCents() : env.bookPriceCents());
 
   return (
     <div className="space-y-6">
@@ -105,19 +87,22 @@ export default async function LivrePage({
           return (
             <>
               <BookReader story={parsed.data} />
-              <div className="carte">
-                <h2 className="font-semibold">Version imprimable (PDF)</h2>
-                <p className="mb-3 mt-1 text-sm text-magique-texteClair">
-                  {paid
-                    ? "Votre paiement est validé. Téléchargez votre livre au format A4 paysage."
-                    : premium
-                      ? "Édition premium : PDF A4 paysage, illustrations haut de gamme, sans filigrane."
-                      : "Obtenez le PDF A4 paysage, sans filigrane, prêt à imprimer."}
-                </p>
-                <PurchaseDownload bookId={book.id} paid={paid} prix={prix} />
+              <div className="carte flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="font-serif text-xl">🎁 La boutique de ce livre</h2>
+                  <p className="mt-1 text-sm text-magique-texteClair">
+                    Le livre à imprimer, le kit inclus (coloriage, affiche, invitation,
+                    autocollants, marque-pages, audio) et des cadeaux deluxe — tous créés à
+                    partir de cette histoire.
+                  </p>
+                </div>
+                <Link
+                  href={`/bibliotheque/${book.id}/boutique`}
+                  className="btn-primaire flex-none"
+                >
+                  Voir la boutique →
+                </Link>
               </div>
-              {paid && <BookExtras bookId={book.id} />}
-              <DeluxeShop bookId={book.id} produits={DELUXE_PRODUCTS} skusPayes={skusPayes} />
             </>
           );
         })()
