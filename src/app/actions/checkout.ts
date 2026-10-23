@@ -1,15 +1,18 @@
 "use server";
 
 /**
- * Server Action : démarrage du paiement Stripe pour télécharger un livre.
- * Crée une commande « pending » puis une session Checkout, et renvoie l'URL
- * de redirection vers Stripe.
+ * Server Action : démarrage d'un paiement Stripe.
+ * - sku "book" : achat du livre (édition standard ou premium) → débloque le
+ *   kit inclus.
+ * - sku d'un produit deluxe (ex. "pack_fete") : achat à l'unité.
+ * Crée une commande « pending » puis une session Checkout, et renvoie l'URL.
  */
 
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { createCheckoutSession } from "@/lib/stripe";
 import { env } from "@/lib/env";
+import { getDeluxeProduct } from "@/lib/products";
 
 export interface CheckoutResult {
   ok: boolean;
@@ -17,7 +20,10 @@ export interface CheckoutResult {
   url?: string;
 }
 
-export async function startCheckout(bookId: string): Promise<CheckoutResult> {
+export async function startCheckout(
+  bookId: string,
+  sku = "book",
+): Promise<CheckoutResult> {
   const user = await getCurrentUser();
   if (!user) return { ok: false, message: "Vous devez être connecté." };
 
@@ -29,42 +35,61 @@ export async function startCheckout(bookId: string): Promise<CheckoutResult> {
     return { ok: false, message: "Le livre n'est pas encore prêt." };
   }
 
-  // Si déjà payé, inutile de repayer.
-  const existingPaid = await prisma.order.findFirst({
-    where: { bookId: book.id, userId: user.id, status: "paid" },
-  });
-  if (existingPaid) {
-    return { ok: false, message: "Ce livre est déjà payé. Vous pouvez le télécharger." };
+  // Détermine le produit : le livre, ou un produit deluxe du catalogue.
+  let amountCents: number;
+  let productName: string;
+  let productDescription: string;
+
+  if (sku === "book") {
+    const premium = book.tier === "premium";
+    amountCents = premium ? env.bookPricePremiumCents() : env.bookPriceCents();
+    productName = `${premium ? "Édition premium" : "Livre"} : ${book.title}`;
+    productDescription = premium
+      ? "PDF imprimable, illustrations haut de gamme + kit inclus (coloriage, affiche, invitation, autocollants, marque-pages, audio)."
+      : "Livre PDF imprimable + kit inclus (coloriage, affiche, invitation, autocollants, marque-pages, audio).";
+  } else {
+    const product = getDeluxeProduct(sku);
+    if (!product) return { ok: false, message: "Produit inconnu." };
+    amountCents = product.priceCents;
+    productName = `${product.label} — ${book.title}`;
+    productDescription = product.description;
   }
 
-  // Montant selon l'édition : premium plus cher que standard.
-  const premium = book.tier === "premium";
-  const amountCents = premium ? env.bookPricePremiumCents() : env.bookPriceCents();
+  // Déjà acheté ? (une commande payée pour ce produit et ce livre.)
+  const existingPaid = await prisma.order.findFirst({
+    where: { bookId: book.id, userId: user.id, sku, status: "paid" },
+  });
+  if (existingPaid) {
+    return {
+      ok: false,
+      message:
+        sku === "book"
+          ? "Ce livre est déjà payé. Vous pouvez le télécharger."
+          : "Ce produit est déjà acheté. Vous pouvez le télécharger.",
+    };
+  }
 
   try {
-    // 1. On crée d'abord la commande en attente (sans stripeSessionId).
     const order = await prisma.order.create({
       data: {
         userId: user.id,
         bookId: book.id,
+        sku,
         status: "pending",
         amount: amountCents,
         currency: env.bookCurrency(),
       },
     });
 
-    // 2. On crée la session Stripe en lui passant l'identifiant de commande.
     const checkout = await createCheckoutSession({
       userId: user.id,
       bookId: book.id,
       orderId: order.id,
-      bookTitle: book.title,
+      productName,
+      productDescription,
       amountCents,
-      premium,
     });
 
-    // 3. On relie la session à la commande (le webhook sait de toute façon
-    //    retrouver la commande via orderId présent dans les métadonnées).
     await prisma.order.update({
       where: { id: order.id },
       data: { stripeSessionId: checkout.sessionId },

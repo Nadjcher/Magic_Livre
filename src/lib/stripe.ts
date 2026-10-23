@@ -29,11 +29,12 @@ export async function createCheckoutSession(params: {
   userId: string;
   bookId: string;
   orderId: string;
-  bookTitle: string;
-  /** Montant à facturer en centimes (dépend de l'édition). */
+  /** Nom du produit affiché sur la page de paiement Stripe. */
+  productName: string;
+  /** Description du produit affichée sur Stripe. */
+  productDescription: string;
+  /** Montant à facturer en centimes. */
   amountCents: number;
-  /** true : édition premium (illustrations haut de gamme). */
-  premium: boolean;
 }): Promise<{ sessionId: string; url: string }> {
   const stripe = getStripe();
   const baseUrl = env.authUrl();
@@ -46,10 +47,8 @@ export async function createCheckoutSession(params: {
           currency: env.bookCurrency(),
           unit_amount: params.amountCents,
           product_data: {
-            name: `${params.premium ? "Édition premium" : "Livre"} : ${params.bookTitle}`,
-            description: params.premium
-              ? "PDF imprimable, illustrations haut de gamme et ressemblance renforcée."
-              : "Version PDF imprimable de votre livre personnalisé.",
+            name: params.productName,
+            description: params.productDescription,
           },
         },
         quantity: 1,

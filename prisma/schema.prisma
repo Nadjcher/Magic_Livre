@@ -109,6 +109,9 @@ model Order {
   id              String      @id @default(cuid())
   userId          String
   bookId          String
+  // Produit acheté : "book" = le livre (débloque le kit inclus), sinon un
+  // identifiant de produit deluxe vendu à l'unité (ex. "pack_fete").
+  sku             String      @default("book")
   stripeSessionId String?     @unique
   status          OrderStatus @default(pending)
   amount          Int // montant en centimes

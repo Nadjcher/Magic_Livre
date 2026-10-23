@@ -11,8 +11,10 @@ import { storySchema } from "@/lib/storySchema";
 import BookReader from "@/components/BookReader";
 import PurchaseDownload from "@/components/PurchaseDownload";
 import BookExtras from "@/components/BookExtras";
+import DeluxeShop from "@/components/DeluxeShop";
 import DeleteBookButton from "@/components/DeleteBookButton";
 import Notice from "@/components/Notice";
+import { DELUXE_PRODUCTS } from "@/lib/products";
 
 function formatPrix(cents: number): string {
   const euros = (cents / 100).toFixed(2).replace(".", ",");
@@ -35,10 +37,12 @@ export default async function LivrePage({
   });
   if (!book) notFound();
 
-  const paidOrder = await prisma.order.findFirst({
+  const paidOrders = await prisma.order.findMany({
     where: { bookId: book.id, userId: user.id, status: "paid" },
+    select: { sku: true },
   });
-  const paid = Boolean(paidOrder);
+  const skusPayes = paidOrders.map((o) => o.sku);
+  const paid = skusPayes.includes("book");
 
   const premium = book.tier === "premium";
   const prix = formatPrix(premium ? env.bookPricePremiumCents() : env.bookPriceCents());
@@ -113,6 +117,7 @@ export default async function LivrePage({
                 <PurchaseDownload bookId={book.id} paid={paid} prix={prix} />
               </div>
               {paid && <BookExtras bookId={book.id} />}
+              <DeluxeShop bookId={book.id} produits={DELUXE_PRODUCTS} skusPayes={skusPayes} />
             </>
           );
         })()

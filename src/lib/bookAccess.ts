@@ -13,7 +13,16 @@ export type BookAccess =
   | { ok: true; story: Story; bookId: string; title: string; childName: string }
   | { ok: false; status: number; error: string };
 
-export async function getPaidBookStory(bookId: string): Promise<BookAccess> {
+/**
+ * Vérifie l'accès à un produit payé pour un livre donné. `sku` identifie le
+ * produit acheté : "book" (le livre + le kit inclus) ou un produit deluxe
+ * vendu à l'unité (ex. "pack_fete"). Renvoie l'histoire si une commande payée
+ * existe pour ce sku.
+ */
+export async function getPaidProductStory(
+  bookId: string,
+  sku: string,
+): Promise<BookAccess> {
   const user = await getCurrentUser();
   if (!user) return { ok: false, status: 401, error: "Non connecté." };
 
@@ -27,7 +36,7 @@ export async function getPaidBookStory(bookId: string): Promise<BookAccess> {
   }
 
   const paid = await prisma.order.findFirst({
-    where: { bookId: book.id, userId: user.id, status: "paid" },
+    where: { bookId: book.id, userId: user.id, status: "paid", sku },
   });
   if (!paid) {
     return { ok: false, status: 402, error: "Le téléchargement nécessite un paiement validé." };
@@ -45,6 +54,11 @@ export async function getPaidBookStory(bookId: string): Promise<BookAccess> {
     title: book.title,
     childName: book.child.firstName,
   };
+}
+
+/** Accès au livre et au kit inclus : nécessite l'achat du livre (sku "book"). */
+export async function getPaidBookStory(bookId: string): Promise<BookAccess> {
+  return getPaidProductStory(bookId, "book");
 }
 
 /** Nettoie un titre pour un nom de fichier. */

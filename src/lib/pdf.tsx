@@ -364,3 +364,165 @@ export async function renderBookmarkPdf(
 ): Promise<Buffer> {
   return renderToBuffer(buildBookmarkDocument(story, childName, image));
 }
+
+// ---------------------------------------------------------------------------
+// Produit deluxe : Affiche grand format A3 (le héros en très grand).
+// ---------------------------------------------------------------------------
+const a3 = StyleSheet.create({
+  page: {
+    flexDirection: "column",
+    backgroundColor: STYLE_CONFIG.couleurs.fond,
+    padding: 56,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  image: { width: "100%", height: 720, objectFit: "cover", borderRadius: 20, marginBottom: 40 },
+  title: { fontSize: 48, textAlign: "center", color: STYLE_CONFIG.couleurs.primaire },
+  sub: { fontSize: 20, textAlign: "center", color: STYLE_CONFIG.couleurs.texteClair, marginTop: 16 },
+});
+
+/** Affiche A3 grand format. */
+export function buildPosterA3Document(story: Story, childName: string, image: string | null): JSX.Element {
+  return (
+    <Document title={`${story.titre} — affiche A3`} author="Mon Livre Magique">
+      <Page size="A3" style={a3.page}>
+        {image ? <Image src={image} style={a3.image} /> : null}
+        <Text style={a3.title}>{story.titre}</Text>
+        <Text style={a3.sub}>Les aventures de {childName}</Text>
+      </Page>
+    </Document>
+  );
+}
+
+export async function renderPosterA3Pdf(story: Story, childName: string, image: string | null): Promise<Buffer> {
+  return renderToBuffer(buildPosterA3Document(story, childName, image));
+}
+
+// ---------------------------------------------------------------------------
+// Produit deluxe : Pack Fête d'anniversaire (invitation, banderole,
+// étiquettes-cadeaux, cartes de remerciement) — plusieurs pages A4.
+// ---------------------------------------------------------------------------
+const fete = StyleSheet.create({
+  page: { flexDirection: "column", backgroundColor: STYLE_CONFIG.couleurs.fond, padding: 40 },
+  h1: { fontSize: 28, textAlign: "center", color: STYLE_CONFIG.couleurs.primaire, marginBottom: 4 },
+  h2: { fontSize: 13, textAlign: "center", color: STYLE_CONFIG.couleurs.texteClair, marginBottom: 20 },
+  invitImg: { width: 280, height: 200, objectFit: "cover", borderRadius: 16, marginBottom: 18, alignSelf: "center" },
+  line: { fontSize: 14, color: STYLE_CONFIG.couleurs.texte, marginBottom: 14, alignSelf: "center", width: 360 },
+  row: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center" },
+  // Banderole : un fanion par lettre.
+  fanion: {
+    width: 86,
+    height: 104,
+    margin: 7,
+    borderBottomLeftRadius: 43,
+    borderBottomRightRadius: 43,
+    backgroundColor: STYLE_CONFIG.couleurs.primaire,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fanionTxt: { fontSize: 40, color: "#ffffff" },
+  // Étiquettes-cadeaux.
+  tag: {
+    width: 150,
+    height: 92,
+    margin: 8,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderStyle: "dashed",
+    borderColor: STYLE_CONFIG.couleurs.texteClair,
+    backgroundColor: "#ffffff",
+    padding: 10,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  tagImg: { width: 64, height: 64, objectFit: "cover", borderRadius: 10, marginRight: 10 },
+  tagTxt: { fontSize: 11, color: STYLE_CONFIG.couleurs.texte },
+  // Cartes de remerciement.
+  merci: {
+    width: 230,
+    height: 150,
+    margin: 10,
+    borderRadius: 16,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: "#dbe2f6",
+    padding: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  merciImg: { width: 70, height: 70, objectFit: "cover", borderRadius: 35, marginBottom: 8 },
+  merciTxt: { fontSize: 12, textAlign: "center", color: STYLE_CONFIG.couleurs.texte },
+});
+
+/** Pack Fête : plusieurs planches A4 à imprimer et découper. */
+export function buildPartyPackDocument(
+  story: Story,
+  childName: string,
+  image: string | null,
+): JSX.Element {
+  const lettres = childName.toUpperCase().split("");
+  return (
+    <Document title={`Pack Fête — ${childName}`} author="Mon Livre Magique">
+      {/* 1. Invitation */}
+      <Page size="A4" style={fete.page}>
+        <Text style={fete.h1}>La fête de {childName} !</Text>
+        <Text style={fete.h2}>Tu es invité·e à une journée de contes et de magie</Text>
+        {image ? <Image src={image} style={fete.invitImg} /> : null}
+        <Text style={fete.line}>Quand : ______________________________________</Text>
+        <Text style={fete.line}>Heure : ______________________________________</Text>
+        <Text style={fete.line}>Où : _________________________________________</Text>
+        <Text style={fete.line}>Réponse avant le : ___________________________</Text>
+      </Page>
+
+      {/* 2. Banderole au prénom */}
+      <Page size="A4" orientation="landscape" style={fete.page}>
+        <Text style={fete.h1}>Banderole à découper</Text>
+        <Text style={fete.h2}>Découpe les fanions et relie-les avec une ficelle</Text>
+        <View style={fete.row}>
+          {lettres.map((l, i) => (
+            <View key={i} style={fete.fanion}>
+              <Text style={fete.fanionTxt}>{l}</Text>
+            </View>
+          ))}
+        </View>
+      </Page>
+
+      {/* 3. Étiquettes-cadeaux */}
+      <Page size="A4" style={fete.page}>
+        <Text style={fete.h1}>Étiquettes-cadeaux</Text>
+        <Text style={fete.h2}>À accrocher aux pochettes-surprises</Text>
+        <View style={fete.row}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <View key={i} style={fete.tag}>
+              {image ? <Image src={image} style={fete.tagImg} /> : null}
+              <Text style={fete.tagTxt}>Pour : ________{"\n"}{"\n"}De la part de {childName}</Text>
+            </View>
+          ))}
+        </View>
+      </Page>
+
+      {/* 4. Cartes de remerciement */}
+      <Page size="A4" style={fete.page}>
+        <Text style={fete.h1}>Cartes de remerciement</Text>
+        <Text style={fete.h2}>À offrir après la fête</Text>
+        <View style={fete.row}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <View key={i} style={fete.merci}>
+              {image ? <Image src={image} style={fete.merciImg} /> : null}
+              <Text style={fete.merciTxt}>Merci d'être venu·e à ma fête !{"\n"}— {childName}</Text>
+            </View>
+          ))}
+        </View>
+      </Page>
+    </Document>
+  );
+}
+
+export async function renderPartyPackPdf(
+  story: Story,
+  childName: string,
+  image: string | null,
+): Promise<Buffer> {
+  return renderToBuffer(buildPartyPackDocument(story, childName, image));
+}
