@@ -12,6 +12,7 @@
  */
 
 import "server-only";
+import { put } from "@vercel/blob";
 import { env } from "./env";
 import { fetchAllWithTimeout } from "./imageFetch";
 import {
@@ -53,7 +54,9 @@ export async function generateIllustration(
       return { imageUrl: pollinationsUrl(prompt, seed) };
     }
     if (provider === "gemini") {
-      return { imageUrl: await geminiImage(prompt) };
+      const img = await geminiImage(prompt);
+      if (!img) return { imageUrl: null };
+      return { imageUrl: await storeImage(img.base64, img.mime, seed) };
     }
     // "none" ou valeur inconnue : pas d'image.
     return { imageUrl: null };
@@ -76,10 +79,31 @@ function pollinationsUrl(prompt: string, seed: number): string {
 }
 
 /**
- * Génère une image via l'API Gemini et renvoie une data URL base64.
+ * Stocke l'image. Si un store Vercel Blob est configuré
+ * (BLOB_READ_WRITE_TOKEN), renvoie une URL légère ; sinon repli sur une data
+ * URL base64 (fonctionne, mais plus lourd en base).
+ */
+async function storeImage(base64: string, mime: string, seed: number): Promise<string> {
+  const dataUrl = `data:${mime};base64,${base64}`;
+  if (!process.env.BLOB_READ_WRITE_TOKEN) return dataUrl;
+  try {
+    const ext = mime.includes("jpeg") ? "jpg" : mime.includes("webp") ? "webp" : "png";
+    const blob = await put(
+      `illustrations/${seed}-${Date.now()}.${ext}`,
+      Buffer.from(base64, "base64"),
+      { access: "public", contentType: mime },
+    );
+    return blob.url;
+  } catch {
+    return dataUrl;
+  }
+}
+
+/**
+ * Génère une image via l'API Gemini et renvoie le base64 + le type MIME.
  * Renvoie null si aucune clé n'est configurée ou en cas d'échec.
  */
-async function geminiImage(prompt: string): Promise<string | null> {
+async function geminiImage(prompt: string): Promise<{ base64: string; mime: string } | null> {
   const key = env.geminiApiKey();
   if (!key) return null;
 
@@ -115,8 +139,7 @@ async function geminiImage(prompt: string): Promise<string | null> {
   const part = data.candidates?.[0]?.content?.parts?.find((p) => p.inlineData?.data);
   const inline = part?.inlineData;
   if (!inline?.data) return null;
-  const mime = inline.mimeType ?? "image/png";
-  return `data:${mime};base64,${inline.data}`;
+  return { base64: inline.data, mime: inline.mimeType ?? "image/png" };
 }
 
 /** Indique si la génération d'images est activée. */

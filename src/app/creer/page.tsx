@@ -12,6 +12,10 @@ import CreateBookForm from "@/components/CreateBookForm";
 import ConsentForm from "@/components/ConsentForm";
 import EnTetePage from "@/components/EnTetePage";
 
+// La génération (histoire + illustrations) peut durer plusieurs dizaines de
+// secondes : on laisse jusqu'à 60 s à la fonction serverless.
+export const maxDuration = 60;
+
 export default async function CreerPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/connexion");
