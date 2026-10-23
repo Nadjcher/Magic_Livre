@@ -7,7 +7,7 @@
  */
 
 import "server-only";
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { env } from "./env";
 import { SYSTEM_PROMPT, buildUserMessage, type StoryRequest } from "./storyPrompt";
 import { parseStory, type Story } from "./storySchema";
@@ -21,33 +21,35 @@ export type GenerateResult =
   | { ok: false; message: string };
 
 /**
- * Client Anthropic créé paresseusement pour ne lire la clé qu'au moment de
- * l'appel (et pas au chargement du module).
+ * Client Groq (API compatible OpenAI) créé paresseusement pour ne lire la clé
+ * qu'au moment de l'appel.
  */
-function createClient(): Anthropic {
-  return new Anthropic({ apiKey: env.anthropicApiKey() });
+function createClient(): OpenAI {
+  return new OpenAI({
+    apiKey: env.groqApiKey(),
+    baseURL: "https://api.groq.com/openai/v1",
+  });
 }
 
 /**
- * Appelle le modèle une fois et renvoie le texte brut de la réponse.
+ * Appelle le modèle une fois et renvoie le texte brut de la réponse (JSON).
  */
-async function callModel(client: Anthropic, userMessage: string): Promise<string> {
-  const response = await client.messages.create(
+async function callModel(client: OpenAI, userMessage: string): Promise<string> {
+  const response = await client.chat.completions.create(
     {
-      model: env.anthropicModel(),
+      model: env.groqModel(),
       max_tokens: 4096,
       temperature: 0.8,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userMessage }],
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: userMessage },
+      ],
     },
     { timeout: 90_000 },
   );
 
-  // Concatène les blocs de texte de la réponse.
-  return response.content
-    .map((block) => (block.type === "text" ? block.text : ""))
-    .join("")
-    .trim();
+  return response.choices[0]?.message?.content?.trim() ?? "";
 }
 
 /**
@@ -181,15 +183,15 @@ export async function describeAppearanceFromPhoto(
 
   try {
     const client = createClient();
-    const response = await client.messages.create(
+    const response = await client.chat.completions.create(
       {
-        model: env.anthropicModel(),
+        model: env.groqVisionModel(),
         max_tokens: 120,
         messages: [
           {
             role: "user",
             content: [
-              { type: "image", source: { type: "base64", media_type: mediaType, data } },
+              { type: "image_url", image_url: { url: `data:${mediaType};base64,${data}` } },
               {
                 type: "text",
                 text:
@@ -204,10 +206,7 @@ export async function describeAppearanceFromPhoto(
       },
       { timeout: 25_000 },
     );
-    const texte = response.content
-      .map((b) => (b.type === "text" ? b.text : ""))
-      .join(" ")
-      .trim();
+    const texte = (response.choices[0]?.message?.content ?? "").trim();
     return texte.slice(0, 160);
   } catch {
     return "";

@@ -25,6 +25,13 @@ export const env = {
   anthropicApiKey: () => required("ANTHROPIC_API_KEY"),
   anthropicModel: () => optional("ANTHROPIC_MODEL", "claude-sonnet-4-5"),
 
+  // Moteur de texte Groq (API compatible OpenAI, gratuit). On accepte aussi
+  // l'ancienne variable ANTHROPIC_API_KEY comme source de clé, par commodité.
+  groqApiKey: () => optional("GROQ_API_KEY", "") || optional("ANTHROPIC_API_KEY", ""),
+  groqModel: () => optional("GROQ_MODEL", "llama-3.3-70b-versatile"),
+  groqVisionModel: () =>
+    optional("GROQ_VISION_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct"),
+
   // Stripe
   stripeSecretKey: () => required("STRIPE_SECRET_KEY"),
   stripeWebhookSecret: () => required("STRIPE_WEBHOOK_SECRET"),

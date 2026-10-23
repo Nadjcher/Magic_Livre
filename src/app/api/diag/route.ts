@@ -1,32 +1,31 @@
-/** Diagnostic TEMPORAIRE : teste la clé Anthropic (génération) + Gemini. */
-import Anthropic from "@anthropic-ai/sdk";
+/** Diagnostic TEMPORAIRE : teste la clé Groq (génération de texte). */
+import OpenAI from "openai";
+import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const out: Record<string, unknown> = {};
-  const key = process.env.ANTHROPIC_API_KEY;
-  const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-5";
-  out.hasAnthropicKey = Boolean(key);
-  out.anthropicKeyPrefix = key ? key.slice(0, 7) : null;
-  out.anthropicModel = model;
+  const key = env.groqApiKey();
+  out.hasGroqKey = Boolean(key);
+  out.groqKeyPrefix = key ? key.slice(0, 4) : null;
+  out.groqModel = env.groqModel();
   out.imageProvider = process.env.IMAGE_PROVIDER ?? "none";
   out.hasGeminiKey = Boolean(process.env.GEMINI_API_KEY);
 
   try {
-    const client = new Anthropic({ apiKey: key });
-    const r = await client.messages.create({
-      model,
-      max_tokens: 8,
-      messages: [{ role: "user", content: "ping" }],
+    const client = new OpenAI({ apiKey: key, baseURL: "https://api.groq.com/openai/v1" });
+    const r = await client.chat.completions.create({
+      model: env.groqModel(),
+      max_tokens: 10,
+      messages: [{ role: "user", content: "Réponds juste: OK" }],
     });
-    out.anthropic = "ok";
-    out.anthropicReply =
-      r.content?.[0]?.type === "text" ? r.content[0].text.slice(0, 40) : "(non-text)";
+    out.groq = "ok";
+    out.groqReply = (r.choices[0]?.message?.content ?? "").slice(0, 40);
   } catch (e) {
-    out.anthropic = "error";
-    out.anthropicStatus = (e as { status?: number })?.status ?? null;
-    out.anthropicError = String((e as Error)?.message ?? e).slice(0, 300);
+    out.groq = "error";
+    out.groqStatus = (e as { status?: number })?.status ?? null;
+    out.groqError = String((e as Error)?.message ?? e).slice(0, 300);
   }
 
   return Response.json(out);
