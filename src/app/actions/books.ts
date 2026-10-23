@@ -122,6 +122,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
     style: input.style as IllustrationStyle,
     appearance: appearance.length > 0 ? appearance : undefined,
     photo: photoRef,
+    premium: formData.get("premium") === "on" || formData.get("premium") === "true",
   });
 
   if (!result.ok) {

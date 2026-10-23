@@ -36,6 +36,8 @@ export interface IllustrationRequest {
    * générer l'illustration pour capter sa ressemblance. Jamais stockée.
    */
   referenceImage?: { base64: string; mime: string };
+  /** true : utilise le modèle d'image premium (meilleure qualité). */
+  premium?: boolean;
 }
 
 export interface IllustrationResult {
@@ -59,7 +61,8 @@ export async function generateIllustration(
       return { imageUrl: pollinationsUrl(prompt, seed) };
     }
     if (provider === "gemini") {
-      const img = await geminiImage(prompt, req.referenceImage);
+      const model = req.premium ? env.geminiImageModelPremium() : env.geminiImageModel();
+      const img = await geminiImage(prompt, model, req.referenceImage);
       if (!img) return { imageUrl: null };
       return { imageUrl: await storeImage(img.base64, img.mime, seed) };
     }
@@ -110,12 +113,12 @@ async function storeImage(base64: string, mime: string, seed: number): Promise<s
  */
 async function geminiImage(
   prompt: string,
+  model: string,
   reference?: { base64: string; mime: string },
 ): Promise<{ base64: string; mime: string } | null> {
   const key = env.geminiApiKey();
   if (!key) return null;
 
-  const model = env.geminiImageModel();
   const url =
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 

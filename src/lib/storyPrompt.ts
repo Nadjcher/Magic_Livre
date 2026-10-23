@@ -54,6 +54,8 @@ export interface StoryRequest {
    * Utilisée seulement pendant la génération des images ; jamais stockée.
    */
   photo?: { base64: string; mime: string };
+  /** Édition premium : illustrations générées avec le modèle haut de gamme. */
+  premium?: boolean;
 }
 
 /**

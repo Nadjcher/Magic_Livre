@@ -256,6 +256,18 @@ export default function CreateBookForm({
         </select>
       </div>
 
+      {/* Édition premium : illustrations haute qualité */}
+      <label className="carte flex cursor-pointer items-start gap-3">
+        <input type="checkbox" name="premium" className="mt-1 h-5 w-5 accent-magique-primaire" />
+        <span>
+          <span className="font-serif text-lg">✦ Édition premium</span>
+          <span className="block text-sm text-magique-texteClair">
+            Illustrations haute qualité et ressemblance renforcée (modèle avancé).
+            Rendu plus « waw » — idéal pour imprimer et offrir.
+          </span>
+        </span>
+      </label>
+
       {erreur && <Notice kind="erreur">{erreur}</Notice>}
 
       <button type="submit" className="btn-primaire w-full text-lg" disabled={pending}>

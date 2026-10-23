@@ -52,6 +52,9 @@ export const env = {
   imageProvider: () => optional("IMAGE_PROVIDER", "none"),
   geminiApiKey: () => optional("GEMINI_API_KEY", ""),
   geminiImageModel: () => optional("GEMINI_IMAGE_MODEL", "gemini-2.5-flash-image"),
+  // Modèle « premium » (meilleure qualité/ressemblance, plus cher).
+  geminiImageModelPremium: () =>
+    optional("GEMINI_IMAGE_MODEL_PREMIUM", "gemini-3-pro-image"),
 
   // URL publique
   authUrl: () => optional("AUTH_URL", "http://localhost:3000"),

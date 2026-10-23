@@ -143,6 +143,7 @@ async function addIllustrations(story: Story, req: StoryRequest): Promise<Story>
         heroName,
         appearance: req.appearance,
         referenceImage: req.photo,
+        premium: req.premium,
         seed: base + i + 1,
       });
       return { ...p, imageUrl };
@@ -155,6 +156,7 @@ async function addIllustrations(story: Story, req: StoryRequest): Promise<Story>
     heroName,
     appearance: req.appearance,
     referenceImage: req.photo,
+    premium: req.premium,
     seed: base,
   });
 
