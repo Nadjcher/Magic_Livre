@@ -176,3 +176,57 @@ async function geminiImage(
 export function illustrationsEnabled(): boolean {
   return env.imageProvider() !== "none";
 }
+
+/**
+ * Décrit en une courte phrase l'apparence physique de l'enfant à partir de sa
+ * photo, via Gemini (multimodal). Sert UNIQUEMENT à renforcer la ressemblance
+ * du héros dessiné : la photo n'est ni stockée ni renvoyée, seule une
+ * description neutre est produite. Renvoie "" si indisponible ou en cas d'échec.
+ */
+export async function describeChildFromPhoto(ref: {
+  base64: string;
+  mime: string;
+}): Promise<string> {
+  const key = env.geminiApiKey();
+  if (!key) return "";
+
+  const url =
+    `https://generativelanguage.googleapis.com/v1beta/models/${env.geminiVisionModel()}:generateContent?key=${key}`;
+  const prompt =
+    "Look at this photo of a child. In ONE short English phrase (max 20 words), describe only their " +
+    "visible physical appearance for an illustrator: hair color and hairstyle, eye color, skin tone, " +
+    "and glasses if any. Do NOT name or identify the person. Output only the description, nothing else.";
+
+  try {
+    const res = await fetchAllWithTimeout(
+      url,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { inlineData: { mimeType: ref.mime, data: ref.base64 } },
+                { text: prompt },
+              ],
+            },
+          ],
+        }),
+      },
+      { timeoutMs: 20_000, maxBytes: 2_000_000 },
+    );
+    if (!res.ok || !res.bytes) return "";
+    const data = JSON.parse(res.bytes.toString("utf8")) as {
+      candidates?: { content?: { parts?: { text?: string }[] } }[];
+    };
+    const txt =
+      data.candidates?.[0]?.content?.parts
+        ?.map((p) => p.text)
+        .filter(Boolean)
+        .join(" ") ?? "";
+    return txt.trim().replace(/\s+/g, " ").slice(0, 160);
+  } catch {
+    return "";
+  }
+}

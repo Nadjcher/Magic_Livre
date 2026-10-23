@@ -9,7 +9,12 @@
 import "server-only";
 import OpenAI from "openai";
 import { env } from "./env";
-import { SYSTEM_PROMPT, buildUserMessage, type StoryRequest } from "./storyPrompt";
+import {
+  SYSTEM_PROMPT,
+  buildUserMessage,
+  ageGuidance,
+  type StoryRequest,
+} from "./storyPrompt";
 import { parseStory, type Story } from "./storySchema";
 import { filterStory } from "./contentFilter";
 import { findProtectedNames } from "./protectedCharacters";
@@ -34,15 +39,20 @@ function createClient(): OpenAI {
 /**
  * Appelle le modèle une fois et renvoie le texte brut de la réponse (JSON).
  */
-async function callModel(client: OpenAI, userMessage: string): Promise<string> {
+async function callModel(
+  client: OpenAI,
+  model: string,
+  system: string,
+  userMessage: string,
+): Promise<string> {
   const response = await client.chat.completions.create(
     {
-      model: env.groqModel(),
+      model,
       max_tokens: 6000,
       temperature: 0.9,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: system },
         { role: "user", content: userMessage },
       ],
     },
@@ -50,6 +60,53 @@ async function callModel(client: OpenAI, userMessage: string): Promise<string> {
   );
 
   return response.choices[0]?.message?.content?.trim() ?? "";
+}
+
+/** Prompt « éditeur » : réécrit une histoire pour la clarifier et l'adapter à l'âge. */
+const EDITOR_SYSTEM = `Tu es un éditeur jeunesse exigeant. On te donne une histoire au format JSON. Tu la RÉÉCRIS pour l'améliorer, SANS changer la structure JSON ni le nombre de pages.
+Objectifs : clarté absolue (le parent et l'enfant comprennent tout de suite), émotion sincère, fluidité, et surtout un respect PARFAIT de l'âge indiqué (longueur de phrase et vocabulaire).
+Garde le même héros, le même fil, les mêmes scènes. Améliore le texte de chaque page et le titre si besoin. Conserve "scene_illustration" en anglais, détaillé, cohérent.
+Réponds UNIQUEMENT avec le même JSON strict : { "titre": string, "pages": [ { "texte": string, "scene_illustration": string } ] }.`;
+
+/**
+ * Passe de révision : demande au modèle de réécrire l'histoire validée pour
+ * gagner en clarté et en adéquation à l'âge. Renvoie une histoire valide et
+ * filtrée, ou null si la réécriture échoue (on garde alors l'originale).
+ */
+async function polishStory(
+  client: OpenAI,
+  model: string,
+  story: Story,
+  req: StoryRequest,
+): Promise<Story | null> {
+  const message = [
+    `Âge de l'enfant : ${req.childAge} ans.`,
+    "Consignes d'âge à respecter STRICTEMENT :",
+    ageGuidance(req.childAge),
+    "",
+    "Histoire à réécrire (améliore le texte, garde la structure) :",
+    JSON.stringify({ titre: story.titre, pages: story.pages.map((p) => ({ texte: p.texte, scene_illustration: p.scene_illustration })) }),
+  ].join("\n");
+
+  let raw: string;
+  try {
+    raw = await callModel(client, model, EDITOR_SYSTEM, message);
+  } catch {
+    return null;
+  }
+
+  const parsed = parseStory(raw);
+  if (!parsed.ok) return null;
+  const filtered = filterStory(parsed.story);
+  if (!filtered.ok) return null;
+
+  const fullText = [
+    parsed.story.titre,
+    ...parsed.story.pages.map((p) => `${p.texte} ${p.scene_illustration}`),
+  ].join(" ");
+  if (findProtectedNames(fullText).length > 0) return null;
+
+  return parsed.story;
 }
 
 /**
@@ -60,6 +117,8 @@ async function callModel(client: OpenAI, userMessage: string): Promise<string> {
 export async function generateStory(req: StoryRequest): Promise<GenerateResult> {
   const userMessage = buildUserMessage(req);
   const client = createClient();
+  // Édition premium : modèle de texte haut de gamme (configurable).
+  const model = req.premium ? env.groqModelPremium() : env.groqModel();
 
   let lastMessage = "La génération de l'histoire a échoué. Veuillez réessayer.";
 
@@ -67,7 +126,7 @@ export async function generateStory(req: StoryRequest): Promise<GenerateResult> 
   for (let attempt = 0; attempt < 2; attempt++) {
     let raw: string;
     try {
-      raw = await callModel(client, userMessage);
+      raw = await callModel(client, model, SYSTEM_PROMPT, userMessage);
     } catch {
       lastMessage =
         "Le service de génération est momentanément indisponible. Réessayez dans quelques instants.";
@@ -101,8 +160,13 @@ export async function generateStory(req: StoryRequest): Promise<GenerateResult> 
       continue;
     }
 
+    // Passe de révision éditoriale (clarté + adéquation à l'âge). En cas
+    // d'échec de la réécriture, on conserve l'histoire d'origine.
+    const polished = await polishStory(client, model, parsed.story, req);
+    const base = polished ?? parsed.story;
+
     // Texte validé : on ajoute les illustrations si la génération est activée.
-    const story = await addIllustrations(parsed.story, req);
+    const story = await addIllustrations(base, req);
     return { ok: true, story };
   }
 

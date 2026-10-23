@@ -29,8 +29,13 @@ export const env = {
   // l'ancienne variable ANTHROPIC_API_KEY comme source de clé, par commodité.
   groqApiKey: () => optional("GROQ_API_KEY", "") || optional("ANTHROPIC_API_KEY", ""),
   groqModel: () => optional("GROQ_MODEL", "openai/gpt-oss-120b"),
+  // Modèle de texte « premium » (histoires haut de gamme). Par défaut identique
+  // au standard (sûr) ; peut pointer vers un modèle plus fort via l'env.
+  groqModelPremium: () => optional("GROQ_MODEL_PREMIUM", "openai/gpt-oss-120b"),
   groqVisionModel: () =>
     optional("GROQ_VISION_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct"),
+  // Modèle Gemini multimodal pour décrire le visage de l'enfant (ressemblance).
+  geminiVisionModel: () => optional("GEMINI_VISION_MODEL", "gemini-2.5-flash"),
 
   // Stripe
   stripeSecretKey: () => required("STRIPE_SECRET_KEY"),

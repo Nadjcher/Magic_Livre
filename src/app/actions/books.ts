@@ -17,6 +17,7 @@ import { prisma } from "@/lib/prisma";
 import { createBookSchema, checkUserText } from "@/lib/validation";
 import { checkDailyBookLimit } from "@/lib/rateLimit";
 import { generateStory } from "@/lib/storyGenerator";
+import { describeChildFromPhoto } from "@/lib/illustration";
 import { findHeroById } from "@/lib/heroes";
 import type { LongueurKey } from "@/lib/validation";
 import type { IllustrationStyle } from "@/lib/style_config";
@@ -82,6 +83,13 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
       const data = m[2] ?? "";
       if (data.length > 0 && data.length <= 4_000_000) photoRef = { base64: data, mime };
     }
+  }
+
+  // Si une photo est fournie sans description, on décrit le visage via vision
+  // (Gemini) pour renforcer la ressemblance du héros. Best-effort : en cas
+  // d'échec, on continue sans. La photo n'est jamais stockée.
+  if (photoRef && appearance.length === 0) {
+    appearance = await describeChildFromPhoto(photoRef);
   }
 
   // Vérifie que l'enfant appartient bien à l'utilisateur.
