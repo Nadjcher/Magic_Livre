@@ -59,13 +59,13 @@ export const metadata: Metadata = {
     siteName: "Mon Livre Magique",
     title: "Mon Livre Magique · Livres personnalisés pour enfants",
     description: DESCRIPTION,
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Mon Livre Magique" }],
+    // L'image est fournie par src/app/opengraph-image.tsx (générée à la volée).
   },
   twitter: {
     card: "summary_large_image",
     title: "Mon Livre Magique · Livres personnalisés pour enfants",
     description: DESCRIPTION,
-    images: ["/og-image.png"],
+    // L'image est fournie par src/app/twitter-image.tsx.
   },
 };
 

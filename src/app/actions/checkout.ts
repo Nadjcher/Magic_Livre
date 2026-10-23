@@ -37,6 +37,10 @@ export async function startCheckout(bookId: string): Promise<CheckoutResult> {
     return { ok: false, message: "Ce livre est déjà payé. Vous pouvez le télécharger." };
   }
 
+  // Montant selon l'édition : premium plus cher que standard.
+  const premium = book.tier === "premium";
+  const amountCents = premium ? env.bookPricePremiumCents() : env.bookPriceCents();
+
   try {
     // 1. On crée d'abord la commande en attente (sans stripeSessionId).
     const order = await prisma.order.create({
@@ -44,7 +48,7 @@ export async function startCheckout(bookId: string): Promise<CheckoutResult> {
         userId: user.id,
         bookId: book.id,
         status: "pending",
-        amount: env.bookPriceCents(),
+        amount: amountCents,
         currency: env.bookCurrency(),
       },
     });
@@ -55,6 +59,8 @@ export async function startCheckout(bookId: string): Promise<CheckoutResult> {
       bookId: book.id,
       orderId: order.id,
       bookTitle: book.title,
+      amountCents,
+      premium,
     });
 
     // 3. On relie la session à la commande (le webhook sait de toute façon

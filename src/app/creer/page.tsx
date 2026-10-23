@@ -11,6 +11,11 @@ import { HEROES } from "@/lib/heroes";
 import CreateBookForm from "@/components/CreateBookForm";
 import ConsentForm from "@/components/ConsentForm";
 import EnTetePage from "@/components/EnTetePage";
+import { SceneIllustration } from "@/components/Illustrations";
+
+function euros(cents: number): string {
+  return `${(cents / 100).toFixed(2).replace(".", ",")} €`;
+}
 
 // La génération (histoire + illustrations) peut durer plusieurs dizaines de
 // secondes : on laisse jusqu'à 60 s à la fonction serverless.
@@ -46,14 +51,18 @@ export default async function CreerPage() {
           En quelques étapes, composez une histoire unique à l'image de votre
           enfant.
         </EnTetePage>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/illustrations/gen/write.webp"
+        <SceneIllustration
+          name="write"
           alt=""
-          className="hidden h-28 w-28 flex-none object-contain sm:block"
+          className="hidden h-28 w-28 flex-none sm:block"
         />
       </div>
-      <CreateBookForm enfants={children} heroes={HEROES} />
+      <CreateBookForm
+        enfants={children}
+        heroes={HEROES}
+        prixStandard={euros(env.bookPriceCents())}
+        prixPremium={euros(env.bookPricePremiumCents())}
+      />
     </div>
   );
 }

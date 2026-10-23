@@ -14,8 +14,8 @@ import BookExtras from "@/components/BookExtras";
 import DeleteBookButton from "@/components/DeleteBookButton";
 import Notice from "@/components/Notice";
 
-function formatPrix(): string {
-  const euros = (env.bookPriceCents() / 100).toFixed(2).replace(".", ",");
+function formatPrix(cents: number): string {
+  const euros = (cents / 100).toFixed(2).replace(".", ",");
   return `${euros} €`;
 }
 
@@ -40,6 +40,9 @@ export default async function LivrePage({
   });
   const paid = Boolean(paidOrder);
 
+  const premium = book.tier === "premium";
+  const prix = formatPrix(premium ? env.bookPricePremiumCents() : env.bookPriceCents());
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
@@ -48,7 +51,14 @@ export default async function LivrePage({
             ← Ma bibliothèque
           </Link>
           <h1 className="mt-1 text-3xl sm:text-4xl">{book.title}</h1>
-          <p className="text-sm text-magique-texteClair">Pour {book.child.firstName}</p>
+          <p className="flex flex-wrap items-center gap-2 text-sm text-magique-texteClair">
+            Pour {book.child.firstName}
+            {premium && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-magique-primaire/10 px-2.5 py-0.5 text-xs font-semibold text-magique-primaire">
+                ✦ Édition premium
+              </span>
+            )}
+          </p>
         </div>
         <DeleteBookButton bookId={book.id} title={book.title} redirectAfter="/bibliotheque" />
       </div>
@@ -96,9 +106,11 @@ export default async function LivrePage({
                 <p className="mb-3 mt-1 text-sm text-magique-texteClair">
                   {paid
                     ? "Votre paiement est validé. Téléchargez votre livre au format A4 paysage."
-                    : "Obtenez le PDF A4 paysage, sans filigrane, prêt à imprimer."}
+                    : premium
+                      ? "Édition premium : PDF A4 paysage, illustrations haut de gamme, sans filigrane."
+                      : "Obtenez le PDF A4 paysage, sans filigrane, prêt à imprimer."}
                 </p>
-                <PurchaseDownload bookId={book.id} paid={paid} prix={formatPrix()} />
+                <PurchaseDownload bookId={book.id} paid={paid} prix={prix} />
               </div>
               {paid && <BookExtras bookId={book.id} />}
             </>

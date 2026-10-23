@@ -33,9 +33,13 @@ function Etape({ n, children }: { n: string; children: React.ReactNode }) {
 export default function CreateBookForm({
   enfants,
   heroes,
+  prixStandard,
+  prixPremium,
 }: {
   enfants: ChildView[];
   heroes: readonly Hero[];
+  prixStandard: string;
+  prixPremium: string;
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<"hero" | "libre">("hero");
@@ -256,14 +260,15 @@ export default function CreateBookForm({
         </select>
       </div>
 
-      {/* Édition premium : illustrations haute qualité */}
+      {/* Édition premium : illustrations haute qualité (payante au téléchargement) */}
       <label className="carte flex cursor-pointer items-start gap-3">
         <input type="checkbox" name="premium" className="mt-1 h-5 w-5 accent-magique-primaire" />
         <span>
           <span className="font-serif text-lg">✦ Édition premium</span>
           <span className="block text-sm text-magique-texteClair">
-            Illustrations haute qualité et ressemblance renforcée (modèle avancé).
-            Rendu plus « waw » — idéal pour imprimer et offrir.
+            Illustrations haute qualité et ressemblance renforcée (modèle avancé),
+            idéal pour imprimer et offrir. La lecture à l'écran reste gratuite ;
+            le PDF premium est à {prixPremium} au téléchargement (au lieu de {prixStandard}).
           </span>
         </span>
       </label>

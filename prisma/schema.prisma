@@ -64,6 +64,13 @@ enum BookStatus {
   failed
 }
 
+// Édition du livre : « standard » ou « premium » (illustrations haut de gamme,
+// prix plus élevé). Détermine le montant facturé au téléchargement du PDF.
+enum BookTier {
+  standard
+  premium
+}
+
 model Book {
   id        String     @id @default(cuid())
   userId    String
@@ -71,6 +78,8 @@ model Book {
   title     String
   theme     String
   status    BookStatus @default(draft)
+  // Édition choisie à la création (standard par défaut).
+  tier      BookTier   @default(standard)
   // Pages stockées en JSON : { titre, pages: [{ texte, scene_illustration }] }
   pages     Json?
   // Message d'erreur en français en cas d'échec de génération.

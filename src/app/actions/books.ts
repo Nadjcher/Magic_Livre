@@ -100,6 +100,10 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
       ? findHeroById(input.heroId ?? "")?.nom ?? "Aventure avec un héros"
       : "Aventure personnalisée";
 
+  // Édition choisie : premium = illustrations haut de gamme + prix supérieur.
+  const premium =
+    formData.get("premium") === "on" || formData.get("premium") === "true";
+
   // Crée le livre en statut « generating ».
   const book = await prisma.book.create({
     data: {
@@ -108,6 +112,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
       title: "Histoire en cours…",
       theme,
       status: "generating",
+      tier: premium ? "premium" : "standard",
     },
   });
 
@@ -122,7 +127,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
     style: input.style as IllustrationStyle,
     appearance: appearance.length > 0 ? appearance : undefined,
     photo: photoRef,
-    premium: formData.get("premium") === "on" || formData.get("premium") === "true",
+    premium,
   });
 
   if (!result.ok) {

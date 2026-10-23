@@ -36,6 +36,8 @@ export const env = {
   stripeSecretKey: () => required("STRIPE_SECRET_KEY"),
   stripeWebhookSecret: () => required("STRIPE_WEBHOOK_SECRET"),
   bookPriceCents: () => Number(optional("BOOK_PRICE_CENTS", "499")),
+  // Prix de l'édition premium (illustrations haut de gamme).
+  bookPricePremiumCents: () => Number(optional("BOOK_PRICE_PREMIUM_CENTS", "999")),
   bookCurrency: () => optional("BOOK_CURRENCY", "eur"),
 
   // Limites
