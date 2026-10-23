@@ -8,6 +8,7 @@
  */
 
 import { z } from "zod";
+import { ILLUSTRATION_STYLE_KEYS } from "./style_config";
 
 export const storyPageSchema = z.object({
   texte: z.string().min(1, "Le texte de la page est vide."),
@@ -27,7 +28,7 @@ export const storySchema = z.object({
   // Illustration de couverture (optionnelle).
   couvertureUrl: z.string().url().nullable().optional(),
   // Style d'illustration retenu (mémoire, utile pour un « tome » suivant).
-  style: z.enum(["aventure", "feerique", "manga"]).optional(),
+  style: z.enum(ILLUSTRATION_STYLE_KEYS).optional(),
 });
 
 export type Story = z.infer<typeof storySchema>;

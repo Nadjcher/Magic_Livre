@@ -7,14 +7,14 @@
  */
 
 export const STYLE_CONFIG = {
-  /** Palette « conte enchanté » (parchemin, plume, or), reprise dans les PDF. */
+  /** Palette « Nuit enchantée » (voile lunaire, plume violette, rose féerique), reprise dans les PDF. */
   couleurs: {
-    fond: "#FBF2DF",
+    fond: "#F5F3FC",
     primaire: "#6D3BD1",
-    secondaire: "#E9A94B",
-    accent: "#39A58F",
-    texte: "#2A2443",
-    texteClair: "#6F6690",
+    secondaire: "#D4698C",
+    accent: "#6F8BFF",
+    texte: "#241C42",
+    texteClair: "#6A6291",
   },
 
   /** Polices lisibles pour les enfants. */
@@ -40,39 +40,86 @@ export type StyleConfig = typeof STYLE_CONFIG;
  * prompt (en anglais, pour une meilleure obéissance des modèles d'image) ajouté
  * devant la description de la scène. On garde un seul endroit pour les définir.
  */
-export type IllustrationStyle = "aventure" | "feerique" | "manga";
+export type IllustrationStyle =
+  | "feerique"
+  | "aventure"
+  | "manga"
+  | "aquarelle"
+  | "papier"
+  | "pastel";
 
+/**
+ * Catalogue des styles proposés au parent. L'ordre d'affichage est celui-ci :
+ * « Féerique » en premier (style par défaut et signature de la marque).
+ * Aucun style ne repose sur une lumière « golden-hour » jaune/orangée : la
+ * palette reste fraîche et féerique, cohérente avec l'identité du produit.
+ */
 export const ILLUSTRATION_STYLES: Record<
   IllustrationStyle,
   { label: string; description: string; prompt: string }
 > = {
-  aventure: {
-    label: "Aventure",
-    description: "Couleurs vives, grands espaces",
-    prompt:
-      "warm vibrant children's picture book illustration, lush gouache and watercolor textures, " +
-      "golden-hour cinematic lighting, rich saturated palette of emerald green, sky blue and warm amber, " +
-      "friendly rounded character design, lively outdoor adventure, sense of wonder, gentle depth of field",
-  },
   feerique: {
     label: "Féerique",
-    description: "Pastel, étoiles, douceur",
+    description: "Lavande, étoiles, douceur du soir",
     prompt:
       "dreamy fairytale storybook illustration in a SOFT COOL PASTEL palette: " +
       "lavender, periwinkle blue, soft rose pink, mint green and moonlit silver, " +
-      "with only tiny delicate gold sparkle accents; AVOID heavy yellow, orange or golden-hour lighting; " +
+      "with only tiny delicate silver sparkle accents; AVOID yellow, orange, amber or golden-hour lighting; " +
       "cool magical twilight glow, floating stardust, delicate linework, gentle bokeh, " +
       "tender ethereal bedtime atmosphere, painterly soft edges",
   },
+  aventure: {
+    label: "Aventure",
+    description: "Grands espaces, couleurs vives et fraîches",
+    prompt:
+      "luminous children's adventure picture book illustration, lush gouache textures, " +
+      "clear bright DAYLIGHT (soft blue sky, NO golden-hour, NO amber, NO yellow cast), " +
+      "rich cool-leaning palette of emerald green, teal, sky blue, periwinkle and coral pink, " +
+      "friendly rounded character design, lively outdoor exploration, crisp sense of wonder, gentle depth of field",
+  },
   manga: {
     label: "Manga",
-    description: "Traits marqués, grands yeux",
+    description: "Traits nets, grands yeux expressifs",
     prompt:
       "charming kawaii anime illustration for young children, clean confident linework, smooth soft cel shading, " +
-      "big expressive sparkling eyes, gentle rosy blush, bright yet soft palette, " +
-      "wholesome Studio-Ghibli-like warmth and cosiness",
+      "big expressive sparkling eyes, gentle rosy blush, bright yet soft cool palette, " +
+      "wholesome cosy Studio-Ghibli-like gentleness, airy skies",
+  },
+  aquarelle: {
+    label: "Aquarelle",
+    description: "Lavis délicats, poésie et transparence",
+    prompt:
+      "delicate watercolor children's picture book illustration, soft wet-on-wet washes with gentle blooms, " +
+      "visible cold-press paper grain, airy negative space, tender pastel palette of lilac, blush, sky blue and sage, " +
+      "loose expressive brushwork, poetic and luminous, soft feathered edges, no harsh outlines",
+  },
+  papier: {
+    label: "Papier découpé",
+    description: "Collage de papiers en relief",
+    prompt:
+      "layered cut-paper collage (papercraft) children's book illustration, flat matte paper shapes " +
+      "with soft realistic drop shadows between the layers for depth, subtle paper texture and torn edges, " +
+      "bold friendly geometric composition, cheerful cool palette of violet, teal, rose and cream-white, tactile handcrafted feel",
+  },
+  pastel: {
+    label: "Pastel",
+    description: "Crayon doux, velouté et câlin",
+    prompt:
+      "soft pastel and colored-pencil children's book illustration, velvety chalky texture, " +
+      "gentle grainy strokes, rounded cuddly character design, warm-hearted but COOL pastel palette " +
+      "of mauve, periwinkle, mint and dusty pink (no yellow, no orange), cosy dreamy bedtime mood, soft diffuse light",
   },
 };
+
+/**
+ * Clés du catalogue sous forme de tuple non vide (pour `z.enum`). Source unique :
+ * ajouter un style ci-dessus le rend automatiquement valide partout (formulaire,
+ * validation serveur, schéma d'histoire).
+ */
+export const ILLUSTRATION_STYLE_KEYS = Object.keys(ILLUSTRATION_STYLES) as [
+  IllustrationStyle,
+  ...IllustrationStyle[],
+];
 
 /**
  * Socle commun : médium, qualité et sécurité enfant. On énonce clairement ce

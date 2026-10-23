@@ -10,6 +10,45 @@
 import Link from "next/link";
 import Tilt3D from "@/components/Tilt3D";
 
+const APP_URL = (process.env.AUTH_URL ?? "http://localhost:3000").replace(/\/$/, "");
+
+/** Données structurées (JSON-LD) : marque, site et offre produit. */
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${APP_URL}/#organization`,
+      name: "Mon Livre Magique",
+      url: APP_URL,
+      logo: `${APP_URL}/icon.svg`,
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${APP_URL}/#website`,
+      url: APP_URL,
+      name: "Mon Livre Magique",
+      inLanguage: "fr-FR",
+      publisher: { "@id": `${APP_URL}/#organization` },
+    },
+    {
+      "@type": "Product",
+      name: "Livre illustré personnalisé pour enfant",
+      description:
+        "Un conte illustré unique, écrit à partir du prénom et de l'âge de votre enfant, " +
+        "avec un héros original. Lecture gratuite à l'écran et PDF à imprimer.",
+      brand: { "@id": `${APP_URL}/#organization` },
+      offers: {
+        "@type": "Offer",
+        price: "4.99",
+        priceCurrency: "EUR",
+        availability: "https://schema.org/InStock",
+        url: `${APP_URL}/creer`,
+      },
+    },
+  ],
+};
+
 function Etoile({ className = "", style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <svg viewBox="0 0 24 24" className={className} style={style} fill="currentColor" aria-hidden="true">
@@ -48,12 +87,16 @@ const PLUS = [
 export default function AccueilPage() {
   return (
     <div className="space-y-24">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+      />
       {/* ─── Héros clair et chaleureux ─── */}
       <section
         className="relative overflow-hidden rounded-[2.5rem] border border-magique-trait px-6 py-12 sm:px-12 sm:py-16"
         style={{
           backgroundImage:
-            "radial-gradient(60% 55% at 85% 25%, rgba(240,180,222,.55), rgba(240,180,222,0) 60%), radial-gradient(55% 60% at 8% 95%, rgba(109,59,209,.12), rgba(109,59,209,0) 60%), linear-gradient(180deg,#fffaf0,#fbf2df)",
+            "radial-gradient(60% 55% at 85% 25%, rgba(224,124,192,.42), rgba(224,124,192,0) 60%), radial-gradient(55% 60% at 8% 95%, rgba(109,59,209,.16), rgba(109,59,209,0) 60%), linear-gradient(180deg,#faf8ff,#efeafc)",
         }}
       >
         <Etoile className="anim-scintille pointer-events-none absolute left-[8%] top-[18%] h-4 w-4 text-or" aria-hidden="true" />

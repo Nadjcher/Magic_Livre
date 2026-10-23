@@ -39,11 +39,22 @@ describe("construction du prompt d'illustration", () => {
     expect(p).toContain("Lila");
   });
 
-  it("propose exactement trois styles", () => {
+  it("propose le catalogue de styles attendu", () => {
     expect(Object.keys(ILLUSTRATION_STYLES).sort()).toEqual([
+      "aquarelle",
       "aventure",
       "feerique",
       "manga",
+      "papier",
+      "pastel",
     ]);
+  });
+
+  it("chaque style a un libellé, une description et un prompt non vides", () => {
+    for (const style of Object.values(ILLUSTRATION_STYLES)) {
+      expect(style.label.length).toBeGreaterThan(0);
+      expect(style.description.length).toBeGreaterThan(0);
+      expect(style.prompt.length).toBeGreaterThan(0);
+    }
   });
 });

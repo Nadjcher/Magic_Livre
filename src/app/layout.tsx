@@ -22,29 +22,48 @@ const nunito = Nunito({
   display: "swap",
 });
 
-const APP_URL = process.env.AUTH_URL ?? "http://localhost:3000";
+const APP_URL = (process.env.AUTH_URL ?? "http://localhost:3000").replace(/\/$/, "");
 const DESCRIPTION =
-  "Créez des livres illustrés personnalisés pour vos enfants, en français, avec des héros originaux.";
+  "Créez en une minute un livre illustré personnalisé pour votre enfant : son prénom, " +
+  "un héros original et une histoire douce à lire ensemble. PDF à imprimer dès 4,99 €, sans abonnement.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: "Mon Livre Magique",
+    default: "Mon Livre Magique · Livres personnalisés pour enfants",
     template: "%s · Mon Livre Magique",
   },
   description: DESCRIPTION,
   applicationName: "Mon Livre Magique",
+  category: "family",
+  keywords: [
+    "livre personnalisé enfant",
+    "histoire personnalisée prénom",
+    "conte pour enfant",
+    "livre illustré enfant",
+    "cadeau personnalisé enfant",
+    "histoire du soir",
+    "livre à imprimer enfant",
+  ],
+  alternates: { canonical: "/" },
+  formatDetection: { telephone: false, email: false, address: false },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+  },
   openGraph: {
     type: "website",
     locale: "fr_FR",
+    url: APP_URL,
     siteName: "Mon Livre Magique",
-    title: "Mon Livre Magique",
+    title: "Mon Livre Magique · Livres personnalisés pour enfants",
     description: DESCRIPTION,
     images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Mon Livre Magique" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mon Livre Magique",
+    title: "Mon Livre Magique · Livres personnalisés pour enfants",
     description: DESCRIPTION,
     images: ["/og-image.png"],
   },

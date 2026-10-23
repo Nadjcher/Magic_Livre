@@ -6,6 +6,7 @@
 import { z } from "zod";
 import { findProtectedNames } from "./protectedCharacters";
 import { filterContent } from "./contentFilter";
+import { ILLUSTRATION_STYLE_KEYS } from "./style_config";
 
 /** Longueurs d'histoire proposées, avec le nombre de pages cible. */
 export const LONGUEURS = {
@@ -51,8 +52,8 @@ export const createBookSchema = z
       .max(300, "La description de l'aventure est limitée à 300 caractères.")
       .optional(),
     longueur: z.enum(["courte", "moyenne", "longue"]),
-    // Style d'illustration (défaut : féerique).
-    style: z.enum(["aventure", "feerique", "manga"]).default("feerique"),
+    // Style d'illustration (défaut : féerique). Dérivé du catalogue de styles.
+    style: z.enum(ILLUSTRATION_STYLE_KEYS).default("feerique"),
     // Description libre de l'apparence (facultative, limitée).
     appearance: z
       .string()

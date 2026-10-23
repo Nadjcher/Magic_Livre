@@ -1,6 +1,9 @@
 import type { Config } from "tailwindcss";
 
-// Thème « conte enchanté » : nuit améthyste, parchemin chaud et or.
+// Thème « Nuit enchantée » : moonlit lavande, nuit améthyste, étincelle violet → rose.
+// Palette FROIDE et féerique (aucun jaune / doré). Les noms de tokens sont
+// conservés (parch, or, magique…) : on ne change que leurs valeurs pour faire
+// basculer tout le site d'un coup, sans toucher chaque composant.
 // Les polices (Fraunces/Nunito) sont fournies via next/font (variables CSS).
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
@@ -8,19 +11,21 @@ const config: Config = {
     extend: {
       colors: {
         nuit: { DEFAULT: "#141131", 2: "#1b1544", doux: "#38316f" },
-        parch: { DEFAULT: "#fbf2df", 2: "#f4e7cc" },
+        // Ancien « parchemin » crème → voile lunaire lavande (surfaces claires).
+        parch: { DEFAULT: "#f5f3fc", 2: "#ebe7f9" },
+        // Ancien « or » → étincelle rose féerique (accent de marque).
         or: { DEFAULT: "#e07cc0", clair: "#f6b8e0", fonce: "#a93e82" },
         // On conserve l'échelle « magique » (déjà utilisée partout) en la
-        // ré-accordant à la nouvelle palette féerique.
+        // ré-accordant à la palette froide « Nuit enchantée ».
         magique: {
-          fond: "#fbf2df",
+          fond: "#f5f3fc", // voile lunaire (fond de page)
           primaire: "#6d3bd1", // plume (violet profond)
-          secondaire: "#e9a94b", // or
-          accent: "#39a58f", // teal
+          secondaire: "#d4698c", // rose féerique (remplace l'or)
+          accent: "#6f8bff", // bleu pervenche (lueur froide)
           rose: "#d4698c",
-          texte: "#2a2443",
-          texteClair: "#6f6690",
-          trait: "#e6dcc4",
+          texte: "#241c42",
+          texteClair: "#6a6291",
+          trait: "#e3ddf3",
         },
       },
       fontFamily: {
