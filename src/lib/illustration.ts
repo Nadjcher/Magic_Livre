@@ -31,6 +31,11 @@ export interface IllustrationRequest {
   seed?: number;
   /** true : dessin au trait noir et blanc pour le cahier de coloriage. */
   coloring?: boolean;
+  /**
+   * Photo de référence de l'enfant (base64), utilisée UNIQUEMENT au moment de
+   * générer l'illustration pour capter sa ressemblance. Jamais stockée.
+   */
+  referenceImage?: { base64: string; mime: string };
 }
 
 export interface IllustrationResult {
@@ -54,7 +59,7 @@ export async function generateIllustration(
       return { imageUrl: pollinationsUrl(prompt, seed) };
     }
     if (provider === "gemini") {
-      const img = await geminiImage(prompt);
+      const img = await geminiImage(prompt, req.referenceImage);
       if (!img) return { imageUrl: null };
       return { imageUrl: await storeImage(img.base64, img.mime, seed) };
     }
@@ -103,7 +108,10 @@ async function storeImage(base64: string, mime: string, seed: number): Promise<s
  * Génère une image via l'API Gemini et renvoie le base64 + le type MIME.
  * Renvoie null si aucune clé n'est configurée ou en cas d'échec.
  */
-async function geminiImage(prompt: string): Promise<{ base64: string; mime: string } | null> {
+async function geminiImage(
+  prompt: string,
+  reference?: { base64: string; mime: string },
+): Promise<{ base64: string; mime: string } | null> {
   const key = env.geminiApiKey();
   if (!key) return null;
 
@@ -111,17 +119,32 @@ async function geminiImage(prompt: string): Promise<{ base64: string; mime: stri
   const url =
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
+  // Avec une photo de référence : on demande une illustration qui préserve la
+  // ressemblance de l'enfant, sans copier la photo.
+  const parts: Array<Record<string, unknown>> = [];
+  let texte = prompt;
+  if (reference) {
+    parts.push({ inlineData: { mimeType: reference.mime, data: reference.base64 } });
+    texte =
+      "Using the attached reference photo ONLY to capture the child's likeness " +
+      "(hairstyle, hair color, eye color, skin tone, approximate face shape), " +
+      "redraw this child as an original, warm children's book character. " +
+      "Do NOT reproduce the photo; produce a stylized illustration. " +
+      prompt;
+  }
+  parts.push({ text: texte });
+
   const res = await fetchAllWithTimeout(
     url,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
+        contents: [{ parts }],
         generationConfig: { responseModalities: ["IMAGE"] },
       }),
     },
-    { timeoutMs: 30_000, maxBytes: 25_000_000 },
+    { timeoutMs: 40_000, maxBytes: 25_000_000 },
   );
 
   if (!res.ok || !res.bytes) return null;

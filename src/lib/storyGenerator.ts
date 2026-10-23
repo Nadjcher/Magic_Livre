@@ -142,6 +142,7 @@ async function addIllustrations(story: Story, req: StoryRequest): Promise<Story>
         scene: p.scene_illustration,
         heroName,
         appearance: req.appearance,
+        referenceImage: req.photo,
         seed: base + i + 1,
       });
       return { ...p, imageUrl };
@@ -153,6 +154,7 @@ async function addIllustrations(story: Story, req: StoryRequest): Promise<Story>
     scene: `couverture de livre : ${story.titre}`,
     heroName,
     appearance: req.appearance,
+    referenceImage: req.photo,
     seed: base,
   });
 

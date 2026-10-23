@@ -47,8 +47,13 @@ export interface StoryRequest {
   longueur: LongueurKey;
   /** Style d'illustration choisi (sert aussi à teinter le ton du texte). */
   style?: IllustrationStyle;
-  /** Description d'apparence de l'enfant (facultative, jamais une photo). */
+  /** Description d'apparence de l'enfant (facultative). */
   appearance?: string;
+  /**
+   * Photo de référence (base64) pour dessiner un héros ressemblant à l'enfant.
+   * Utilisée seulement pendant la génération des images ; jamais stockée.
+   */
+  photo?: { base64: string; mime: string };
 }
 
 /**

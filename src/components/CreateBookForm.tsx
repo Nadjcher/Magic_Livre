@@ -237,9 +237,9 @@ export default function CreateBookForm({
           />
           <input type="hidden" name="photo" value={photo} />
           <p className="mt-1 text-xs text-magique-texteClair">
-            🔒 La photo ne quitte votre navigateur que pour en décrire l'apparence,
-            n'est jamais stockée, et la vraie photo n'apparaît pas dans le livre
-            (nous dessinons un héros inspiré).
+            🔒 La photo sert uniquement à dessiner un héros qui ressemble à votre
+            enfant, au moment de la génération. Elle n'est <strong>jamais conservée</strong> :
+            le livre contient une illustration, pas la vraie photo.
           </p>
         </div>
       </div>

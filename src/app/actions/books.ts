@@ -16,7 +16,7 @@ import { getCurrentUser, hasParentalConsent } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { createBookSchema, checkUserText } from "@/lib/validation";
 import { checkDailyBookLimit } from "@/lib/rateLimit";
-import { generateStory, describeAppearanceFromPhoto } from "@/lib/storyGenerator";
+import { generateStory } from "@/lib/storyGenerator";
 import { findHeroById } from "@/lib/heroes";
 import type { LongueurKey } from "@/lib/validation";
 import type { IllustrationStyle } from "@/lib/style_config";
@@ -71,10 +71,17 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
     const check = checkUserText(appearance);
     if (!check.ok) return { ok: false, message: check.message };
   }
+  // Photo de référence : utilisée uniquement pour dessiner un héros ressemblant,
+  // envoyée au modèle d'image au moment de la génération, puis JAMAIS stockée.
+  let photoRef: { base64: string; mime: string } | undefined;
   const photo = formData.get("photo");
-  if (typeof photo === "string" && photo.startsWith("data:image")) {
-    const depuisPhoto = await describeAppearanceFromPhoto(photo);
-    if (depuisPhoto.length > 0) appearance = depuisPhoto;
+  if (typeof photo === "string") {
+    const m = /^data:(image\/(?:png|jpeg|jpg|webp));base64,(.+)$/i.exec(photo);
+    if (m) {
+      const mime = m[1] === "image/jpg" ? "image/jpeg" : (m[1] as string);
+      const data = m[2] ?? "";
+      if (data.length > 0 && data.length <= 4_000_000) photoRef = { base64: data, mime };
+    }
   }
 
   // Vérifie que l'enfant appartient bien à l'utilisateur.
@@ -114,6 +121,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
     longueur: input.longueur as LongueurKey,
     style: input.style as IllustrationStyle,
     appearance: appearance.length > 0 ? appearance : undefined,
+    photo: photoRef,
   });
 
   if (!result.ok) {
