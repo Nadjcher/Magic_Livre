@@ -81,10 +81,14 @@ const ETAPES = [
 ];
 
 const PLUS = [
-  { titre: "À colorier", texte: "L'histoire en pages à imprimer.", icone: (<><path d="M12 20c-4.4 0-8-3-8-7s3.6-8 8-8 8 3.4 8 7.5c0 2-1.7 3.5-3.7 3.5H15a1.4 1.4 0 00-1 2.4c.3.4.4.7.4 1.1 0 .6-.8 1-2.4 1z" /><circle cx="8" cy="11" r=".9" fill="currentColor" stroke="none" /><circle cx="12" cy="8.5" r=".9" fill="currentColor" stroke="none" /><circle cx="16" cy="11" r=".9" fill="currentColor" stroke="none" /></>) },
-  { titre: "Projection", texte: "Les images projetées au mur.", icone: (<><rect x="3" y="9" width="7.5" height="6" rx="1.4" /><path d="M10.5 10.5l9.5-3.2v9.4l-9.5-3.2" /></>) },
-  { titre: "Audio", texte: "La voix qui raconte, en MP3.", icone: (<><path d="M4 10v4h3l4 3V7L7 10H4z" /><path d="M15.5 9.5a3.5 3.5 0 010 5M18 7a7 7 0 010 10" /></>) },
-  { titre: "Poster", texte: "Le héros en grand, au mur.", icone: (<><rect x="5" y="3.5" width="14" height="17" rx="1.5" /><path d="M7.5 15l3-3.5 2.5 2.5 2-2.5 1.5 2" /><circle cx="10" cy="8" r="1.1" fill="currentColor" stroke="none" /></>) },
+  { emoji: "📖", titre: "Le livre PDF", texte: "L'histoire illustrée, à imprimer." },
+  { emoji: "🦸", titre: "Édition BD", texte: "En super-héros, style comic." },
+  { emoji: "🖍️", titre: "Coloriage", texte: "L'histoire en pages à colorier." },
+  { emoji: "🖼️", titre: "Affiche", texte: "Le héros en grand, au mur." },
+  { emoji: "🎉", titre: "Invitation", texte: "Pour sa fête d'anniversaire." },
+  { emoji: "⭐", titre: "Autocollants", texte: "Les illustrations à découper." },
+  { emoji: "🔖", titre: "Marque-pages", texte: "Pour toutes ses lectures." },
+  { emoji: "🎧", titre: "Audio", texte: "La voix qui raconte, en MP3." },
 ];
 
 export default function AccueilPage() {
@@ -167,19 +171,23 @@ export default function AccueilPage() {
         </div>
       </section>
 
-      {/* ─── Rappel sobre des prolongements ─── */}
+      {/* ─── Tout ce que l'achat débloque (vitrine produits) ─── */}
       <section className="carte-relief p-8 sm:p-10">
         <header className="text-center">
-          <h2 className="text-2xl sm:text-3xl">Bien plus qu'un simple livre</h2>
+          <h2 className="text-2xl sm:text-3xl">Un livre, une ribambelle de cadeaux</h2>
           <Ornement />
+          <p className="mx-auto max-w-[46ch] text-magique-texteClair">
+            Un seul achat, et tout un kit à imprimer, découper et offrir.
+          </p>
         </header>
-        <div className="mt-6 grid gap-6 sm:grid-cols-4">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {PLUS.map((p) => (
-            <div key={p.titre} className="flex flex-col items-center gap-2 text-center">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-magique-primaire/10 text-magique-primaire">
-                <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  {p.icone}
-                </svg>
+            <div
+              key={p.titre}
+              className="flex flex-col items-center gap-2 rounded-2xl border border-magique-trait bg-white/70 p-5 text-center"
+            >
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-magique-primaire/10 text-3xl" aria-hidden="true">
+                {p.emoji}
               </span>
               <h3 className="text-lg">{p.titre}</h3>
               <p className="text-sm leading-relaxed text-magique-texteClair">{p.texte}</p>

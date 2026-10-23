@@ -44,6 +44,7 @@ export type IllustrationStyle =
   | "feerique"
   | "aventure"
   | "manga"
+  | "bd"
   | "aquarelle"
   | "papier"
   | "pastel";
@@ -84,6 +85,15 @@ export const ILLUSTRATION_STYLES: Record<
       "charming kawaii anime illustration for young children, clean confident linework, smooth soft cel shading, " +
       "big expressive sparkling eyes, gentle rosy blush, bright yet soft cool palette, " +
       "wholesome cosy Studio-Ghibli-like gentleness, airy skies",
+  },
+  bd: {
+    label: "BD / Super-héros",
+    description: "Comic dynamique, cases et éclats",
+    prompt:
+      "dynamic comic book / bande dessinée illustration for kids, bold black ink outlines, " +
+      "halftone dot shading, vivid saturated primary colors, action lines and speed lines, " +
+      "heroic superhero comic energy with pop-art 'POW' flair, but wholesome and child-friendly, " +
+      "clean cel coloring, dramatic but joyful",
   },
   aquarelle: {
     label: "Aquarelle",

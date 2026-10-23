@@ -216,3 +216,151 @@ export function buildPosterDocument(story: Story, childName: string): JSX.Elemen
 export async function renderPosterPdf(story: Story, childName: string): Promise<Buffer> {
   return renderToBuffer(buildPosterDocument(story, childName));
 }
+
+// ---------------------------------------------------------------------------
+// Carte d'invitation : A4 portrait, à plier en deux, pour une fête à thème.
+// ---------------------------------------------------------------------------
+const invit = StyleSheet.create({
+  page: {
+    flexDirection: "column",
+    backgroundColor: STYLE_CONFIG.couleurs.fond,
+    padding: 44,
+    alignItems: "center",
+  },
+  image: { width: 300, height: 220, objectFit: "cover", borderRadius: 16, marginTop: 10, marginBottom: 22 },
+  kicker: { fontSize: 15, color: STYLE_CONFIG.couleurs.secondaire, marginBottom: 6 },
+  title: { fontSize: 32, textAlign: "center", color: STYLE_CONFIG.couleurs.primaire, marginBottom: 6 },
+  sub: { fontSize: 14, textAlign: "center", color: STYLE_CONFIG.couleurs.texteClair, marginBottom: 26 },
+  ligne: { fontSize: 15, color: STYLE_CONFIG.couleurs.texte, marginBottom: 16, width: 360 },
+  foot: { position: "absolute", bottom: 26, fontSize: 10, color: STYLE_CONFIG.couleurs.texteClair },
+});
+
+/** Carte d'invitation d'anniversaire sur le thème du livre. */
+export function buildInvitationDocument(
+  story: Story,
+  childName: string,
+  image: string | null,
+): JSX.Element {
+  return (
+    <Document title={`Invitation — ${childName}`} author="Mon Livre Magique">
+      <Page size="A4" style={invit.page}>
+        <Text style={invit.kicker}>Tu es invité·e à une grande aventure</Text>
+        {image ? <Image src={image} style={invit.image} /> : null}
+        <Text style={invit.title}>La fête de {childName} !</Text>
+        <Text style={invit.sub}>Une journée de super-héros, de contes et de magie.</Text>
+        <Text style={invit.ligne}>Quand : ______________________________________</Text>
+        <Text style={invit.ligne}>Heure : ______________________________________</Text>
+        <Text style={invit.ligne}>Où : _________________________________________</Text>
+        <Text style={invit.ligne}>Réponse avant le : ___________________________</Text>
+        <Text style={invit.foot}>Créé avec Mon Livre Magique</Text>
+      </Page>
+    </Document>
+  );
+}
+
+export async function renderInvitationPdf(
+  story: Story,
+  childName: string,
+  image: string | null,
+): Promise<Buffer> {
+  return renderToBuffer(buildInvitationDocument(story, childName, image));
+}
+
+// ---------------------------------------------------------------------------
+// Planche d'autocollants : les illustrations en vignettes à découper.
+// ---------------------------------------------------------------------------
+const stick = StyleSheet.create({
+  page: { flexDirection: "column", backgroundColor: "#ffffff", padding: 30 },
+  title: { fontSize: 24, textAlign: "center", color: STYLE_CONFIG.couleurs.primaire, marginBottom: 4 },
+  sub: { fontSize: 11, textAlign: "center", color: STYLE_CONFIG.couleurs.texteClair, marginBottom: 18 },
+  grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center" },
+  sticker: {
+    width: 150,
+    height: 150,
+    objectFit: "cover",
+    borderRadius: 20,
+    margin: 9,
+    borderWidth: 3,
+    borderStyle: "solid",
+    borderColor: STYLE_CONFIG.couleurs.secondaire,
+  },
+});
+
+/** Planche d'autocollants à découper (vignettes des illustrations). */
+export function buildStickersDocument(story: Story, images: string[]): JSX.Element {
+  // On remplit la planche en répétant les illustrations disponibles.
+  const base = images.length > 0 ? images : [];
+  const cells: string[] = [];
+  for (let i = 0; i < 12 && base.length > 0; i++) cells.push(base[i % base.length] as string);
+  return (
+    <Document title={`${story.titre} — autocollants`} author="Mon Livre Magique">
+      <Page size="A4" style={stick.page}>
+        <Text style={stick.title}>Mes autocollants</Text>
+        <Text style={stick.sub}>{story.titre} · à découper le long des contours</Text>
+        <View style={stick.grid}>
+          {cells.map((src, i) => (
+            <Image key={i} src={src} style={stick.sticker} />
+          ))}
+        </View>
+      </Page>
+    </Document>
+  );
+}
+
+export async function renderStickersPdf(story: Story, images: string[]): Promise<Buffer> {
+  return renderToBuffer(buildStickersDocument(story, images));
+}
+
+// ---------------------------------------------------------------------------
+// Marque-pages : trois bandes à découper (A4 paysage).
+// ---------------------------------------------------------------------------
+const mark = StyleSheet.create({
+  page: { flexDirection: "row", backgroundColor: "#ffffff", padding: 28, justifyContent: "space-around" },
+  strip: {
+    width: 165,
+    height: 540,
+    marginHorizontal: 10,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderStyle: "dashed",
+    borderColor: STYLE_CONFIG.couleurs.texteClair,
+    backgroundColor: STYLE_CONFIG.couleurs.fond,
+    alignItems: "center",
+    paddingVertical: 20,
+    paddingHorizontal: 12,
+  },
+  img: { width: 130, height: 180, objectFit: "cover", borderRadius: 12, marginBottom: 16 },
+  t: { fontSize: 14, textAlign: "center", color: STYLE_CONFIG.couleurs.primaire, marginBottom: 8 },
+  n: { fontSize: 11, textAlign: "center", color: STYLE_CONFIG.couleurs.texteClair },
+  dot: { width: 12, height: 12, borderRadius: 6, backgroundColor: STYLE_CONFIG.couleurs.secondaire, marginTop: "auto" },
+});
+
+/** Trois marque-pages identiques à découper. */
+export function buildBookmarkDocument(
+  story: Story,
+  childName: string,
+  image: string | null,
+): JSX.Element {
+  return (
+    <Document title={`${story.titre} — marque-pages`} author="Mon Livre Magique">
+      <Page size="A4" orientation="landscape" style={mark.page}>
+        {[0, 1, 2].map((i) => (
+          <View key={i} style={mark.strip}>
+            {image ? <Image src={image} style={mark.img} /> : null}
+            <Text style={mark.t}>{story.titre}</Text>
+            <Text style={mark.n}>Les aventures de {childName}</Text>
+            <View style={mark.dot} />
+          </View>
+        ))}
+      </Page>
+    </Document>
+  );
+}
+
+export async function renderBookmarkPdf(
+  story: Story,
+  childName: string,
+  image: string | null,
+): Promise<Buffer> {
+  return renderToBuffer(buildBookmarkDocument(story, childName, image));
+}

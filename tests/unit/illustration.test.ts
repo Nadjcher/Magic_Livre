@@ -43,6 +43,7 @@ describe("construction du prompt d'illustration", () => {
     expect(Object.keys(ILLUSTRATION_STYLES).sort()).toEqual([
       "aquarelle",
       "aventure",
+      "bd",
       "feerique",
       "manga",
       "papier",
