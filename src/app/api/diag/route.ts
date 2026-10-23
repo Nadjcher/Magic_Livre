@@ -15,6 +15,12 @@ export async function GET() {
 
   try {
     const client = new OpenAI({ apiKey: key, baseURL: "https://api.groq.com/openai/v1" });
+    try {
+      const models = await client.models.list();
+      out.availableModels = models.data.map((m) => m.id).sort();
+    } catch (e) {
+      out.modelsError = String((e as Error)?.message ?? e).slice(0, 200);
+    }
     const r = await client.chat.completions.create({
       model: env.groqModel(),
       max_tokens: 10,
