@@ -23,11 +23,12 @@ export async function GET() {
     }
     const r = await client.chat.completions.create({
       model: env.groqModel(),
-      max_tokens: 10,
-      messages: [{ role: "user", content: "Réponds juste: OK" }],
+      max_tokens: 50,
+      response_format: { type: "json_object" },
+      messages: [{ role: "user", content: 'Réponds en JSON: {"ok": true}' }],
     });
     out.groq = "ok";
-    out.groqReply = (r.choices[0]?.message?.content ?? "").slice(0, 40);
+    out.groqReply = (r.choices[0]?.message?.content ?? "").slice(0, 60);
   } catch (e) {
     out.groq = "error";
     out.groqStatus = (e as { status?: number })?.status ?? null;
