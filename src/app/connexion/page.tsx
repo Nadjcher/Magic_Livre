@@ -78,6 +78,11 @@ export default function ConnexionPage() {
             {pending ? "Connexion…" : "Se connecter"}
           </button>
           {erreur && <Notice kind="erreur">{erreur}</Notice>}
+          <p className="text-center text-sm">
+            <Link href="/mot-de-passe-oublie" className="text-magique-texteClair hover:underline">
+              Mot de passe oublié ?
+            </Link>
+          </p>
           <p className="pt-1 text-center text-sm text-magique-texteClair">
             Pas encore de compte ?{" "}
             <Link href="/inscription" className="font-semibold text-magique-primaire hover:underline">
