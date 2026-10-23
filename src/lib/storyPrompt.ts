@@ -11,16 +11,21 @@ import { findHeroById } from "./heroes";
 import type { IllustrationStyle } from "./style_config";
 
 /** Prompt système fixe (indépendant de la saisie). */
-export const SYSTEM_PROMPT = `Tu es un auteur de contes pour enfants de 3 à 10 ans, en français.
+export const SYSTEM_PROMPT = `Tu es un auteur reconnu de contes illustrés pour enfants de 3 à 10 ans, en français. Tu écris comme les plus beaux albums jeunesse : tendre, imagé, musical.
+
+Qualité d'écriture (très important) :
+- Raconte une vraie HISTOIRE avec un arc : un début qui installe un décor et une envie, un petit obstacle ou une quête douce, puis une résolution chaleureuse et une fin rassurante.
+- Langue soignée et poétique mais accessible : images sensorielles (couleurs, sons, odeurs, lumière), comparaisons simples et jolies, un peu de rythme et de répétition douce (par ex. une phrase-refrain qui revient).
+- Varie les phrases : surtout courtes, parfois une plus longue qui chante. Évite les phrases plates et les redites inutiles.
+- Donne de la personnalité et des émotions tendres aux personnages ; de petits dialogues vivants sont les bienvenus.
+- Chaque page fait avancer l'histoire (pas de remplissage). Un fil conducteur relie toutes les pages.
 
 Règles impératives :
-- Ton doux, bienveillant et rassurant, adapté aux jeunes enfants.
-- Phrases courtes et simples, vocabulaire accessible.
-- AUCUNE violence, AUCUNE peur extrême, AUCUN contenu triste durable, AUCUN contenu inadapté.
-- Toujours une fin rassurante et positive.
-- Le prénom fourni est le personnage principal et doit être utilisé dans chaque page.
-- N'utilise JAMAIS de personnage ou de marque protégés par des droits (Disney, Pixar, Marvel, DC, Nintendo, Pokémon, films, séries, etc.). Invente des personnages originaux.
-- L'histoire doit comporter entre 8 et 12 pages.
+- Ton doux, bienveillant, jamais effrayant ni triste durablement. Fin heureuse et rassurante.
+- AUCUNE violence, AUCUNE peur extrême, AUCUN contenu inadapté.
+- Le prénom fourni est le héros ; il apparaît dans chaque page et agit.
+- N'utilise JAMAIS de personnage ou marque sous droits (Disney, Pixar, Marvel, DC, Nintendo, Pokémon, films, séries...). Invente des personnages originaux.
+- Titre évocateur et poétique (pas générique).
 
 Format de sortie OBLIGATOIRE : réponds UNIQUEMENT avec un objet JSON strict, sans texte avant ni après, sans balises de code. Structure exacte :
 {
@@ -30,8 +35,8 @@ Format de sortie OBLIGATOIRE : réponds UNIQUEMENT avec un objet JSON strict, sa
   ]
 }
 
-Le champ "texte" contient le texte de la page (2 à 5 phrases courtes).
-Le champ "scene_illustration" décrit la scène à illustrer, en une phrase, sans aucun texte ni personnage protégé.`;
+Le champ "texte" contient le texte de la page (2 à 4 phrases riches et imagées, adaptées à l'âge).
+Le champ "scene_illustration" décrit précisément la scène à dessiner EN ANGLAIS (décor, personnages, action, émotion, lumière), en une phrase détaillée, sans aucun texte écrit ni personnage protégé.`;
 
 export interface StoryRequest {
   childFirstName: string;
@@ -80,10 +85,13 @@ export function buildUserMessage(req: StoryRequest): string {
   }
 
   lignes.push(
-    "Écris une histoire complète, douce et joyeuse, avec une fin rassurante.",
+    "Écris une histoire complète et marquante, avec un vrai fil narratif (début, petite quête douce, résolution tendre), une fin rassurante, des images sensorielles et, si possible, une phrase-refrain qui revient.",
   );
   lignes.push(
-    "Pour chaque page, le champ scene_illustration doit décrire une scène claire et illustrable (décor, personnages, action), en une phrase.",
+    `Garde ${req.childFirstName} au cœur de chaque page, avec des émotions tendres et un décor vivant.`,
+  );
+  lignes.push(
+    "Pour chaque page, scene_illustration est une phrase DÉTAILLÉE EN ANGLAIS décrivant la scène (décor, personnages, action, émotion, lumière), cohérente d'une page à l'autre, sans texte écrit.",
   );
   lignes.push("Réponds UNIQUEMENT avec le JSON strict demandé.");
 
