@@ -31,7 +31,7 @@ export default function GenerationOverlay() {
       className="fixed inset-0 z-50 flex flex-col items-center justify-center px-6 text-center"
       style={{
         backgroundImage:
-          "radial-gradient(60% 50% at 50% 40%, rgba(154,122,224,.45), rgba(154,122,224,0) 60%), linear-gradient(180deg,#171338,#15103a)",
+          "radial-gradient(60% 50% at 50% 40%, rgba(91,155,255,.45), rgba(91,155,255,0) 60%), linear-gradient(180deg,#121a44,#0f1a44)",
       }}
       role="status"
       aria-live="polite"
@@ -55,7 +55,7 @@ export default function GenerationOverlay() {
       </div>
 
       <h2 className="mt-8 font-serif text-2xl text-white">Votre conte s'écrit…</h2>
-      <p className="mt-2 h-6 text-[#dcd6f4] transition-all">{MESSAGES[i]}</p>
+      <p className="mt-2 h-6 text-[#cdd7f4] transition-all">{MESSAGES[i]}</p>
 
       {/* Barre chatoyante (progression indéterminée) */}
       <div className="mt-6 h-2 w-64 max-w-[80vw] overflow-hidden rounded-full bg-white/10">

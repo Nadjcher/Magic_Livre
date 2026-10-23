@@ -7,14 +7,14 @@
  */
 
 export const STYLE_CONFIG = {
-  /** Palette « Nuit enchantée » (voile lunaire, plume violette, rose féerique), reprise dans les PDF. */
+  /** Palette « Nuit féerique » (voile bleuté, bleu indigo, rose étincelle), reprise dans les PDF. */
   couleurs: {
-    fond: "#F5F3FC",
-    primaire: "#6D3BD1",
+    fond: "#EEF2FD",
+    primaire: "#4F5FE0",
     secondaire: "#D4698C",
-    accent: "#6F8BFF",
-    texte: "#241C42",
-    texteClair: "#6A6291",
+    accent: "#5B9BFF",
+    texte: "#1B2250",
+    texteClair: "#5B6598",
   },
 
   /** Polices lisibles pour les enfants. */

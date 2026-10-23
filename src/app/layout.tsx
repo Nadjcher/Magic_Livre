@@ -70,7 +70,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#1b1544",
+  themeColor: "#16245c",
 };
 
 export default function RootLayout({
@@ -85,7 +85,7 @@ export default function RootLayout({
         <TiltProvider />
         <Header />
         <main className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
-        <footer className="relative z-10 mt-8 bg-nuit px-4 py-8 text-sm text-[#b7aee0]">
+        <footer className="relative z-10 mt-8 bg-nuit px-4 py-8 text-sm text-[#9fb0e0]">
           <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-5">
             <Link href="/mentions-legales" className="hover:text-white">
               Mentions légales
@@ -96,7 +96,7 @@ export default function RootLayout({
             <Link href="/confidentialite" className="hover:text-white">
               Confidentialité
             </Link>
-            <span className="text-[#8278b8]">© {new Date().getFullYear()} Mon Livre Magique</span>
+            <span className="text-[#6f7bb0]">© {new Date().getFullYear()} Mon Livre Magique</span>
           </div>
         </footer>
       </body>

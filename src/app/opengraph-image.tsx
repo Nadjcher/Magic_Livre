@@ -24,16 +24,16 @@ export default function OpengraphImage() {
           padding: 80,
           textAlign: "center",
           color: "#fdfbff",
-          background: "linear-gradient(145deg, #3a2a72 0%, #241a54 55%, #171042 100%)",
+          background: "linear-gradient(145deg, #23356f 0%, #16245c 55%, #0f1a44 100%)",
           position: "relative",
         }}
       >
         {/* Halos doux (cercles translucides, compatibles Satori) */}
-        <div style={{ position: "absolute", top: -120, right: -60, width: 460, height: 460, borderRadius: 460, background: "rgba(224,124,192,0.28)" }} />
-        <div style={{ position: "absolute", bottom: -160, left: -80, width: 480, height: 480, borderRadius: 480, background: "rgba(111,139,255,0.22)" }} />
+        <div style={{ position: "absolute", top: -120, right: -60, width: 460, height: 460, borderRadius: 460, background: "rgba(91,155,255,0.30)" }} />
+        <div style={{ position: "absolute", bottom: -160, left: -80, width: 480, height: 480, borderRadius: 480, background: "rgba(224,124,192,0.20)" }} />
         {/* Lune en croissant (deux cercles superposés) */}
         <div style={{ position: "absolute", top: 70, right: 110, width: 96, height: 96, borderRadius: 96, background: "#fdfbff", display: "flex" }} />
-        <div style={{ position: "absolute", top: 62, right: 86, width: 88, height: 88, borderRadius: 88, background: "#241a54", display: "flex" }} />
+        <div style={{ position: "absolute", top: 62, right: 86, width: 88, height: 88, borderRadius: 88, background: "#16245c", display: "flex" }} />
         {/* Étoiles */}
         <div style={{ position: "absolute", top: 140, left: 130, width: 16, height: 16, borderRadius: 16, background: "#f6b8e0" }} />
         <div style={{ position: "absolute", top: 230, left: 90, width: 10, height: 10, borderRadius: 10, background: "#8b5ae0" }} />
@@ -60,8 +60,8 @@ export default function OpengraphImage() {
           style={{
             marginTop: 44,
             fontSize: 26,
-            color: "#171042",
-            background: "linear-gradient(135deg, #f6b8e0, #8b5ae0)",
+            color: "#0f1a44",
+            background: "linear-gradient(135deg, #a9c0ff, #c79bea)",
             padding: "14px 34px",
             borderRadius: 999,
             display: "flex",

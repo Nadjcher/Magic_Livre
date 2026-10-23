@@ -13,15 +13,16 @@ import type { CSSProperties } from "react";
 export type SceneName = "hero" | "imagine" | "write" | "together" | "nuit";
 
 // Palette (constantes lisibles, réutilisées dans les dégradés).
-const SKY_TOP = "#f0ebfd";
-const SKY_BOT = "#d8ccf7";
-const NIGHT_TOP = "#2a1f5e";
-const NIGHT_BOT = "#171042";
-const VIOLET = "#6d3bd1";
-const VIOLET_CLAIR = "#8b5ae0";
+// Dominante BLEU NUIT féerique ; violet/rose en étincelles.
+const SKY_TOP = "#eef3fe";
+const SKY_BOT = "#cfdaf6";
+const NIGHT_TOP = "#1b2a66";
+const NIGHT_BOT = "#0f1a44";
+const VIOLET = "#4f5fe0"; // trait principal (indigo-bleu)
+const VIOLET_CLAIR = "#7b86ec";
 const ROSE = "#e07cc0";
 const ROSE_CLAIR = "#f6b8e0";
-const PERVENCHE = "#6f8bff";
+const PERVENCHE = "#5b9bff"; // bleu céleste lumineux
 const BLANC = "#fdfbff";
 const MENTHE = "#7fe0c4";
 
@@ -61,7 +62,7 @@ function Lune({ x, y, r }: { x: number; y: number; r: number }) {
   return (
     <g>
       <circle cx={x} cy={y} r={r} fill={BLANC} />
-      <circle cx={x + r * 0.5} cy={y - r * 0.2} r={r * 0.92} fill="#ece7fb" />
+      <circle cx={x + r * 0.5} cy={y - r * 0.2} r={r * 0.92} fill="#e4ecfb" />
     </g>
   );
 }

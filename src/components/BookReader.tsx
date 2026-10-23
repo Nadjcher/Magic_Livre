@@ -265,7 +265,7 @@ export default function BookReader({ story }: { story: Story }) {
           className="fixed inset-0 z-50 flex flex-col text-white"
           style={{
             backgroundImage:
-              "radial-gradient(60% 50% at 50% 35%, rgba(154,122,224,.4), rgba(154,122,224,0) 60%), linear-gradient(180deg,#0b0922,#15103a)",
+              "radial-gradient(60% 50% at 50% 35%, rgba(91,155,255,.4), rgba(91,155,255,0) 60%), linear-gradient(180deg,#0b1230,#0f1a44)",
           }}
         >
           <div className="flex items-center justify-between px-6 py-4">

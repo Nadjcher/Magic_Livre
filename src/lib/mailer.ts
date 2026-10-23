@@ -13,9 +13,9 @@ const baseUrl = () => (process.env.AUTH_URL ?? "").replace(/\/$/, "");
 /** Gabarit HTML « conte enchanté » commun à tous les emails. */
 function shell(titre: string, corps: string): string {
   return `
-<div style="margin:0;padding:24px;background:#fbf2df;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#2a2443">
+<div style="margin:0;padding:24px;background:#eef2fd;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1b2250">
   <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e6dcc4">
-    <div style="background:linear-gradient(135deg,#1b1544,#38316f);padding:28px 32px;text-align:center">
+    <div style="background:linear-gradient(135deg,#16245c,#33407f);padding:28px 32px;text-align:center">
       <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#ffffff">✦ Mon Livre Magique</div>
     </div>
     <div style="padding:32px">
@@ -33,10 +33,10 @@ function shell(titre: string, corps: string): string {
 
 function bouton(url: string, label: string): string {
   return `<div style="text-align:center;margin:8px 0 24px">
-    <a href="${url}" style="display:inline-block;background:linear-gradient(135deg,#8b4fd4,#c45bb0);color:#ffffff;text-decoration:none;font-weight:700;padding:14px 30px;border-radius:999px">${label}</a>
+    <a href="${url}" style="display:inline-block;background:linear-gradient(135deg,#4f6ef0,#8b5ae0);color:#ffffff;text-decoration:none;font-weight:700;padding:14px 30px;border-radius:999px">${label}</a>
   </div>
-  <p style="font-size:13px;line-height:1.6;color:#6f6690;margin:0">Si le bouton ne fonctionne pas, copiez ce lien :<br>
-  <a href="${url}" style="color:#8b4fd4;word-break:break-all">${url}</a></p>`;
+  <p style="font-size:13px;line-height:1.6;color:#5b6598;margin:0">Si le bouton ne fonctionne pas, copiez ce lien :<br>
+  <a href="${url}" style="color:#4f5fe0;word-break:break-all">${url}</a></p>`;
 }
 
 export async function sendMail(to: string, subject: string, html: string, text: string) {
@@ -77,7 +77,7 @@ export async function sendVerificationEmail(email: string) {
     "Confirmez votre adresse — Mon Livre Magique",
     shell(
       "Bienvenue ! Confirmez votre adresse",
-      `<p style="font-size:15px;line-height:1.6;color:#4a4466;margin:0 0 16px">Merci d'avoir créé votre compte. Confirmez votre adresse email pour finaliser l'inscription.</p>${bouton(url, "Confirmer mon adresse")}`,
+      `<p style="font-size:15px;line-height:1.6;color:#3a4472;margin:0 0 16px">Merci d'avoir créé votre compte. Confirmez votre adresse email pour finaliser l'inscription.</p>${bouton(url, "Confirmer mon adresse")}`,
     ),
     `Confirmez votre adresse : ${url}`,
   );
@@ -92,7 +92,7 @@ export async function sendResetEmail(email: string) {
     "Réinitialiser votre mot de passe — Mon Livre Magique",
     shell(
       "Réinitialiser votre mot de passe",
-      `<p style="font-size:15px;line-height:1.6;color:#4a4466;margin:0 0 16px">Vous avez demandé à changer votre mot de passe. Ce lien est valable 1 heure.</p>${bouton(url, "Choisir un nouveau mot de passe")}<p style="font-size:13px;color:#6f6690;margin:16px 0 0">Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>`,
+      `<p style="font-size:15px;line-height:1.6;color:#3a4472;margin:0 0 16px">Vous avez demandé à changer votre mot de passe. Ce lien est valable 1 heure.</p>${bouton(url, "Choisir un nouveau mot de passe")}<p style="font-size:13px;color:#5b6598;margin:16px 0 0">Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>`,
     ),
     `Réinitialiser votre mot de passe : ${url}`,
   );

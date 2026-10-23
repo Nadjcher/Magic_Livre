@@ -6,14 +6,14 @@
   color-scheme: light;
 }
 
-/* Fond « voile lunaire » avec halos froids doux (lueur de conte nocturne), fixés. */
+/* Fond « voile bleuté » avec halos célestes doux (lueur de nuit féerique), fixés. */
 body {
-  color: #241c42;
-  background-color: #f5f3fc;
+  color: #1b2250;
+  background-color: #eef2fd;
   background-image:
-    radial-gradient(44rem 44rem at 10% -10%, rgba(109, 59, 209, 0.14), transparent 60%),
-    radial-gradient(40rem 40rem at 110% 6%, rgba(224, 124, 192, 0.14), transparent 60%),
-    radial-gradient(46rem 46rem at 50% 120%, rgba(111, 139, 255, 0.1), transparent 60%);
+    radial-gradient(44rem 44rem at 10% -10%, rgba(79, 95, 224, 0.16), transparent 60%),
+    radial-gradient(40rem 40rem at 110% 6%, rgba(91, 155, 255, 0.16), transparent 60%),
+    radial-gradient(46rem 46rem at 50% 120%, rgba(224, 124, 192, 0.1), transparent 60%);
   background-attachment: fixed;
   background-repeat: no-repeat;
 }
@@ -27,7 +27,7 @@ h1, h2, h3, .serif {
 
 /* Accessibilité : focus clavier toujours visible. */
 :focus-visible {
-  outline: 3px solid rgba(109, 59, 209, 0.55);
+  outline: 3px solid rgba(79, 95, 224, 0.55);
   outline-offset: 2px;
   border-radius: 6px;
 }
@@ -36,7 +36,7 @@ h1, h2, h3, .serif {
   /* Bouton principal : or en relief, léger soulèvement au survol. */
   .btn-primaire {
     @apply relative overflow-hidden inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-bold text-white shadow-or transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
-    background-image: linear-gradient(135deg, #8b4fd4, #c45bb0);
+    background-image: linear-gradient(135deg, #4f6ef0, #8b5ae0);
   }
   .btn-secondaire {
     @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-magique-primaire bg-white/70 px-6 py-3 font-bold text-magique-primaire backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:bg-magique-primaire hover:text-white;
@@ -56,7 +56,7 @@ h1, h2, h3, .serif {
 @layer utilities {
   /* Titre en dégradé plume → or (réservé à la marque et aux grands titres). */
   .text-gradient {
-    background-image: linear-gradient(118deg, #6d3bd1 0%, #9a5ae0 42%, #de6fb5 110%);
+    background-image: linear-gradient(118deg, #4f6ef0 0%, #7a5be0 46%, #de6fb5 115%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -162,8 +162,8 @@ h1, h2, h3, .serif {
 .carte-relief {
   position: relative;
   border-radius: 1.5rem;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(246, 244, 253, 0.92));
-  border: 1px solid rgba(227, 221, 243, 0.9);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(238, 242, 253, 0.92));
+  border: 1px solid rgba(219, 226, 246, 0.9);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
     0 2px 5px rgba(20, 17, 49, 0.05),
@@ -198,11 +198,11 @@ h1, h2, h3, .serif {
 /* Apparition en douceur (listes, cartes qui arrivent). */
 .anim-apparait { opacity: 0; animation: monter 0.6s ease forwards; }
 
-/* Pulsation violette d'un élément sélectionné. */
+/* Pulsation bleue d'un élément sélectionné. */
 .anim-pulse-or { animation: pulse-or 2.4s ease-in-out infinite; }
 @keyframes pulse-or {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(109, 59, 209, 0); }
-  50% { box-shadow: 0 0 0 7px rgba(109, 59, 209, 0.2); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(79, 95, 224, 0); }
+  50% { box-shadow: 0 0 0 7px rgba(79, 95, 224, 0.2); }
 }
 
 /* Tourne-page du lecteur (rejoué à chaque changement de page). */

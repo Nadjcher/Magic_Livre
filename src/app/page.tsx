@@ -96,7 +96,7 @@ export default function AccueilPage() {
         className="relative overflow-hidden rounded-[2.5rem] border border-magique-trait px-6 py-12 sm:px-12 sm:py-16"
         style={{
           backgroundImage:
-            "radial-gradient(60% 55% at 85% 25%, rgba(224,124,192,.42), rgba(224,124,192,0) 60%), radial-gradient(55% 60% at 8% 95%, rgba(109,59,209,.16), rgba(109,59,209,0) 60%), linear-gradient(180deg,#faf8ff,#efeafc)",
+            "radial-gradient(60% 55% at 85% 25%, rgba(91,155,255,.42), rgba(91,155,255,0) 60%), radial-gradient(55% 60% at 8% 95%, rgba(79,95,224,.18), rgba(79,95,224,0) 60%), linear-gradient(180deg,#f4f7ff,#e7edfb)",
         }}
       >
         <Etoile className="anim-scintille pointer-events-none absolute left-[8%] top-[18%] h-4 w-4 text-or" aria-hidden="true" />
@@ -190,7 +190,7 @@ export default function AccueilPage() {
         className="relative overflow-hidden rounded-[2.5rem] px-6 py-12 shadow-conte ring-1 ring-white/10 sm:px-12 sm:py-14"
         style={{
           backgroundImage:
-            "radial-gradient(60% 70% at 15% 20%, rgba(154,122,224,.4), rgba(154,122,224,0) 60%), linear-gradient(180deg,#1b1544,#15103a)",
+            "radial-gradient(60% 70% at 15% 20%, rgba(91,155,255,.4), rgba(91,155,255,0) 60%), linear-gradient(180deg,#16245c,#0f1a44)",
         }}
       >
         <div className="relative z-10 grid items-center gap-8 md:grid-cols-[1fr_.8fr]">
@@ -198,7 +198,7 @@ export default function AccueilPage() {
             <h2 className="text-3xl text-white sm:text-4xl">
               Ce soir, l'histoire parle de <span className="text-gradient italic">votre enfant.</span>
             </h2>
-            <p className="mt-4 max-w-[42ch] text-[#dcd6f4]">
+            <p className="mt-4 max-w-[42ch] text-[#cdd7f4]">
               Lecture gratuite à l'écran, et le joli PDF à imprimer dès 4,99 €. Sans abonnement.
             </p>
             <div className="mt-8">

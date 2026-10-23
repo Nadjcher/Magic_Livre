@@ -134,7 +134,7 @@ export default function ChildrenManager({ initial }: { initial: ChildView[] }) {
                 <span className="flex items-center gap-3">
                   <span
                     className="relief-avant flex h-11 w-11 flex-none items-center justify-center rounded-full font-serif text-lg text-white shadow-or"
-                    style={{ backgroundImage: "linear-gradient(160deg,#9a5ae0,#6d28d9)" }}
+                    style={{ backgroundImage: "linear-gradient(160deg,#5b9bff,#4f5fe0)" }}
                     aria-hidden="true"
                   >
                     {child.firstName.trim().charAt(0).toUpperCase()}
