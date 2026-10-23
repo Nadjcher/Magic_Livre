@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { getAppUrl } from "@/lib/appUrl";
 
 /**
  * Plan du site pour les moteurs de recherche. On n'y liste que les pages
@@ -6,7 +7,7 @@ import type { MetadataRoute } from "next";
  * compte…) et les pages transitoires (réinitialisation, vérification) en
  * sont volontairement exclus.
  */
-const BASE_URL = (process.env.AUTH_URL ?? "http://localhost:3000").replace(/\/$/, "");
+const BASE_URL = getAppUrl();
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

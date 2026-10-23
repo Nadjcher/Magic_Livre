@@ -9,8 +9,9 @@
 
 import Link from "next/link";
 import Tilt3D from "@/components/Tilt3D";
+import { getAppUrl } from "@/lib/appUrl";
 
-const APP_URL = (process.env.AUTH_URL ?? "http://localhost:3000").replace(/\/$/, "");
+const APP_URL = getAppUrl();
 
 /** Données structurées (JSON-LD) : marque, site et offre produit. */
 const JSON_LD = {

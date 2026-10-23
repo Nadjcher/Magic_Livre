@@ -5,6 +5,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import MagicParticles from "@/components/MagicParticles";
 import TiltProvider from "@/components/TiltProvider";
+import { getAppUrl } from "@/lib/appUrl";
 
 // Fraunces : serif de conte, caractérielle (titres). Nunito : ronde et
 // chaleureuse (texte/UI). Chargées sans FOUT via next/font.
@@ -22,7 +23,7 @@ const nunito = Nunito({
   display: "swap",
 });
 
-const APP_URL = (process.env.AUTH_URL ?? "http://localhost:3000").replace(/\/$/, "");
+const APP_URL = getAppUrl();
 const DESCRIPTION =
   "Créez en une minute un livre illustré personnalisé pour votre enfant : son prénom, " +
   "un héros original et une histoire douce à lire ensemble. PDF à imprimer dès 4,99 €, sans abonnement.";

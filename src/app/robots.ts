@@ -1,10 +1,11 @@
 import type { MetadataRoute } from "next";
+import { getAppUrl } from "@/lib/appUrl";
 
 /**
  * Règles d'indexation. On autorise le public mais on protège les espaces
  * privés et les routes techniques, qui n'ont rien à faire dans un index.
  */
-const BASE_URL = (process.env.AUTH_URL ?? "http://localhost:3000").replace(/\/$/, "");
+const BASE_URL = getAppUrl();
 
 export default function robots(): MetadataRoute.Robots {
   return {
