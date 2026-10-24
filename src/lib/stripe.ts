@@ -8,6 +8,7 @@
 import "server-only";
 import Stripe from "stripe";
 import { env } from "./env";
+import { prisma } from "./prisma";
 
 let cached: Stripe | null = null;
 
@@ -62,7 +63,7 @@ export async function createCheckoutSession(params: {
       bookId: params.bookId,
       orderId: params.orderId,
     },
-    success_url: `${baseUrl}/bibliotheque/${params.bookId}/boutique?paiement=succes`,
+    success_url: `${baseUrl}/bibliotheque/${params.bookId}/boutique?paiement=succes&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl}/bibliotheque/${params.bookId}/boutique?paiement=annule`,
   });
 
@@ -87,4 +88,33 @@ export function constructWebhookEvent(
     signature,
     env.stripeWebhookSecret(),
   );
+}
+
+/**
+ * Filet de sécurité au RETOUR de paiement : vérifie directement auprès de
+ * Stripe que la session est payée, et marque la commande correspondante comme
+ * payée. Ainsi le téléchargement se débloque même si le webhook est en retard,
+ * mal configuré, ou perdu. Idempotent et sans danger (ne valide qu'une commande
+ * appartenant à cet utilisateur et à ce livre). Ne jette jamais.
+ *
+ * Renvoie true si une commande a été (ou était déjà) confirmée payée.
+ */
+export async function confirmPaidSession(
+  sessionId: string,
+  userId: string,
+  bookId: string,
+): Promise<boolean> {
+  try {
+    const session = await getStripe().checkout.sessions.retrieve(sessionId);
+    if (session.payment_status !== "paid") return false;
+    const orderId = session.metadata?.orderId;
+    if (!orderId) return false;
+    await prisma.order.updateMany({
+      where: { id: orderId, userId, bookId, status: { not: "paid" } },
+      data: { status: "paid", stripeSessionId: session.id },
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }

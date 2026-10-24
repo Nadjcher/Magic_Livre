@@ -10,6 +10,7 @@ import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { storySchema } from "@/lib/storySchema";
 import { DELUXE_PRODUCTS, formatEuros } from "@/lib/products";
+import { confirmPaidSession } from "@/lib/stripe";
 import PurchaseDownload from "@/components/PurchaseDownload";
 import BookExtras from "@/components/BookExtras";
 import DeluxeShop from "@/components/DeluxeShop";
@@ -29,7 +30,7 @@ export default async function BoutiquePage({
   searchParams,
 }: {
   params: { id: string };
-  searchParams: { paiement?: string };
+  searchParams: { paiement?: string; session_id?: string };
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/connexion");
@@ -39,6 +40,12 @@ export default async function BoutiquePage({
     include: { child: { select: { firstName: true } } },
   });
   if (!book || book.status !== "ready" || !book.pages) notFound();
+
+  // Filet de sécurité : si on revient d'un paiement, on confirme directement
+  // auprès de Stripe (indépendant du webhook) pour débloquer le téléchargement.
+  if (searchParams.session_id) {
+    await confirmPaidSession(searchParams.session_id, user.id, book.id);
+  }
 
   const parsed = storySchema.safeParse(book.pages);
   const cover = parsed.success ? parsed.data.couvertureUrl ?? null : null;
