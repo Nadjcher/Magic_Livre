@@ -10,7 +10,7 @@ import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { storySchema } from "@/lib/storySchema";
 import { DELUXE_PRODUCTS, formatEuros } from "@/lib/products";
-import { confirmPaidSession } from "@/lib/stripe";
+import { confirmPaidSession, reconcilePendingOrders } from "@/lib/stripe";
 import PurchaseDownload from "@/components/PurchaseDownload";
 import BookExtras from "@/components/BookExtras";
 import DeluxeShop from "@/components/DeluxeShop";
@@ -46,6 +46,9 @@ export default async function BoutiquePage({
   if (searchParams.session_id) {
     await confirmPaidSession(searchParams.session_id, user.id, book.id);
   }
+  // Rattrapage : réconcilie toute commande payée restée « en attente »
+  // (retour sans session_id, webhook absent…).
+  await reconcilePendingOrders(user.id, book.id);
 
   const parsed = storySchema.safeParse(book.pages);
   const cover = parsed.success ? parsed.data.couvertureUrl ?? null : null;

@@ -118,3 +118,44 @@ export async function confirmPaidSession(
     return false;
   }
 }
+
+/**
+ * Rattrapage : passe en revue les commandes « en attente » de l'utilisateur
+ * pour ce livre et, pour chacune, demande à Stripe si la session est payée ;
+ * si oui, marque la commande payée. Débloque les téléchargements même si le
+ * client est revenu sans session_id (onglet fermé, navigation…) ou si le
+ * webhook n'a rien envoyé. Idempotent, best-effort (ne jette jamais).
+ */
+export async function reconcilePendingOrders(
+  userId: string,
+  bookId: string,
+): Promise<void> {
+  try {
+    const pending = await prisma.order.findMany({
+      where: {
+        userId,
+        bookId,
+        status: "pending",
+        stripeSessionId: { not: null },
+      },
+      select: { id: true, stripeSessionId: true },
+    });
+    for (const order of pending) {
+      try {
+        const session = await getStripe().checkout.sessions.retrieve(
+          order.stripeSessionId as string,
+        );
+        if (session.payment_status === "paid") {
+          await prisma.order.update({
+            where: { id: order.id },
+            data: { status: "paid" },
+          });
+        }
+      } catch {
+        /* on continue avec les autres commandes */
+      }
+    }
+  } catch {
+    /* non bloquant */
+  }
+}
