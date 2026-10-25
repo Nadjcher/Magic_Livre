@@ -39,31 +39,33 @@ export async function GET(): Promise<Response> {
     errors: [],
   };
 
+  // On ne renvoie que des libellés d'échec génériques (pas de message brut :
+  // éviter toute fuite d'info sur la base).
   try {
     await prisma.$queryRaw`SELECT 1`;
     out.db.connect = true;
-  } catch (e) {
+  } catch {
     out.db.connect = false;
     out.ok = false;
-    out.errors.push("db_connect: " + String((e as Error)?.message ?? e).slice(0, 200));
+    out.errors.push("db_connect_failed");
   }
 
   try {
     await prisma.book.findFirst({ select: { id: true, tier: true } });
     out.db.bookTier = true;
-  } catch (e) {
+  } catch {
     out.db.bookTier = false;
     out.ok = false;
-    out.errors.push("book.tier: " + String((e as Error)?.message ?? e).slice(0, 200));
+    out.errors.push("book_tier_missing");
   }
 
   try {
     await prisma.order.findFirst({ select: { id: true, sku: true } });
     out.db.orderSku = true;
-  } catch (e) {
+  } catch {
     out.db.orderSku = false;
     out.ok = false;
-    out.errors.push("order.sku: " + String((e as Error)?.message ?? e).slice(0, 200));
+    out.errors.push("order_sku_missing");
   }
 
   return NextResponse.json(out, { status: out.ok ? 200 : 500 });

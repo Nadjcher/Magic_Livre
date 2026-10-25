@@ -7,8 +7,21 @@ import "server-only";
 import { createTransport } from "nodemailer";
 import { randomBytes } from "crypto";
 import { prisma } from "./prisma";
+import { getAppUrl } from "./appUrl";
 
-const baseUrl = () => (process.env.AUTH_URL ?? "").replace(/\/$/, "");
+// URL publique normalisée : garantit des liens d'email toujours valides.
+const baseUrl = () => getAppUrl();
+
+/**
+ * Limite anti-spam : nombre de jetons encore valides pour un identifiant.
+ * Sert à plafonner les envois d'emails (réinitialisation / confirmation) et à
+ * éviter le « mail bombing ». Approxime la récence via la date d'expiration.
+ */
+async function activeTokenCount(identifier: string): Promise<number> {
+  return prisma.verificationToken.count({
+    where: { identifier, expires: { gt: new Date() } },
+  });
+}
 
 /** Gabarit HTML « conte enchanté » commun à tous les emails. */
 function shell(titre: string, corps: string): string {
@@ -70,6 +83,8 @@ export async function consumeToken(identifier: string, token: string): Promise<b
 
 /** Email de confirmation d'adresse. */
 export async function sendVerificationEmail(email: string) {
+  // Anti-spam : pas plus de quelques emails de confirmation actifs à la fois.
+  if ((await activeTokenCount(`verify:${email}`)) >= 3) return;
   const token = await createToken(`verify:${email}`, 24);
   const url = `${baseUrl()}/verifier-email?token=${token}&email=${encodeURIComponent(email)}`;
   await sendMail(
@@ -85,6 +100,8 @@ export async function sendVerificationEmail(email: string) {
 
 /** Email de réinitialisation de mot de passe. */
 export async function sendResetEmail(email: string) {
+  // Anti-spam / anti « mail bombing » : plafond d'emails de reset actifs.
+  if ((await activeTokenCount(`reset:${email}`)) >= 3) return;
   const token = await createToken(`reset:${email}`, 1);
   const url = `${baseUrl()}/reinitialiser?token=${token}&email=${encodeURIComponent(email)}`;
   await sendMail(

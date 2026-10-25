@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { storySchema } from "@/lib/storySchema";
 import BookReader from "@/components/BookReader";
 import DeleteBookButton from "@/components/DeleteBookButton";
+import AutoRefresh from "@/components/AutoRefresh";
 import Notice from "@/components/Notice";
 
 export default async function LivrePage({
@@ -60,10 +61,13 @@ export default async function LivrePage({
       )}
 
       {book.status === "generating" && (
-        <Notice kind="info">
-          L'histoire est en cours de génération. Rafraîchissez la page dans un
-          instant.
-        </Notice>
+        <>
+          <AutoRefresh seconds={5} />
+          <Notice kind="info">
+            L'histoire et les illustrations sont en cours de création… Cette page
+            se met à jour toute seule, patientez un instant.
+          </Notice>
+        </>
       )}
 
       {book.status === "failed" && (
