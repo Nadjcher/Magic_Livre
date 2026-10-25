@@ -21,6 +21,7 @@ Qualité d'écriture :
 - Langue accessible et jolie : images sensorielles simples (couleurs, sons, lumière), rythme, et une phrase-refrain douce qui revient (surtout pour les petits).
 - Donne des émotions tendres aux personnages ; de petits dialogues vivants quand l'âge s'y prête.
 - Chaque page fait avancer l'histoire (pas de remplissage). Un fil conducteur clair relie toutes les pages.
+- INTERDIT : recoller la même phrase à la fin de chaque page. Chaque page a un texte DIFFÉRENT. Une phrase-refrain éventuelle revient 2–3 fois maximum, jamais partout, et est bien écrite (grammaire soignée).
 
 Règles impératives :
 - Ton doux, bienveillant, jamais effrayant ni triste durablement. Fin heureuse et rassurante.
@@ -71,7 +72,7 @@ export function ageGuidance(age: number): string {
       "ÂGE 0–2 ANS (tout-petit) :",
       "- UNE seule phrase TRÈS courte par page (3 à 7 mots maximum).",
       "- Mots du quotidien, ultra-simples et concrets (doudou, câlin, dodo, maman, papa, animaux, couleurs).",
-      "- Beaucoup de répétition : une même phrase-refrain revient presque à chaque page.",
+      "- Une TRÈS courte phrase-refrain douce peut revenir 2 à 3 fois dans tout le livre (comme une comptine), JAMAIS la même phrase recollée à la fin de chaque page.",
       "- Des sons rigolos (« Plouf ! », « Coucou ! », « Hop ! »).",
       "- Pas d'intrigue compliquée : juste de petits moments tendres et rassurants, qui finissent par un câlin ou un dodo.",
     ].join("\n");
@@ -81,7 +82,7 @@ export function ageGuidance(age: number): string {
       "ÂGE 3–4 ANS :",
       "- 1 à 2 phrases courtes et simples par page.",
       "- Vocabulaire courant, concret ; une petite quête douce et facile à suivre.",
-      "- Une phrase-refrain qui revient, un peu de répétition rassurante.",
+      "- Éventuellement une courte phrase-refrain qui revient 2–3 fois (pas à chaque page), intégrée naturellement.",
       "- Thèmes proches de l'enfant : amitié, partage, peur du noir apprivoisée, découverte.",
     ].join("\n");
   }

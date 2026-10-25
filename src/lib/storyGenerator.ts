@@ -66,6 +66,7 @@ async function callModel(
 const EDITOR_SYSTEM = `Tu es un éditeur jeunesse exigeant. On te donne une histoire au format JSON. Tu la RÉÉCRIS pour l'améliorer, SANS changer la structure JSON ni le nombre de pages.
 Objectifs : clarté absolue (le parent et l'enfant comprennent tout de suite), émotion sincère, fluidité, et surtout un respect PARFAIT de l'âge indiqué (longueur de phrase et vocabulaire).
 Garde le même héros, le même fil, les mêmes scènes. Améliore le texte de chaque page et le titre si besoin. Conserve "scene_illustration" en anglais, détaillé, cohérent.
+IMPÉRATIF : supprime toute répétition mécanique (par ex. la même phrase recollée à la fin de chaque page) — chaque page doit avoir un texte différent. Corrige toute tournure maladroite ou agrammaticale (ex. « avance avec le sourire » → « avance en souriant »).
 Réponds UNIQUEMENT avec le même JSON strict : { "titre": string, "pages": [ { "texte": string, "scene_illustration": string } ] }.`;
 
 /**
@@ -199,21 +200,8 @@ async function addIllustrations(story: Story, req: StoryRequest): Promise<Story>
       : req.childFirstName;
   const base = hashSeed(story.titre + req.childFirstName);
 
-  const pages = await Promise.all(
-    story.pages.map(async (p, i) => {
-      const { imageUrl } = await generateIllustration({
-        style,
-        scene: p.scene_illustration,
-        heroName,
-        appearance: req.appearance,
-        referenceImage: req.photo,
-        premium: req.premium,
-        seed: base + i + 1,
-      });
-      return { ...p, imageUrl };
-    }),
-  );
-
+  // 1) On génère d'abord la COUVERTURE : elle fixe le design du héros (visage,
+  //    tenue, style) à partir de la photo. Elle sert ensuite d'« ancre ».
   const cover = await generateIllustration({
     style,
     scene: `couverture de livre : ${story.titre}`,
@@ -223,6 +211,30 @@ async function addIllustrations(story: Story, req: StoryRequest): Promise<Story>
     premium: req.premium,
     seed: base,
   });
+
+  // L'image de couverture devient la référence de personnage pour toutes les
+  // pages → même enfant, même tenue, même style d'un bout à l'autre du livre.
+  const anchor =
+    cover.base64 !== undefined
+      ? { base64: cover.base64, mime: cover.mime ?? "image/png" }
+      : undefined;
+
+  // 2) Toutes les pages, ancrées sur la couverture (cohérence) + photo (ressemblance).
+  const pages = await Promise.all(
+    story.pages.map(async (p, i) => {
+      const { imageUrl } = await generateIllustration({
+        style,
+        scene: p.scene_illustration,
+        heroName,
+        appearance: req.appearance,
+        referenceImage: req.photo,
+        anchorImage: anchor,
+        premium: req.premium,
+        seed: base + i + 1,
+      });
+      return { ...p, imageUrl };
+    }),
+  );
 
   return { ...story, pages, couvertureUrl: cover.imageUrl, style };
 }

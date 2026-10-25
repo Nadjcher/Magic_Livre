@@ -36,6 +36,12 @@ export interface IllustrationRequest {
    * générer l'illustration pour capter sa ressemblance. Jamais stockée.
    */
   referenceImage?: { base64: string; mime: string };
+  /**
+   * Image « ancre » du personnage (généralement la couverture déjà générée) :
+   * passée en référence pour garder EXACTEMENT le même héros (visage, tenue,
+   * style) d'une page à l'autre. C'est la clé de la cohérence du livre.
+   */
+  anchorImage?: { base64: string; mime: string };
   /** true : utilise le modèle d'image premium (meilleure qualité). */
   premium?: boolean;
 }
@@ -43,6 +49,9 @@ export interface IllustrationRequest {
 export interface IllustrationResult {
   /** URL (http ou data:) de l'image, ou null si désactivé / échec. */
   imageUrl: string | null;
+  /** Base64 de l'image générée (pour réutiliser la couverture comme ancre). */
+  base64?: string;
+  mime?: string;
 }
 
 const WIDTH = 1024;
@@ -62,9 +71,13 @@ export async function generateIllustration(
     }
     if (provider === "gemini") {
       const model = req.premium ? env.geminiImageModelPremium() : env.geminiImageModel();
-      const img = await geminiImage(prompt, model, req.referenceImage);
+      const img = await geminiImage(prompt, model, req.referenceImage, req.anchorImage);
       if (!img) return { imageUrl: null };
-      return { imageUrl: await storeImage(img.base64, img.mime, seed) };
+      return {
+        imageUrl: await storeImage(img.base64, img.mime, seed),
+        base64: img.base64,
+        mime: img.mime,
+      };
     }
     // "none" ou valeur inconnue : pas d'image.
     return { imageUrl: null };
@@ -115,6 +128,7 @@ async function geminiImage(
   prompt: string,
   model: string,
   reference?: { base64: string; mime: string },
+  anchor?: { base64: string; mime: string },
 ): Promise<{ base64: string; mime: string } | null> {
   const key = env.geminiApiKey();
   if (!key) return null;
@@ -122,23 +136,34 @@ async function geminiImage(
   const url =
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
-  // Avec une photo de référence : on demande une illustration qui préserve la
-  // ressemblance de l'enfant, sans copier la photo.
+  // On fournit jusqu'à deux références, dans cet ordre :
+  //  1) la photo de l'enfant (ressemblance) ;
+  //  2) l'image « ancre » = le personnage déjà dessiné (cohérence entre pages).
   const parts: Array<Record<string, unknown>> = [];
-  let texte = prompt;
+  const consignes: string[] = [];
+
   if (reference) {
     parts.push({ inlineData: { mimeType: reference.mime, data: reference.base64 } });
-    texte =
-      "CRITICAL — CHARACTER LIKENESS: The attached photo IS the real child who is the hero of this book. " +
-      "The main character MUST look unmistakably like this exact child — a parent must instantly recognize their kid. " +
-      "Faithfully reproduce: the same face shape, the same hair color AND hairstyle, the same eye color and eye shape, " +
-      "the same skin tone, the same eyebrows, and the same approximate age. Do NOT invent a generic child, do NOT change " +
-      "the hair or skin color. Keep this identical likeness on EVERY page and on the cover. " +
-      "Then stylize this same child as a charming children's-book character in the requested art style " +
-      "(illustrated, not a photograph, no photorealism), full body in the scene. " +
-      "SCENE: " +
-      prompt;
+    consignes.push(
+      "PHOTO DE RÉFÉRENCE (image 1) : c'est le vrai enfant, héros du livre. Le personnage " +
+        "DOIT lui ressembler de façon évidente — mêmes cheveux (couleur + coiffure), mêmes yeux, " +
+        "même teint, même forme de visage, même âge. N'invente pas un enfant générique.",
+    );
   }
+  if (anchor) {
+    parts.push({ inlineData: { mimeType: anchor.mime, data: anchor.base64 } });
+    consignes.push(
+      `IMAGE DE RÉFÉRENCE DU PERSONNAGE (image ${reference ? 2 : 1}) : reproduis EXACTEMENT le même ` +
+        "personnage que sur cette image — même visage, même coiffure, MÊME tenue/vêtements, mêmes " +
+        "couleurs, même style de dessin. C'est le MÊME enfant, dans une nouvelle scène. Ne change " +
+        "NI ses habits NI son apparence NI le style graphique.",
+    );
+  }
+
+  const texte =
+    (consignes.length > 0
+      ? "CONSIGNES IMPÉRATIVES DE PERSONNAGE :\n" + consignes.join("\n") + "\n\nSCÈNE À DESSINER : "
+      : "") + prompt;
   parts.push({ text: texte });
 
   const res = await fetchAllWithTimeout(
