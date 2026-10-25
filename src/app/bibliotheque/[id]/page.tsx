@@ -6,6 +6,7 @@ import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { failStaleBooks } from "@/lib/bookMaintenance";
 import { storySchema } from "@/lib/storySchema";
 import BookReader from "@/components/BookReader";
 import DeleteBookButton from "@/components/DeleteBookButton";
@@ -21,6 +22,9 @@ export default async function LivrePage({
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/connexion");
+
+  // Libère ce livre s'il est resté bloqué en génération trop longtemps.
+  await failStaleBooks(user.id);
 
   const book = await prisma.book.findFirst({
     where: { id: params.id, userId: user.id, deletedAt: null },

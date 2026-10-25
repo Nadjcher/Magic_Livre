@@ -9,6 +9,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
+import { checkLoginRate } from "./rateLimitAuth";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
@@ -21,10 +22,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Mot de passe", type: "password" },
       },
-      async authorize(creds) {
+      async authorize(creds, request) {
         const email = String(creds?.email ?? "").toLowerCase().trim();
         const password = String(creds?.password ?? "");
         if (!email || !password) return null;
+
+        // Anti-force-brute : plafonne les tentatives par email et par IP.
+        const ip =
+          (request?.headers?.get?.("x-forwarded-for") ?? "")
+            .split(",")[0]
+            ?.trim() || "unknown";
+        const { allowed } = await checkLoginRate(email, ip);
+        if (!allowed) return null;
 
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user?.passwordHash) return null;

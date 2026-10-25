@@ -6,6 +6,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { failStaleBooks } from "@/lib/bookMaintenance";
 import DeleteBookButton from "@/components/DeleteBookButton";
 
 const STATUT: Record<string, { label: string; classe: string }> = {
@@ -27,6 +28,9 @@ function couverture(pages: unknown): string | null {
 export default async function BibliothequePage() {
   const user = await getCurrentUser();
   if (!user) redirect("/connexion");
+
+  // Libère les livres bloqués en génération avant d'afficher la liste.
+  await failStaleBooks(user.id);
 
   const books = await prisma.book.findMany({
     where: { userId: user.id, deletedAt: null },
@@ -88,7 +92,7 @@ export default async function BibliothequePage() {
                 ) : (
                   <div
                     className="flex h-24 w-20 flex-none items-center justify-center rounded-xl font-serif text-3xl text-white shadow-sm"
-                    style={{ backgroundImage: "linear-gradient(160deg,#8b5cf6,#6d28d9)" }}
+                    style={{ backgroundImage: "linear-gradient(160deg,#5b9bff,#4f5fe0)" }}
                     aria-hidden="true"
                   >
                     {book.title.trim().charAt(0).toUpperCase() || "✦"}
