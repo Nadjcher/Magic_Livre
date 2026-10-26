@@ -24,10 +24,10 @@ Qualité d'écriture :
 - INTERDIT : recoller la même phrase à la fin de chaque page. Chaque page a un texte DIFFÉRENT. Une phrase-refrain éventuelle revient 2–3 fois maximum, jamais partout, et est bien écrite (grammaire soignée).
 
 Originalité (très important) :
-- Invente une idée de départ ORIGINALE et un grain de magie INATTENDU : un objet magique singulier, un lieu merveilleux, un pouvoir, un compagnon surprenant, une règle de monde amusante. Surprends gentiment.
-- ÉVITE les trames ultra-vues (rencontrer un animal triste et être gentil, trouver un trésor, sauver la forêt) SAUF si le parent le demande.
-- Ajoute un détail mémorable, un brin d'humour ou d'émerveillement propre à CETTE histoire, et une petite montée en tension douce (pas plate).
-- Donne au héros un désir clair et une façon maligne/ tendre de résoudre son aventure. Reste 100% adapté à l'âge.
+- INTERDIT : la trame plate « le héros fait une activité banale (jouer, marcher, chercher) et tout le monde est content à la fin ». Ce genre d'histoire est un ÉCHEC.
+- Chaque histoire a un ÉLÉMENT IMAGINAIRE FORT et unique : un objet qui prend vie ou parle, un petit pouvoir inattendu, un monde aux règles amusantes, un problème cocasse à résoudre avec malice, une créature originale (inventée, jamais sous droits).
+- Un vrai TWIST ou une surprise qui rend cette histoire mémorable et différente de toutes les autres. Un brin d'humour ou d'émerveillement.
+- Donne au héros un désir clair, un obstacle amusant, et une résolution MALINE (pas juste « il est gentil »). Reste 100% adapté à l'âge et rassurant.
 
 Règles impératives :
 - Ton doux, bienveillant, jamais effrayant ni triste durablement. Fin heureuse et rassurante.
@@ -117,6 +117,29 @@ export function ageGuidance(age: number): string {
 }
 
 /**
+ * « Étincelles » d'originalité : un ingrédient imaginaire tiré au hasard et
+ * glissé dans la demande, pour que deux histoires ne se ressemblent jamais.
+ */
+const SPARKS = [
+  "un objet du quotidien qui prend vie et devient un compagnon malicieux",
+  "un tout petit pouvoir magique inattendu que le héros découvre",
+  "un monde où une règle amusante est inversée (la pluie monte, les ombres parlent…)",
+  "une créature originale et rigolote, entièrement inventée",
+  "une couleur, un son ou une odeur qui a mystérieusement disparu et qu'il faut retrouver",
+  "une porte / un passage secret vers un lieu merveilleux",
+  "un objet magique qui ne fonctionne que d'une façon drôle et inattendue",
+  "un petit quiproquo cocasse qui lance l'aventure",
+  "une carte au trésor qui mène à quelque chose de surprenant (pas un trésor classique)",
+  "un ami imaginaire qui a un problème étonnant à résoudre",
+  "des jouets / des nuages / des étoiles qui s'organisent en secret la nuit",
+  "une collection d'objets magiques minuscules à assembler",
+];
+
+function pickSpark(): string {
+  return SPARKS[Math.floor(Math.random() * SPARKS.length)] as string;
+}
+
+/**
  * Construit le message utilisateur (les consignes variables) à partir de la
  * demande. La saisie libre a déjà été filtrée en amont.
  */
@@ -154,7 +177,10 @@ export function buildUserMessage(req: StoryRequest): string {
   }
 
   lignes.push(
-    "Écris une histoire claire et facile à comprendre, avec un fil narratif simple (début, petite quête douce, résolution tendre) et une fin rassurante — SANS JAMAIS dépasser la longueur de phrase et le vocabulaire imposés par l'âge ci-dessus.",
+    `Étincelle d'originalité à intégrer avec finesse (adapte-la à l'âge, garde une histoire cohérente et rassurante) : ${pickSpark()}.`,
+  );
+  lignes.push(
+    "Écris une histoire claire et facile à comprendre, avec un fil narratif simple (début, petite quête douce, résolution tendre) et une fin rassurante — SANS JAMAIS dépasser la longueur de phrase et le vocabulaire imposés par l'âge ci-dessus. Surtout : surprends, sois original, évite toute trame plate.",
   );
   lignes.push(
     `Garde ${req.childFirstName} au cœur de chaque page, avec des émotions tendres et un décor vivant.`,

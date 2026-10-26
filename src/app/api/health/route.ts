@@ -85,6 +85,7 @@ export async function GET(req: Request): Promise<Response> {
       falKeyPresent: Boolean(env.falApiKey()),
       standard: await probeGemini(env.geminiImageModel()),
       premium: await probeGemini(env.geminiImageModelPremium()),
+      fal: await probeFal(),
     };
   }
 
@@ -116,5 +117,25 @@ async function probeGemini(
     return { status: res.status, ok: false, error: safe };
   } catch (e) {
     return { status: -1, ok: false, error: String((e as Error)?.message ?? e).slice(0, 200) };
+  }
+}
+
+/** Sonde fal : vérifie l'authentification / les crédits (sans générer d'image). */
+async function probeFal(): Promise<Record<string, unknown>> {
+  if (env.faceProvider() !== "fal") return { enabled: false };
+  const key = env.falApiKey();
+  if (!key) return { enabled: true, keyPresent: false };
+  try {
+    const res = await fetch(`https://fal.run/${env.falFaceModel()}`, {
+      method: "POST",
+      headers: { Authorization: `Key ${key}`, "Content-Type": "application/json" },
+      // Sans reference_image_url : s'il manque, fal répond 422 (auth OK, pas de
+      // coût). Un 402/403 révèle un souci de crédits / facturation.
+      body: JSON.stringify({ prompt: "a small friendly cat" }),
+    });
+    const text = res.ok ? "" : (await res.text()).replaceAll(key, "***").slice(0, 300);
+    return { enabled: true, keyPresent: true, status: res.status, ok: res.ok, error: text || undefined };
+  } catch (e) {
+    return { enabled: true, keyPresent: true, status: -1, error: String((e as Error)?.message ?? e).slice(0, 200) };
   }
 }
