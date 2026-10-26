@@ -20,6 +20,8 @@ import { filterStory } from "./contentFilter";
 import { findProtectedNames } from "./protectedCharacters";
 import { findHeroById } from "./heroes";
 import { generateIllustration, illustrationsEnabled } from "./illustration";
+import { faceIdentityEnabled, generateCharacterPortrait } from "./faceIdentity";
+import { ILLUSTRATION_STYLES } from "./style_config";
 
 export type GenerateResult =
   | { ok: true; story: Story }
@@ -203,24 +205,38 @@ async function addIllustrations(story: Story, req: StoryRequest): Promise<Story>
       : req.childFirstName;
   const base = hashSeed(story.titre + req.childFirstName);
 
-  // 1) On génère d'abord la COUVERTURE : elle fixe le design du héros (visage,
-  //    tenue, style) à partir de la photo. Elle sert ensuite d'« ancre ».
+  // 0) VRAIE RESSEMBLANCE (optionnel) : si un modèle d'identité est configuré
+  //    et qu'une photo est fournie, on génère d'abord un portrait du héros qui
+  //    ressemble réellement à l'enfant. Il servira d'ancre de personnage.
+  const portrait =
+    faceIdentityEnabled() && req.photo
+      ? await generateCharacterPortrait({
+          photo: req.photo,
+          stylePrompt: ILLUSTRATION_STYLES[style].prompt,
+          appearance: req.appearance,
+        })
+      : null;
+
+  // 1) COUVERTURE : fixe le design du héros. Ancrée sur le portrait ressemblant
+  //    s'il existe (sinon, elle deviendra elle-même l'ancre des pages).
   const cover = await generateIllustration({
     style,
     scene: `couverture de livre : ${story.titre}`,
     heroName,
     appearance: req.appearance,
     referenceImage: req.photo,
+    anchorImage: portrait ?? undefined,
     premium: req.premium,
     seed: base,
   });
 
-  // L'image de couverture devient la référence de personnage pour toutes les
-  // pages → même enfant, même tenue, même style d'un bout à l'autre du livre.
+  // Ancre de personnage pour toutes les pages : le portrait ressemblant en
+  // priorité, sinon la couverture → même enfant, même tenue, même style partout.
   const anchor =
-    cover.base64 !== undefined
+    portrait ??
+    (cover.base64 !== undefined
       ? { base64: cover.base64, mime: cover.mime ?? "image/png" }
-      : undefined;
+      : undefined);
 
   // 2) Toutes les pages, ancrées sur la couverture (cohérence) + photo (ressemblance).
   const pages = await Promise.all(

@@ -37,6 +37,13 @@ export const env = {
   // Modèle Gemini multimodal pour décrire le visage de l'enfant (ressemblance).
   geminiVisionModel: () => optional("GEMINI_VISION_MODEL", "gemini-2.5-flash"),
 
+  // Modèle d'identité faciale (vraie ressemblance à partir d'une photo).
+  // "none" (défaut) | "fal". Avec "fal" + FAL_API_KEY, on génère un portrait
+  // du héros qui ressemble réellement à l'enfant, utilisé comme ancre.
+  faceProvider: () => optional("FACE_PROVIDER", "none"),
+  falApiKey: () => optional("FAL_API_KEY", ""),
+  falFaceModel: () => optional("FAL_FACE_MODEL", "fal-ai/flux-pulid"),
+
   // Stripe
   stripeSecretKey: () => required("STRIPE_SECRET_KEY"),
   stripeWebhookSecret: () => required("STRIPE_WEBHOOK_SECRET"),
