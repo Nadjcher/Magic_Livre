@@ -44,12 +44,13 @@ async function callModel(
   model: string,
   system: string,
   userMessage: string,
+  temperature = 0.9,
 ): Promise<string> {
   const response = await client.chat.completions.create(
     {
       model,
       max_tokens: 6000,
-      temperature: 0.9,
+      temperature,
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: system },
@@ -91,7 +92,8 @@ async function polishStory(
 
   let raw: string;
   try {
-    raw = await callModel(client, model, EDITOR_SYSTEM, message);
+    // Température basse à la relecture (fidélité + correction).
+    raw = await callModel(client, model, EDITOR_SYSTEM, message, 0.4);
   } catch {
     return null;
   }
@@ -127,7 +129,8 @@ export async function generateStory(req: StoryRequest): Promise<GenerateResult> 
   for (let attempt = 0; attempt < 2; attempt++) {
     let raw: string;
     try {
-      raw = await callModel(client, model, SYSTEM_PROMPT, userMessage);
+      // Température élevée à l'écriture (créativité).
+      raw = await callModel(client, model, SYSTEM_PROMPT, userMessage, 1.0);
     } catch {
       lastMessage =
         "Le service de génération est momentanément indisponible. Réessayez dans quelques instants.";

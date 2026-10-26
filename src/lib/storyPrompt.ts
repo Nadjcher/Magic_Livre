@@ -23,6 +23,12 @@ Qualité d'écriture :
 - Chaque page fait avancer l'histoire (pas de remplissage). Un fil conducteur clair relie toutes les pages.
 - INTERDIT : recoller la même phrase à la fin de chaque page. Chaque page a un texte DIFFÉRENT. Une phrase-refrain éventuelle revient 2–3 fois maximum, jamais partout, et est bien écrite (grammaire soignée).
 
+Originalité (très important) :
+- Invente une idée de départ ORIGINALE et un grain de magie INATTENDU : un objet magique singulier, un lieu merveilleux, un pouvoir, un compagnon surprenant, une règle de monde amusante. Surprends gentiment.
+- ÉVITE les trames ultra-vues (rencontrer un animal triste et être gentil, trouver un trésor, sauver la forêt) SAUF si le parent le demande.
+- Ajoute un détail mémorable, un brin d'humour ou d'émerveillement propre à CETTE histoire, et une petite montée en tension douce (pas plate).
+- Donne au héros un désir clair et une façon maligne/ tendre de résoudre son aventure. Reste 100% adapté à l'âge.
+
 Règles impératives :
 - Ton doux, bienveillant, jamais effrayant ni triste durablement. Fin heureuse et rassurante.
 - AUCUNE violence, AUCUNE peur extrême, AUCUN contenu inadapté.
