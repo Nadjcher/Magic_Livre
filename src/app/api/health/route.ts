@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAppUrl } from "@/lib/appUrl";
 import { env } from "@/lib/env";
-import { generateIllustration, illustrationsEnabled } from "@/lib/illustration";
+import { illustrationsEnabled } from "@/lib/illustration";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -72,7 +72,8 @@ export async function GET(req: Request): Promise<Response> {
     out.errors.push("order_sku_missing");
   }
 
-  // Test optionnel de génération d'image : /api/health?img=standard | premium | both
+  // Diagnostic image : /api/health?img=1 — sonde directement l'API Gemini pour
+  // chaque modèle et remonte le VRAI code/message d'erreur de Google.
   const img = new URL(req.url).searchParams.get("img");
   if (img) {
     out.images = {
@@ -82,25 +83,38 @@ export async function GET(req: Request): Promise<Response> {
       premiumModel: env.geminiImageModelPremium(),
       faceProvider: env.faceProvider(),
       falKeyPresent: Boolean(env.falApiKey()),
+      standard: await probeGemini(env.geminiImageModel()),
+      premium: await probeGemini(env.geminiImageModelPremium()),
     };
-    const scene = "a small friendly cat sitting in grass";
-    if (img === "standard" || img === "1" || img === "both") {
-      try {
-        const r = await generateIllustration({ style: "feerique", scene, premium: false, seed: 1 });
-        out.images.standardOk = r.imageUrl !== null;
-      } catch {
-        out.images.standardOk = false;
-      }
-    }
-    if (img === "premium" || img === "both") {
-      try {
-        const r = await generateIllustration({ style: "feerique", scene, premium: true, seed: 2 });
-        out.images.premiumOk = r.imageUrl !== null;
-      } catch {
-        out.images.premiumOk = false;
-      }
-    }
   }
 
   return NextResponse.json(out, { status: out.ok ? 200 : 500 });
+}
+
+/** Sonde l'API Gemini pour un modèle d'image : renvoie le code HTTP + message. */
+async function probeGemini(
+  model: string,
+): Promise<{ status: number; ok: boolean; error?: string }> {
+  const key = env.geminiApiKey();
+  if (!key) return { status: 0, ok: false, error: "GEMINI_API_KEY manquante" };
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: "a small friendly cat" }] }],
+          generationConfig: { responseModalities: ["IMAGE"] },
+        }),
+      },
+    );
+    if (res.ok) return { status: res.status, ok: true };
+    const text = await res.text();
+    // On retire une éventuelle occurrence de la clé par prudence.
+    const safe = text.replaceAll(key, "***").slice(0, 400);
+    return { status: res.status, ok: false, error: safe };
+  } catch (e) {
+    return { status: -1, ok: false, error: String((e as Error)?.message ?? e).slice(0, 200) };
+  }
 }
