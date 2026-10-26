@@ -55,7 +55,8 @@ export async function generateCharacterPortrait(opts: {
           num_inference_steps: 20,
         }),
       },
-      { timeoutMs: 55_000, maxBytes: 30_000_000 },
+      // Timeout court : le portrait ne doit JAMAIS manger le budget des images.
+      { timeoutMs: 25_000, maxBytes: 30_000_000 },
     );
     if (!res.ok || !res.bytes) return null;
 

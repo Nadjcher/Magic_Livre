@@ -7,20 +7,24 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAppUrl } from "@/lib/appUrl";
+import { env } from "@/lib/env";
+import { generateIllustration, illustrationsEnabled } from "@/lib/illustration";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 function present(name: string): boolean {
   return Boolean((process.env[name] ?? "").trim());
 }
 
-export async function GET(): Promise<Response> {
+export async function GET(req: Request): Promise<Response> {
   const out: {
     ok: boolean;
     appUrl: string;
     env: Record<string, unknown>;
     db: Record<string, boolean>;
+    images?: Record<string, unknown>;
     errors: string[];
   } = {
     ok: true,
@@ -66,6 +70,36 @@ export async function GET(): Promise<Response> {
     out.db.orderSku = false;
     out.ok = false;
     out.errors.push("order_sku_missing");
+  }
+
+  // Test optionnel de génération d'image : /api/health?img=standard | premium | both
+  const img = new URL(req.url).searchParams.get("img");
+  if (img) {
+    out.images = {
+      provider: env.imageProvider(),
+      enabled: illustrationsEnabled(),
+      standardModel: env.geminiImageModel(),
+      premiumModel: env.geminiImageModelPremium(),
+      faceProvider: env.faceProvider(),
+      falKeyPresent: Boolean(env.falApiKey()),
+    };
+    const scene = "a small friendly cat sitting in grass";
+    if (img === "standard" || img === "1" || img === "both") {
+      try {
+        const r = await generateIllustration({ style: "feerique", scene, premium: false, seed: 1 });
+        out.images.standardOk = r.imageUrl !== null;
+      } catch {
+        out.images.standardOk = false;
+      }
+    }
+    if (img === "premium" || img === "both") {
+      try {
+        const r = await generateIllustration({ style: "feerique", scene, premium: true, seed: 2 });
+        out.images.premiumOk = r.imageUrl !== null;
+      } catch {
+        out.images.premiumOk = false;
+      }
+    }
   }
 
   return NextResponse.json(out, { status: out.ok ? 200 : 500 });

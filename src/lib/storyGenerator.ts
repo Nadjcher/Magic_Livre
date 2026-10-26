@@ -246,7 +246,9 @@ async function addIllustrations(story: Story, req: StoryRequest): Promise<Story>
         scene: p.scene_illustration,
         heroName,
         appearance: req.appearance,
-        referenceImage: req.photo,
+        // Si on a un portrait ressemblant, il suffit comme référence (charge
+        // allégée) ; sinon on garde la photo comme référence.
+        referenceImage: portrait ? undefined : req.photo,
         anchorImage: anchor,
         premium: req.premium,
         seed: base + i + 1,
