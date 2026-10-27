@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { getAppUrl } from "@/lib/appUrl";
 import { env } from "@/lib/env";
 import { illustrationsEnabled } from "@/lib/illustration";
+import { requestPortrait } from "@/lib/faceIdentity";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -75,6 +76,27 @@ export async function GET(req: Request): Promise<Response> {
   // Diagnostic image : /api/health?img=1 — sonde directement l'API Gemini pour
   // chaque modèle et remonte le VRAI code/message d'erreur de Google.
   const img = new URL(req.url).searchParams.get("img");
+
+  // Test réel de bout en bout du portrait fal : /api/health?img=fal
+  // (génère 1 portrait avec l'image d'exemple de la doc fal : quelques centimes).
+  if (img === "fal") {
+    const r = await requestPortrait({
+      referenceImageUrl:
+        "https://storage.googleapis.com/falserverless/gallery/example_inputs_liuyifei.png",
+      stylePrompt: "soft watercolor children's book illustration",
+    });
+    out.images = {
+      faceProvider: env.faceProvider(),
+      falModel: env.falFaceModel(),
+      falKeyPresent: Boolean(env.falApiKey()),
+      portraitOk: r.image !== null,
+      status: r.status,
+      seconds: Math.round(r.ms / 100) / 10,
+      error: r.error,
+    };
+    return NextResponse.json(out, { status: 200 });
+  }
+
   if (img) {
     out.images = {
       provider: env.imageProvider(),

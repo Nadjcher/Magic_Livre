@@ -125,6 +125,19 @@ export async function generateStory(req: StoryRequest): Promise<GenerateResult> 
   // Édition premium : modèle de texte haut de gamme (configurable).
   const model = req.premium ? env.groqModelPremium() : env.groqModel();
 
+  // Le portrait « vraie ressemblance » (fal) ne dépend que de la photo : on le
+  // lance tout de suite, EN PARALLÈLE de l'écriture du texte, pour que ses
+  // 20–50 s ne s'ajoutent pas au temps total de génération.
+  const style = req.style ?? "feerique";
+  const portraitPromise: Promise<{ base64: string; mime: string } | null> =
+    illustrationsEnabled() && faceIdentityEnabled() && req.photo
+      ? generateCharacterPortrait({
+          photo: req.photo,
+          stylePrompt: ILLUSTRATION_STYLES[style].prompt,
+          appearance: req.appearance,
+        })
+      : Promise.resolve(null);
+
   let lastMessage = "La génération de l'histoire a échoué. Veuillez réessayer.";
 
   // Deux tentatives : la première, puis une seconde en cas de format invalide.
@@ -172,7 +185,7 @@ export async function generateStory(req: StoryRequest): Promise<GenerateResult> 
     const base = polished ?? parsed.story;
 
     // Texte validé : on ajoute les illustrations si la génération est activée.
-    const story = await addIllustrations(base, req);
+    const story = await addIllustrations(base, req, await portraitPromise);
     return { ok: true, story };
   }
 
@@ -193,7 +206,12 @@ function hashSeed(text: string): number {
  * Ajoute une illustration à chaque page (et une couverture) si la génération
  * d'images est activée. En cas d'échec, l'URL reste nulle : le livre reste lisible.
  */
-async function addIllustrations(story: Story, req: StoryRequest): Promise<Story> {
+async function addIllustrations(
+  story: Story,
+  req: StoryRequest,
+  /** Portrait ressemblant déjà généré (fal), ou null. */
+  portrait: { base64: string; mime: string } | null,
+): Promise<Story> {
   const style = req.style ?? "feerique";
   if (!illustrationsEnabled()) {
     return { ...story, style };
@@ -205,17 +223,8 @@ async function addIllustrations(story: Story, req: StoryRequest): Promise<Story>
       : req.childFirstName;
   const base = hashSeed(story.titre + req.childFirstName);
 
-  // 0) VRAIE RESSEMBLANCE (optionnel) : si un modèle d'identité est configuré
-  //    et qu'une photo est fournie, on génère d'abord un portrait du héros qui
-  //    ressemble réellement à l'enfant. Il servira d'ancre de personnage.
-  const portrait =
-    faceIdentityEnabled() && req.photo
-      ? await generateCharacterPortrait({
-          photo: req.photo,
-          stylePrompt: ILLUSTRATION_STYLES[style].prompt,
-          appearance: req.appearance,
-        })
-      : null;
+  // 0) VRAIE RESSEMBLANCE : le portrait (fal), lancé en parallèle du texte,
+  //    sert d'ancre de personnage s'il a pu être généré.
 
   // 1) COUVERTURE : fixe le design du héros. Ancrée sur le portrait ressemblant
   //    s'il existe (sinon, elle deviendra elle-même l'ancre des pages).
