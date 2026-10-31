@@ -15,7 +15,7 @@ export default async function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-white/40 bg-white/70 backdrop-blur-md">
       <nav className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" aria-label="Accueil Mon Livre Magique">
+        <Link href="/" aria-label="Accueil Storilou">
           <Logo />
         </Link>
         {connecte ? (

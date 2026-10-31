@@ -100,7 +100,7 @@ export default async function LivrePage({
                   <h2 className="font-serif text-xl">🎁 La boutique de ce livre</h2>
                   <p className="mt-1 text-sm text-magique-texteClair">
                     Le livre à imprimer, le kit inclus (coloriage, affiche, invitation,
-                    autocollants, marque-pages, audio) et des cadeaux deluxe — tous créés à
+                    autocollants, marque-pages) et des cadeaux deluxe — tous créés à
                     partir de cette histoire.
                   </p>
                 </div>

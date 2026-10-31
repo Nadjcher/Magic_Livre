@@ -45,8 +45,8 @@ export async function startCheckout(
     amountCents = premium ? env.bookPricePremiumCents() : env.bookPriceCents();
     productName = `${premium ? "Édition premium" : "Livre"} : ${book.title}`;
     productDescription = premium
-      ? "PDF imprimable, illustrations haut de gamme + kit inclus (coloriage, affiche, invitation, autocollants, marque-pages, audio)."
-      : "Livre PDF imprimable + kit inclus (coloriage, affiche, invitation, autocollants, marque-pages, audio).";
+      ? "PDF imprimable, illustrations haut de gamme + kit inclus (coloriage, affiche, invitation, autocollants, marque-pages)."
+      : "Livre PDF imprimable + kit inclus (coloriage, affiche, invitation, autocollants, marque-pages).";
   } else {
     const product = getDeluxeProduct(sku);
     if (!product) return { ok: false, message: "Produit inconnu." };

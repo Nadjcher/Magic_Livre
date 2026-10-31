@@ -1,226 +1,389 @@
 /**
- * Page d'accueil « monde illustré chaleureux » : héros clair et accueillant avec
- * une vraie illustration, un déroulé illustré, un rappel sobre des plus, et un
- * appel final « nuit » pour le rituel du soir.
+ * Landing page Storilou.
  *
- * Illustrations : unDraw (licence libre, sans attribution), recolorisées à la
- * palette de la marque. Fichiers dans /public/illustrations/undraw.
+ * Positionnement : une histoire écrite pour l'enfant (âge, thème), un héros à
+ * son image, prête en deux minutes, et lue gratuitement AVANT tout paiement.
+ * Un seul élément fort (le livre en relief du héros), le reste sobre.
  */
 
 import Link from "next/link";
-import Tilt3D from "@/components/Tilt3D";
+import { auth } from "@/lib/auth";
+import { env } from "@/lib/env";
 import { getAppUrl } from "@/lib/appUrl";
+import { findThemeById } from "@/lib/themes";
 
 const APP_URL = getAppUrl();
 
-/** Données structurées (JSON-LD) : marque, site et offre produit. */
-const JSON_LD = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      "@id": `${APP_URL}/#organization`,
-      name: "Mon Livre Magique",
-      url: APP_URL,
-      logo: `${APP_URL}/icon.svg`,
-    },
-    {
-      "@type": "WebSite",
-      "@id": `${APP_URL}/#website`,
-      url: APP_URL,
-      name: "Mon Livre Magique",
-      inLanguage: "fr-FR",
-      publisher: { "@id": `${APP_URL}/#organization` },
-    },
-    {
-      "@type": "Product",
-      name: "Livre illustré personnalisé pour enfant",
-      description:
-        "Un conte illustré unique, écrit à partir du prénom et de l'âge de votre enfant, " +
-        "avec un héros original. Lecture gratuite à l'écran et PDF à imprimer.",
-      brand: { "@id": `${APP_URL}/#organization` },
-      offers: {
-        "@type": "Offer",
-        price: "4.99",
-        priceCurrency: "EUR",
-        availability: "https://schema.org/InStock",
-        url: `${APP_URL}/creer`,
-      },
-    },
-  ],
-};
-
-function Etoile({ className = "", style }: { className?: string; style?: React.CSSProperties }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} style={style} fill="currentColor" aria-hidden="true">
-      <path d="M12 2l2.4 6.5L21 11l-6.6 2.5L12 20l-2.4-6.5L3 11l6.6-2.5z" />
-    </svg>
-  );
+function euros(cents: number): string {
+  return `${(cents / 100).toFixed(2).replace(".", ",")} €`;
 }
 
-function Ornement() {
-  return (
-    <div className="ornement my-4" aria-hidden="true">
-      <Etoile className="h-4 w-4" />
-    </div>
-  );
-}
-
-/**
- * Illustration peinte de la marque, harmonisée en bleu nuit féerique (fond
- * détouré, accents dorés refroidis). Fichiers dans /public/illustrations/feerique.
- */
+/** Illustration peinte de la marque (fichiers dans /public/illustrations/feerique). */
 function Illu({ nom, alt, className = "" }: { nom: string; alt: string; className?: string }) {
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={`/illustrations/feerique/${nom}.webp`} alt={alt} className={className} />;
 }
 
-const ETAPES = [
-  { num: "I", illu: "imagine", titre: "Vous imaginez", texte: "Le prénom, l'âge, puis un héros original ou votre propre idée d'aventure." },
-  { num: "II", illu: "write", titre: "La plume s'anime", texte: "Une histoire unique et illustrée s'écrit en une à deux minutes." },
-  { num: "III", illu: "together", titre: "Vous lisez ensemble", texte: "Page par page, à voix haute. Puis un joli PDF à imprimer et à garder." },
-];
-
-const PLUS = [
-  { emoji: "📖", titre: "Le livre PDF", texte: "L'histoire illustrée, à imprimer." },
-  { emoji: "🦸", titre: "Édition BD", texte: "En super-héros, style comic." },
-  { emoji: "🖍️", titre: "Coloriage", texte: "L'histoire en pages à colorier." },
-  { emoji: "🖼️", titre: "Affiche", texte: "Le héros en grand, au mur." },
-  { emoji: "🎉", titre: "Invitation", texte: "Pour sa fête d'anniversaire." },
-  { emoji: "⭐", titre: "Autocollants", texte: "Les illustrations à découper." },
-  { emoji: "🔖", titre: "Marque-pages", texte: "Pour toutes ses lectures." },
-  { emoji: "🎧", titre: "Audio", texte: "La voix qui raconte, en MP3." },
-];
-
-export default function AccueilPage() {
+function Coche() {
   return (
-    <div className="space-y-24">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
-      />
-      {/* ─── Héros clair et chaleureux ─── */}
-      <section
-        className="relative overflow-hidden rounded-[2.5rem] border border-magique-trait px-6 py-12 sm:px-12 sm:py-16"
-        style={{
-          backgroundImage:
-            "radial-gradient(60% 55% at 85% 25%, rgba(91,155,255,.42), rgba(91,155,255,0) 60%), radial-gradient(55% 60% at 8% 95%, rgba(79,95,224,.18), rgba(79,95,224,0) 60%), linear-gradient(180deg,#f4f7ff,#e7edfb)",
-        }}
-      >
-        <Etoile className="anim-scintille pointer-events-none absolute left-[8%] top-[18%] h-4 w-4 text-or" aria-hidden="true" />
-        <Etoile className="anim-scintille pointer-events-none absolute right-[10%] top-[14%] h-3 w-3 text-or-fonce" style={{ animationDelay: "1s" }} aria-hidden="true" />
+    <svg viewBox="0 0 20 20" className="h-5 w-5 flex-none text-magique-primaire" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 10.5l4 4 8-9" />
+    </svg>
+  );
+}
 
-        <div className="relative z-10 grid items-center gap-10 md:grid-cols-[1.02fr_.98fr]">
-          <div>
-            <p className="flex items-center gap-2 font-serif text-[15px] italic text-or-fonce" style={{ animation: "monter .6s .05s both" }}>
-              <Etoile className="h-3.5 w-3.5 text-or" />
-              Une histoire unique, écrite pour votre enfant
-            </p>
-            <h1 className="mt-4 text-4xl leading-[1.05] sm:text-6xl" style={{ animation: "monter .6s .13s both" }}>
-              Il était une fois…
-              <br />
-              <span className="text-gradient italic">votre enfant.</span>
-            </h1>
-            <p className="mt-5 max-w-[34ch] text-lg leading-relaxed text-magique-texteClair" style={{ animation: "monter .6s .21s both" }}>
-              Un prénom, quelques traits, et nous écrivons un conte doux et illustré
-              à son image — parfait pour le rituel du soir.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-5" style={{ animation: "monter .6s .29s both" }}>
-              <Link href="/connexion" className="btn-primaire">
-                Créer notre histoire
-              </Link>
-              <Link href="/demo" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">
-                Voir un exemple ✦
-              </Link>
-              <Link href="/catalogue" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">
-                Parcourir le catalogue
-              </Link>
-            </div>
-            <p className="mt-6 text-sm text-magique-texteClair" style={{ animation: "monter .6s .36s both" }}>
-              Héros originaux, sans personnage sous droits. Aucune photo conservée.
-            </p>
-          </div>
+const PROMESSES = [
+  "Lecture gratuite avant tout achat",
+  "Adaptée à son âge (2 à 10 ans)",
+  "Photo jamais conservée",
+  "Sans abonnement",
+];
 
-          <div className="relative mx-auto w-full max-w-md" style={{ animation: "eclore .9s .18s both" }}>
-            <Tilt3D>
-              <Illu nom="hero" alt="Un enfant lit un livre qui brille sous un ciel étoilé" className="relative w-full rounded-[2rem]" />
-            </Tilt3D>
-          </div>
-        </div>
-      </section>
+const DIFFERENCES = [
+  {
+    icone: "✍️",
+    titre: "Écrite pour lui, pas un modèle",
+    texte:
+      "Chaque histoire est inventée pour votre enfant : son prénom, son âge, le thème que vous choisissez. Deux livres ne se ressemblent jamais.",
+  },
+  {
+    icone: "🎨",
+    titre: "Un héros à son image",
+    texte:
+      "Ajoutez une photo : nous dessinons un héros qui lui ressemble, le même de la couverture à la dernière page.",
+  },
+  {
+    icone: "⏱️",
+    titre: "Prête le temps d'enfiler le pyjama",
+    texte: "Une à deux minutes suffisent. Pas d'attente de plusieurs heures, pas de livraison à guetter.",
+  },
+  {
+    icone: "👀",
+    titre: "Vous la lisez avant de payer",
+    texte:
+      "Le livre entier s'affiche gratuitement à l'écran. Vous ne payez que si vous voulez le garder et l'imprimer.",
+  },
+];
 
-      {/* ─── Comment naît le conte (illustré) ─── */}
-      <section>
-        <header className="text-center">
-          <h2 className="text-3xl sm:text-4xl">Comment naît votre conte ?</h2>
-          <Ornement />
-          <p className="mx-auto max-w-[44ch] text-magique-texteClair">
-            Trois étapes, quelques minutes, et le livre est prêt à lire ensemble.
+const ETAPES = [
+  {
+    illu: "imagine",
+    titre: "Choisissez un thème",
+    texte: "Noël, premier jour d'école, dinosaures, peur du noir… ou votre propre idée.",
+  },
+  {
+    illu: "write",
+    titre: "Storilou écrit et illustre",
+    texte: "Une histoire adaptée à son âge, illustrée à son image, en une à deux minutes.",
+  },
+  {
+    illu: "together",
+    titre: "Lisez-la ensemble",
+    texte: "À l'écran, à voix haute ou projetée au mur. Gardez-la en PDF si elle vous plaît.",
+  },
+];
+
+const THEMES_VITRINE = [
+  "noel",
+  "rentree",
+  "petit-frere",
+  "peur-du-noir",
+  "dinosaures",
+  "licornes",
+  "super-heros",
+  "espace",
+];
+
+const KIT = [
+  "Le livre en PDF à imprimer",
+  "Cahier de coloriage",
+  "Affiche du héros",
+  "Carte d'invitation",
+  "Planche d'autocollants",
+  "Marque-pages",
+];
+
+const FAQ = [
+  {
+    q: "C'est vraiment gratuit ?",
+    r: "Oui. Créer le livre et le lire en entier à l'écran ne coûte rien. Vous payez seulement si vous voulez télécharger le PDF et le kit, en une fois, sans abonnement.",
+  },
+  {
+    q: "Combien de temps faut-il ?",
+    r: "Une à deux minutes après avoir validé : l'histoire et toutes les illustrations sont créées pendant ce temps.",
+  },
+  {
+    q: "Que devient la photo de mon enfant ?",
+    r: "Elle sert uniquement à dessiner le héros pendant la création : elle est transmise à nos outils d'illustration le temps du dessin, puis nous ne la conservons jamais. Le livre ne contient que des illustrations.",
+  },
+  {
+    q: "Pour quel âge ?",
+    r: "De 2 à 10 ans. Le texte s'adapte : une phrase courte et douce par page pour les tout-petits, une vraie intrigue pour les plus grands.",
+  },
+  {
+    q: "Puis-je imprimer le livre ?",
+    r: "Oui : le PDF est au format A4, prêt à imprimer chez vous ou en reprographie. Le kit (coloriage, affiche, invitation…) aussi.",
+  },
+  {
+    q: "Le paiement est-il sécurisé ?",
+    r: "Le paiement passe par Stripe, par carte bancaire. Nous ne voyons jamais vos coordonnées bancaires.",
+  },
+];
+
+export default async function AccueilPage() {
+  const session = await auth();
+  // Visiteur : on l'emmène créer son compte ; parent connecté : droit au studio.
+  const cta = session?.user ? "/creer" : "/inscription";
+  const prix = euros(env.bookPriceCents());
+  const prixPremium = euros(env.bookPricePremiumCents());
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      { "@type": "Organization", "@id": `${APP_URL}/#organization`, name: "Storilou", url: APP_URL, logo: `${APP_URL}/icon.svg` },
+      { "@type": "WebSite", "@id": `${APP_URL}/#website`, url: APP_URL, name: "Storilou", inLanguage: "fr-FR", publisher: { "@id": `${APP_URL}/#organization` } },
+      {
+        "@type": "Product",
+        name: "Livre illustré personnalisé pour enfant",
+        description:
+          "Une histoire écrite pour votre enfant, adaptée à son âge et illustrée à son image, prête en deux minutes. Lecture gratuite à l'écran, PDF à imprimer.",
+        brand: { "@id": `${APP_URL}/#organization` },
+        offers: {
+          "@type": "Offer",
+          price: (env.bookPriceCents() / 100).toFixed(2),
+          priceCurrency: "EUR",
+          availability: "https://schema.org/InStock",
+          url: `${APP_URL}/creer`,
+        },
+      },
+      {
+        "@type": "FAQPage",
+        mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.r } })),
+      },
+    ],
+  };
+
+  return (
+    <div className="space-y-24 sm:space-y-28">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+
+      {/* ─── Héros ─── */}
+      <section className="grid items-center gap-12 pt-4 md:grid-cols-[1.1fr_.9fr] md:pt-10">
+        <div style={{ animation: "monter .6s .05s both" }}>
+          <h1 className="text-[2.6rem] leading-[1.05] sm:text-6xl">
+            Le livre dont votre enfant est le héros.
+          </h1>
+          <p className="mt-6 max-w-[46ch] text-lg leading-relaxed text-magique-texteClair">
+            Une histoire écrite pour lui, adaptée à son âge et illustrée à son image. Prête en deux
+            minutes, et vous la lisez gratuitement avant de payer quoi que ce soit.
           </p>
-        </header>
-        <div className="mt-10 grid gap-6 sm:grid-cols-3">
-          {ETAPES.map((e) => (
-            <article key={e.num} data-tilt className="carte-relief flex flex-col items-center p-7 text-center">
-              <Illu nom={e.illu} alt="" className="relief-milieu mb-4 h-36 w-full object-contain" />
-              <div className="flex items-center gap-2 font-serif italic text-or-fonce">
-                <span className="relief-avant flex h-8 w-8 items-center justify-center rounded-full bg-parch-2 text-sm not-italic text-or-fonce">
-                  {e.num}
-                </span>
-                Chapitre {e.num}
-              </div>
-              <h3 className="relief-milieu mt-2 text-xl">{e.titre}</h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-magique-texteClair">{e.texte}</p>
-            </article>
-          ))}
+          <div className="mt-8 flex flex-wrap items-center gap-5">
+            <Link href={cta} className="btn-primaire text-lg">
+              Créer son histoire
+            </Link>
+            <Link href="/demo" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">
+              Lire un exemple
+            </Link>
+          </div>
+          <ul className="mt-8 grid max-w-md grid-cols-1 gap-2.5 sm:grid-cols-2">
+            {PROMESSES.map((p) => (
+              <li key={p} className="flex items-center gap-2 text-sm text-magique-texte">
+                <Coche />
+                {p}
+              </li>
+            ))}
+          </ul>
         </div>
-      </section>
 
-      {/* ─── Tout ce que l'achat débloque (vitrine produits) ─── */}
-      <section className="carte-relief p-8 sm:p-10">
-        <header className="text-center">
-          <h2 className="text-2xl sm:text-3xl">Un livre, une ribambelle de cadeaux</h2>
-          <Ornement />
-          <p className="mx-auto max-w-[46ch] text-magique-texteClair">
-            Un seul achat, et tout un kit à imprimer, découper et offrir.
-          </p>
-        </header>
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {PLUS.map((p) => (
+        {/* Le livre en relief : l'élément fort de la page. */}
+        <div className="relative mx-auto w-full max-w-[340px]" style={{ animation: "eclore .9s .15s both" }}>
+          <div className="[perspective:1400px]">
             <div
-              key={p.titre}
-              className="flex flex-col items-center gap-2 rounded-2xl border border-magique-trait bg-white/70 p-3 text-center sm:p-5"
+              className="relative aspect-[4/5] rounded-l-md rounded-r-2xl shadow-conte"
+              style={{
+                transform: "rotateY(-16deg) rotateX(5deg)",
+                transformStyle: "preserve-3d",
+                backgroundImage: "linear-gradient(160deg,#23356f,#0f1a44)",
+              }}
             >
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-magique-primaire/10 text-3xl" aria-hidden="true">
-                {p.emoji}
-              </span>
-              <h3 className="text-lg">{p.titre}</h3>
-              <p className="text-sm leading-relaxed text-magique-texteClair">{p.texte}</p>
+              <div
+                className="absolute inset-y-0 left-0 w-4 rounded-l-md"
+                style={{ background: "linear-gradient(90deg,rgba(0,0,0,.35),rgba(255,255,255,.08))" }}
+                aria-hidden="true"
+              />
+              <div
+                className="absolute -right-2 bottom-3 top-3 w-2.5 rounded-r-sm"
+                style={{ background: "repeating-linear-gradient(180deg,#fdfbff 0 2px,#dfe5f6 2px 3px)" }}
+                aria-hidden="true"
+              />
+              <div className="absolute inset-x-7 top-7 rounded-xl bg-[#e9eefc] p-2">
+                <Illu nom="hero" alt="Couverture : un enfant lit au lit sous un ciel étoilé" className="aspect-square w-full object-contain" />
+              </div>
+              <div className="absolute inset-x-7 bottom-7">
+                <p className="font-serif text-2xl leading-tight text-white">Léo et la nuit des lucioles</p>
+                <p className="mt-1 text-sm text-[#cdd7f4]">Une histoire écrite pour Léo, 5 ans</p>
+              </div>
             </div>
+          </div>
+          <div className="absolute -bottom-5 -left-3 flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-magique-texte shadow-conte sm:-left-8">
+            <Coche />
+            Prête en deux minutes
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Ce qui fait la différence ─── */}
+      <section className="grid gap-10 md:grid-cols-[.85fr_1.15fr] md:gap-14">
+        <div>
+          <h2 className="text-3xl leading-tight sm:text-4xl">
+            Une vraie histoire, pensée pour votre enfant.
+          </h2>
+          <p className="mt-4 max-w-[38ch] text-magique-texteClair">
+            Pas un texte tout prêt où l'on glisse son prénom : un récit inventé pour lui, que vous
+            découvrez avant de décider.
+          </p>
+        </div>
+        <ul className="grid gap-8 sm:grid-cols-2">
+          {DIFFERENCES.map((d) => (
+            <li key={d.titre}>
+              <span className="text-3xl" aria-hidden="true">{d.icone}</span>
+              <h3 className="mt-3 text-xl">{d.titre}</h3>
+              <p className="mt-2 leading-relaxed text-magique-texteClair">{d.texte}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* ─── Comment ça marche (vraie séquence) ─── */}
+      <section>
+        <h2 className="text-center text-3xl sm:text-4xl">Trois étapes, et c'est prêt</h2>
+        <ol className="mt-10 grid gap-6 sm:grid-cols-3">
+          {ETAPES.map((e, i) => (
+            <li key={e.titre} className="carte-relief flex flex-col items-center p-7 text-center">
+              <Illu nom={e.illu} alt="" className="mb-4 h-32 w-full object-contain" />
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-magique-primaire font-serif text-sm font-bold text-white">
+                {i + 1}
+              </span>
+              <h3 className="mt-3 text-xl">{e.titre}</h3>
+              <p className="mt-2 text-[15px] leading-relaxed text-magique-texteClair">{e.texte}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* ─── Catalogue ─── */}
+      <section className="rounded-[2rem] border border-magique-trait bg-white/70 px-6 py-10 sm:px-10">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2 className="text-3xl sm:text-4xl">Une histoire pour chaque moment</h2>
+            <p className="mt-3 max-w-[50ch] text-magique-texteClair">
+              Plus de 30 thèmes pour les fêtes, les grandes étapes et les petites émotions.
+            </p>
+          </div>
+          <Link href="/catalogue" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">
+            Voir tout le catalogue
+          </Link>
+        </div>
+        <div className="mt-8 flex flex-wrap gap-3">
+          {THEMES_VITRINE.map((id) => {
+            const t = findThemeById(id);
+            if (!t) return null;
+            return (
+              <Link
+                key={t.id}
+                href={`/creer?theme=${t.id}`}
+                className="flex items-center gap-2 rounded-full border border-magique-trait bg-white px-4 py-2 text-[15px] font-semibold text-magique-texte transition hover:border-magique-primaire hover:text-magique-primaire"
+              >
+                <span aria-hidden="true">{t.emoji}</span>
+                {t.titre}
+                {t.saison && (
+                  <span className="rounded-full bg-magique-rose/15 px-2 py-0.5 text-xs text-magique-rose">De saison</span>
+                )}
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ─── Prix ─── */}
+      <section>
+        <h2 className="text-center text-3xl sm:text-4xl">Des prix simples, sans abonnement</h2>
+        <p className="mx-auto mt-3 max-w-[48ch] text-center text-magique-texteClair">
+          Vous lisez d'abord. Vous payez seulement pour garder le livre, en une fois.
+        </p>
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <div className="carte flex flex-col">
+            <h3 className="text-xl">Découvrir</h3>
+            <p className="mt-2 font-serif text-4xl text-magique-texte">0 €</p>
+            <ul className="mt-5 flex-1 space-y-2.5 text-[15px]">
+              <li className="flex gap-2"><Coche />Le livre complet, à l'écran</li>
+              <li className="flex gap-2"><Coche />Lecture à voix haute</li>
+              <li className="flex gap-2"><Coche />Mode projection au mur</li>
+            </ul>
+            <Link href={cta} className="btn-secondaire mt-6">Créer gratuitement</Link>
+          </div>
+
+          <div className="carte flex flex-col">
+            <h3 className="text-xl">Le livre</h3>
+            <p className="mt-2 font-serif text-4xl text-magique-texte">{prix}</p>
+            <ul className="mt-5 flex-1 space-y-2.5 text-[15px]">
+              {KIT.map((k) => (
+                <li key={k} className="flex gap-2"><Coche />{k}</li>
+              ))}
+            </ul>
+            <Link href={cta} className="btn-secondaire mt-6">Créer son histoire</Link>
+          </div>
+
+          <div className="relative flex flex-col rounded-3xl border-2 border-magique-primaire bg-white p-6 shadow-or">
+            <span className="absolute -top-3 left-6 rounded-full bg-magique-primaire px-3 py-1 text-xs font-bold text-white">
+              Idéal à offrir
+            </span>
+            <h3 className="text-xl">Premium</h3>
+            <p className="mt-2 font-serif text-4xl text-magique-texte">{prixPremium}</p>
+            <ul className="mt-5 flex-1 space-y-2.5 text-[15px]">
+              <li className="flex gap-2"><Coche />Tout le contenu du livre et du kit</li>
+              <li className="flex gap-2"><Coche />Illustrations haute qualité</li>
+              <li className="flex gap-2"><Coche />Ressemblance renforcée avec la photo</li>
+            </ul>
+            <Link href={cta} className="btn-primaire mt-6">Créer en premium</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Questions fréquentes ─── */}
+      <section className="mx-auto max-w-3xl">
+        <h2 className="text-center text-3xl sm:text-4xl">Questions fréquentes</h2>
+        <div className="mt-8 divide-y divide-magique-trait rounded-3xl border border-magique-trait bg-white/80">
+          {FAQ.map((f) => (
+            <details key={f.q} className="group px-6 py-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-magique-texte">
+                {f.q}
+                <span className="text-xl text-magique-primaire transition group-open:rotate-45" aria-hidden="true">+</span>
+              </summary>
+              <p className="mt-3 leading-relaxed text-magique-texteClair">{f.r}</p>
+            </details>
           ))}
         </div>
       </section>
 
-      {/* ─── Appel final : le rituel du soir (nuit) ─── */}
+      {/* ─── Appel final ─── */}
       <section
-        className="relative overflow-hidden rounded-[2.5rem] px-6 py-12 shadow-conte ring-1 ring-white/10 sm:px-12 sm:py-14"
+        className="relative overflow-hidden rounded-[2.5rem] px-6 py-12 shadow-conte sm:px-12 sm:py-14"
         style={{
           backgroundImage:
             "radial-gradient(60% 70% at 15% 20%, rgba(91,155,255,.4), rgba(91,155,255,0) 60%), linear-gradient(180deg,#16245c,#0f1a44)",
         }}
       >
-        <div className="relative z-10 grid items-center gap-8 md:grid-cols-[1fr_.8fr]">
+        <div className="grid items-center gap-8 md:grid-cols-[1fr_.8fr]">
           <div>
-            <h2 className="text-3xl text-white sm:text-4xl">
-              Ce soir, l'histoire parle de <span className="text-gradient italic">votre enfant.</span>
-            </h2>
+            <h2 className="text-3xl text-white sm:text-4xl">Ce soir, l'histoire parle de lui.</h2>
             <p className="mt-4 max-w-[42ch] text-[#cdd7f4]">
-              Lecture gratuite à l'écran, et le joli PDF à imprimer dès 4,99 €. Sans abonnement.
+              Deux minutes pour la créer, toute une vie pour s'en souvenir. Lecture gratuite, sans
+              engagement.
             </p>
-            <div className="mt-8">
-              <Link href="/connexion" className="btn-primaire text-lg">
-                Créer l'histoire de mon enfant
-              </Link>
-            </div>
+            <Link href={cta} className="btn-primaire mt-8 text-lg">
+              Créer son histoire
+            </Link>
           </div>
           <div className="mx-auto w-full max-w-xs">
             <Illu nom="nuit" alt="Un enfant lit au lit sous la lune et les étoiles" className="w-full rounded-3xl" />

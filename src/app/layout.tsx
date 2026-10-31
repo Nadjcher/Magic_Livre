@@ -25,17 +25,17 @@ const nunito = Nunito({
 
 const APP_URL = getAppUrl();
 const DESCRIPTION =
-  "Créez en quelques minutes un livre illustré personnalisé pour votre enfant : son prénom, " +
-  "un héros original et une histoire douce à lire ensemble. PDF à imprimer dès 4,99 €, sans abonnement.";
+  "Le livre dont votre enfant est le héros : une histoire écrite pour lui, adaptée à son âge et " +
+  "illustrée à son image, prête en deux minutes. Lecture gratuite avant achat, sans abonnement.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: "Mon Livre Magique · Livres personnalisés pour enfants",
-    template: "%s · Mon Livre Magique",
+    default: "Storilou · Livres personnalisés pour enfants",
+    template: "%s · Storilou",
   },
   description: DESCRIPTION,
-  applicationName: "Mon Livre Magique",
+  applicationName: "Storilou",
   category: "family",
   keywords: [
     "livre personnalisé enfant",
@@ -57,14 +57,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fr_FR",
     url: APP_URL,
-    siteName: "Mon Livre Magique",
-    title: "Mon Livre Magique · Livres personnalisés pour enfants",
+    siteName: "Storilou",
+    title: "Storilou · Livres personnalisés pour enfants",
     description: DESCRIPTION,
     // L'image est fournie par src/app/opengraph-image.tsx (générée à la volée).
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mon Livre Magique · Livres personnalisés pour enfants",
+    title: "Storilou · Livres personnalisés pour enfants",
     description: DESCRIPTION,
     // L'image est fournie par src/app/twitter-image.tsx.
   },
@@ -100,7 +100,7 @@ export default function RootLayout({
             <Link href="/confidentialite" className="hover:text-white">
               Confidentialité
             </Link>
-            <span className="text-[#6f7bb0]">© {new Date().getFullYear()} Mon Livre Magique</span>
+            <span className="text-[#6f7bb0]">© {new Date().getFullYear()} Storilou</span>
           </div>
         </footer>
       </body>

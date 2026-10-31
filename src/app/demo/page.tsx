@@ -23,8 +23,8 @@ const DEMO: Story = {
   pages: [
     {
       texte:
-        "Ce soir-là, Lina n'avait pas du tout sommeil. À peine ouvrit-elle son livre qu'un petit château et un dragon farceur jaillirent d'un nuage, juste au-dessus de son lit.",
-      scene_illustration: "Une enfant imagine un château et un dragon au-dessus de son lit.",
+        "Ce soir-là, Léo n'avait pas du tout sommeil. À peine ouvrit-il son livre qu'un petit château et un dragon farceur jaillirent d'un nuage, juste au-dessus de son lit.",
+      scene_illustration: "Un enfant imagine un château et un dragon au-dessus de son lit.",
       imageUrl: "/illustrations/feerique/imagine.webp",
     },
     {
@@ -35,13 +35,13 @@ const DEMO: Story = {
     },
     {
       texte:
-        "Maman vint se blottir tout près. Ensemble, elles suivirent Lina et le dragon à travers la forêt des lucioles, de clairière en clairière.",
+        "Maman vint se blottir tout près. Ensemble, ils suivirent Léo et le dragon à travers la forêt des lucioles, de clairière en clairière.",
       scene_illustration: "Un parent et un enfant lisent le conte, blottis l'un contre l'autre.",
       imageUrl: "/illustrations/feerique/together.webp",
     },
     {
       texte:
-        "À la toute dernière page, le dragon souffla une pluie d'étoiles. Lina ferma les yeux, le cœur tout chaud, et s'endormit paisiblement dans son histoire.",
+        "À la toute dernière page, le dragon souffla une pluie d'étoiles. Léo ferma les yeux, le cœur tout chaud, et s'endormit paisiblement dans son histoire.",
       scene_illustration: "L'enfant s'endort au lit sous la lune et les étoiles.",
       imageUrl: "/illustrations/feerique/nuit.webp",
     },

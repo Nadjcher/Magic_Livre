@@ -61,6 +61,9 @@ export default async function BoutiquePage({
   const paid = skusPayes.includes("book");
 
   const premium = book.tier === "premium";
+  // Le MP3 n'est proposé que si la synthèse vocale est réellement configurée.
+  const audioDisponible = env.voiceProvider() === "elevenlabs" && env.elevenLabsApiKey().length > 0;
+  const kit = audioDisponible ? KIT : KIT.filter((k) => !k.nom.includes("MP3"));
   const prix = formatEuros(premium ? env.bookPricePremiumCents() : env.bookPriceCents());
 
   return (
@@ -108,7 +111,7 @@ export default async function BoutiquePage({
 
       {/* Kit inclus avec le livre */}
       {paid ? (
-        <BookExtras bookId={book.id} />
+        <BookExtras bookId={book.id} audioDisponible={audioDisponible} />
       ) : (
         <div className="carte">
           <h2 className="font-serif text-xl">Inclus avec le livre ✨</h2>
@@ -116,7 +119,7 @@ export default async function BoutiquePage({
             Débloqué automatiquement dès l'achat du livre — à imprimer et offrir.
           </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {KIT.map((k) => (
+            {kit.map((k) => (
               <div
                 key={k.nom}
                 className="flex items-center gap-3 rounded-2xl border border-magique-trait bg-white/60 p-4 opacity-80"

@@ -82,12 +82,12 @@ const styles = StyleSheet.create({
  */
 export function buildStoryDocument(story: Story): JSX.Element {
   return (
-    <Document title={story.titre} author="Mon Livre Magique">
+    <Document title={story.titre} author="Storilou">
       {/* Page de couverture */}
       <Page size="A4" orientation="landscape" style={styles.page}>
         {story.couvertureUrl ? <Image src={story.couvertureUrl} style={styles.coverImage} /> : null}
         <Text style={styles.coverTitle}>{story.titre}</Text>
-        <Text style={styles.coverSubtitle}>Un livre créé avec Mon Livre Magique</Text>
+        <Text style={styles.coverSubtitle}>Un livre créé avec Storilou</Text>
       </Page>
 
       {/* Une page PDF par page d'histoire */}
@@ -150,7 +150,7 @@ export function buildColoringDocument(
   coloringUrls: (string | null)[],
 ): JSX.Element {
   return (
-    <Document title={`${story.titre} — à colorier`} author="Mon Livre Magique">
+    <Document title={`${story.titre} — à colorier`} author="Storilou">
       <Page size="A4" orientation="landscape" style={coloring.page}>
         <Text style={coloring.cover}>{story.titre}</Text>
         <Text style={coloring.coverSub}>Cahier de coloriage · à imprimer et colorier</Text>
@@ -203,7 +203,7 @@ const poster = StyleSheet.create({
 export function buildPosterDocument(story: Story, childName: string): JSX.Element {
   const image = story.couvertureUrl ?? story.pages[0]?.imageUrl ?? null;
   return (
-    <Document title={`${story.titre} — poster`} author="Mon Livre Magique">
+    <Document title={`${story.titre} — poster`} author="Storilou">
       <Page size="A4" style={poster.page}>
         {image ? <Image src={image} style={poster.image} /> : null}
         <Text style={poster.title}>{story.titre}</Text>
@@ -242,7 +242,7 @@ export function buildInvitationDocument(
   image: string | null,
 ): JSX.Element {
   return (
-    <Document title={`Invitation — ${childName}`} author="Mon Livre Magique">
+    <Document title={`Invitation — ${childName}`} author="Storilou">
       <Page size="A4" style={invit.page}>
         <Text style={invit.kicker}>Tu es invité·e à une grande aventure</Text>
         {image ? <Image src={image} style={invit.image} /> : null}
@@ -252,7 +252,7 @@ export function buildInvitationDocument(
         <Text style={invit.ligne}>Heure : ______________________________________</Text>
         <Text style={invit.ligne}>Où : _________________________________________</Text>
         <Text style={invit.ligne}>Réponse avant le : ___________________________</Text>
-        <Text style={invit.foot}>Créé avec Mon Livre Magique</Text>
+        <Text style={invit.foot}>Créé avec Storilou</Text>
       </Page>
     </Document>
   );
@@ -293,7 +293,7 @@ export function buildStickersDocument(story: Story, images: string[]): JSX.Eleme
   const cells: string[] = [];
   for (let i = 0; i < 12 && base.length > 0; i++) cells.push(base[i % base.length] as string);
   return (
-    <Document title={`${story.titre} — autocollants`} author="Mon Livre Magique">
+    <Document title={`${story.titre} — autocollants`} author="Storilou">
       <Page size="A4" style={stick.page}>
         <Text style={stick.title}>Mes autocollants</Text>
         <Text style={stick.sub}>{story.titre} · à découper le long des contours</Text>
@@ -342,7 +342,7 @@ export function buildBookmarkDocument(
   image: string | null,
 ): JSX.Element {
   return (
-    <Document title={`${story.titre} — marque-pages`} author="Mon Livre Magique">
+    <Document title={`${story.titre} — marque-pages`} author="Storilou">
       <Page size="A4" orientation="landscape" style={mark.page}>
         {[0, 1, 2].map((i) => (
           <View key={i} style={mark.strip}>
@@ -384,7 +384,7 @@ const a3 = StyleSheet.create({
 /** Affiche A3 grand format. */
 export function buildPosterA3Document(story: Story, childName: string, image: string | null): JSX.Element {
   return (
-    <Document title={`${story.titre} — affiche A3`} author="Mon Livre Magique">
+    <Document title={`${story.titre} — affiche A3`} author="Storilou">
       <Page size="A3" style={a3.page}>
         {image ? <Image src={image} style={a3.image} /> : null}
         <Text style={a3.title}>{story.titre}</Text>
@@ -463,7 +463,7 @@ export function buildPartyPackDocument(
 ): JSX.Element {
   const lettres = childName.toUpperCase().split("");
   return (
-    <Document title={`Pack Fête — ${childName}`} author="Mon Livre Magique">
+    <Document title={`Pack Fête — ${childName}`} author="Storilou">
       {/* 1. Invitation */}
       <Page size="A4" style={fete.page}>
         <Text style={fete.h1}>La fête de {childName} !</Text>

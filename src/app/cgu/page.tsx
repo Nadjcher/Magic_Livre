@@ -16,7 +16,7 @@ export default function CguPage() {
 
       <h2 className="text-xl font-semibold">1. Objet</h2>
       <p className="text-magique-texteClair">
-        « Mon Livre Magique » permet à un parent ou représentant légal de créer
+        « Storilou » permet à un parent ou représentant légal de créer
         des livres personnalisés pour enfants, à lire en ligne et à télécharger
         au format PDF après paiement.
       </p>

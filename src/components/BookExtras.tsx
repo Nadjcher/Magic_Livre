@@ -3,7 +3,7 @@
 /**
  * La « boutique » du livre : tous les produits dérivés inclus avec l'achat,
  * à télécharger, imprimer et offrir (coloriage, affiche, invitation,
- * autocollants, marque-pages, audio).
+ * autocollants, marque-pages, et audio MP3 si la synthèse vocale est configurée).
  */
 
 import { useState } from "react";
@@ -25,7 +25,14 @@ const PRODUITS: Produit[] = [
   { cle: "marque-pages", emoji: "🔖", titre: "Marque-pages", desc: "Trois marque-pages à découper.", href: "marque-pages/pdf" },
 ];
 
-export default function BookExtras({ bookId }: { bookId: string }) {
+export default function BookExtras({
+  bookId,
+  audioDisponible = false,
+}: {
+  bookId: string;
+  /** true seulement si la synthèse vocale MP3 est réellement configurée. */
+  audioDisponible?: boolean;
+}) {
   const [message, setMessage] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -78,7 +85,9 @@ export default function BookExtras({ bookId }: { bookId: string }) {
           </a>
         ))}
 
-        {/* Audio : téléchargement via fetch (pas un simple lien). */}
+        {/* Audio : téléchargement via fetch (pas un simple lien), affiché
+            seulement si un fournisseur de voix est configuré. */}
+        {audioDisponible && (
         <button
           onClick={telechargerAudio}
           disabled={pending}
@@ -93,6 +102,7 @@ export default function BookExtras({ bookId }: { bookId: string }) {
             </span>
           </span>
         </button>
+        )}
       </div>
 
       {message && (
