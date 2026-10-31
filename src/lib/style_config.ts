@@ -87,9 +87,9 @@ export const ILLUSTRATION_STYLES: Record<
     label: "Manga / Animé",
     description: "Style dessin animé japonais, grands yeux",
     prompt:
-      "anime / manga illustration for young children, clean confident linework, smooth soft cel shading, " +
-      "big expressive sparkling eyes, gentle rosy blush, bright yet soft cool palette, " +
-      "gentle hand-painted anime film backgrounds, airy skies, wholesome and cosy",
+      "IMPORTANT — Japanese anime / manga art style: large glossy anime eyes with bright highlights, thin clean " +
+      "lineart, flat cel shading with crisp shadow shapes, anime character proportions and hair rendered in " +
+      "clumps, soft pastel anime backgrounds, wholesome children's anime TV series look, NOT a western cartoon",
   },
   bd: {
     label: "BD / Super-héros",
@@ -136,9 +136,10 @@ export const ILLUSTRATION_STYLES: Record<
     label: "Animation 3D",
     description: "Comme un film d'animation en 3D",
     prompt:
-      "3D animated feature film style render, soft global illumination, subsurface skin shading, rounded appealing " +
-      "character design with big expressive eyes, polished stylized materials, vibrant yet soft colors, shallow " +
-      "depth of field, cinematic family-movie look (original characters only)",
+      "IMPORTANT — this must look like a rendered 3D CGI frame from a modern animated family movie, NOT a 2D " +
+      "drawing or painting: volumetric 3D shapes, smooth slightly glossy clay-like surfaces, soft ray-traced " +
+      "global illumination, subsurface skin shading, rounded appealing characters with big expressive eyes, " +
+      "shallow depth of field (original characters only)",
   },
   crayon: {
     label: "Crayon de couleur",
@@ -158,8 +159,9 @@ export const ILLUSTRATION_STYLES: Record<
     label: "Pixel art",
     description: "Façon jeu vidéo rétro",
     prompt:
-      "colorful pixel art scene in the style of a cosy retro video game, crisp clean pixels, limited vibrant " +
-      "palette, cute chunky character sprites with clear readable faces, detailed pixel background, joyful adventure",
+      "IMPORTANT — the ENTIRE image must be PIXEL ART like a 16-bit retro console game: clearly visible square " +
+      "pixels, low resolution grid, hard pixel edges, limited flat color palette with dithering, no smooth " +
+      "gradients, no painterly brushwork, no realistic rendering; cute chunky sprites with readable faces",
   },
 };
 
