@@ -44,9 +44,14 @@ export default async function Header() {
             </form>
           </NavMenu>
         ) : (
-          <Link href="/connexion" className="btn-primaire whitespace-nowrap px-4 py-2 text-sm">
-            Se connecter
-          </Link>
+          <div className="flex items-center gap-4 text-sm">
+            <Link href="/catalogue" className="hidden hover:text-magique-primaire sm:inline">
+              Catalogue
+            </Link>
+            <Link href="/connexion" className="btn-primaire whitespace-nowrap px-4 py-2 text-sm">
+              Se connecter
+            </Link>
+          </div>
         )}
       </nav>
     </header>

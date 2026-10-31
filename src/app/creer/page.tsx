@@ -7,7 +7,6 @@ import { redirect } from "next/navigation";
 import { getCurrentUser, hasParentalConsent } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
-import { HEROES } from "@/lib/heroes";
 import CreateBookForm from "@/components/CreateBookForm";
 import ConsentForm from "@/components/ConsentForm";
 import EnTetePage from "@/components/EnTetePage";
@@ -21,9 +20,18 @@ function euros(cents: number): string {
 // maximum du plan Vercel gratuit avec Fluid compute.
 export const maxDuration = 300;
 
-export default async function CreerPage() {
+export default async function CreerPage({
+  searchParams,
+}: {
+  searchParams: { theme?: string };
+}) {
   const user = await getCurrentUser();
-  if (!user) redirect("/connexion");
+  if (!user) {
+    const suite = searchParams.theme
+      ? `/creer?theme=${encodeURIComponent(searchParams.theme)}`
+      : "/creer";
+    redirect(`/connexion?suite=${encodeURIComponent(suite)}`);
+  }
 
   // Consentement parental obligatoire avant la première création.
   if (!hasParentalConsent(user)) {
@@ -60,7 +68,7 @@ export default async function CreerPage() {
       </div>
       <CreateBookForm
         enfants={children}
-        heroes={HEROES}
+        initialThemeId={searchParams.theme}
         prixStandard={euros(env.bookPriceCents())}
         prixPremium={euros(env.bookPricePremiumCents())}
       />

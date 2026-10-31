@@ -7,6 +7,7 @@ import { z } from "zod";
 import { findProtectedNames } from "./protectedCharacters";
 import { filterContent } from "./contentFilter";
 import { ILLUSTRATION_STYLE_KEYS } from "./style_config";
+import { findThemeById } from "./themes";
 
 /** Longueurs d'histoire proposées, avec le nombre de pages cible. */
 export const LONGUEURS = {
@@ -42,9 +43,9 @@ export type ChildInput = z.infer<typeof childSchema>;
 export const createBookSchema = z
   .object({
     childId: z.string().min(1, "Veuillez choisir un enfant."),
-    mode: z.enum(["hero", "libre"]),
-    // Identifiant du héros original (si mode = hero).
-    heroId: z.string().optional(),
+    mode: z.enum(["theme", "libre"]),
+    // Identifiant du thème du catalogue (si mode = theme).
+    themeId: z.string().optional(),
     // Texte d'aventure libre (si mode = libre), limité à 300 caractères.
     prompt: z
       .string()
@@ -62,11 +63,11 @@ export const createBookSchema = z
       .optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.mode === "hero" && !data.heroId) {
+    if (data.mode === "theme" && !findThemeById(data.themeId)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["heroId"],
-        message: "Veuillez choisir un héros.",
+        path: ["themeId"],
+        message: "Veuillez choisir un thème.",
       });
     }
     if (data.mode === "libre") {

@@ -1,15 +1,15 @@
 "use client";
 
 /**
- * Formulaire de création de livre : choix de l'enfant, héros original ou
- * aventure libre, longueur. Affiche les refus liés aux personnages protégés
- * et un indicateur de progression pendant la génération.
+ * Formulaire de création de livre : choix de l'enfant, thème du catalogue (ou
+ * idée libre), style, apparence, longueur. Affiche les refus liés aux
+ * personnages protégés et un indicateur de progression pendant la génération.
  */
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createBook } from "@/app/actions/books";
-import type { Hero } from "@/lib/heroes";
+import { THEMES, THEME_CATEGORIES, findThemeById, type ThemeCategory } from "@/lib/themes";
 import type { ChildView } from "./ChildrenManager";
 import { ILLUSTRATION_STYLES, type IllustrationStyle } from "@/lib/style_config";
 import Notice from "./Notice";
@@ -32,19 +32,30 @@ function Etape({ n, children }: { n: string; children: React.ReactNode }) {
 
 export default function CreateBookForm({
   enfants,
-  heroes,
+  initialThemeId,
   prixStandard,
   prixPremium,
 }: {
   enfants: ChildView[];
-  heroes: readonly Hero[];
+  /** Thème présélectionné (lien « Créer ce livre » du catalogue). */
+  initialThemeId?: string;
   prixStandard: string;
   prixPremium: string;
 }) {
   const router = useRouter();
-  const [mode, setMode] = useState<"hero" | "libre">("hero");
+  const themeInitial = findThemeById(initialThemeId) ?? THEMES[0]!;
+  const [mode, setMode] = useState<"theme" | "libre">("theme");
+  const [themeId, setThemeId] = useState(themeInitial.id);
+  const [categorie, setCategorie] = useState<ThemeCategory>(themeInitial.categorie);
   const [prompt, setPrompt] = useState("");
-  const [style, setStyle] = useState<IllustrationStyle>("feerique");
+  const [style, setStyle] = useState<IllustrationStyle>(themeInitial.style ?? "feerique");
+
+  /** Choisit un thème et présélectionne son style d'illustration conseillé. */
+  function choisirTheme(id: string) {
+    setThemeId(id);
+    const t = findThemeById(id);
+    if (t?.style) setStyle(t.style);
+  }
   const [photo, setPhoto] = useState<string>("");
   const [erreur, setErreur] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -120,52 +131,76 @@ export default function CreateBookForm({
         </select>
       </div>
 
-      {/* Mode : héros ou aventure libre */}
+      {/* Thème : catalogue ou idée libre */}
       <div data-tilt className="carte space-y-4">
-        <Etape n="2">Quel genre d'aventure&nbsp;?</Etape>
-        <div className="flex gap-4">
+        <Etape n="2">Quelle histoire&nbsp;?</Etape>
+        <input type="hidden" name="mode" value={mode} />
+        {mode === "theme" && <input type="hidden" name="themeId" value={themeId} />}
+
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+          {THEME_CATEGORIES.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => {
+                setMode("theme");
+                setCategorie(c.id);
+              }}
+              className={`flex-none rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
+                mode === "theme" && categorie === c.id
+                  ? "border-magique-primaire bg-magique-primaire text-white"
+                  : "border-magique-trait bg-white/70 hover:border-magique-primaire"
+              }`}
+            >
+              {c.emoji} {c.label}
+            </button>
+          ))}
           <button
             type="button"
-            className={mode === "hero" ? "btn-primaire" : "btn-secondaire"}
-            onClick={() => setMode("hero")}
-          >
-            Héros original
-          </button>
-          <button
-            type="button"
-            className={mode === "libre" ? "btn-primaire" : "btn-secondaire"}
             onClick={() => setMode("libre")}
+            className={`flex-none rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
+              mode === "libre"
+                ? "border-magique-primaire bg-magique-primaire text-white"
+                : "border-magique-trait bg-white/70 hover:border-magique-primaire"
+            }`}
           >
-            Aventure libre
+            ✏️ Mon idée à moi
           </button>
         </div>
-        <input type="hidden" name="mode" value={mode} />
 
-        {mode === "hero" ? (
-          <fieldset className="grid gap-3 sm:grid-cols-2">
-            {heroes.map((h, i) => (
-              <label
-                key={h.id}
-                className="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 p-3 transition hover:border-magique-primaire has-[:checked]:border-magique-primaire has-[:checked]:bg-magique-primaire/5 has-[:checked]:shadow-or"
-              >
-                <input
-                  type="radio"
-                  name="heroId"
-                  value={h.id}
-                  defaultChecked={i === 0}
-                  className="mt-1"
-                />
-                <span>
-                  <span className="font-semibold">
-                    {h.emoji} {h.nom}
+        {mode === "theme" ? (
+          <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Thèmes">
+            {THEMES.filter((t) => t.categorie === categorie).map((t) => {
+              const actif = t.id === themeId;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={actif}
+                  onClick={() => choisirTheme(t.id)}
+                  className={`flex items-start gap-3 rounded-xl border-2 p-3 text-left transition ${
+                    actif
+                      ? "border-magique-primaire bg-magique-primaire/5 shadow-or"
+                      : "border-magique-trait hover:border-magique-primaire"
+                  }`}
+                >
+                  <span className="text-2xl" aria-hidden="true">{t.emoji}</span>
+                  <span>
+                    <span className="flex flex-wrap items-center gap-2 font-semibold">
+                      {t.titre}
+                      {t.saison && (
+                        <span className="rounded-full bg-magique-rose/15 px-2 py-0.5 text-xs font-bold text-magique-rose">
+                          De saison
+                        </span>
+                      )}
+                    </span>
+                    <span className="block text-sm text-magique-texteClair">{t.accroche}</span>
                   </span>
-                  <span className="block text-sm text-magique-texteClair">
-                    {h.description}
-                  </span>
-                </span>
-              </label>
-            ))}
-          </fieldset>
+                </button>
+              );
+            })}
+          </div>
         ) : (
           <div>
             <label htmlFor="prompt" className="block font-semibold">

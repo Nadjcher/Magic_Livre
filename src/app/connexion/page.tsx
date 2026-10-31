@@ -30,7 +30,11 @@ export default function ConnexionPage() {
       if (res?.error) {
         setErreur("Email ou mot de passe incorrect.");
       } else {
-        router.push("/bibliotheque");
+        // Retour à la page demandée avant la connexion (ex. un thème du
+        // catalogue) ; uniquement un chemin interne, jamais un autre site.
+        const suite = new URLSearchParams(window.location.search).get("suite");
+        const interne = suite && suite.startsWith("/") && !suite.startsWith("//");
+        router.push(interne ? suite : "/bibliotheque");
         router.refresh();
       }
     });

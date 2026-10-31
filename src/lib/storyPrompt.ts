@@ -7,7 +7,7 @@
 
 import type { LongueurKey } from "./validation";
 import { LONGUEURS } from "./validation";
-import { findHeroById } from "./heroes";
+import { findThemeById } from "./themes";
 import type { IllustrationStyle } from "./style_config";
 
 /** Prompt système fixe (indépendant de la saisie). */
@@ -50,8 +50,9 @@ Le champ "scene_illustration" décrit précisément la scène à dessiner EN ANG
 export interface StoryRequest {
   childFirstName: string;
   childAge: number;
-  mode: "hero" | "libre";
-  heroId?: string;
+  mode: "theme" | "libre";
+  /** Thème du catalogue (si mode = theme). */
+  themeId?: string;
   prompt?: string;
   longueur: LongueurKey;
   /** Style d'illustration choisi (sert aussi à teinter le ton du texte). */
@@ -156,16 +157,15 @@ export function buildUserMessage(req: StoryRequest): string {
     `Nombre de pages souhaité : entre ${minPages} et ${maxPages} (garde chaque page à la longueur imposée par l'âge ci-dessus, même s'il y a beaucoup de pages).`,
   ];
 
-  if (req.mode === "hero") {
-    const hero = req.heroId ? findHeroById(req.heroId) : undefined;
-    if (hero) {
-      lignes.push(
-        `Héros secondaire original à inclure : ${hero.nom}. ${hero.description}`,
-      );
-      lignes.push(
-        `${req.childFirstName} vit une aventure avec ${hero.nom}.`,
-      );
-    }
+  const theme = req.mode === "theme" ? findThemeById(req.themeId) : undefined;
+  if (theme) {
+    lignes.push(
+      `THÈME CHOISI PAR LE PARENT : « ${theme.titre} ». Intention de l'histoire : ${theme.brief}`,
+    );
+    lignes.push(
+      `${req.childFirstName} est le héros de cette histoire : le thème doit être clairement au cœur du récit, ` +
+        "traité de façon originale (pas une version banale du sujet).",
+    );
   } else if (req.mode === "libre" && req.prompt) {
     lignes.push(`Idée d'aventure proposée par le parent : « ${req.prompt} »`);
   }
@@ -177,7 +177,7 @@ export function buildUserMessage(req: StoryRequest): string {
   }
 
   lignes.push(
-    `Étincelle d'originalité à intégrer avec finesse (adapte-la à l'âge, garde une histoire cohérente et rassurante) : ${pickSpark()}.`,
+    `Étincelle d'originalité à intégrer avec finesse, AU SERVICE du thème/de l'idée ci-dessus (adapte-la à l'âge, garde une histoire cohérente et rassurante ; ignore-la si elle ne s'accorde pas) : ${pickSpark()}.`,
   );
   lignes.push(
     "Écris une histoire claire et facile à comprendre, avec un fil narratif simple (début, petite quête douce, résolution tendre) et une fin rassurante — SANS JAMAIS dépasser la longueur de phrase et le vocabulaire imposés par l'âge ci-dessus. Surtout : surprends, sois original, évite toute trame plate.",

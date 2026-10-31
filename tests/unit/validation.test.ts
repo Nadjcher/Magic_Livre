@@ -25,13 +25,33 @@ describe("validation des entrées", () => {
     expect(childSchema.safeParse({ firstName: "Léa123", age: 5 }).success).toBe(false);
   });
 
-  it("exige un héros en mode hero", () => {
+  it("exige un thème en mode theme", () => {
     const res = createBookSchema.safeParse({
       childId: "c1",
-      mode: "hero",
+      mode: "theme",
       longueur: "moyenne",
     });
     expect(res.success).toBe(false);
+  });
+
+  it("refuse un thème inconnu du catalogue", () => {
+    const res = createBookSchema.safeParse({
+      childId: "c1",
+      mode: "theme",
+      themeId: "theme-inexistant",
+      longueur: "moyenne",
+    });
+    expect(res.success).toBe(false);
+  });
+
+  it("accepte un thème du catalogue", () => {
+    const res = createBookSchema.safeParse({
+      childId: "c1",
+      mode: "theme",
+      themeId: "noel",
+      longueur: "moyenne",
+    });
+    expect(res.success).toBe(true);
   });
 
   it("exige un texte en mode libre", () => {

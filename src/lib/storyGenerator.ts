@@ -18,7 +18,6 @@ import {
 import { parseStory, type Story } from "./storySchema";
 import { filterStory } from "./contentFilter";
 import { findProtectedNames } from "./protectedCharacters";
-import { findHeroById } from "./heroes";
 import { generateIllustration, illustrationsEnabled } from "./illustration";
 import { faceIdentityEnabled, generateCharacterPortrait } from "./faceIdentity";
 import { ILLUSTRATION_STYLES } from "./style_config";
@@ -217,10 +216,9 @@ async function addIllustrations(
     return { ...story, style };
   }
 
-  const heroName =
-    req.mode === "hero" && req.heroId
-      ? findHeroById(req.heroId)?.nom
-      : req.childFirstName;
+  // L'enfant est TOUJOURS le personnage principal dessiné (jamais un
+  // compagnon), pour que les illustrations le mettent au centre.
+  const heroName = req.childFirstName;
   const base = hashSeed(story.titre + req.childFirstName);
 
   const coverRequest = {

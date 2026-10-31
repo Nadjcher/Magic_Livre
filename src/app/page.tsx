@@ -132,6 +132,9 @@ export default function AccueilPage() {
               <Link href="/demo" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">
                 Voir un exemple ✦
               </Link>
+              <Link href="/catalogue" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">
+                Parcourir le catalogue
+              </Link>
             </div>
             <p className="mt-6 text-sm text-magique-texteClair" style={{ animation: "monter .6s .36s both" }}>
               Héros originaux, sans personnage sous droits. Aucune photo conservée.

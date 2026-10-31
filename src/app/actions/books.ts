@@ -18,7 +18,7 @@ import { createBookSchema, checkUserText } from "@/lib/validation";
 import { checkDailyBookLimit } from "@/lib/rateLimit";
 import { generateStory } from "@/lib/storyGenerator";
 import { describeChildFromPhoto } from "@/lib/illustration";
-import { findHeroById } from "@/lib/heroes";
+import { findThemeById } from "@/lib/themes";
 import type { LongueurKey } from "@/lib/validation";
 import type { IllustrationStyle } from "@/lib/style_config";
 
@@ -45,7 +45,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
   const parsed = createBookSchema.safeParse({
     childId: String(formData.get("childId") ?? ""),
     mode: String(formData.get("mode") ?? ""),
-    heroId: formData.get("heroId") ? String(formData.get("heroId")) : undefined,
+    themeId: formData.get("themeId") ? String(formData.get("themeId")) : undefined,
     prompt: formData.get("prompt") ? String(formData.get("prompt")) : undefined,
     longueur: String(formData.get("longueur") ?? ""),
     style: formData.get("style") ? String(formData.get("style")) : undefined,
@@ -104,8 +104,8 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
 
   // Détermine un thème lisible pour l'affichage.
   const theme =
-    input.mode === "hero"
-      ? findHeroById(input.heroId ?? "")?.nom ?? "Aventure avec un héros"
+    input.mode === "theme"
+      ? findThemeById(input.themeId)?.titre ?? "Histoire personnalisée"
       : "Aventure personnalisée";
 
   // Édition choisie : premium = illustrations haut de gamme + prix supérieur.
@@ -129,7 +129,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
     childFirstName: child.firstName,
     childAge: child.age,
     mode: input.mode,
-    heroId: input.heroId,
+    themeId: input.themeId,
     prompt: input.prompt,
     longueur: input.longueur as LongueurKey,
     style: input.style as IllustrationStyle,
