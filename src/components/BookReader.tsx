@@ -4,8 +4,7 @@
  * Lecteur de livre page par page, style « conte enchanté ».
  *
  * Fonctions : navigation précédent/suivant, navigation au clavier (flèches),
- * lecture à voix haute (Web Speech API) avec choix de la voix, pause et arrêt,
- * et mode projection murale plein écran.
+ * lecture à voix haute (Web Speech API) avec choix de la voix, pause et arrêt.
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -31,9 +30,6 @@ function IPause() {
 function IStop() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className={ico} strokeWidth="2" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>;
 }
-function IProjeter() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={ico} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></svg>;
-}
 
 export default function BookReader({ story }: { story: Story }) {
   const totalEcrans = story.pages.length + 1;
@@ -42,8 +38,6 @@ export default function BookReader({ story }: { story: Story }) {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [voiceURI, setVoiceURI] = useState<string>("");
   const [enLecture, setEnLecture] = useState(false);
-  const [projection, setProjection] = useState(false);
-  const [autoDefile, setAutoDefile] = useState(false);
   // Détectée APRÈS le montage : le serveur ne connaît pas la Web Speech API.
   // La calculer pendant le rendu ferait diverger le HTML serveur et client
   // (erreurs d'hydratation React #418/#423).
@@ -120,22 +114,6 @@ export default function BookReader({ story }: { story: Story }) {
 
   useEffect(() => arreter, [arreter]);
 
-  useEffect(() => {
-    if (!projection || !autoDefile) return;
-    const id = setInterval(() => {
-      setIndex((i) => Math.min(totalEcrans - 1, i + 1));
-    }, 8000);
-    return () => clearInterval(id);
-  }, [projection, autoDefile, totalEcrans]);
-
-  useEffect(() => {
-    if (!projection) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setProjection(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [projection]);
 
   const imageCourante =
     index === 0 ? story.couvertureUrl : story.pages[index - 1]?.imageUrl;
@@ -255,80 +233,6 @@ export default function BookReader({ story }: { story: Story }) {
         <p className="text-sm text-magique-texteClair">
           La lecture à voix haute n'est pas disponible sur ce navigateur.
         </p>
-      )}
-
-      {/* ─── Mode projection ─── */}
-      <button
-        className="flex w-full items-center justify-center gap-2 rounded-full bg-nuit py-3 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-nuit-2"
-        onClick={() => setProjection(true)}
-      >
-        <IProjeter /> Projeter sur le mur / la TV
-      </button>
-
-      {projection && (
-        <div
-          className="fixed inset-0 z-50 flex flex-col text-white"
-          style={{
-            backgroundImage:
-              "radial-gradient(60% 50% at 50% 35%, rgba(91,155,255,.4), rgba(91,155,255,0) 60%), linear-gradient(180deg,#0b1230,#0f1a44)",
-          }}
-        >
-          <div className="flex items-center justify-between px-6 py-4">
-            <span className="text-sm text-white/60">
-              🌙 Projection —{" "}
-              {index === 0 ? "Couverture" : `Page ${index} / ${story.pages.length}`}
-            </span>
-            <div className="flex items-center gap-3">
-              <button
-                className="rounded-full border border-white/30 px-4 py-1.5 text-sm hover:bg-white/10"
-                onClick={() => setAutoDefile((a) => !a)}
-              >
-                {autoDefile ? "⏸ Défilement auto" : "▶ Défilement auto"}
-              </button>
-              <button
-                className="rounded-full border border-white/30 px-4 py-1.5 text-sm hover:bg-white/10"
-                onClick={() => setProjection(false)}
-              >
-                ✕ Quitter
-              </button>
-            </div>
-          </div>
-          <div key={index} className="anim-page flex flex-1 flex-col items-center justify-center px-8 text-center">
-            {imageCourante && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={imageCourante} alt="" className="mb-8 max-h-[55vh] w-auto rounded-2xl object-contain shadow-conte" />
-            )}
-            {index === 0 ? (
-              <h2 className="font-serif text-4xl sm:text-6xl">{story.titre}</h2>
-            ) : (
-              <p className="max-w-4xl text-2xl leading-relaxed sm:text-4xl">{texteCourant}</p>
-            )}
-          </div>
-          <div className="flex items-center justify-between px-8 py-6">
-            <button
-              className="flex h-14 w-14 items-center justify-center rounded-full border border-white/30 hover:bg-white/10 disabled:opacity-30"
-              onClick={precedent}
-              disabled={index === 0}
-              aria-label="Page précédente"
-            >
-              <IChevron dir="g" />
-            </button>
-            <button
-              className="flex items-center gap-2 rounded-full bg-white/10 px-6 py-3 hover:bg-white/20"
-              onClick={lire}
-            >
-              <ISon /> Lire
-            </button>
-            <button
-              className="flex h-14 w-14 items-center justify-center rounded-full border border-white/30 hover:bg-white/10 disabled:opacity-30"
-              onClick={suivant}
-              disabled={index === totalEcrans - 1}
-              aria-label="Page suivante"
-            >
-              <IChevron dir="d" />
-            </button>
-          </div>
-        </div>
       )}
     </div>
   );

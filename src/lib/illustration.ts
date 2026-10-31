@@ -44,6 +44,8 @@ export interface IllustrationRequest {
   anchorImage?: { base64: string; mime: string };
   /** true : utilise le modèle d'image premium (meilleure qualité). */
   premium?: boolean;
+  /** Fiche des personnages secondaires récurrents (en anglais). */
+  recurringCharacters?: string;
 }
 
 export interface IllustrationResult {
@@ -153,10 +155,11 @@ async function geminiImage(
   if (anchor) {
     parts.push({ inlineData: { mimeType: anchor.mime, data: anchor.base64 } });
     consignes.push(
-      `IMAGE DE RÉFÉRENCE DU PERSONNAGE (image ${reference ? 2 : 1}) : reproduis EXACTEMENT le même ` +
-        "personnage que sur cette image — même visage, même coiffure, MÊME tenue/vêtements, mêmes " +
-        "couleurs, même style de dessin. C'est le MÊME enfant, dans une nouvelle scène. Ne change " +
-        "NI ses habits NI son apparence NI le style graphique.",
+      `IMAGE DE RÉFÉRENCE DU PERSONNAGE (image ${reference ? 2 : 1}) : utilise-la UNIQUEMENT pour ` +
+        "l'identité de l'enfant — même visage, mêmes cheveux, même teint, mêmes vêtements, même " +
+        "style de dessin. NE COPIE PAS sa pose, son cadrage ni sa composition : dessine une NOUVELLE " +
+        "image qui suit fidèlement la SCÈNE ci-dessous (action, plan, décor, autres personnages). " +
+        "Sauf si la scène le demande, montre l'enfant en entier ou en plan moyen, en mouvement.",
     );
   }
 

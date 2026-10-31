@@ -19,6 +19,24 @@ import {
 import type { Story } from "./storySchema";
 import { STYLE_CONFIG } from "./style_config";
 
+/**
+ * La police intégrée des PDF ne connaît pas les espaces insécables (fines ou
+ * normales) que la typographie française place avant « : ! ? ; » et dans les
+ * guillemets : elles s'affichaient « / ». On les remplace par des espaces.
+ */
+function pdfText(t: string): string {
+  return t.replace(/[\u00A0\u202F\u2007\u2009]/g, " ");
+}
+
+/** Version de l'histoire sûre pour le rendu PDF (texte et titre nettoyés). */
+function pdfSafe(story: Story): Story {
+  return {
+    ...story,
+    titre: pdfText(story.titre),
+    pages: story.pages.map((p) => ({ ...p, texte: pdfText(p.texte) })),
+  };
+}
+
 // Styles du PDF. On utilise les couleurs centralisées de style_config.
 const styles = StyleSheet.create({
   page: {
@@ -81,6 +99,7 @@ const styles = StyleSheet.create({
  * Séparé du rendu binaire pour faciliter les tests unitaires.
  */
 export function buildStoryDocument(story: Story): JSX.Element {
+  story = pdfSafe(story);
   return (
     <Document title={story.titre} author="Storilou">
       {/* Page de couverture */}
@@ -149,6 +168,7 @@ export function buildColoringDocument(
   story: Story,
   coloringUrls: (string | null)[],
 ): JSX.Element {
+  story = pdfSafe(story);
   return (
     <Document title={`${story.titre} — à colorier`} author="Storilou">
       <Page size="A4" orientation="landscape" style={coloring.page}>
@@ -201,6 +221,7 @@ const poster = StyleSheet.create({
 
 /** Construit le PDF « poster » (affiche A4 portrait). */
 export function buildPosterDocument(story: Story, childName: string): JSX.Element {
+  story = pdfSafe(story);
   const image = story.couvertureUrl ?? story.pages[0]?.imageUrl ?? null;
   return (
     <Document title={`${story.titre} — poster`} author="Storilou">
@@ -241,6 +262,7 @@ export function buildInvitationDocument(
   childName: string,
   image: string | null,
 ): JSX.Element {
+  story = pdfSafe(story);
   return (
     <Document title={`Invitation — ${childName}`} author="Storilou">
       <Page size="A4" style={invit.page}>
@@ -288,6 +310,7 @@ const stick = StyleSheet.create({
 
 /** Planche d'autocollants à découper (vignettes des illustrations). */
 export function buildStickersDocument(story: Story, images: string[]): JSX.Element {
+  story = pdfSafe(story);
   // On remplit la planche en répétant les illustrations disponibles.
   const base = images.length > 0 ? images : [];
   const cells: string[] = [];
@@ -341,6 +364,7 @@ export function buildBookmarkDocument(
   childName: string,
   image: string | null,
 ): JSX.Element {
+  story = pdfSafe(story);
   return (
     <Document title={`${story.titre} — marque-pages`} author="Storilou">
       <Page size="A4" orientation="landscape" style={mark.page}>
@@ -383,6 +407,7 @@ const a3 = StyleSheet.create({
 
 /** Affiche A3 grand format. */
 export function buildPosterA3Document(story: Story, childName: string, image: string | null): JSX.Element {
+  story = pdfSafe(story);
   return (
     <Document title={`${story.titre} — affiche A3`} author="Storilou">
       <Page size="A3" style={a3.page}>
@@ -461,6 +486,7 @@ export function buildPartyPackDocument(
   childName: string,
   image: string | null,
 ): JSX.Element {
+  story = pdfSafe(story);
   const lettres = childName.toUpperCase().split("");
   return (
     <Document title={`Pack Fête — ${childName}`} author="Storilou">

@@ -1,6 +1,6 @@
 /**
  * Démo publique : un livre exemple lisible par tous, sans compte. Montre le
- * lecteur (pages, illustrations, lecture à voix haute, mode projection) pour
+ * lecteur (pages, illustrations, lecture à voix haute) pour
  * donner un aperçu du « waw » avant de créer son propre conte.
  */
 
@@ -12,7 +12,7 @@ import BookReader from "@/components/BookReader";
 export const metadata: Metadata = {
   title: "Un aperçu de la magie",
   description:
-    "Feuilletez un exemple de conte personnalisé : illustrations, lecture à voix haute et mode projection. Sans compte.",
+    "Feuilletez un exemple de conte personnalisé : illustrations et lecture à voix haute. Sans compte.",
 };
 
 /** Livre-démo (contenu d'exemple, illustrations fournies avec le site). */
@@ -61,8 +61,7 @@ export default function DemoPage() {
         <h1 className="mt-1 text-3xl sm:text-4xl">Feuilletez la magie</h1>
         <p className="mx-auto mt-3 max-w-[48ch] text-magique-texteClair">
           Voici un exemple de conte. Tournez les pages, écoutez la lecture à voix
-          haute, essayez le mode projection. Puis imaginez la même chose… à
-          l'image de votre enfant.
+          haute. Puis imaginez la même chose… à l'image de votre enfant.
         </p>
       </header>
 

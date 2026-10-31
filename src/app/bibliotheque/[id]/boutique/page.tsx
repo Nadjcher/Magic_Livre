@@ -9,6 +9,7 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { storySchema } from "@/lib/storySchema";
+import { lightenStory } from "@/lib/bookImages";
 import { DELUXE_PRODUCTS, formatEuros } from "@/lib/products";
 import { confirmPaidSession, reconcilePendingOrders } from "@/lib/stripe";
 import PurchaseDownload from "@/components/PurchaseDownload";
@@ -51,7 +52,7 @@ export default async function BoutiquePage({
   await reconcilePendingOrders(user.id, book.id);
 
   const parsed = storySchema.safeParse(book.pages);
-  const cover = parsed.success ? parsed.data.couvertureUrl ?? null : null;
+  const cover = parsed.success ? lightenStory(parsed.data, book.id).couvertureUrl ?? null : null;
 
   const paidOrders = await prisma.order.findMany({
     where: { bookId: book.id, userId: user.id, status: "paid" },

@@ -39,10 +39,13 @@ Règles impératives :
 Format de sortie OBLIGATOIRE : réponds UNIQUEMENT avec un objet JSON strict, sans texte avant ni après, sans balises de code. Structure exacte :
 {
   "titre": "string",
+  "personnages": "string",
   "pages": [
     { "texte": "string", "scene_illustration": "string" }
   ]
 }
+
+Le champ "personnages" est une fiche visuelle EN ANGLAIS de CHAQUE personnage secondaire récurrent (compagnon, animal, créature, parent…) : nom, espèce, taille, couleurs exactes, matière/pelage, signes distinctifs, tenue. Exemple : "Puffi: a small round fluffy creature the size of a kitten, mint-green fur, big black eyes, tiny pink cheeks, two short leaf-shaped antennas". Cette fiche sera reprise mot pour mot sur chaque illustration : sois précis et NE CHANGE JAMAIS l'apparence d'un personnage d'une page à l'autre. Dans chaque "scene_illustration", nomme les personnages présents et reprends leurs traits clés.
 
 Le champ "texte" contient le texte de la page, dont la longueur et la complexité suivent STRICTEMENT les consignes d'âge de la demande (d'une seule phrase très courte pour un tout-petit, jusqu'à plusieurs phrases riches pour un grand).
 Le champ "scene_illustration" décrit précisément la scène à dessiner EN ANGLAIS (décor, personnages, action, émotion, lumière), en une phrase détaillée, sans aucun texte écrit ni personnage protégé.`;

@@ -25,6 +25,14 @@ export const storySchema = z.object({
     .array(storyPageSchema)
     .min(8, "L'histoire doit contenir au moins 8 pages.")
     .max(12, "L'histoire ne doit pas dépasser 12 pages."),
+  // Fiche visuelle (en anglais) des personnages secondaires récurrents, reprise
+  // à l'identique dans chaque illustration pour qu'ils ne changent pas.
+  personnages: z
+    .preprocess(
+      (v) => (v == null ? undefined : typeof v === "string" ? v : JSON.stringify(v)),
+      z.string().optional(),
+    )
+    .transform((v) => v?.slice(0, 1500)),
   // Illustration de couverture (optionnelle).
   couvertureUrl: z.string().url().nullable().optional(),
   // Style d'illustration retenu (mémoire, utile pour un « tome » suivant).

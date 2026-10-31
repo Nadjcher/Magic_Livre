@@ -8,6 +8,7 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { failStaleBooks } from "@/lib/bookMaintenance";
 import DeleteBookButton from "@/components/DeleteBookButton";
+import { bookImageUrl } from "@/lib/bookImages";
 
 const STATUT: Record<string, { label: string; classe: string }> = {
   draft: { label: "Brouillon", classe: "bg-black/5 text-magique-texteClair" },
@@ -16,15 +17,6 @@ const STATUT: Record<string, { label: string; classe: string }> = {
   failed: { label: "Échec", classe: "bg-magique-rose/15 text-rose-700" },
 };
 
-/** Récupère l'URL de couverture stockée dans les pages JSON, si présente. */
-function couverture(pages: unknown): string | null {
-  if (pages && typeof pages === "object" && "couvertureUrl" in pages) {
-    const url = (pages as { couvertureUrl?: unknown }).couvertureUrl;
-    return typeof url === "string" ? url : null;
-  }
-  return null;
-}
-
 export default async function BibliothequePage() {
   const user = await getCurrentUser();
   if (!user) redirect("/connexion");
@@ -32,11 +24,26 @@ export default async function BibliothequePage() {
   // Libère les livres bloqués en génération avant d'afficher la liste.
   await failStaleBooks(user.id);
 
+  // On ne charge JAMAIS le contenu des livres ici (il peut peser des dizaines de
+  // Mo) : seulement les infos d'affichage, et si une couverture existe.
   const books = await prisma.book.findMany({
     where: { userId: user.id, deletedAt: null },
     orderBy: { createdAt: "desc" },
-    include: { child: { select: { firstName: true } } },
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      child: { select: { firstName: true } },
+    },
   });
+  const avecCouverture = new Set(
+    (
+      await prisma.$queryRaw<{ id: string }[]>`
+        SELECT id FROM "Book"
+        WHERE "userId" = ${user.id} AND "deletedAt" IS NULL
+          AND pages->>'couvertureUrl' IS NOT NULL`
+    ).map((r) => r.id),
+  );
 
   return (
     <div className="space-y-8">
@@ -73,7 +80,7 @@ export default async function BibliothequePage() {
               label: book.status,
               classe: "bg-black/5 text-magique-texteClair",
             };
-            const thumb = couverture(book.pages);
+            const thumb = avecCouverture.has(book.id) ? bookImageUrl(book.id, "cover") : null;
             return (
               <li
                 key={book.id}

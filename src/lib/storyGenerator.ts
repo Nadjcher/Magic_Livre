@@ -88,7 +88,7 @@ async function polishStory(
     ageGuidance(req.childAge),
     "",
     "Histoire à réécrire (améliore le texte, garde la structure) :",
-    JSON.stringify({ titre: story.titre, pages: story.pages.map((p) => ({ texte: p.texte, scene_illustration: p.scene_illustration })) }),
+    JSON.stringify({ titre: story.titre, personnages: story.personnages, pages: story.pages.map((p) => ({ texte: p.texte, scene_illustration: p.scene_illustration })) }),
   ].join("\n");
 
   let raw: string;
@@ -110,7 +110,8 @@ async function polishStory(
   ].join(" ");
   if (findProtectedNames(fullText).length > 0) return null;
 
-  return parsed.story;
+  // La relecture ne renvoie que titre + pages : on conserve la fiche personnages.
+  return { ...parsed.story, personnages: story.personnages };
 }
 
 /**
@@ -223,12 +224,17 @@ async function addIllustrations(
 
   const coverRequest = {
     style,
-    scene: `couverture de livre : ${story.titre}`,
+    scene:
+      `Book cover illustration for the story "${story.titre}": the hero in an exciting, emblematic ` +
+      `moment of this story (${story.pages[Math.floor(story.pages.length / 2)]?.scene_illustration ?? ""}), ` +
+      "together with the main recurring characters, rich setting, warm inviting composition, full body or " +
+      "medium shot, NOT a plain portrait",
     heroName,
     appearance: req.appearance,
     referenceImage: req.photo,
     anchorImage: portrait ?? undefined,
     premium: req.premium,
+    recurringCharacters: story.personnages,
     seed: base,
   };
 
@@ -246,6 +252,7 @@ async function addIllustrations(
           referenceImage: portrait ? undefined : req.photo,
           anchorImage: anchor,
           premium: req.premium,
+          recurringCharacters: story.personnages,
           seed: base + i + 1,
         });
         return { ...p, imageUrl };

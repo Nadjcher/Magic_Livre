@@ -41,13 +41,18 @@ describe("construction du prompt d'illustration", () => {
 
   it("propose le catalogue de styles attendu", () => {
     expect(Object.keys(ILLUSTRATION_STYLES).sort()).toEqual([
+      "anim3d",
       "aquarelle",
       "aventure",
       "bd",
+      "classique",
+      "crayon",
       "feerique",
       "manga",
       "papier",
       "pastel",
+      "pixel",
+      "realiste",
     ]);
   });
 

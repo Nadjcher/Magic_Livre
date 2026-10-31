@@ -47,7 +47,12 @@ export type IllustrationStyle =
   | "bd"
   | "aquarelle"
   | "papier"
-  | "pastel";
+  | "pastel"
+  | "realiste"
+  | "anim3d"
+  | "crayon"
+  | "classique"
+  | "pixel";
 
 /**
  * Catalogue des styles proposés au parent. L'ordre d'affichage est celui-ci :
@@ -79,12 +84,12 @@ export const ILLUSTRATION_STYLES: Record<
       "friendly rounded character design, lively outdoor exploration, crisp sense of wonder, gentle depth of field",
   },
   manga: {
-    label: "Manga",
-    description: "Traits nets, grands yeux expressifs",
+    label: "Manga / Animé",
+    description: "Style dessin animé japonais, grands yeux",
     prompt:
-      "charming kawaii anime illustration for young children, clean confident linework, smooth soft cel shading, " +
+      "anime / manga illustration for young children, clean confident linework, smooth soft cel shading, " +
       "big expressive sparkling eyes, gentle rosy blush, bright yet soft cool palette, " +
-      "wholesome cosy Studio-Ghibli-like gentleness, airy skies",
+      "gentle hand-painted anime film backgrounds, airy skies, wholesome and cosy",
   },
   bd: {
     label: "BD / Super-héros",
@@ -118,6 +123,43 @@ export const ILLUSTRATION_STYLES: Record<
       "soft pastel and colored-pencil children's book illustration, velvety chalky texture, " +
       "gentle grainy strokes, rounded cuddly character design, warm-hearted but COOL pastel palette " +
       "of mauve, periwinkle, mint and dusty pink (no yellow, no orange), cosy dreamy bedtime mood, soft diffuse light",
+  },
+  realiste: {
+    label: "Réaliste",
+    description: "Peinture détaillée, proche du vrai",
+    prompt:
+      "semi-realistic digital painting for a children's book, natural human proportions, detailed realistic faces " +
+      "and textures, soft cinematic lighting, rich believable environments, painterly brushwork, gentle and " +
+      "heartwarming mood (child-friendly, never scary)",
+  },
+  anim3d: {
+    label: "Animation 3D",
+    description: "Comme un film d'animation en 3D",
+    prompt:
+      "3D animated feature film style render, soft global illumination, subsurface skin shading, rounded appealing " +
+      "character design with big expressive eyes, polished stylized materials, vibrant yet soft colors, shallow " +
+      "depth of field, cinematic family-movie look (original characters only)",
+  },
+  crayon: {
+    label: "Crayon de couleur",
+    description: "Dessin fait main, tout en douceur",
+    prompt:
+      "hand-drawn colored pencil illustration on textured paper, visible pencil strokes and hatching, warm-hearted " +
+      "sketchbook charm, light airy colors, slightly naive childlike drawing quality, white paper showing through",
+  },
+  classique: {
+    label: "Conte classique",
+    description: "Album d'autrefois, charme vintage",
+    prompt:
+      "vintage mid-century children's storybook illustration, gouache and ink, limited harmonious palette, " +
+      "subtle print grain, timeless classic fairy-tale charm, elegant simple shapes, nostalgic and tender",
+  },
+  pixel: {
+    label: "Pixel art",
+    description: "Façon jeu vidéo rétro",
+    prompt:
+      "colorful pixel art scene in the style of a cosy retro video game, crisp clean pixels, limited vibrant " +
+      "palette, cute chunky character sprites with clear readable faces, detailed pixel background, joyful adventure",
   },
 };
 
@@ -176,6 +218,8 @@ export function buildIllustrationPrompt(opts: {
   scene: string;
   heroName?: string;
   appearance?: string;
+  /** Fiche des personnages secondaires récurrents (en anglais). */
+  recurringCharacters?: string;
   /** true : version dessin au trait pour le cahier de coloriage. */
   coloring?: boolean;
 }): string {
@@ -185,6 +229,13 @@ export function buildIllustrationPrompt(opts: {
 
   const personnage = buildCharacterSheet(opts.heroName, opts.appearance);
   if (personnage) parts.push(personnage);
+
+  if (opts.recurringCharacters?.trim()) {
+    parts.push(
+      `Recurring characters — if they appear, draw them EXACTLY as described, identical on every page ` +
+        `(same species, colors, size and features): ${opts.recurringCharacters.trim()}`,
+    );
+  }
 
   parts.push(`Scene: ${opts.scene}`);
 

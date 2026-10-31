@@ -79,7 +79,7 @@ const ETAPES = [
   {
     illu: "together",
     titre: "Lisez-la ensemble",
-    texte: "À l'écran, à voix haute ou projetée au mur. Gardez-la en PDF si elle vous plaît.",
+    texte: "À l'écran ou à voix haute, blottis ensemble. Gardez-la en PDF si elle vous plaît.",
   },
 ];
 
@@ -318,7 +318,7 @@ export default async function AccueilPage() {
             <ul className="mt-5 flex-1 space-y-2.5 text-[15px]">
               <li className="flex gap-2"><Coche />Le livre complet, à l'écran</li>
               <li className="flex gap-2"><Coche />Lecture à voix haute</li>
-              <li className="flex gap-2"><Coche />Mode projection au mur</li>
+              <li className="flex gap-2"><Coche />Sur ordinateur, tablette ou téléphone</li>
             </ul>
             <Link href={cta} className="btn-secondaire mt-6">Créer gratuitement</Link>
           </div>

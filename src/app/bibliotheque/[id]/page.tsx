@@ -8,6 +8,7 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { failStaleBooks } from "@/lib/bookMaintenance";
 import { storySchema } from "@/lib/storySchema";
+import { lightenStory, migrateBookImagesToBlob } from "@/lib/bookImages";
 import BookReader from "@/components/BookReader";
 import DeleteBookButton from "@/components/DeleteBookButton";
 import AutoRefresh from "@/components/AutoRefresh";
@@ -33,6 +34,15 @@ export default async function LivrePage({
   if (!book) notFound();
 
   const premium = book.tier === "premium";
+
+  // Histoire prête à afficher : images déplacées vers Vercel Blob si possible,
+  // et jamais embarquées dans la page (elle resterait trop lourde pour Vercel).
+  const parsed =
+    book.status === "ready" && book.pages ? storySchema.safeParse(book.pages) : null;
+  const story =
+    parsed?.success
+      ? lightenStory(await migrateBookImagesToBlob(book.id, parsed.data), book.id)
+      : null;
 
   return (
     <div className="space-y-6">
@@ -81,20 +91,18 @@ export default async function LivrePage({
         </Notice>
       )}
 
-      {book.status === "ready" && book.pages ? (
+      {parsed && !parsed.success && (
+        <Notice kind="erreur">
+          Le contenu de ce livre est illisible. Merci de le supprimer et d'en créer un
+          nouveau.
+        </Notice>
+      )}
+
+      {story ? (
         (() => {
-          const parsed = storySchema.safeParse(book.pages);
-          if (!parsed.success) {
-            return (
-              <Notice kind="erreur">
-                Le contenu de ce livre est illisible. Merci de le supprimer et d'en
-                créer un nouveau.
-              </Notice>
-            );
-          }
           return (
             <>
-              <BookReader story={parsed.data} />
+              <BookReader story={story} />
               <div className="carte flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="font-serif text-xl">🎁 La boutique de ce livre</h2>
