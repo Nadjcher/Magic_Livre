@@ -73,6 +73,26 @@ export async function GET(req: Request): Promise<Response> {
     out.errors.push("order_sku_missing");
   }
 
+  // Stockage des livres (sans aucune donnée personnelle) : nombre, poids moyen
+  // du contenu et mode de stockage des images (data URL en base ou Blob).
+  try {
+    const rows = await prisma.$queryRaw<
+      { n: bigint; avg_kb: number | null; max_kb: number | null; data_covers: bigint }[]
+    >`SELECT count(*) AS n,
+             round(avg(length(pages::text)) / 1024) AS avg_kb,
+             round(max(length(pages::text)) / 1024) AS max_kb,
+             sum(CASE WHEN pages->>'couvertureUrl' LIKE 'data:%' THEN 1 ELSE 0 END) AS data_covers
+      FROM "Book" WHERE pages IS NOT NULL`;
+    const r = rows[0];
+    out.env.BLOB_READ_WRITE_TOKEN = present("BLOB_READ_WRITE_TOKEN");
+    out.db.storage = true;
+    (out as Record<string, unknown>).books = r
+      ? { count: Number(r.n), avgKb: Number(r.avg_kb ?? 0), maxKb: Number(r.max_kb ?? 0), dataUrlCovers: Number(r.data_covers ?? 0) }
+      : null;
+  } catch {
+    out.db.storage = false;
+  }
+
   // Diagnostic image : /api/health?img=1 — sonde directement l'API Gemini pour
   // chaque modèle et remonte le VRAI code/message d'erreur de Google.
   const img = new URL(req.url).searchParams.get("img");
