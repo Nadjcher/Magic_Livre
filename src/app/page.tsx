@@ -11,6 +11,7 @@ import { auth } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { getAppUrl } from "@/lib/appUrl";
 import { findThemeById } from "@/lib/themes";
+import { ILLUSTRATION_STYLES, ILLUSTRATION_STYLE_KEYS } from "@/lib/style_config";
 
 const APP_URL = getAppUrl();
 
@@ -269,6 +270,30 @@ export default async function AccueilPage() {
             </li>
           ))}
         </ol>
+      </section>
+
+      {/* ─── Styles de dessin ─── */}
+      <section>
+        <h2 className="text-center text-3xl sm:text-4xl">12 styles de dessin, au choix</h2>
+        <p className="mx-auto mt-3 max-w-[50ch] text-center text-magique-texteClair">
+          La même scène, dessinée de douze façons. Choisissez celle que votre enfant préférera.
+        </p>
+        <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {ILLUSTRATION_STYLE_KEYS.map((k) => (
+            <li key={k} className="overflow-hidden rounded-2xl border border-magique-trait bg-white">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/styles/${k}.webp`}
+                alt={`Exemple du style ${ILLUSTRATION_STYLES[k].label}`}
+                loading="lazy"
+                className="aspect-[4/3] w-full object-cover"
+              />
+              <p className="px-3 py-2 text-sm font-semibold text-magique-texte">
+                {ILLUSTRATION_STYLES[k].label}
+              </p>
+            </li>
+          ))}
+        </ul>
       </section>
 
       {/* ─── Catalogue ─── */}

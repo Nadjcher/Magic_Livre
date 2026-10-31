@@ -227,24 +227,44 @@ export default function CreateBookForm({
       <div data-tilt className="carte">
         <Etape n="3">Le style des illustrations</Etape>
         <input type="hidden" name="style" value={style} />
-        <div className="grid gap-3 sm:grid-cols-3">
-          {STYLE_KEYS.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setStyle(s)}
-              className={`rounded-xl border-2 p-3 text-left transition ${
-                style === s
-                  ? "anim-pulse-or border-magique-primaire bg-magique-primaire/5"
-                  : "border-gray-200 hover:border-magique-primaire"
-              }`}
-            >
-              <span className="font-semibold">{ILLUSTRATION_STYLES[s].label}</span>
-              <span className="block text-sm text-magique-texteClair">
-                {ILLUSTRATION_STYLES[s].description}
-              </span>
-            </button>
-          ))}
+        <p className="-mt-1 mb-3 text-sm text-magique-texteClair">
+          La même scène dessinée dans chaque style : choisissez celui qui vous plaît.
+        </p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Styles d'illustration">
+          {STYLE_KEYS.map((s) => {
+            const actif = style === s;
+            return (
+              <button
+                key={s}
+                type="button"
+                role="radio"
+                aria-checked={actif}
+                onClick={() => setStyle(s)}
+                className={`overflow-hidden rounded-xl border-2 text-left transition ${
+                  actif
+                    ? "border-magique-primaire bg-magique-primaire/5 shadow-or"
+                    : "border-magique-trait hover:border-magique-primaire"
+                }`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/styles/${s}.webp`}
+                  alt={`Exemple du style ${ILLUSTRATION_STYLES[s].label}`}
+                  loading="lazy"
+                  className="aspect-[4/3] w-full object-cover"
+                />
+                <span className="block p-2.5">
+                  <span className="flex items-center gap-1.5 font-semibold">
+                    {actif && <span className="text-magique-primaire" aria-hidden="true">✓</span>}
+                    {ILLUSTRATION_STYLES[s].label}
+                  </span>
+                  <span className="block text-xs text-magique-texteClair sm:text-sm">
+                    {ILLUSTRATION_STYLES[s].description}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
