@@ -77,7 +77,7 @@ function Illu({ nom, alt, className = "" }: { nom: string; alt: string; classNam
 
 const ETAPES = [
   { num: "I", illu: "imagine", titre: "Vous imaginez", texte: "Le prénom, l'âge, puis un héros original ou votre propre idée d'aventure." },
-  { num: "II", illu: "write", titre: "La plume s'anime", texte: "Une histoire douce et illustrée s'écrit en moins d'une minute." },
+  { num: "II", illu: "write", titre: "La plume s'anime", texte: "Une histoire unique et illustrée s'écrit en une à deux minutes." },
   { num: "III", illu: "together", titre: "Vous lisez ensemble", texte: "Page par page, à voix haute. Puis un joli PDF à imprimer et à garder." },
 ];
 

@@ -223,12 +223,7 @@ async function addIllustrations(
       : req.childFirstName;
   const base = hashSeed(story.titre + req.childFirstName);
 
-  // 0) VRAIE RESSEMBLANCE : le portrait (fal), lancé en parallèle du texte,
-  //    sert d'ancre de personnage s'il a pu être généré.
-
-  // 1) COUVERTURE : fixe le design du héros. Ancrée sur le portrait ressemblant
-  //    s'il existe (sinon, elle deviendra elle-même l'ancre des pages).
-  const cover = await generateIllustration({
+  const coverRequest = {
     style,
     scene: `couverture de livre : ${story.titre}`,
     heroName,
@@ -237,33 +232,45 @@ async function addIllustrations(
     anchorImage: portrait ?? undefined,
     premium: req.premium,
     seed: base,
-  });
+  };
 
-  // Ancre de personnage pour toutes les pages : le portrait ressemblant en
-  // priorité, sinon la couverture → même enfant, même tenue, même style partout.
-  const anchor =
-    portrait ??
-    (cover.base64 !== undefined
+  /** Génère toutes les pages, ancrées sur `anchor` (cohérence du héros). */
+  const generatePages = (anchor: { base64: string; mime: string } | undefined) =>
+    Promise.all(
+      story.pages.map(async (p, i) => {
+        const { imageUrl } = await generateIllustration({
+          style,
+          scene: p.scene_illustration,
+          heroName,
+          appearance: req.appearance,
+          // Avec un portrait ressemblant, il suffit comme référence (charge
+          // allégée) ; sinon on garde la photo comme référence.
+          referenceImage: portrait ? undefined : req.photo,
+          anchorImage: anchor,
+          premium: req.premium,
+          seed: base + i + 1,
+        });
+        return { ...p, imageUrl };
+      }),
+    );
+
+  // Avec un portrait (fal) : il sert d'ancre à tout le livre, donc couverture
+  // et pages sont générées EN MÊME TEMPS (gain de temps important).
+  if (portrait) {
+    const [cover, pages] = await Promise.all([
+      generateIllustration(coverRequest),
+      generatePages(portrait),
+    ]);
+    return { ...story, pages, couvertureUrl: cover.imageUrl, style };
+  }
+
+  // Sans portrait : la couverture est générée d'abord et devient l'ancre du
+  // héros pour toutes les pages (même enfant, même tenue, même style).
+  const cover = await generateIllustration(coverRequest);
+  const pages = await generatePages(
+    cover.base64 !== undefined
       ? { base64: cover.base64, mime: cover.mime ?? "image/png" }
-      : undefined);
-
-  // 2) Toutes les pages, ancrées sur la couverture (cohérence) + photo (ressemblance).
-  const pages = await Promise.all(
-    story.pages.map(async (p, i) => {
-      const { imageUrl } = await generateIllustration({
-        style,
-        scene: p.scene_illustration,
-        heroName,
-        appearance: req.appearance,
-        // Si on a un portrait ressemblant, il suffit comme référence (charge
-        // allégée) ; sinon on garde la photo comme référence.
-        referenceImage: portrait ? undefined : req.photo,
-        anchorImage: anchor,
-        premium: req.premium,
-        seed: base + i + 1,
-      });
-      return { ...p, imageUrl };
-    }),
+      : undefined,
   );
 
   return { ...story, pages, couvertureUrl: cover.imageUrl, style };

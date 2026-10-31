@@ -2,7 +2,7 @@
  * Entretien des livres : marque « échoué » tout livre resté bloqué en
  * « génération » trop longtemps (fonction serverless tuée, timeout réseau…).
  *
- * La génération normale dure < 60 s (maxDuration). Au-delà du seuil ci-dessous,
+ * La génération est plafonnée à 5 min (maxDuration de /creer). Au-delà du seuil,
  * un livre encore « generating » est forcément mort → on le libère pour que
  * l'utilisateur puisse le supprimer et réessayer, au lieu de rester bloqué.
  *
@@ -13,7 +13,7 @@
 import "server-only";
 import { prisma } from "./prisma";
 
-export const STALE_GENERATING_MS = 4 * 60 * 1000; // 4 minutes
+export const STALE_GENERATING_MS = 6 * 60 * 1000; // 6 minutes (> durée max de 5 min)
 
 /** Libère les livres de l'utilisateur bloqués en génération depuis trop longtemps. */
 export async function failStaleBooks(userId: string): Promise<void> {

@@ -17,8 +17,9 @@ function euros(cents: number): string {
 }
 
 // La génération (histoire + illustrations) peut durer plusieurs dizaines de
-// secondes : on laisse jusqu'à 60 s à la fonction serverless.
-export const maxDuration = 60;
+// secondes (jusqu'à ~1 min 30 avec le portrait fal) : on laisse 5 min, le
+// maximum du plan Vercel gratuit avec Fluid compute.
+export const maxDuration = 300;
 
 export default async function CreerPage() {
   const user = await getCurrentUser();

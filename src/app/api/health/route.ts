@@ -13,7 +13,7 @@ import { requestPortrait } from "@/lib/faceIdentity";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 function present(name: string): boolean {
   return Boolean((process.env[name] ?? "").trim());

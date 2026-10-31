@@ -25,7 +25,7 @@ const nunito = Nunito({
 
 const APP_URL = getAppUrl();
 const DESCRIPTION =
-  "Créez en une minute un livre illustré personnalisé pour votre enfant : son prénom, " +
+  "Créez en quelques minutes un livre illustré personnalisé pour votre enfant : son prénom, " +
   "un héros original et une histoire douce à lire ensemble. PDF à imprimer dès 4,99 €, sans abonnement.";
 
 export const metadata: Metadata = {
