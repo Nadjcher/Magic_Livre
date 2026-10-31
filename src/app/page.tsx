@@ -181,11 +181,11 @@ export default function AccueilPage() {
             Un seul achat, et tout un kit à imprimer, découper et offrir.
           </p>
         </header>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {PLUS.map((p) => (
             <div
               key={p.titre}
-              className="flex flex-col items-center gap-2 rounded-2xl border border-magique-trait bg-white/70 p-5 text-center"
+              className="flex flex-col items-center gap-2 rounded-2xl border border-magique-trait bg-white/70 p-3 text-center sm:p-5"
             >
               <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-magique-primaire/10 text-3xl" aria-hidden="true">
                 {p.emoji}

@@ -44,8 +44,13 @@ export default function BookReader({ story }: { story: Story }) {
   const [enLecture, setEnLecture] = useState(false);
   const [projection, setProjection] = useState(false);
   const [autoDefile, setAutoDefile] = useState(false);
-  const voixDisponible =
-    typeof window !== "undefined" && "speechSynthesis" in window;
+  // Détectée APRÈS le montage : le serveur ne connaît pas la Web Speech API.
+  // La calculer pendant le rendu ferait diverger le HTML serveur et client
+  // (erreurs d'hydratation React #418/#423).
+  const [voixDisponible, setVoixDisponible] = useState(false);
+  useEffect(() => {
+    setVoixDisponible("speechSynthesis" in window);
+  }, []);
 
   const texteCourant = useMemo(() => {
     if (index === 0) return story.titre;

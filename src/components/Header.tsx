@@ -6,6 +6,7 @@
 import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
 import Logo from "./Logo";
+import NavMenu from "./NavMenu";
 
 export default async function Header() {
   const session = await auth();
@@ -17,38 +18,36 @@ export default async function Header() {
         <Link href="/" aria-label="Accueil Mon Livre Magique">
           <Logo />
         </Link>
-        <div className="flex flex-wrap items-center gap-3 text-sm">
-          {connecte ? (
-            <>
-              <Link href="/creer" className="hover:text-magique-primaire">
-                Créer un livre
-              </Link>
-              <Link href="/bibliotheque" className="hover:text-magique-primaire">
-                Ma bibliothèque
-              </Link>
-              <Link href="/enfants" className="hover:text-magique-primaire">
-                Mes enfants
-              </Link>
-              <Link href="/compte" className="hover:text-magique-primaire">
-                Mon compte
-              </Link>
-              <form
-                action={async () => {
-                  "use server";
-                  await signOut({ redirectTo: "/" });
-                }}
-              >
-                <button type="submit" className="text-magique-texteClair hover:underline">
-                  Se déconnecter
-                </button>
-              </form>
-            </>
-          ) : (
-            <Link href="/connexion" className="btn-primaire px-4 py-2 text-sm">
-              Se connecter
+        {connecte ? (
+          <NavMenu>
+            <Link href="/creer" className="hover:text-magique-primaire">
+              Créer un livre
             </Link>
-          )}
-        </div>
+            <Link href="/bibliotheque" className="hover:text-magique-primaire">
+              Ma bibliothèque
+            </Link>
+            <Link href="/enfants" className="hover:text-magique-primaire">
+              Mes enfants
+            </Link>
+            <Link href="/compte" className="hover:text-magique-primaire">
+              Mon compte
+            </Link>
+            <form
+              action={async () => {
+                "use server";
+                await signOut({ redirectTo: "/" });
+              }}
+            >
+              <button type="submit" className="text-magique-texteClair hover:underline">
+                Se déconnecter
+              </button>
+            </form>
+          </NavMenu>
+        ) : (
+          <Link href="/connexion" className="btn-primaire whitespace-nowrap px-4 py-2 text-sm">
+            Se connecter
+          </Link>
+        )}
       </nav>
     </header>
   );
