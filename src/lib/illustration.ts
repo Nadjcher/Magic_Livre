@@ -46,6 +46,25 @@ export interface IllustrationRequest {
   premium?: boolean;
   /** Fiche des personnages secondaires récurrents (en anglais). */
   recurringCharacters?: string;
+  /**
+   * Fiches de référence dessinées des personnages secondaires présents dans la
+   * scène : chacun est redessiné EXACTEMENT comme sur sa fiche.
+   */
+  castRefs?: { name: string; base64: string; mime: string }[];
+  /** false : ne pas stocker l'image (fiche de référence interne). */
+  stocker?: boolean;
+}
+
+type Ref = { base64: string; mime: string };
+type CastRef = Ref & { name: string };
+
+/** Consignes pour les fiches de personnages secondaires (images de référence). */
+function consignesCast(cast: CastRef[], premierIndex: number): string[] {
+  return cast.map(
+    (c, k) =>
+      `Reference image ${premierIndex + k} is the character sheet of ${c.name}: draw ${c.name} EXACTLY like this ` +
+      "(same species, shape, colors, outfit and accessories) — never as another animal or person.",
+  );
 }
 
 export interface IllustrationResult {
@@ -81,7 +100,7 @@ export async function generateIllustration(
       let error = "";
       for (let essai = 0; essai < 3 && !img; essai++) {
         if (essai > 0) await new Promise((r) => setTimeout(r, essai * 4000));
-        const r = await geminiImage(prompt, model, req.referenceImage, req.anchorImage);
+        const r = await geminiImage(prompt, model, req.referenceImage, req.anchorImage, req.castRefs);
         if ("img" in r) img = r.img;
         else {
           error = r.error;
@@ -93,7 +112,7 @@ export async function generateIllustration(
         return { imageUrl: null, error };
       }
       return {
-        imageUrl: await storeImage(img.base64, img.mime, seed),
+        imageUrl: req.stocker === false ? null : await storeImage(img.base64, img.mime, seed),
         base64: img.base64,
         mime: img.mime,
       };
@@ -104,7 +123,7 @@ export async function generateIllustration(
       let error = "";
       for (let essai = 0; essai < 3 && !img; essai++) {
         if (essai > 0) await new Promise((r) => setTimeout(r, essai * 4000));
-        const r = await falImage(prompt, model, req.referenceImage, req.anchorImage);
+        const r = await falImage(prompt, model, req.referenceImage, req.anchorImage, req.castRefs);
         if ("img" in r) img = r.img;
         else {
           error = r.error;
@@ -115,7 +134,11 @@ export async function generateIllustration(
         console.error("[image] échec fal :", error);
         return { imageUrl: null, error };
       }
-      return { imageUrl: await storeImage(img.base64, img.mime, seed), base64: img.base64, mime: img.mime };
+      return {
+        imageUrl: req.stocker === false ? null : await storeImage(img.base64, img.mime, seed),
+        base64: img.base64,
+        mime: img.mime,
+      };
     }
     // "none" ou valeur inconnue : pas d'image.
     return { imageUrl: null };
@@ -164,6 +187,7 @@ async function geminiImage(
   model: string,
   reference?: { base64: string; mime: string },
   anchor?: { base64: string; mime: string },
+  cast: CastRef[] = [],
 ): Promise<{ img: { base64: string; mime: string } } | { error: string; retry: boolean }> {
   const key = env.geminiApiKey();
   if (!key) return { error: "GEMINI_API_KEY absente", retry: false };
@@ -196,6 +220,8 @@ async function geminiImage(
     );
   }
 
+  for (const c of cast) parts.push({ inlineData: { mimeType: c.mime, data: c.base64 } });
+  consignes.push(...consignesCast(cast, (reference ? 1 : 0) + (anchor ? 1 : 0) + 1));
   const texte =
     (consignes.length > 0
       ? "CONSIGNES IMPÉRATIVES DE PERSONNAGE :\n" + consignes.join("\n") + "\n\nSCÈNE À DESSINER : "
@@ -263,11 +289,12 @@ async function falImage(
   model: string,
   reference?: { base64: string; mime: string },
   anchor?: { base64: string; mime: string },
+  cast: CastRef[] = [],
 ): Promise<{ img: { base64: string; mime: string } } | { error: string; retry: boolean }> {
   const key = env.falApiKey();
   if (!key) return { error: "FAL_API_KEY absente", retry: false };
 
-  const refs = [reference, anchor].filter((r): r is { base64: string; mime: string } => Boolean(r));
+  const refs: Ref[] = [reference, anchor, ...cast].filter((r): r is Ref => Boolean(r));
   const consignes: string[] = [];
   if (reference) {
     consignes.push(
@@ -282,6 +309,7 @@ async function falImage(
         "completely NEW full-bleed scene that follows the description below.",
     );
   }
+  consignes.push(...consignesCast(cast, (reference ? 1 : 0) + (anchor ? 1 : 0) + 1));
   const texte = consignes.length ? `${consignes.join(" ")} ${prompt}` : prompt;
 
   let endpoint = model;

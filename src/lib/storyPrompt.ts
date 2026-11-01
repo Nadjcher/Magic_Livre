@@ -42,14 +42,18 @@ Format de sortie OBLIGATOIRE : réponds UNIQUEMENT avec un objet JSON strict, sa
   "plan": "string",
   "titre": "string",
   "personnages": "string",
+  "cast": [ { "nom": "string", "visuel": "string" } ],
   "pages": [
-    { "texte": "string", "scene_illustration": "string" }
+    { "texte": "string", "scene_illustration": "string", "presents": ["string"] }
   ]
 }
 
 Le champ "plan" (écrit EN PREMIER, 5 à 8 lignes) fixe l'histoire AVANT de l'écrire : le désir du héros, le problème, chaque personnage secondaire (qui il est, comment il entre dans l'histoire), les 2–3 étapes, le moment fort, la résolution logique. Ensuite, les pages suivent CE plan, sans ajout gratuit.
 
 Le champ "personnages" COMMENCE TOUJOURS par la TENUE UNIQUE du héros, choisie une fois pour toutes et identique sur TOUTES les pages (ex. "Kamil (hero): bright yellow t-shirt, dark blue jeans, red sneakers") — sauf si l'histoire impose un changement explicite (pyjama le soir…), alors précise-le. Il contient ensuite une fiche visuelle EN ANGLAIS de CHAQUE personnage secondaire récurrent (compagnon, animal, créature, parent…) : nom, espèce, taille, couleurs exactes, matière/pelage, signes distinctifs, tenue. Exemple : "Puffi: a small round fluffy creature the size of a kitten, mint-green fur, big black eyes, tiny pink cheeks, two short leaf-shaped antennas". Cette fiche sera reprise mot pour mot sur chaque illustration : sois précis et NE CHANGE JAMAIS l'apparence d'un personnage d'une page à l'autre. Dans chaque "scene_illustration", nomme les personnages présents et reprends leurs traits clés.
+
+Le champ "cast" liste les personnages SECONDAIRES récurrents (2 à 4 maximum, PAS le héros) : "nom" exactement comme dans le texte, "visuel" = description visuelle précise EN ANGLAIS (espèce, taille, couleurs, signes distinctifs, accessoires), qui servira à dessiner leur fiche de référence. Garde peu de personnages : chaque nouveau personnage doit être utile à l'histoire.
+Le champ "presents" de chaque page liste les noms (tels que dans "cast") des personnages secondaires VISIBLES sur l'illustration de cette page ([] si aucun). Aucun autre personnage ne doit figurer dans la scène.
 
 Le champ "texte" contient le texte de la page, dont la longueur et la complexité suivent STRICTEMENT les consignes d'âge de la demande (d'une seule phrase très courte pour un tout-petit, jusqu'à plusieurs phrases riches pour un grand).
 Le champ "scene_illustration" décrit précisément la scène à dessiner EN ANGLAIS (décor, personnages, action, émotion, lumière), en une phrase détaillée, sans aucun texte écrit ni personnage protégé.`;

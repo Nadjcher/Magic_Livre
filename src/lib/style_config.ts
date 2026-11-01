@@ -185,7 +185,8 @@ export const BASE_IMAGE_PROMPT =
   "balanced storybook composition; " +
   "KEEP THE EXACT SAME art style, rendering technique and color palette as the other pages of this same book, " +
   "so every page looks like one consistent illustrated album; " +
-  "absolutely no text, no letters, no words, no numbers, no watermark, no logo, no signature; " +
+  "absolutely no text, no letters, no words, no numbers, no watermark, no logo, no brand marks on clothing, no signature; " +
+  "ONLY the characters named in the scene appear — no extra people, no extra children, no random animals; " +
   "wholesome and child-safe, no scary, no violent, no sad or dark elements";
 
 /**

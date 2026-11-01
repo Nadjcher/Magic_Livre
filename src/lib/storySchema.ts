@@ -17,6 +17,15 @@ export const storyPageSchema = z.object({
     .min(1, "La description de l'illustration est vide."),
   // URL de l'illustration générée (ajoutée après la génération du texte).
   imageUrl: z.string().url().nullable().optional(),
+  // Personnages secondaires visibles sur l'illustration (noms de la distribution).
+  presents: z
+    .preprocess((v) => (Array.isArray(v) ? v.map(String).slice(0, 6) : undefined), z.array(z.string()).optional()),
+});
+
+/** Personnage secondaire récurrent : nom + description visuelle (anglais). */
+export const castSchema = z.object({
+  nom: z.string().min(1).max(40),
+  visuel: z.string().min(1).max(400),
 });
 
 /** Une scène de la bande-annonce : clip animé (IA vidéo) + phrase lue. */
@@ -59,6 +68,10 @@ export const storySchema = z.object({
       z.string().optional(),
     )
     .transform((v) => v?.slice(0, 1500)),
+  // Distribution : personnages secondaires récurrents (fiches dessinées).
+  cast: z
+    .preprocess((v) => (Array.isArray(v) ? v.slice(0, 5) : undefined), z.array(castSchema).optional())
+    .catch(undefined),
   // Illustration de couverture (optionnelle).
   couvertureUrl: z.string().url().nullable().optional(),
   // Style d'illustration retenu (mémoire, utile pour un « tome » suivant).

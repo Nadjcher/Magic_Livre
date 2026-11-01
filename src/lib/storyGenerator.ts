@@ -72,13 +72,14 @@ async function callModel(
   userMessage: string,
   temperature = 0.9,
   premium = false,
+  info?: { viaFal?: boolean },
 ): Promise<string> {
   // Écriture par un grand modèle (Claude via fal) : bien meilleur en français
   // et en cohérence. Repli automatique sur Groq en cas d'échec.
   if (env.falApiKey() && process.env.STORY_LLM !== "groq") {
     const modele = premium
       ? process.env.STORY_MODEL_PREMIUM || "anthropic/claude-opus-5.5"
-      : process.env.STORY_MODEL || "anthropic/claude-sonnet-5.5";
+      : process.env.STORY_MODEL || "anthropic/claude-opus-5.5";
     try {
       const r = await fetch("https://fal.run/openrouter/router", {
         method: "POST",
@@ -94,10 +95,13 @@ async function callModel(
           max_tokens: 16000,
         }),
         // Écriture ≤ 100 s, relecture ≤ 70 s : le tout reste sous la limite de 5 min.
-        signal: AbortSignal.timeout(temperature < 0.6 ? 70_000 : 100_000),
+        signal: AbortSignal.timeout(temperature < 0.6 ? 70_000 : 150_000),
       });
       const j = (await r.json()) as { output?: string; error?: unknown };
-      if (r.ok && j.output && j.output.includes("{")) return j.output.trim();
+      if (r.ok && j.output && j.output.includes("{")) {
+        if (info) info.viaFal = true;
+        return j.output.trim();
+      }
       console.error("[texte] fal/openrouter :", r.status, JSON.stringify(j.error ?? j).slice(0, 200));
     } catch (e) {
       console.error("[texte] fal/openrouter :", String(e).slice(0, 200));
@@ -173,8 +177,14 @@ async function polishStory(
   ].join(" ");
   if (findProtectedNames(fullText).length > 0) return null;
 
-  // Fiche personnages : celle corrigée par l'éditeur, sinon l'originale.
-  return { ...parsed.story, personnages: parsed.story.personnages || story.personnages };
+  // Fiche personnages : celle corrigée par l'éditeur, sinon l'originale ; la
+  // distribution et les personnages présents par page sont conservés.
+  return {
+    ...parsed.story,
+    personnages: parsed.story.personnages || story.personnages,
+    cast: parsed.story.cast ?? story.cast,
+    pages: parsed.story.pages.map((p, i) => ({ ...p, presents: p.presents ?? story.pages[i]?.presents })),
+  };
 }
 
 /**
@@ -202,13 +212,15 @@ export async function generateStory(req: StoryRequest): Promise<GenerateResult> 
       : Promise.resolve(null);
 
   let lastMessage = "La génération de l'histoire a échoué. Veuillez réessayer.";
+  // Fournisseur effectivement utilisé (Claude via fal, ou repli Groq).
+  const info: { viaFal?: boolean } = {};
 
   // Deux tentatives : la première, puis une seconde en cas de format invalide.
   for (let attempt = 0; attempt < 2; attempt++) {
     let raw: string;
     try {
       // Température élevée à l'écriture (créativité).
-      raw = await callModel(client, model, SYSTEM_PROMPT, userMessage, 0.9, req.premium);
+      raw = await callModel(client, model, SYSTEM_PROMPT, userMessage, 0.9, req.premium, info);
     } catch {
       lastMessage =
         "Le service de génération est momentanément indisponible. Réessayez dans quelques instants.";
@@ -244,7 +256,9 @@ export async function generateStory(req: StoryRequest): Promise<GenerateResult> 
 
     // Passe de révision éditoriale (clarté + adéquation à l'âge). En cas
     // d'échec de la réécriture, on conserve l'histoire d'origine.
-    const polished = await polishStory(client, model, parsed.story, req);
+    // Claude (plan + réflexion) écrit déjà une histoire cohérente : la relecture
+    // n'est utile qu'avec le modèle de repli (et économise du temps).
+    const polished = info.viaFal ? null : await polishStory(client, model, parsed.story, req);
     const base = polished ?? parsed.story;
 
     // Texte validé : on ajoute les illustrations si la génération est activée.
@@ -266,9 +280,28 @@ function hashSeed(text: string): number {
   return Math.abs(h) % 1_000_000;
 }
 
+/** Retrouve les fiches des personnages présents sur une page (par nom). */
+function fichesPresentes(
+  page: Story["pages"][number],
+  fiches: Map<string, { base64: string; mime: string }>,
+): { name: string; base64: string; mime: string }[] {
+  const noms = new Set<string>();
+  const texte = `${page.texte} ${page.scene_illustration}`.toLowerCase();
+  for (const nom of fiches.keys()) {
+    const declare = page.presents?.some((p) => p.toLowerCase() === nom.toLowerCase());
+    // Repli si "presents" manque : le nom apparaît dans la scène dessinée.
+    if (declare || (!page.presents && texte.includes(nom.toLowerCase()))) noms.add(nom);
+  }
+  return [...noms].slice(0, 3).map((name) => ({ name, ...fiches.get(name)! }));
+}
+
 /**
- * Ajoute une illustration à chaque page (et une couverture) si la génération
- * d'images est activée. En cas d'échec, l'URL reste nulle : le livre reste lisible.
+ * Illustre le livre comme un studio d'animation :
+ *  1. FICHES DE RÉFÉRENCE : le héros en pied (visage d'après la photo, tenue
+ *     fixe) et chaque personnage secondaire récurrent, dessinés une fois ;
+ *  2. couverture et pages, en parallèle, chacune avec les fiches des
+ *     personnages présents — personne ne change d'apparence ni d'espèce.
+ * En cas d'échec, l'URL reste nulle : le livre reste lisible.
  */
 async function addIllustrations(
   story: Story,
@@ -283,71 +316,85 @@ async function addIllustrations(
     return { ...story, style };
   }
 
-  // L'enfant est TOUJOURS le personnage principal dessiné (jamais un
-  // compagnon), pour que les illustrations le mettent au centre.
   const heroName = req.childFirstName;
   // Indication visuelle propre au type de livre (imagier épuré, cherche-et-trouve détaillé…).
   const indiceFormat = findFormat(req.format)?.illustration;
   const base = hashSeed(story.titre + req.childFirstName);
-
-  const coverRequest = {
+  const commun = {
     style,
-    scene:
-      `Book cover illustration for the story "${story.titre}": the hero in an exciting, emblematic ` +
-      `moment of this story (${story.pages[Math.floor(story.pages.length / 2)]?.scene_illustration ?? ""}), ` +
-      "together with the main recurring characters, rich setting, warm inviting composition, full body or " +
-      "medium shot, NOT a plain portrait",
     heroName,
     appearance: req.appearance,
-    referenceImage: req.photo,
-    anchorImage: portrait ?? undefined,
     premium: req.premium,
     recurringCharacters: story.personnages,
-    seed: base,
   };
 
-  /** Génère toutes les pages, ancrées sur `anchor` (cohérence du héros). */
-  // 4 pages à la fois : au-delà, Gemini répond « trop de requêtes » (429).
-  const generatePages = (anchor: { base64: string; mime: string } | undefined) =>
+  // 1. Fiches de référence (en parallèle, non stockées).
+  const cast = (story.cast ?? []).filter((c) => c.nom.toLowerCase() !== heroName.toLowerCase()).slice(0, 4);
+  const [ficheHeros, ...fichesCast] = await Promise.all([
+    generateIllustration({
+      ...commun,
+      scene:
+        `Character model sheet of the hero ${heroName}: full body, front view, standing in a friendly relaxed ` +
+        "pose, wearing EXACTLY the hero outfit from the character sheet, plain soft light background, nothing else",
+      referenceImage: portrait ? undefined : req.photo,
+      anchorImage: portrait ?? undefined,
+      stocker: false,
+      seed: base + 500,
+    }),
+    ...cast.map((c, k) =>
+      generateIllustration({
+        ...commun,
+        heroName: undefined,
+        appearance: undefined,
+        scene:
+          `Character model sheet of ${c.nom}: ${c.visuel}. Full body, front view, alone, plain soft light ` +
+          "background, nothing else",
+        stocker: false,
+        seed: base + 600 + k,
+      }),
+    ),
+  ]);
+  if (ficheHeros.error) errors.push(ficheHeros.error);
+  const ancre =
+    ficheHeros.base64 !== undefined
+      ? { base64: ficheHeros.base64, mime: ficheHeros.mime ?? "image/jpeg" }
+      : portrait ?? undefined;
+  const fiches = new Map<string, { base64: string; mime: string }>();
+  fichesCast.forEach((f, k) => {
+    if (f.base64) fiches.set(cast[k]!.nom, { base64: f.base64, mime: f.mime ?? "image/jpeg" });
+  });
+
+  // 2. Couverture + pages, toutes ancrées sur les fiches, en parallèle.
+  const pageCentrale = story.pages[Math.floor(story.pages.length / 2)];
+  const couvertureFiches = [...fiches.entries()].slice(0, 2).map(([name, f]) => ({ name, ...f }));
+  const [cover, pages] = await Promise.all([
+    generateIllustration({
+      ...commun,
+      scene:
+        `Book cover illustration for the story "${story.titre}": ${heroName} in an exciting, emblematic moment ` +
+        `of this story (${pageCentrale?.scene_illustration ?? ""})` +
+        (couvertureFiches.length ? `, together with ${couvertureFiches.map((c) => c.name).join(" and ")}` : "") +
+        ", rich setting, inviting composition, full body or medium shot, NOT a plain portrait",
+      // Sans fiche du héros (échec), la photo garde la ressemblance.
+      referenceImage: ancre ? undefined : req.photo,
+      anchorImage: ancre,
+      castRefs: couvertureFiches,
+      seed: base,
+    }),
     mapLimit(story.pages, 4, async (p, i) => {
-        const { imageUrl, error } = await generateIllustration({
-          style,
-          scene: indiceFormat ? `${p.scene_illustration}. ${indiceFormat}` : p.scene_illustration,
-          heroName,
-          appearance: req.appearance,
-          // Avec un portrait ressemblant, il suffit comme référence (charge
-          // allégée) ; sinon on garde la photo comme référence.
-          referenceImage: portrait ? undefined : req.photo,
-          anchorImage: anchor,
-          premium: req.premium,
-          recurringCharacters: story.personnages,
-          seed: base + i + 1,
-        });
-        if (error) errors.push(error);
-        return { ...p, imageUrl };
+      const { imageUrl, error } = await generateIllustration({
+        ...commun,
+        scene: indiceFormat ? `${p.scene_illustration}. ${indiceFormat}` : p.scene_illustration,
+        referenceImage: ancre ? undefined : req.photo,
+        anchorImage: ancre,
+        castRefs: fichesPresentes(p, fiches),
+        seed: base + i + 1,
       });
-
-  // Avec un portrait (fal) : il sert d'ancre à tout le livre, donc couverture
-  // et pages sont générées EN MÊME TEMPS (gain de temps important).
-  if (portrait) {
-    const [cover, pages] = await Promise.all([
-      generateIllustration(coverRequest),
-      generatePages(portrait),
-    ]);
-    if (cover.error) errors.push(cover.error);
-    return { ...story, pages, couvertureUrl: cover.imageUrl, style };
-  }
-
-  // Sans portrait : la couverture est générée d'abord et devient l'ancre du
-  // héros pour toutes les pages (même enfant, même tenue, même style).
-  const cover = await generateIllustration(coverRequest);
+      if (error) errors.push(error);
+      return { ...p, imageUrl };
+    }),
+  ]);
   if (cover.error) errors.push(cover.error);
-  const pages = await generatePages(
-    cover.base64 !== undefined
-      ? { base64: cover.base64, mime: cover.mime ?? "image/png" }
-      : undefined,
-  );
-
   return { ...story, pages, couvertureUrl: cover.imageUrl, style };
 }
 

@@ -219,14 +219,29 @@ export function buildStoryDocument(story: Story, childName?: string): JSX.Elemen
           );
         }
 
+        // Page « album » : l'illustration ENTIÈRE (jamais recadrée) dans un
+        // cadre arrondi, le texte dessous sur fond papier.
+        const long = p.texte.length > 300;
+        const hImage = long ? 300 : 392;
         return (
-          <Page key={index} size="A4" orientation="landscape" style={{ backgroundColor: PAPIER, flexDirection: "row" }}>
+          <Page key={index} size="A4" orientation="landscape" style={{ backgroundColor: PAPIER, paddingTop: 34, paddingHorizontal: 60, alignItems: "center" }}>
             {p.imageUrl ? (
-              <Image src={p.imageUrl} style={{ width: 505, height: 595, objectFit: "cover" }} />
+              <Image
+                src={p.imageUrl}
+                style={{ height: hImage, width: Math.round((hImage * 16) / 9), objectFit: "cover", borderRadius: 16 }}
+              />
             ) : null}
-            <View style={{ flex: 1, paddingHorizontal: 40, paddingVertical: 50, justifyContent: "center" }}>
-              <Ornement />
-              <Text style={{ fontFamily: f.texte, fontWeight: 500, fontSize: p.imageUrl ? Math.min(taille + 3, 24) : taille + 3, lineHeight: 1.55, color: ENCRE, textAlign: p.imageUrl ? "left" : "center" }}>
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 30 }}>
+              <Text
+                style={{
+                  fontFamily: f.texte,
+                  fontWeight: 500,
+                  fontSize: p.imageUrl ? Math.min(taille + 2, long ? 13 : 22) : taille + 3,
+                  lineHeight: 1.5,
+                  color: ENCRE,
+                  textAlign: "center",
+                }}
+              >
                 {p.texte}
               </Text>
               {!p.imageUrl ? (
