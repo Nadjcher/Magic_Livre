@@ -8,13 +8,36 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { failStaleBooks } from "@/lib/bookMaintenance";
 import DeleteBookButton from "@/components/DeleteBookButton";
-import { bookImageUrl } from "@/lib/bookImages";
+import { bookImageUrl, migrateBookImagesToBlob } from "@/lib/bookImages";
+import { storySchema } from "@/lib/storySchema";
+import { waitUntil } from "@vercel/functions";
+
+/**
+ * Allège en arrière-plan quelques anciens livres dont les images sont encore
+ * dans la base (déplacées vers Blob, ou recompressées). Sans effet visible.
+ */
+async function allegerAnciensLivres(userId: string): Promise<void> {
+  try {
+    const ids = await prisma.$queryRaw<{ id: string }[]>`
+      SELECT id FROM "Book"
+      WHERE "userId" = ${userId} AND "deletedAt" IS NULL
+        AND pages->>'couvertureUrl' LIKE 'data:image/png%'
+      LIMIT 2`;
+    for (const { id } of ids) {
+      const b = await prisma.book.findUnique({ where: { id }, select: { pages: true } });
+      const parsed = storySchema.safeParse(b?.pages);
+      if (parsed.success) await migrateBookImagesToBlob(id, parsed.data);
+    }
+  } catch {
+    /* best-effort */
+  }
+}
 
 const STATUT: Record<string, { label: string; classe: string }> = {
-  draft: { label: "Brouillon", classe: "bg-black/5 text-magique-texteClair" },
+  draft: { label: "Brouillon", classe: "bg-white/10 text-magique-texteClair" },
   generating: { label: "En cours…", classe: "bg-or/15 text-or-fonce" },
   ready: { label: "Prêt à lire", classe: "bg-magique-accent/15 text-emerald-200" },
-  failed: { label: "Échec", classe: "bg-magique-rose/15 text-rose-700" },
+  failed: { label: "Échec", classe: "bg-magique-rose/15 text-rose-200" },
 };
 
 export default async function BibliothequePage() {
@@ -23,6 +46,7 @@ export default async function BibliothequePage() {
 
   // Libère les livres bloqués en génération avant d'afficher la liste.
   await failStaleBooks(user.id);
+  waitUntil(allegerAnciensLivres(user.id));
 
   // On ne charge JAMAIS le contenu des livres ici (il peut peser des dizaines de
   // Mo) : seulement les infos d'affichage, et si une couverture existe.
@@ -78,7 +102,7 @@ export default async function BibliothequePage() {
           {books.map((book, i) => {
             const st = STATUT[book.status] ?? {
               label: book.status,
-              classe: "bg-black/5 text-magique-texteClair",
+              classe: "bg-white/10 text-magique-texteClair",
             };
             const thumb = avecCouverture.has(book.id) ? bookImageUrl(book.id, "cover") : null;
             return (
