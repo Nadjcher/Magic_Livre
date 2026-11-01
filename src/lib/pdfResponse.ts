@@ -10,7 +10,7 @@
 
 import "server-only";
 import { NextResponse } from "next/server";
-import { blobEnabled, putPublic } from "./blobStore";
+import { blobEnabled, putBlob } from "./blobStore";
 import type { ImgQuality } from "./imageFetch";
 
 /** Nom de fichier sans accents ni caractères spéciaux (en-tête HTTP). */
@@ -38,8 +38,9 @@ export async function pdfResponse(
 
   if (bytes.length > LIMITE && blobEnabled()) {
     try {
-      const url = await putPublic(`pdf/${fileName}`, bytes, "application/pdf");
-      return NextResponse.redirect(url, 303);
+      const url = await putBlob(`pdf/${fileName}`, bytes, "application/pdf");
+      // Redirection possible seulement vers un store public.
+      if (url.startsWith("https://")) return NextResponse.redirect(url, 303);
     } catch (e) {
       console.error("[pdf] dépôt Blob échoué :", String(e).slice(0, 200));
     }

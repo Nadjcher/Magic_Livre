@@ -12,7 +12,7 @@
  */
 
 import "server-only";
-import { blobEnabled, compressImage, putPublic } from "./blobStore";
+import { blobEnabled, compressImage, putBlob } from "./blobStore";
 import { env } from "./env";
 import { fetchAllWithTimeout } from "./imageFetch";
 import {
@@ -113,7 +113,7 @@ async function storeImage(base64: string, mime: string, seed: number): Promise<s
   if (!blobEnabled()) return dataUrl;
   try {
     const ext = c.mime.includes("jpeg") ? "jpg" : c.mime.includes("webp") ? "webp" : "png";
-    return await putPublic(`illustrations/${seed}.${ext}`, c.bytes, c.mime);
+    return await putBlob(`illustrations/${seed}.${ext}`, c.bytes, c.mime);
   } catch {
     return dataUrl;
   }

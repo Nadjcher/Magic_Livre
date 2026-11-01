@@ -8,7 +8,7 @@
  */
 
 import "server-only";
-import { compressImage } from "./blobStore";
+import { compressImage, isPrivateBlobRef, readPrivateBlob } from "./blobStore";
 
 /** Qualité d'image pour les PDF : taille max (px) et qualité JPEG. */
 export interface ImgQuality {
@@ -76,6 +76,10 @@ export async function fetchAsDataUrl(
       if (!q) return url;
       bytes = Buffer.from(m[2] as string, "base64");
       mime = m[1] as string;
+    } else if (isPrivateBlobRef(url)) {
+      const r = await readPrivateBlob(url);
+      if (!r) return null;
+      ({ bytes, mime } = r);
     } else {
       const res = await fetchAllWithTimeout(url, {}, { timeoutMs, maxBytes: MAX_IMAGE_BYTES });
       if (!res.ok || res.tooLarge || !res.bytes) return null;

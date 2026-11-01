@@ -4,7 +4,7 @@
  * (uniquement des booléens et l'URL publique). À retirer une fois le site stable.
  */
 
-import { blobMode, blobTokenName, putPublic } from "@/lib/blobStore";
+import { blobMode, blobTokenName, putBlob, readPrivateBlob } from "@/lib/blobStore";
 import { del } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -104,9 +104,11 @@ export async function GET(req: Request): Promise<Response> {
   if (new URL(req.url).searchParams.get("blob") === "1") {
     const probe: Record<string, unknown> = { mode: blobMode() };
     try {
-      const url = await putPublic("diagnostic/sonde.txt", Buffer.from("ok"), "text/plain");
+      const ref = await putBlob("diagnostic/sonde.txt", Buffer.from("ok"), "text/plain");
       probe.putOk = true;
-      await del(url).catch(() => undefined);
+      probe.access = ref.startsWith("vblob:") ? "private" : "public";
+      if (ref.startsWith("vblob:")) probe.readOk = Boolean(await readPrivateBlob(ref));
+      await del(ref.replace(/^vblob:/, "")).catch(() => undefined);
     } catch (e) {
       probe.putOk = false;
       probe.error = String(e).slice(0, 300);

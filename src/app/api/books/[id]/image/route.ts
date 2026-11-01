@@ -10,6 +10,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { isPrivateBlobRef, readPrivateBlob } from "@/lib/blobStore";
 
 export const runtime = "nodejs";
 
@@ -39,8 +40,21 @@ export async function GET(
   const url = rows[0]?.url;
   if (!url) return new NextResponse("Image introuvable.", { status: 404 });
 
-  // Image déjà stockée ailleurs (Vercel Blob) : simple redirection.
+  // Image déjà stockée ailleurs (Vercel Blob public) : simple redirection.
   if (/^https?:\/\//.test(url)) return NextResponse.redirect(url, 302);
+
+  // Store Blob privé : le serveur lit le fichier et le sert au propriétaire.
+  if (isPrivateBlobRef(url)) {
+    const r = await readPrivateBlob(url);
+    if (!r) return new NextResponse("Image introuvable.", { status: 404 });
+    return new NextResponse(new Uint8Array(r.bytes), {
+      status: 200,
+      headers: {
+        "Content-Type": r.mime,
+        "Cache-Control": "private, max-age=31536000, immutable",
+      },
+    });
+  }
 
   const m = /^data:([^;]+);base64,(.+)$/.exec(url);
   if (!m) return new NextResponse("Image illisible.", { status: 404 });

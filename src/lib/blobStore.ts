@@ -9,7 +9,7 @@
  */
 
 import "server-only";
-import { put } from "@vercel/blob";
+import { get, put } from "@vercel/blob";
 import sharp from "sharp";
 
 /** Nom de la variable qui contient le jeton Blob (ou null si aucun). */
@@ -45,19 +45,58 @@ export function blobMode(): "token" | "oidc" | null {
   return null;
 }
 
-/** Envoie un fichier public sur Blob et renvoie son URL. Jette en cas d'échec. */
-export async function putPublic(
-  path: string,
-  body: Buffer,
-  contentType: string,
-): Promise<string> {
-  const blob = await put(path, body, {
-    access: "public",
-    contentType,
-    token: blobToken(),
-    addRandomSuffix: true,
-  });
-  return blob.url;
+/** Préfixe des références vers un fichier d'un store PRIVÉ (lu via le SDK). */
+const PRIVE = "vblob:";
+
+export function isPrivateBlobRef(u: string | null | undefined): u is string {
+  return typeof u === "string" && u.startsWith(PRIVE);
+}
+
+// Accès du store (public ou privé), appris au premier envoi.
+let accesStore: "private" | "public" | undefined;
+
+/**
+ * Dépose un fichier sur Blob et renvoie sa référence : une URL https pour un
+ * store public, ou « vblob:<chemin> » pour un store privé (le fichier n'est
+ * alors lisible que par le serveur, qui le sert à son seul propriétaire).
+ * Jette en cas d'échec.
+ */
+export async function putBlob(path: string, body: Buffer, contentType: string): Promise<string> {
+  const essai = async (access: "private" | "public") => {
+    const blob = await put(path, body, {
+      access,
+      contentType,
+      token: blobToken(),
+      addRandomSuffix: true,
+    });
+    accesStore = access;
+    return access === "private" ? `${PRIVE}${blob.pathname}` : blob.url;
+  };
+  const premier = accesStore ?? "private";
+  try {
+    return await essai(premier);
+  } catch (e) {
+    const msg = String(e);
+    if (/private access on a public store/i.test(msg)) return essai("public");
+    if (/public access on a private store/i.test(msg)) return essai("private");
+    throw e;
+  }
+}
+
+/** Lit un fichier d'un store privé (référence « vblob:… »). Null si absent. */
+export async function readPrivateBlob(
+  ref: string,
+): Promise<{ bytes: Buffer; mime: string } | null> {
+  try {
+    const res = await get(ref.slice(PRIVE.length), { access: "private", token: blobToken() });
+    if (!res || !res.stream) return null;
+    const bytes = Buffer.from(await new Response(res.stream).arrayBuffer());
+    const mime = res.blob?.contentType || "image/jpeg";
+    return { bytes, mime };
+  } catch (e) {
+    console.error("[blob] lecture impossible :", String(e).slice(0, 200));
+    return null;
+  }
 }
 
 /**

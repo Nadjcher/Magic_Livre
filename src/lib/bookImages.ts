@@ -12,7 +12,7 @@
  */
 
 import "server-only";
-import { blobEnabled, compressImage, putPublic } from "./blobStore";
+import { blobEnabled, compressImage, isPrivateBlobRef, putBlob } from "./blobStore";
 import { prisma } from "./prisma";
 import type { Story } from "./storySchema";
 
@@ -24,16 +24,22 @@ export function bookImageUrl(bookId: string, which: "cover" | number): string {
   return `/api/books/${bookId}/image?i=${which}`;
 }
 
-/** Remplace les images embarquées (data URL) par leur adresse dédiée. */
+/** Image qui ne peut pas être affichée telle quelle par le navigateur. */
+const viaRoute = (u: string | null | undefined): boolean => isDataUrl(u) || isPrivateBlobRef(u);
+
+/**
+ * Remplace les images embarquées (data URL) ou privées (store Blob privé) par
+ * leur adresse dédiée, réservée au propriétaire du livre.
+ */
 export function lightenStory(story: Story, bookId: string): Story {
   return {
     ...story,
-    couvertureUrl: isDataUrl(story.couvertureUrl)
+    couvertureUrl: viaRoute(story.couvertureUrl)
       ? bookImageUrl(bookId, "cover")
       : story.couvertureUrl,
     pages: story.pages.map((p, i) => ({
       ...p,
-      imageUrl: isDataUrl(p.imageUrl) ? bookImageUrl(bookId, i) : p.imageUrl,
+      imageUrl: viaRoute(p.imageUrl) ? bookImageUrl(bookId, i) : p.imageUrl,
     })),
   };
 }
@@ -45,7 +51,7 @@ async function uploadDataUrl(dataUrl: string, name: string): Promise<string> {
   if (!m) return dataUrl;
   const { bytes, mime } = await compressImage(Buffer.from(m[2] as string, "base64"), m[1] as string);
   const ext = mime.includes("jpeg") ? "jpg" : mime.includes("webp") ? "webp" : "png";
-  return putPublic(`illustrations/${name}.${ext}`, bytes, mime);
+  return putBlob(`illustrations/${name}.${ext}`, bytes, mime);
 }
 
 /** Recompresse une data URL lourde (PNG ou > 600 Ko) en JPEG léger. */
