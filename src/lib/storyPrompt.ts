@@ -37,6 +37,8 @@ Règles impératives :
 - N'utilise JAMAIS de personnage ou marque sous droits (Disney, Pixar, Marvel, DC, Nintendo, Pokémon, films, séries...). Invente des personnages originaux.
 - Titre évocateur et poétique (pas générique).
 
+LANGUE : le titre et le "texte" de TOUTES les pages sont écrits EN FRANÇAIS, sans exception. Seuls "scene_illustration", "personnages" et "cast.visuel" sont en anglais (pour le dessinateur).
+
 Format de sortie OBLIGATOIRE : réponds UNIQUEMENT avec un objet JSON strict, sans texte avant ni après, sans balises de code. Structure exacte :
 {
   "plan": "string",

@@ -22,7 +22,7 @@ import { generateStory } from "@/lib/storyGenerator";
 import { describeChildFromPhoto } from "@/lib/illustration";
 import { findThemeById } from "@/lib/themes";
 import type { LongueurKey } from "@/lib/validation";
-import type { IllustrationStyle } from "@/lib/style_config";
+import { stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
 
 export interface CreateBookResult {
   ok: boolean;
@@ -117,6 +117,11 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
     where: { id: input.childId, userId: user.id },
   });
   if (!child) return { ok: false, message: "Enfant introuvable." };
+
+  // Le style de dessin doit convenir à l'âge (pas de manga pour un tout-petit).
+  if (!stylesPourAge(child.age).includes(input.style as IllustrationStyle)) {
+    return { ok: false, message: "Ce style de dessin n'est pas proposé pour cet âge. Choisissez-en un autre." };
+  }
 
   // Le type de livre doit convenir à l'âge de l'enfant.
   if (!formatsPourAge(child.age).some((f) => f.id === input.format)) {

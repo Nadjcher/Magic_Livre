@@ -62,10 +62,17 @@ export type IllustrationStyle =
  */
 export const ILLUSTRATION_STYLES: Record<
   IllustrationStyle,
-  { label: string; description: string; prompt: string }
+  {
+    label: string;
+    description: string;
+    prompt: string;
+    /** Âge minimum conseillé (manga, BD, réaliste… ne conviennent pas aux tout-petits). */
+    ageMin: number;
+  }
 > = {
   feerique: {
     label: "Féerique",
+    ageMin: 1,
     description: "Lavande, étoiles, douceur du soir",
     prompt:
       "dreamy fairytale storybook illustration in a SOFT COOL PASTEL palette: " +
@@ -76,6 +83,7 @@ export const ILLUSTRATION_STYLES: Record<
   },
   aventure: {
     label: "Aventure",
+    ageMin: 3,
     description: "Grands espaces, couleurs vives et fraîches",
     prompt:
       "luminous children's adventure picture book illustration, lush gouache textures, " +
@@ -85,6 +93,7 @@ export const ILLUSTRATION_STYLES: Record<
   },
   manga: {
     label: "Manga / Animé",
+    ageMin: 6,
     description: "Style dessin animé japonais, grands yeux",
     prompt:
       "IMPORTANT — Japanese anime / manga art style: large glossy anime eyes with bright highlights, thin clean " +
@@ -93,6 +102,7 @@ export const ILLUSTRATION_STYLES: Record<
   },
   bd: {
     label: "BD / Super-héros",
+    ageMin: 5,
     description: "Comic dynamique, cases et éclats",
     prompt:
       "dynamic comic book / bande dessinée illustration for kids, bold black ink outlines, " +
@@ -102,6 +112,7 @@ export const ILLUSTRATION_STYLES: Record<
   },
   aquarelle: {
     label: "Aquarelle",
+    ageMin: 1,
     description: "Lavis délicats, poésie et transparence",
     prompt:
       "delicate watercolor children's picture book illustration, soft wet-on-wet washes with gentle blooms, " +
@@ -110,6 +121,7 @@ export const ILLUSTRATION_STYLES: Record<
   },
   papier: {
     label: "Papier découpé",
+    ageMin: 1,
     description: "Collage de papiers en relief",
     prompt:
       "layered cut-paper collage (papercraft) children's book illustration, flat matte paper shapes " +
@@ -118,6 +130,7 @@ export const ILLUSTRATION_STYLES: Record<
   },
   pastel: {
     label: "Pastel",
+    ageMin: 1,
     description: "Crayon doux, velouté et câlin",
     prompt:
       "soft pastel and colored-pencil children's book illustration, velvety chalky texture, " +
@@ -126,6 +139,7 @@ export const ILLUSTRATION_STYLES: Record<
   },
   realiste: {
     label: "Réaliste",
+    ageMin: 6,
     description: "Peinture détaillée, proche du vrai",
     prompt:
       "semi-realistic digital painting for a children's book, natural human proportions, detailed realistic faces " +
@@ -134,6 +148,7 @@ export const ILLUSTRATION_STYLES: Record<
   },
   anim3d: {
     label: "Animation 3D",
+    ageMin: 2,
     description: "Comme un film d'animation en 3D",
     prompt:
       "IMPORTANT — this must look like a rendered 3D CGI frame from a modern animated family movie, NOT a 2D " +
@@ -143,6 +158,7 @@ export const ILLUSTRATION_STYLES: Record<
   },
   crayon: {
     label: "Crayon de couleur",
+    ageMin: 1,
     description: "Dessin fait main, tout en douceur",
     prompt:
       "hand-drawn colored pencil illustration on textured paper, visible pencil strokes and hatching, warm-hearted " +
@@ -150,6 +166,7 @@ export const ILLUSTRATION_STYLES: Record<
   },
   classique: {
     label: "Conte classique",
+    ageMin: 2,
     description: "Album d'autrefois, charme vintage",
     prompt:
       "vintage mid-century children's storybook illustration, gouache and ink, limited harmonious palette, " +
@@ -157,6 +174,7 @@ export const ILLUSTRATION_STYLES: Record<
   },
   pixel: {
     label: "Pixel art",
+    ageMin: 6,
     description: "Façon jeu vidéo rétro",
     prompt:
       "IMPORTANT — the ENTIRE image must be PIXEL ART like a 16-bit retro console game: clearly visible square " +
@@ -170,6 +188,13 @@ export const ILLUSTRATION_STYLES: Record<
  * ajouter un style ci-dessus le rend automatiquement valide partout (formulaire,
  * validation serveur, schéma d'histoire).
  */
+/** Styles adaptés à un âge. */
+export function stylesPourAge(age: number): IllustrationStyle[] {
+  return (Object.keys(ILLUSTRATION_STYLES) as IllustrationStyle[]).filter(
+    (k) => age >= ILLUSTRATION_STYLES[k].ageMin,
+  );
+}
+
 export const ILLUSTRATION_STYLE_KEYS = Object.keys(ILLUSTRATION_STYLES) as [
   IllustrationStyle,
   ...IllustrationStyle[],

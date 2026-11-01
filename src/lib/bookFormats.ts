@@ -58,7 +58,7 @@ export const BOOK_FORMATS: BookFormat[] = [
     label: "Album illustré",
     emoji: "📖",
     ageMin: 3,
-    ageMax: 7,
+    ageMax: 6,
     description: "Le grand classique : une histoire tendre avec une petite quête.",
     brief:
       "FORMAT ALBUM : une vraie histoire courte avec un début, une petite quête ou un souci, une " +
@@ -68,7 +68,7 @@ export const BOOK_FORMATS: BookFormat[] = [
     id: "cherche",
     label: "Cherche et trouve",
     emoji: "🔍",
-    ageMin: 3,
+    ageMin: 4,
     ageMax: 7,
     description: "À chaque page, un petit objet à retrouver dans l'image.",
     brief:
@@ -84,7 +84,7 @@ export const BOOK_FORMATS: BookFormat[] = [
     label: "Grande aventure",
     emoji: "🗺️",
     ageMin: 5,
-    ageMax: 10,
+    ageMax: 9,
     description: "Une quête palpitante avec des épreuves, des alliés et un final épique.",
     brief:
       "FORMAT GRANDE AVENTURE : une quête avec un objectif clair, 2 ou 3 épreuves de difficulté croissante " +
@@ -96,7 +96,7 @@ export const BOOK_FORMATS: BookFormat[] = [
     label: "Enquête à résoudre",
     emoji: "🕵️",
     ageMin: 7,
-    ageMax: 12,
+    ageMax: 11,
     description: "Un mystère, des indices à repérer, et l'enfant devine avant la fin.",
     brief:
       "FORMAT ENQUÊTE : un mystère gentil (objet disparu, phénomène étrange…). Le héros découvre 3 INDICES " +
@@ -126,15 +126,18 @@ export function findFormat(id: string | undefined): BookFormat | undefined {
   return BOOK_FORMATS.find((f) => f.id === id);
 }
 
-/** Formats adaptés à un âge (avec un an de tolérance de chaque côté). */
+/** Formats adaptés à un âge (tranche stricte : on ne propose que ce qui lui correspond). */
 export function formatsPourAge(age: number): BookFormat[] {
-  return BOOK_FORMATS.filter((f) => age >= f.ageMin - 1 && age <= f.ageMax + 1);
+  const a = Math.min(12, Math.max(1, age));
+  return BOOK_FORMATS.filter((f) => a >= f.ageMin && a <= f.ageMax);
 }
 
 /** Format conseillé par défaut pour un âge. */
 export function formatParDefaut(age: number): BookFormat {
   if (age <= 2) return BOOK_FORMATS[0]!;
+  if (age <= 4) return findFormat("album")!;
   if (age <= 6) return findFormat("album")!;
   if (age <= 8) return findFormat("aventure")!;
-  return findFormat("enquete")!;
+  if (age <= 10) return findFormat("enquete")!;
+  return findFormat("roman")!;
 }

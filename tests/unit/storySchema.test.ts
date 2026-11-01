@@ -54,3 +54,14 @@ describe("validation JSON de l'histoire", () => {
     expect(res.ok).toBe(false);
   });
 });
+
+import { texteEnAnglais } from "@/lib/storyGenerator";
+describe("langue du livre", () => {
+  const page = (t: string) => ({ texte: t, scene_illustration: "s" });
+  it("détecte un texte anglais", () => {
+    expect(texteEnAnglais({ titre: "The ball", pages: [page("The big players throw their ball far away and he runs back to his friends.")] } as never)).toBe(true);
+  });
+  it("accepte un texte français", () => {
+    expect(texteEnAnglais({ titre: "Le ballon", pages: [page("Kamil prend son ballon et il court dans le jardin avec son ami.")] } as never)).toBe(false);
+  });
+});

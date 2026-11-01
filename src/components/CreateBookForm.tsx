@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 import { createBook } from "@/app/actions/books";
 import { THEMES, THEME_CATEGORIES, findThemeById, type ThemeCategory } from "@/lib/themes";
 import type { ChildView } from "./ChildrenManager";
-import { ILLUSTRATION_STYLES, type IllustrationStyle } from "@/lib/style_config";
+import { ILLUSTRATION_STYLES, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
 import Notice from "./Notice";
 import GenerationOverlay from "./GenerationOverlay";
 import Link from "next/link";
@@ -101,10 +101,15 @@ export default function CreateBookForm({
   const [formatId, setFormatId] = useState(formatParDefaut(enfants[0]?.age ?? 5).id);
   const format = findFormat(formatId);
 
+  // Styles de dessin adaptés à l'âge (pas de manga ni de BD pour un tout-petit).
+  const stylesAge = stylesPourAge(age);
+  const styleAffiche: IllustrationStyle = stylesAge.includes(style) ? style : "feerique";
+
   function choisirEnfant(id: string) {
     setChildId(id);
     const a = enfants.find((c) => c.id === id)?.age ?? 5;
     if (!formatsPourAge(a).some((f) => f.id === formatId)) setFormatId(formatParDefaut(a).id);
+    if (!stylesPourAge(a).includes(style)) setStyle("feerique");
   }
 
   // Autres personnages (famille, doudou, animal) : jusqu'à 3.
@@ -165,7 +170,7 @@ export default function CreateBookForm({
         <Etape n="2">Quel type de livre&nbsp;?</Etape>
         <input type="hidden" name="format" value={formatId} />
         <p className="-mt-1 mb-3 text-sm text-magique-texteClair">
-          Les formats adaptés à {age} ans.
+          Les livres conçus pour {age} ans.
         </p>
         <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Types de livre">
           {formats.map((f) => {
@@ -294,13 +299,13 @@ export default function CreateBookForm({
       {/* Style des illustrations */}
       <div data-tilt className="carte">
         <Etape n="4">Le style des illustrations</Etape>
-        <input type="hidden" name="style" value={style} />
+        <input type="hidden" name="style" value={styleAffiche} />
         <p className="-mt-1 mb-3 text-sm text-magique-texteClair">
-          La même scène dessinée dans chaque style : choisissez celui qui vous plaît.
+          La même scène dessinée dans chaque style. Seuls les styles adaptés à {age} ans sont proposés.
         </p>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Styles d'illustration">
-          {STYLE_KEYS.map((s) => {
-            const actif = style === s;
+          {STYLE_KEYS.filter((k) => stylesAge.includes(k)).map((s) => {
+            const actif = styleAffiche === s;
             return (
               <button
                 key={s}

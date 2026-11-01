@@ -27,6 +27,20 @@ export type GenerateResult =
   | { ok: true; story: Story; /** Diagnostic si des illustrations manquent. */ imageReport?: string }
   | { ok: false; message: string };
 
+/** Vrai si le texte des pages est majoritairement en anglais (au lieu du français). */
+export function texteEnAnglais(story: Story): boolean {
+  const mots = [story.titre, ...story.pages.map((p) => p.texte)].join(" ").toLowerCase().match(/[a-zàâçéèêëîïôûùüÿœ']+/g) ?? [];
+  const en = new Set(["the", "and", "is", "with", "his", "her", "to", "of", "you", "they", "are", "was", "he", "she", "it", "for", "away", "back"]);
+  const fr = new Set(["le", "la", "les", "et", "est", "un", "une", "des", "il", "elle", "dans", "avec", "de", "du", "sur", "son", "sa"]);
+  let nEn = 0;
+  let nFr = 0;
+  for (const m of mots) {
+    if (en.has(m)) nEn++;
+    if (fr.has(m)) nFr++;
+  }
+  return nEn > nFr;
+}
+
 /** Exécute `fn` sur chaque élément avec au plus `limit` appels simultanés. */
 async function mapLimit<T, R>(items: T[], limit: number, fn: (x: T, i: number) => Promise<R>): Promise<R[]> {
   const out = new Array<R>(items.length);
@@ -168,6 +182,7 @@ async function polishStory(
 
   const parsed = parseStory(raw);
   if (!parsed.ok) return null;
+  if (texteEnAnglais(parsed.story)) return null;
   const filtered = filterStory(parsed.story);
   if (!filtered.ok) return null;
 
@@ -193,7 +208,7 @@ async function polishStory(
  * sur la sortie avant de renvoyer le résultat.
  */
 export async function generateStory(req: StoryRequest): Promise<GenerateResult> {
-  const userMessage = buildUserMessage(req);
+  let userMessage = buildUserMessage(req);
   const client = createClient();
   // Édition premium : modèle de texte haut de gamme (configurable).
   const model = req.premium ? env.groqModelPremium() : env.groqModel();
@@ -233,6 +248,13 @@ export async function generateStory(req: StoryRequest): Promise<GenerateResult> 
       lastMessage =
         "L'histoire générée n'était pas au bon format. Veuillez réessayer.";
       continue; // réessaie une fois
+    }
+
+    // Le livre doit être en français (le modèle de repli répond parfois en anglais).
+    if (texteEnAnglais(parsed.story)) {
+      lastMessage = "L'histoire n'a pas été écrite en français. Veuillez réessayer.";
+      userMessage += "\n\nIMPORTANT : la tentative précédente était en anglais. Écris le titre et le texte de TOUTES les pages EN FRANÇAIS.";
+      continue;
     }
 
     // Filtre de contenu sur la sortie.
