@@ -62,13 +62,16 @@ export const env = {
   voiceProvider: () => optional("VOICE_PROVIDER", "browser"),
   elevenLabsApiKey: () => optional("ELEVENLABS_API_KEY", ""),
   elevenLabsVoiceId: () => optional("ELEVENLABS_VOICE_ID", "EXAVITQu4vr4xnSDxMaL"),
-  // "none" (défaut, sûr) | "pollinations" (gratuit) | "gemini"
+  // "none" (défaut, sûr) | "pollinations" (gratuit) | "gemini" | "fal"
   imageProvider: () => optional("IMAGE_PROVIDER", "none"),
   geminiApiKey: () => optional("GEMINI_API_KEY", ""),
   geminiImageModel: () => optional("GEMINI_IMAGE_MODEL", "gemini-2.5-flash-image"),
   // Modèle « premium » (meilleure qualité/ressemblance, plus cher).
   geminiImageModelPremium: () =>
     optional("GEMINI_IMAGE_MODEL_PREMIUM", "gemini-3-pro-image"),
+  // Illustrations via fal (IMAGE_PROVIDER=fal) : FLUX.2, Seedream, Gemini…
+  falImageModel: () => optional("FAL_IMAGE_MODEL", "fal-ai/flux-2-pro/edit"),
+  falImageModelPremium: () => optional("FAL_IMAGE_MODEL_PREMIUM", "fal-ai/nano-banana-2/edit"),
 
   // URL publique
   authUrl: () => optional("AUTH_URL", "http://localhost:3000"),

@@ -30,7 +30,7 @@ export const BOOK_FORMATS: BookFormat[] = [
     ageMin: 1,
     ageMax: 3,
     description: "Une image, un mot, une petite phrase. Pour pointer du doigt et nommer.",
-    pages: { min: 7, max: 8 },
+    pages: { min: 8, max: 8 },
     brief:
       "FORMAT IMAGIER : chaque page présente UN objet, animal ou geste du quotidien que l'enfant croise " +
       "dans sa journée (avec un fil très léger : la journée de l'enfant, du réveil au dodo). Texte : 1 phrase " +
@@ -46,7 +46,7 @@ export const BOOK_FORMATS: BookFormat[] = [
     ageMin: 1,
     ageMax: 4,
     description: "Des vers qui riment et un refrain à chanter ensemble.",
-    pages: { min: 7, max: 8 },
+    pages: { min: 8, max: 8 },
     brief:
       "FORMAT COMPTINE : tout le texte est en VERS courts qui RIMENT (2 à 4 vers par page, rimes riches et " +
       "naturelles, rythme régulier facile à scander). Un refrain de 2 vers revient 3 fois (début, milieu, fin). " +

@@ -98,6 +98,25 @@ export async function generateIllustration(
         mime: img.mime,
       };
     }
+    if (provider === "fal") {
+      const model = req.premium ? env.falImageModelPremium() : env.falImageModel();
+      let img: { base64: string; mime: string } | null = null;
+      let error = "";
+      for (let essai = 0; essai < 3 && !img; essai++) {
+        if (essai > 0) await new Promise((r) => setTimeout(r, essai * 4000));
+        const r = await falImage(prompt, model, req.referenceImage, req.anchorImage);
+        if ("img" in r) img = r.img;
+        else {
+          error = r.error;
+          if (!r.retry) break;
+        }
+      }
+      if (!img) {
+        console.error("[image] échec fal :", error);
+        return { imageUrl: null, error };
+      }
+      return { imageUrl: await storeImage(img.base64, img.mime, seed), base64: img.base64, mime: img.mime };
+    }
     // "none" ou valeur inconnue : pas d'image.
     return { imageUrl: null };
   } catch (e) {
@@ -232,6 +251,73 @@ async function geminiImage(
     return { error: `pas d'image (${raison})`, retry: true };
   }
   return { img: { base64: inline.data, mime: inline.mimeType ?? "image/png" } };
+}
+
+/**
+ * Génère une image via fal (FLUX.2, Seedream, Gemini…). Avec des références
+ * (photo, personnage déjà dessiné), on utilise le modèle « /edit » ; sans
+ * référence, sa variante texte → image.
+ */
+async function falImage(
+  prompt: string,
+  model: string,
+  reference?: { base64: string; mime: string },
+  anchor?: { base64: string; mime: string },
+): Promise<{ img: { base64: string; mime: string } } | { error: string; retry: boolean }> {
+  const key = env.falApiKey();
+  if (!key) return { error: "FAL_API_KEY absente", retry: false };
+
+  const refs = [reference, anchor].filter((r): r is { base64: string; mime: string } => Boolean(r));
+  const consignes: string[] = [];
+  if (reference) {
+    consignes.push(
+      "Reference image 1 is the real child, hero of the book: the character MUST clearly look like this " +
+        "child (same hair color and style, eyes, skin tone, face shape, age), drawn in the requested style.",
+    );
+  }
+  if (anchor) {
+    consignes.push(
+      `Reference image ${reference ? 2 : 1} shows the hero as already drawn in this book: keep EXACTLY the ` +
+        "same character design, outfit and art style. Do NOT copy its pose, framing or vignette shape: draw a " +
+        "completely NEW full-bleed scene that follows the description below.",
+    );
+  }
+  const texte = consignes.length ? `${consignes.join(" ")} ${prompt}` : prompt;
+
+  let endpoint = model;
+  if (refs.length === 0 && model.endsWith("/edit")) {
+    endpoint = model.includes("seedream") ? model.replace(/\/edit$/, "/text-to-image") : model.replace(/\/edit$/, "");
+  }
+  const gemini = /nano-banana|gemini/.test(endpoint);
+  const body: Record<string, unknown> = {
+    prompt: texte,
+    output_format: "jpeg",
+    ...(gemini ? { aspect_ratio: "16:9" } : { image_size: "landscape_16_9" }),
+    ...(refs.length ? { image_urls: refs.map((r) => `data:${r.mime};base64,${r.base64}`) } : {}),
+  };
+
+  let res: Response;
+  try {
+    res = await fetch(`https://fal.run/${endpoint}`, {
+      method: "POST",
+      headers: { Authorization: `Key ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(150_000),
+    });
+  } catch (e) {
+    return { error: `réseau/délai : ${String(e).slice(0, 120)}`, retry: true };
+  }
+  const j = (await res.json().catch(() => ({}))) as { images?: { url?: string }[]; detail?: unknown };
+  if (!res.ok) {
+    const detail = JSON.stringify(j.detail ?? j).slice(0, 200);
+    // 429 / limite de requêtes simultanées / 5xx → on réessaie.
+    return { error: `HTTP ${res.status} ${detail}`, retry: res.status === 429 || res.status >= 500 || /concurrent/i.test(detail) };
+  }
+  const url = j.images?.[0]?.url;
+  if (!url) return { error: "pas d'image renvoyée", retry: true };
+  const dl = await fetchAllWithTimeout(url, {}, { timeoutMs: 30_000, maxBytes: 20_000_000 }).catch(() => null);
+  if (!dl?.ok || !dl.bytes) return { error: "téléchargement de l'image impossible", retry: true };
+  return { img: { base64: dl.bytes.toString("base64"), mime: dl.contentType || "image/jpeg" } };
 }
 
 /** Indique si la génération d'images est activée. */

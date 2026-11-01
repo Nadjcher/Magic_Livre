@@ -11,10 +11,13 @@ import { storySchema } from "@/lib/storySchema";
 import { lightenStory } from "@/lib/bookImages";
 import { getDeluxeProduct, skusDonnantAcces, formatEuros } from "@/lib/products";
 import { safeFileName } from "@/lib/bookAccess";
-import VideoMaker from "@/components/VideoMaker";
+import TrailerMaker from "@/components/TrailerMaker";
+import { ESSAIS_MAX } from "@/lib/trailer";
 import DeluxeShop from "@/components/DeluxeShop";
 
 export const dynamic = "force-dynamic";
+// Lancement de la bande-annonce (écriture + envoi des animations) en arrière-plan.
+export const maxDuration = 300;
 
 export default async function VideoPage({ params }: { params: { id: string } }) {
   const user = await getCurrentUser();
@@ -41,24 +44,26 @@ export default async function VideoPage({ params }: { params: { id: string } }) 
         <Link href={`/bibliotheque/${book.id}/boutique`} className="text-sm text-magique-texteClair hover:underline">
           ← La boutique de ce livre
         </Link>
-        <h1 className="mt-1 text-3xl sm:text-4xl">🎬 La vidéo souvenir</h1>
+        <h1 className="mt-1 text-3xl sm:text-4xl">🎬 La bande-annonce</h1>
         <p className="text-magique-texteClair">
-          « {book.title} » en vidéo : les illustrations s'animent, le texte défile en musique.
+          « {book.title} » comme un vrai dessin animé : les personnages bougent, une voix raconte, en musique.
         </p>
       </div>
 
       {paye ? (
-        <VideoMaker
+        <TrailerMaker
+          bookId={book.id}
           titre={story.titre}
           sousTitre={`Une histoire pour ${book.child.firstName}`}
           couverture={story.couvertureUrl ?? null}
-          pages={story.pages.map((p) => ({ texte: p.texte, image: p.imageUrl ?? null }))}
-          nomFichier={`${safeFileName(book.title)}-video`}
+          initial={parsed.data.video ?? null}
+          essaisMax={ESSAIS_MAX}
+          nomFichier={`${safeFileName(book.title)}-bande-annonce`}
         />
       ) : (
         <>
           <p className="text-sm text-magique-texteClair">
-            Débloquez la vidéo pour {formatEuros(produit.priceCents)} (ou incluse dans la formule
+            Débloquez la bande-annonce pour {formatEuros(produit.priceCents)} (ou incluse dans la formule
             Tout compris).
           </p>
           <DeluxeShop bookId={book.id} produits={[produit]} skusPayes={[]} />

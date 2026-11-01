@@ -406,8 +406,8 @@ export default async function AccueilPage() {
           <p className="text-[15px]">
             <strong>👑 Formule Tout compris, {euros(PACK_TOUT.priceCents)}</strong>
             <span className="text-magique-texteClair">
-              {" "}— le livre et son kit, le Pack Fête d'anniversaire, l'affiche A3 et la vidéo
-              souvenir de l'histoire.
+              {" "}— le livre et son kit, le Pack Fête d'anniversaire, l'affiche A3 et la bande-annonce
+              vidéo de l'histoire.
             </span>
           </p>
           <span className="text-sm text-magique-texteClair">

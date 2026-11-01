@@ -19,6 +19,24 @@ export const storyPageSchema = z.object({
   imageUrl: z.string().url().nullable().optional(),
 });
 
+/** Une scène de la bande-annonce : clip animé (IA vidéo) + phrase lue. */
+export const trailerSceneSchema = z.object({
+  source: z.union([z.literal("cover"), z.number().int().min(0).max(20)]),
+  phrase: z.string().max(300),
+  statusUrl: z.string().url().nullable().optional(),
+  responseUrl: z.string().url().nullable().optional(),
+  clipUrl: z.string().url().nullable().optional(),
+  audioUrl: z.string().url().nullable().optional(),
+  erreur: z.string().max(300).nullable().optional(),
+});
+
+export const trailerSchema = z.object({
+  creeLe: z.number(),
+  essais: z.number().int().min(0).default(1),
+  scenes: z.array(trailerSceneSchema).max(10),
+});
+export type Trailer = z.infer<typeof trailerSchema>;
+
 export const storySchema = z.object({
   titre: z.string().min(1, "Le titre est vide."),
   pages: z
@@ -37,6 +55,8 @@ export const storySchema = z.object({
   couvertureUrl: z.string().url().nullable().optional(),
   // Style d'illustration retenu (mémoire, utile pour un « tome » suivant).
   style: z.enum(ILLUSTRATION_STYLE_KEYS).optional(),
+  // Bande-annonce vidéo (produit payant) : scènes animées + voix off.
+  video: trailerSchema.optional(),
 });
 
 export type Story = z.infer<typeof storySchema>;

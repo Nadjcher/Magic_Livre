@@ -30,9 +30,9 @@ export const PACK_TOUT = {
   label: "Formule Tout compris",
   emoji: "👑",
   description:
-    "Le livre PDF + tout le kit, le Pack Fête, l'affiche A3 et la vidéo souvenir. " +
+    "Le livre PDF + tout le kit, le Pack Fête, l'affiche A3 et la bande-annonce vidéo. " +
     "Le cadeau complet, au meilleur prix.",
-  priceCents: 1299,
+  priceCents: 1699,
 } as const;
 
 /** Produits débloqués par la formule « Tout compris ». */
@@ -71,12 +71,12 @@ export const DELUXE_PRODUCTS: DeluxeProduct[] = [
   },
   {
     sku: "video",
-    label: "Vidéo souvenir",
+    label: "Bande-annonce vidéo",
     emoji: "🎬",
     description:
-      "L'histoire en vidéo : les illustrations s'animent doucement, le texte " +
-      "défile en musique. À regarder ensemble ou à partager avec la famille.",
-    priceCents: 299,
+      "Son histoire comme un vrai dessin animé : 6 scènes où les personnages " +
+      "bougent, une voix qui raconte, de la musique. ~40 s, à partager en famille.",
+    priceCents: 999,
     route: "",
   },
 ];
