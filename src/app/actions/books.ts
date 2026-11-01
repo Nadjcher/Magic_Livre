@@ -179,7 +179,8 @@ async function genererEtEnregistrer(bookId: string, req: GenerationInput): Promi
         status: "ready",
         title: result.story.titre,
         pages: result.story,
-        errorMessage: null,
+        // Livre lisible ; on garde la raison si des illustrations manquent.
+        errorMessage: result.imageReport ?? null,
       },
     });
   } catch (e) {

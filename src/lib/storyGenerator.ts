@@ -23,8 +23,32 @@ import { faceIdentityEnabled, generateCharacterPortrait } from "./faceIdentity";
 import { ILLUSTRATION_STYLES } from "./style_config";
 
 export type GenerateResult =
-  | { ok: true; story: Story }
+  | { ok: true; story: Story; /** Diagnostic si des illustrations manquent. */ imageReport?: string }
   | { ok: false; message: string };
+
+/** Exécute `fn` sur chaque élément avec au plus `limit` appels simultanés. */
+async function mapLimit<T, R>(items: T[], limit: number, fn: (x: T, i: number) => Promise<R>): Promise<R[]> {
+  const out = new Array<R>(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const i = next++;
+      out[i] = await fn(items[i] as T, i);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return out;
+}
+
+/** Résume les échecs d'illustration (« 3/13 images manquantes : HTTP 429 … »). */
+export function imageReportOf(story: Story, errors: string[]): string | undefined {
+  const total = story.pages.length + 1;
+  const manquantes =
+    (story.couvertureUrl ? 0 : 1) + story.pages.filter((p) => !p.imageUrl).length;
+  if (manquantes === 0) return undefined;
+  const raisons = Array.from(new Set(errors.filter(Boolean))).slice(0, 2).join(" | ");
+  return `Illustrations manquantes : ${manquantes}/${total}. ${raisons}`.slice(0, 480);
+}
 
 /**
  * Client Groq (API compatible OpenAI) créé paresseusement pour ne lire la clé
@@ -185,8 +209,9 @@ export async function generateStory(req: StoryRequest): Promise<GenerateResult> 
     const base = polished ?? parsed.story;
 
     // Texte validé : on ajoute les illustrations si la génération est activée.
-    const story = await addIllustrations(base, req, await portraitPromise);
-    return { ok: true, story };
+    const errors: string[] = [];
+    const story = await addIllustrations(base, req, await portraitPromise, errors);
+    return { ok: true, story, imageReport: imageReportOf(story, errors) };
   }
 
   return { ok: false, message: lastMessage };
@@ -211,6 +236,8 @@ async function addIllustrations(
   req: StoryRequest,
   /** Portrait ressemblant déjà généré (fal), ou null. */
   portrait: { base64: string; mime: string } | null,
+  /** Reçoit les raisons d'échec des illustrations (diagnostic). */
+  errors: string[] = [],
 ): Promise<Story> {
   const style = req.style ?? "feerique";
   if (!illustrationsEnabled()) {
@@ -239,10 +266,10 @@ async function addIllustrations(
   };
 
   /** Génère toutes les pages, ancrées sur `anchor` (cohérence du héros). */
+  // 4 pages à la fois : au-delà, Gemini répond « trop de requêtes » (429).
   const generatePages = (anchor: { base64: string; mime: string } | undefined) =>
-    Promise.all(
-      story.pages.map(async (p, i) => {
-        const { imageUrl } = await generateIllustration({
+    mapLimit(story.pages, 4, async (p, i) => {
+        const { imageUrl, error } = await generateIllustration({
           style,
           scene: p.scene_illustration,
           heroName,
@@ -255,9 +282,9 @@ async function addIllustrations(
           recurringCharacters: story.personnages,
           seed: base + i + 1,
         });
+        if (error) errors.push(error);
         return { ...p, imageUrl };
-      }),
-    );
+      });
 
   // Avec un portrait (fal) : il sert d'ancre à tout le livre, donc couverture
   // et pages sont générées EN MÊME TEMPS (gain de temps important).
@@ -266,12 +293,14 @@ async function addIllustrations(
       generateIllustration(coverRequest),
       generatePages(portrait),
     ]);
+    if (cover.error) errors.push(cover.error);
     return { ...story, pages, couvertureUrl: cover.imageUrl, style };
   }
 
   // Sans portrait : la couverture est générée d'abord et devient l'ancre du
   // héros pour toutes les pages (même enfant, même tenue, même style).
   const cover = await generateIllustration(coverRequest);
+  if (cover.error) errors.push(cover.error);
   const pages = await generatePages(
     cover.base64 !== undefined
       ? { base64: cover.base64, mime: cover.mime ?? "image/png" }

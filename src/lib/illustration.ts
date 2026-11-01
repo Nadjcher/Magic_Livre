@@ -54,6 +54,8 @@ export interface IllustrationResult {
   /** Base64 de l'image générée (pour réutiliser la couverture comme ancre). */
   base64?: string;
   mime?: string;
+  /** Raison de l'échec (diagnostic), si aucune image. */
+  error?: string;
 }
 
 const WIDTH = 1024;
@@ -73,8 +75,23 @@ export async function generateIllustration(
     }
     if (provider === "gemini") {
       const model = req.premium ? env.geminiImageModelPremium() : env.geminiImageModel();
-      const img = await geminiImage(prompt, model, req.referenceImage, req.anchorImage);
-      if (!img) return { imageUrl: null };
+      // Jusqu'à 3 essais : Gemini renvoie parfois « trop de requêtes » (429)
+      // ou une erreur passagère (500/503) quand on dessine plusieurs pages.
+      let img: { base64: string; mime: string } | null = null;
+      let error = "";
+      for (let essai = 0; essai < 3 && !img; essai++) {
+        if (essai > 0) await new Promise((r) => setTimeout(r, essai * 4000));
+        const r = await geminiImage(prompt, model, req.referenceImage, req.anchorImage);
+        if ("img" in r) img = r.img;
+        else {
+          error = r.error;
+          if (!r.retry) break;
+        }
+      }
+      if (!img) {
+        console.error("[image] échec Gemini :", error);
+        return { imageUrl: null, error };
+      }
       return {
         imageUrl: await storeImage(img.base64, img.mime, seed),
         base64: img.base64,
@@ -83,9 +100,9 @@ export async function generateIllustration(
     }
     // "none" ou valeur inconnue : pas d'image.
     return { imageUrl: null };
-  } catch {
+  } catch (e) {
     // Jamais faire échouer la création d'un livre à cause d'une image.
-    return { imageUrl: null };
+    return { imageUrl: null, error: String(e).slice(0, 200) };
   }
 }
 
@@ -128,9 +145,9 @@ async function geminiImage(
   model: string,
   reference?: { base64: string; mime: string },
   anchor?: { base64: string; mime: string },
-): Promise<{ base64: string; mime: string } | null> {
+): Promise<{ img: { base64: string; mime: string } } | { error: string; retry: boolean }> {
   const key = env.geminiApiKey();
-  if (!key) return null;
+  if (!key) return { error: "GEMINI_API_KEY absente", retry: false };
 
   const url =
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
@@ -166,35 +183,55 @@ async function geminiImage(
       : "") + prompt;
   parts.push({ text: texte });
 
-  const res = await fetchAllWithTimeout(
-    url,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts }],
-        generationConfig: { responseModalities: ["IMAGE"] },
-      }),
-    },
-    { timeoutMs: 40_000, maxBytes: 25_000_000 },
-  );
+  let res;
+  try {
+    res = await fetchAllWithTimeout(
+      url,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts }],
+          generationConfig: { responseModalities: ["IMAGE"] },
+        }),
+      },
+      // Le modèle premium peut dépasser 40 s par image.
+      { timeoutMs: 110_000, maxBytes: 25_000_000 },
+    );
+  } catch (e) {
+    return { error: `réseau/délai : ${String(e).slice(0, 120)}`, retry: true };
+  }
 
-  if (!res.ok || !res.bytes) return null;
+  if (!res.ok || !res.bytes) {
+    const detail = res.bytes?.toString("utf8").slice(0, 220).replace(/\s+/g, " ") ?? "";
+    // 429 = trop de requêtes, 5xx = panne passagère → on réessaie.
+    // 402/403/400 (crédits épuisés, clé refusée…) → inutile de réessayer.
+    return {
+      error: `HTTP ${res.status} ${detail}`,
+      retry: res.status === 429 || res.status >= 500,
+    };
+  }
   let data: {
     candidates?: {
+      finishReason?: string;
       content?: { parts?: { inlineData?: { mimeType?: string; data?: string } }[] };
     }[];
+    promptFeedback?: { blockReason?: string };
   };
   try {
     data = JSON.parse(res.bytes.toString("utf8"));
   } catch {
-    return null;
+    return { error: "réponse illisible", retry: true };
   }
 
   const part = data.candidates?.[0]?.content?.parts?.find((p) => p.inlineData?.data);
   const inline = part?.inlineData;
-  if (!inline?.data) return null;
-  return { base64: inline.data, mime: inline.mimeType ?? "image/png" };
+  if (!inline?.data) {
+    const raison =
+      data.promptFeedback?.blockReason ?? data.candidates?.[0]?.finishReason ?? "aucune image";
+    return { error: `pas d'image (${raison})`, retry: true };
+  }
+  return { img: { base64: inline.data, mime: inline.mimeType ?? "image/png" } };
 }
 
 /** Indique si la génération d'images est activée. */

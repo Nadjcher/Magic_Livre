@@ -14,6 +14,11 @@ import DeleteBookButton from "@/components/DeleteBookButton";
 import AutoRefresh from "@/components/AutoRefresh";
 import Notice from "@/components/Notice";
 import GenerationOverlay from "@/components/GenerationOverlay";
+import CompleteIllustrationsButton from "@/components/CompleteIllustrationsButton";
+import { EN_COURS } from "@/lib/illustrationStatus";
+
+// La complétion des illustrations tourne en arrière-plan depuis cette page.
+export const maxDuration = 300;
 
 export default async function LivrePage({
   params,
@@ -44,6 +49,15 @@ export default async function LivrePage({
     parsed?.success
       ? lightenStory(await migrateBookImagesToBlob(book.id, parsed.data), book.id)
       : null;
+
+  // Illustrations absentes (Gemini indisponible au moment de la création) ?
+  const imagesManquantes = story
+    ? (story.couvertureUrl ? 0 : 1) + story.pages.filter((p) => !p.imageUrl).length
+    : 0;
+  const depart = book.errorMessage?.startsWith(EN_COURS)
+    ? Number(book.errorMessage.slice(EN_COURS.length))
+    : 0;
+  const completionEnCours = depart > 0 && Date.now() - depart < 6 * 60 * 1000;
 
   return (
     <div className="space-y-6">
@@ -94,6 +108,29 @@ export default async function LivrePage({
           Le contenu de ce livre est illisible. Merci de le supprimer et d'en créer un
           nouveau.
         </Notice>
+      )}
+
+      {story && completionEnCours && (
+        <>
+          <AutoRefresh seconds={8} />
+          <Notice kind="info">
+            🎨 Les illustrations manquantes sont en cours de création (1 à 2 minutes).
+            Cette page se met à jour toute seule.
+          </Notice>
+        </>
+      )}
+      {story && imagesManquantes > 0 && !completionEnCours && (
+        <div className="carte space-y-3">
+          <h2 className="font-serif text-xl">
+            {imagesManquantes} illustration{imagesManquantes > 1 ? "s" : ""} manquante
+            {imagesManquantes > 1 ? "s" : ""}
+          </h2>
+          <p className="text-sm text-magique-texteClair">
+            Le service de dessin n'a pas répondu pendant la création. L'histoire est
+            conservée : seules les images absentes seront dessinées, dans le même style.
+          </p>
+          <CompleteIllustrationsButton bookId={book.id} />
+        </div>
       )}
 
       {story ? (

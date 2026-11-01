@@ -118,6 +118,44 @@ export async function GET(req: Request): Promise<Response> {
 
   const img = new URL(req.url).searchParams.get("img");
 
+  // Derniers livres : statut, diagnostic des images (gratuit, sans appel IA).
+  try {
+    const derniers = await prisma.$queryRaw<
+      { status: string; err: string | null; created: Date; total: number; nulles: number; cover: string | null }[]
+    >`SELECT status, left("errorMessage", 300) AS err, "createdAt" AS created,
+             coalesce(jsonb_array_length(pages->'pages'), 0)::int AS total,
+             (SELECT count(*) FROM jsonb_array_elements(coalesce(pages->'pages', '[]'::jsonb)) e
+               WHERE e->>'imageUrl' IS NULL)::int AS nulles,
+             left(pages->>'couvertureUrl', 12) AS cover
+      FROM "Book" ORDER BY "createdAt" DESC LIMIT 3`;
+    (out as Record<string, unknown>).derniersLivres = derniers;
+  } catch (e) {
+    (out as Record<string, unknown>).derniersLivres = String(e).slice(0, 120);
+  }
+
+  // Sonde Gemini à coût quasi nul (une réponse texte d'un mot) : détecte
+  // crédits épuisés (402), clé refusée (403)… — /api/health?img=cheap
+  if (img === "cheap") {
+    const key = env.geminiApiKey();
+    const r = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: "Réponds juste: ok" }] }],
+          generationConfig: { maxOutputTokens: 5, thinkingConfig: { thinkingBudget: 0 } },
+        }),
+      },
+    ).catch((e) => ({ ok: false, status: 0, text: async () => String(e) }) as const);
+    out.images = {
+      geminiTextOk: r.ok,
+      status: r.status,
+      detail: r.ok ? "" : (await r.text()).slice(0, 300),
+    };
+    return NextResponse.json(out, { status: 200 });
+  }
+
   // Test réel de bout en bout du portrait fal : /api/health?img=fal
   // (génère 1 portrait avec l'image d'exemple de la doc fal : quelques centimes).
   if (img === "fal") {
