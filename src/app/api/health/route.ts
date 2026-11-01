@@ -156,6 +156,20 @@ export async function GET(req: Request): Promise<Response> {
     return NextResponse.json(out, { status: 200 });
   }
 
+  // Test du modèle d'écriture (Claude via fal) : /api/health?img=llm
+  if (img === "llm") {
+    const modele = process.env.STORY_MODEL || "anthropic/claude-sonnet-5.5";
+    const t = Date.now();
+    const r = await fetch("https://fal.run/openrouter/router", {
+      method: "POST",
+      headers: { Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: modele, prompt: "Réponds juste par le mot : bonjour", max_tokens: 10 }),
+    }).catch((e) => ({ ok: false, status: 0, json: async () => ({ error: String(e) }) }) as const);
+    const j = (await r.json().catch(() => ({}))) as { output?: string; error?: unknown };
+    out.images = { modele, ok: r.ok, status: r.status, s: (Date.now() - t) / 1000, output: j.output?.slice(0, 40), error: j.error ? JSON.stringify(j.error).slice(0, 300) : undefined };
+    return NextResponse.json(out, { status: 200 });
+  }
+
   if (img === "cheap") {
     const key = env.geminiApiKey();
     const r = await fetch(
