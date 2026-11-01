@@ -27,13 +27,21 @@ export const trailerSceneSchema = z.object({
   responseUrl: z.string().url().nullable().optional(),
   clipUrl: z.string().url().nullable().optional(),
   audioUrl: z.string().url().nullable().optional(),
+  // Durées (secondes) : voix off et clip animé (5 ou 10 s).
+  audioSec: z.number().nullable().optional(),
+  clipSec: z.number().nullable().optional(),
   erreur: z.string().max(300).nullable().optional(),
 });
 
 export const trailerSchema = z.object({
   creeLe: z.number(),
   essais: z.number().int().min(0).default(1),
-  scenes: z.array(trailerSceneSchema).max(10),
+  scenes: z.array(trailerSceneSchema).max(16),
+  // Montage final (fait par fal) : file d'attente puis vidéo MP4.
+  finalStatusUrl: z.string().url().nullable().optional(),
+  finalResponseUrl: z.string().url().nullable().optional(),
+  finalUrl: z.string().url().nullable().optional(),
+  finalErreur: z.string().max(300).nullable().optional(),
 });
 export type Trailer = z.infer<typeof trailerSchema>;
 

@@ -1,8 +1,8 @@
 "use server";
 
 /**
- * Bande-annonce vidéo : lancement, suivi et nouvel essai d'une scène.
- * Réservée aux acheteurs du produit « video » (ou de la formule Tout compris).
+ * « Le livre en dessin animé » : lancement, suivi et nouvel essai d'une scène.
+ * Réservé aux acheteurs du produit « video » (ou de la formule Tout compris).
  */
 
 import { waitUntil } from "@vercel/functions";
@@ -10,7 +10,7 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { storySchema, type Story, type Trailer } from "@/lib/storySchema";
 import { skusDonnantAcces } from "@/lib/products";
-import { ESSAIS_MAX, choisirSources, ecrireScript, rafraichir, soumettreClip, voixOff } from "@/lib/trailer";
+import { ESSAIS_MAX, choisirSources, rafraichir, soumettreClip, textesLus, voixOff } from "@/lib/trailer";
 
 export interface TrailerState {
   ok: boolean;
@@ -30,37 +30,48 @@ async function chargerLivrePaye(bookId: string) {
     where: { bookId, userId: user.id, status: "paid", sku: { in: skusDonnantAcces("video") } },
     select: { id: true },
   });
-  if (!paye) return { erreur: "La bande-annonce nécessite un achat." } as const;
+  if (!paye) return { erreur: "Le dessin animé nécessite un achat." } as const;
   const parsed = storySchema.safeParse(book.pages);
   if (!parsed.success) return { erreur: "Le contenu de ce livre est illisible." } as const;
   return { book, story: parsed.data } as const;
 }
 
-/** Enregistre la bande-annonce en relisant le livre (pour ne rien écraser). */
+type Scene = Trailer["scenes"][number];
+
+/** Fusionne deux versions d'une même scène (aucune information perdue). */
+function fusionScene(x: Scene, a: Scene | undefined): Scene {
+  if (!a) return x;
+  return {
+    ...x,
+    phrase: x.phrase || a.phrase,
+    statusUrl: x.statusUrl ?? a.statusUrl,
+    responseUrl: x.responseUrl ?? a.responseUrl,
+    clipUrl: x.clipUrl ?? a.clipUrl,
+    audioUrl: x.audioUrl ?? a.audioUrl,
+    audioSec: x.audioSec ?? a.audioSec,
+    clipSec: x.clipSec ?? a.clipSec,
+    erreur: x.erreur === null ? null : x.erreur ?? a.erreur,
+  };
+}
+
+/**
+ * Enregistre la création en relisant le livre : deux mises à jour simultanées
+ * (suivi d'un côté, voix ou relance de l'autre) ne s'effacent pas.
+ */
 async function sauver(bookId: string, trailer: Trailer): Promise<void> {
   const frais = await prisma.book.findUnique({ where: { id: bookId }, select: { pages: true } });
   const p = storySchema.safeParse(frais?.pages);
   if (!p.success) return;
-  // Même bande-annonce déjà enregistrée : on fusionne scène par scène (deux
-  // mises à jour simultanées ne s'effacent pas : clips d'un côté, voix de l'autre).
   const ancien = p.data.video;
   const fusion: Trailer =
     ancien && ancien.creeLe === trailer.creeLe
       ? {
           ...trailer,
-          scenes: trailer.scenes.map((x, i) => {
-            const a = ancien.scenes[i];
-            if (!a) return x;
-            return {
-              ...x,
-              phrase: x.phrase || a.phrase,
-              statusUrl: x.statusUrl ?? a.statusUrl,
-              responseUrl: x.responseUrl ?? a.responseUrl,
-              clipUrl: x.clipUrl ?? a.clipUrl,
-              audioUrl: x.audioUrl ?? a.audioUrl,
-              erreur: x.erreur === null ? null : x.erreur ?? a.erreur,
-            };
-          }),
+          scenes: trailer.scenes.map((x, i) => fusionScene(x, ancien.scenes[i])),
+          finalStatusUrl: trailer.finalStatusUrl ?? ancien.finalStatusUrl,
+          finalResponseUrl: trailer.finalResponseUrl ?? ancien.finalResponseUrl,
+          finalUrl: trailer.finalUrl ?? ancien.finalUrl,
+          finalErreur: trailer.finalErreur === null ? null : trailer.finalErreur ?? ancien.finalErreur,
         }
       : trailer;
   const maj: Story = { ...p.data, video: fusion };
@@ -81,34 +92,43 @@ export async function startTrailer(bookId: string): Promise<TrailerState> {
   }
 
   const sources = choisirSources(story);
-  // Bande-annonce « en préparation » visible tout de suite.
+  const textes = textesLus(story, book.child.firstName, sources);
   const initiale: Trailer = {
     creeLe: Date.now(),
     essais: essais + 1,
-    scenes: sources.map((source) => ({ source, phrase: "" })),
+    scenes: sources.map((source, i) => ({ source, phrase: textes[i]! })),
   };
   await sauver(book.id, initiale);
 
   waitUntil(
     (async () => {
-      const phrases = await ecrireScript(story, book.child.firstName, sources);
-      // Animations en file d'attente chez fal (en parallèle)…
-      const clips = await Promise.all(sources.map((source) => soumettreClip(story, source)));
+      // 1. Voix off, une par une (fal limite les requêtes simultanées) : leur
+      //    durée décide de la longueur des clips (5 ou 10 s).
+      const voix: ({ url: string; sec: number } | null)[] = [];
+      for (const t of textes) voix.push(await voixOff(t));
+      // 2. Animations en file d'attente chez fal.
+      const clips = await Promise.all(
+        sources.map((source, i) => {
+          const sec = (voix[i]?.sec ?? 4) > 6.5 ? 10 : 5;
+          return soumettreClip(story, source, sec).then((c) => ({ c, sec }));
+        }),
+      );
       await sauver(book.id, {
         ...initiale,
         scenes: sources.map((source, i) => {
-          const c = clips[i]!;
-          return { source, phrase: phrases[i]!, ...("erreur" in c ? { erreur: c.erreur } : c) };
+          const { c, sec } = clips[i]!;
+          return {
+            source,
+            phrase: textes[i]!,
+            audioUrl: voix[i]?.url ?? null,
+            // 0 = pas de voix pour cette scène (la vidéo reste montable).
+            audioSec: voix[i]?.sec ?? 0,
+            clipSec: sec,
+            ...("erreur" in c ? { erreur: c.erreur } : c),
+          };
         }),
       });
-      // …puis voix off une par une (fal limite les requêtes simultanées).
-      const voix: (string | null)[] = [];
-      for (const p of phrases) voix.push(await voixOff(p));
-      const frais = await prisma.book.findUnique({ where: { id: book.id }, select: { pages: true } });
-      const actuel = storySchema.safeParse(frais?.pages);
-      const t = actuel.success && actuel.data.video ? actuel.data.video : null;
-      if (t) await sauver(book.id, { ...t, scenes: t.scenes.map((x, i) => ({ ...x, audioUrl: voix[i] ?? null })) });
-    })().catch((e) => console.error("[trailer]", String(e).slice(0, 200))),
+    })().catch((e) => console.error("[dessin animé]", String(e).slice(0, 200))),
   );
 
   return { ok: true, trailer: initiale };
@@ -131,12 +151,32 @@ export async function retryScene(bookId: string, index: number): Promise<Trailer
   const t = r.story.video;
   const s = t?.scenes[index];
   if (!t || !s || !s.erreur) return { ok: false, message: "Rien à relancer." };
-  const clip = await soumettreClip(r.story, s.source);
-  const audioUrl = s.audioUrl ?? (s.phrase ? await voixOff(s.phrase) : null);
+  const sec = (s.clipSec === 10 ? 10 : 5) as 5 | 10;
+  const clip = await soumettreClip(r.story, s.source, sec);
   const scenes = t.scenes.map((x, k) =>
-    k === index ? { ...x, audioUrl, erreur: null, ...("erreur" in clip ? { erreur: clip.erreur } : clip) } : x,
+    k === index ? { ...x, erreur: null, ...("erreur" in clip ? { erreur: clip.erreur } : clip) } : x,
   );
-  const maj = { ...t, scenes };
-  await sauver(bookId, maj);
+  // Le montage sera relancé une fois toutes les scènes prêtes.
+  const maj: Trailer = { ...t, scenes, finalErreur: null, finalStatusUrl: null, finalResponseUrl: null, finalUrl: null };
+  await sauverRemplace(bookId, maj);
+  return { ok: true, trailer: maj };
+}
+
+/** Remplace la création telle quelle (utilisé quand on efface volontairement des champs). */
+async function sauverRemplace(bookId: string, trailer: Trailer): Promise<void> {
+  const frais = await prisma.book.findUnique({ where: { id: bookId }, select: { pages: true } });
+  const p = storySchema.safeParse(frais?.pages);
+  if (!p.success) return;
+  await prisma.book.update({ where: { id: bookId }, data: { pages: { ...p.data, video: trailer } } });
+}
+
+/** Relance uniquement le montage final (s'il a échoué). */
+export async function retryMontage(bookId: string): Promise<TrailerState> {
+  const r = await chargerLivrePaye(bookId);
+  if ("erreur" in r) return { ok: false, message: r.erreur };
+  const t = r.story.video;
+  if (!t || !t.finalErreur) return { ok: false, message: "Rien à relancer." };
+  const maj: Trailer = { ...t, finalErreur: null, finalStatusUrl: null, finalResponseUrl: null, finalUrl: null };
+  await sauverRemplace(bookId, maj);
   return { ok: true, trailer: maj };
 }

@@ -8,7 +8,6 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { storySchema } from "@/lib/storySchema";
-import { lightenStory } from "@/lib/bookImages";
 import { getDeluxeProduct, skusDonnantAcces, formatEuros } from "@/lib/products";
 import { safeFileName } from "@/lib/bookAccess";
 import TrailerMaker from "@/components/TrailerMaker";
@@ -36,7 +35,6 @@ export default async function VideoPage({ params }: { params: { id: string } }) 
     select: { id: true },
   });
   const produit = getDeluxeProduct("video")!;
-  const story = lightenStory(parsed.data, book.id);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -44,26 +42,23 @@ export default async function VideoPage({ params }: { params: { id: string } }) 
         <Link href={`/bibliotheque/${book.id}/boutique`} className="text-sm text-magique-texteClair hover:underline">
           ← La boutique de ce livre
         </Link>
-        <h1 className="mt-1 text-3xl sm:text-4xl">🎬 La bande-annonce</h1>
+        <h1 className="mt-1 text-3xl sm:text-4xl">🎬 Le livre en dessin animé</h1>
         <p className="text-magique-texteClair">
-          « {book.title} » comme un vrai dessin animé : les personnages bougent, une voix raconte, en musique.
+          « {book.title} » de la première à la dernière page : les personnages bougent, une voix lit l'histoire, en musique.
         </p>
       </div>
 
       {paye ? (
         <TrailerMaker
           bookId={book.id}
-          titre={story.titre}
-          sousTitre={`Une histoire pour ${book.child.firstName}`}
-          couverture={story.couvertureUrl ?? null}
           initial={parsed.data.video ?? null}
           essaisMax={ESSAIS_MAX}
-          nomFichier={`${safeFileName(book.title)}-bande-annonce`}
+          nomFichier={`${safeFileName(book.title)}-dessin-anime`}
         />
       ) : (
         <>
           <p className="text-sm text-magique-texteClair">
-            Débloquez la bande-annonce pour {formatEuros(produit.priceCents)} (ou incluse dans la formule
+            Débloquez le dessin animé pour {formatEuros(produit.priceCents)} (ou incluse dans la formule
             Tout compris).
           </p>
           <DeluxeShop bookId={book.id} produits={[produit]} skusPayes={[]} />
