@@ -37,7 +37,7 @@ function Coche() {
 
 const PROMESSES = [
   "Lecture gratuite avant tout achat",
-  "Adaptée à son âge (2 à 10 ans)",
+  "Adaptée à son âge (1 à 12 ans)",
   "Photo jamais conservée",
   "Sans abonnement",
 ];
@@ -198,41 +198,82 @@ export default async function AccueilPage() {
           </ul>
         </div>
 
-        {/* Le livre en relief : l'élément fort de la page. */}
-        <div className="relative mx-auto w-full max-w-[340px]" style={{ animation: "eclore .9s .15s both" }}>
-          <div className="[perspective:1400px]">
+        {/* De la photo au livre : la promesse, montrée d'un coup d'œil. */}
+        <div className="relative mx-auto w-full max-w-[460px]" style={{ animation: "eclore .9s .15s both" }}>
+          {/* Le livre en relief, couverture illustrée pleine page */}
+          <div className="ml-auto w-[78%] [perspective:1400px]">
             <div
-              className="relative aspect-[4/5] rounded-l-md rounded-r-2xl shadow-conte"
-              style={{
-                transform: "rotateY(-16deg) rotateX(5deg)",
-                transformStyle: "preserve-3d",
-                backgroundImage: "linear-gradient(160deg,#23356f,#0f1a44)",
-              }}
+              className="relative aspect-[4/5] overflow-hidden rounded-l-md rounded-r-2xl shadow-conte"
+              style={{ transform: "rotateY(-14deg) rotateX(4deg)", transformStyle: "preserve-3d" }}
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/exemple/couverture.webp"
+                alt="Couverture du livre : Léo et son renard entrent dans la forêt des lanternes"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0f1a44]/90 via-transparent to-transparent" aria-hidden="true" />
               <div
-                className="absolute inset-y-0 left-0 w-4 rounded-l-md"
-                style={{ background: "linear-gradient(90deg,rgba(0,0,0,.35),rgba(255,255,255,.08))" }}
+                className="absolute inset-y-0 left-0 w-4"
+                style={{ background: "linear-gradient(90deg,rgba(0,0,0,.4),rgba(255,255,255,.1))" }}
                 aria-hidden="true"
               />
-              <div
-                className="absolute -right-2 bottom-3 top-3 w-2.5 rounded-r-sm"
-                style={{ background: "repeating-linear-gradient(180deg,#fdfbff 0 2px,#dfe5f6 2px 3px)" }}
-                aria-hidden="true"
-              />
-              <div className="absolute inset-x-7 top-7 rounded-xl bg-[#e9eefc] p-2">
-                <Illu nom="hero" alt="Couverture : un enfant lit au lit sous un ciel étoilé" className="aspect-square w-full object-contain" />
-              </div>
-              <div className="absolute inset-x-7 bottom-7">
-                <p className="font-serif text-2xl leading-tight text-white">Léo et la nuit des lucioles</p>
-                <p className="mt-1 text-sm text-[#cdd7f4]">Une histoire écrite pour Léo, 5 ans</p>
+              <div className="absolute inset-x-6 bottom-6">
+                <p className="font-serif text-2xl leading-tight text-white">Léo et la forêt des lanternes</p>
+                <p className="mt-1 text-sm text-[#dce3ff]">Une histoire écrite pour Léo, 5 ans</p>
               </div>
             </div>
           </div>
-          <div className="absolute -bottom-5 -left-3 flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-nuit shadow-conte sm:-left-8">
-            <Coche />
-            Prête en deux minutes
+
+          {/* La photo d'origine, en polaroïd */}
+          <figure
+            className="absolute -left-1 top-0 w-[38%] rotate-[-7deg] rounded-md bg-white p-1.5 pb-6 shadow-conte sm:-left-6 sm:top-4 sm:w-[42%] sm:p-2 sm:pb-7"
+            style={{ animation: "monter .7s .5s both" }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/exemple/photo.webp" alt="La photo de Léo" className="aspect-[3/4] w-full rounded-sm object-cover" />
+            <figcaption className="absolute inset-x-0 bottom-1 text-center font-serif text-xs italic text-nuit sm:bottom-1.5 sm:text-sm">
+              La photo de Léo
+            </figcaption>
+          </figure>
+
+          {/* Flèche magique entre la photo et le livre */}
+          <div className="absolute -bottom-4 left-2 flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-nuit shadow-conte sm:left-0">
+            ✨ Prête en 2 minutes
           </div>
         </div>
+      </section>
+
+      {/* ─── De la photo au livre ─── */}
+      <section>
+        <h2 className="text-center text-3xl sm:text-4xl">De sa photo à son livre</h2>
+        <p className="mx-auto mt-3 max-w-[52ch] text-center text-magique-texteClair">
+          Vous ajoutez une photo, on dessine un héros qui lui ressemble vraiment, le même à
+          chaque page, dans une histoire inventée pour lui.
+        </p>
+        <div className="mt-10 grid items-center gap-5 md:grid-cols-[.6fr_auto_1.4fr]">
+          <figure className="mx-auto w-full max-w-[260px] rotate-[-3deg] rounded-md bg-white p-2 pb-8 shadow-conte">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/exemple/photo.webp" alt="Photo d'exemple d'un enfant" loading="lazy" className="aspect-[3/4] w-full rounded-sm object-cover" />
+            <figcaption className="mt-2 text-center font-serif text-sm italic text-nuit">La photo envoyée</figcaption>
+          </figure>
+          <p className="text-center text-3xl text-or" aria-hidden="true">→</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[
+              { src: "/exemple/page-pont.webp", txt: "« Le petit renard tendit la patte : “Par ici, Léo, le pont des lucioles !” »" },
+              { src: "/exemple/page-lanternes.webp", txt: "« Du haut de la colline, Léo libéra toutes les lanternes du ciel. »" },
+            ].map((p) => (
+              <figure key={p.src} className="overflow-hidden rounded-2xl border border-white/15 bg-white/[0.07] shadow-conte">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.src} alt="Page illustrée du livre d'exemple" loading="lazy" className="aspect-[16/9] w-full object-cover" />
+                <figcaption className="p-3 text-sm italic text-magique-texteClair">{p.txt}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+        <p className="mt-4 text-center text-xs text-magique-texteClair">
+          Exemple réalisé avec un enfant fictif. Votre photo n'est jamais conservée.
+        </p>
       </section>
 
       {/* ─── Ce qui fait la différence ─── */}
@@ -452,7 +493,8 @@ export default async function AccueilPage() {
             </Link>
           </div>
           <div className="mx-auto w-full max-w-xs">
-            <Illu nom="nuit" alt="Un enfant lit au lit sous la lune et les étoiles" className="w-full rounded-3xl" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/exemple/page-lanternes.webp" alt="Léo libère des lanternes dans le ciel étoilé" loading="lazy" className="w-full rounded-3xl" />
           </div>
         </div>
       </section>
