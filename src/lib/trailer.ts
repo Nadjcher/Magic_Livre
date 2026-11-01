@@ -19,7 +19,7 @@ const MODELE_VIDEO = () => process.env.TRAILER_VIDEO_MODEL || "fal-ai/kling-vide
 const MODELE_VOIX = "fal-ai/elevenlabs/tts/multilingual-v2";
 const MODELE_MONTAGE = "fal-ai/ffmpeg-api/compose";
 const VOIX = () => process.env.TRAILER_VOICE || "Matilda";
-export const ESSAIS_MAX = 2;
+export const ESSAIS_MAX = 3;
 
 const entetes = () => ({ Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" });
 
@@ -106,14 +106,21 @@ async function resultat(statusUrl: string, responseUrl: string): Promise<{ ok: b
 // Durée réelle d'un clip Kling (24 i/s : 121 images = 5,04 s ; 241 = 10,04 s).
 const dureeClipMs = (sec: number | null | undefined) => (sec === 10 ? 10_040 : 5_040);
 
-/** Décompose une durée en morceaux de silence disponibles (précision 0,1 s). */
+// Durées RÉELLES des fichiers (mesurées) : le montage de fal compte la durée
+// complète de chaque MP3, marge d'encodage comprise. Clé = nom du fichier.
+const SILENCES: [number, number][] = [
+  [6400, 6426], [3200, 3239], [1600, 1646], [800, 836], [400, 444], [200, 235], [100, 131],
+];
+const BOUCLES: [number, number][] = [[12_800, 12_826], [6_400, 6_426], [3_200, 3_239]];
+
+/** Décompose une durée en morceaux de silence (précision ~0,13 s). */
 function silences(base: string, ms: number): { url: string; duration: number }[] {
   const out: { url: string; duration: number }[] = [];
-  let reste = Math.max(0, Math.round(ms / 100) * 100);
-  for (const len of [6400, 3200, 1600, 800, 400, 200, 100]) {
-    while (reste >= len) {
-      out.push({ url: `${base}silence-${len}.wav`, duration: len });
-      reste -= len;
+  let reste = ms;
+  for (const [nom, reel] of SILENCES) {
+    while (reste >= reel - 40) {
+      out.push({ url: `${base}silence-${nom}.mp3`, duration: reel });
+      reste -= reel;
     }
   }
   return out;
@@ -154,10 +161,10 @@ async function soumettreMontage(t: Trailer): Promise<{ statusUrl: string; respon
   // (sinon la piste son prolongerait le fichier sur un écran noir).
   const musique: { url: string; timestamp: number; duration: number }[] = [];
   let m = 0;
-  for (const len of [12_800, 6_400, 3_200]) {
-    while (m + len <= t0 - 200) {
-      musique.push({ url: `${base}boucle-${len}.mp3`, timestamp: m, duration: len });
-      m += len;
+  for (const [nom, reel] of BOUCLES) {
+    while (m + reel <= t0 - 200) {
+      musique.push({ url: `${base}boucle-${nom}.mp3`, timestamp: m, duration: reel });
+      m += reel;
     }
   }
   const r = await fetch(`https://queue.fal.run/${MODELE_MONTAGE}`, {

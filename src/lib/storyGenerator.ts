@@ -90,7 +90,8 @@ async function callModel(
           temperature,
           max_tokens: 8000,
         }),
-        signal: AbortSignal.timeout(150_000),
+        // Écriture ≤ 100 s, relecture ≤ 70 s : le tout reste sous la limite de 5 min.
+        signal: AbortSignal.timeout(temperature < 0.6 ? 70_000 : 100_000),
       });
       const j = (await r.json()) as { output?: string; error?: unknown };
       if (r.ok && j.output && j.output.includes("{")) return j.output.trim();
