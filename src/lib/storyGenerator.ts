@@ -88,7 +88,10 @@ async function callModel(
           system_prompt: system,
           prompt: `${userMessage}\n\nRéponds UNIQUEMENT avec l'objet JSON demandé, sans texte autour.`,
           temperature,
-          max_tokens: 8000,
+          // Les modèles Claude récents réfléchissent avant d'écrire (obligatoire
+          // sur ce point d'accès) : marge de jetons pour la réflexion + le JSON.
+          reasoning: true,
+          max_tokens: 16000,
         }),
         // Écriture ≤ 100 s, relecture ≤ 70 s : le tout reste sous la limite de 5 min.
         signal: AbortSignal.timeout(temperature < 0.6 ? 70_000 : 100_000),

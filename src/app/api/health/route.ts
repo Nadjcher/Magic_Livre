@@ -163,7 +163,7 @@ export async function GET(req: Request): Promise<Response> {
     const r = await fetch("https://fal.run/openrouter/router", {
       method: "POST",
       headers: { Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: modele, prompt: "Réponds juste par le mot : bonjour", max_tokens: 10 }),
+      body: JSON.stringify({ model: modele, prompt: "Réponds juste par le mot : bonjour", max_tokens: 2000, reasoning: true }),
     }).catch((e) => ({ ok: false, status: 0, text: async () => String(e) }) as const);
     const brut = await r.text().catch(() => "");
     let j: { output?: string; error?: unknown } = {};
