@@ -106,31 +106,57 @@ async function resultat(statusUrl: string, responseUrl: string): Promise<{ ok: b
 // Durée réelle d'un clip Kling (24 i/s : 121 images = 5,04 s ; 241 = 10,04 s).
 const dureeClipMs = (sec: number | null | undefined) => (sec === 10 ? 10_040 : 5_040);
 
+/** Décompose une durée en morceaux de silence disponibles (précision 0,1 s). */
+function silences(base: string, ms: number): { url: string; duration: number }[] {
+  const out: { url: string; duration: number }[] = [];
+  let reste = Math.max(0, Math.round(ms / 100) * 100);
+  for (const len of [6400, 3200, 1600, 800, 400, 200, 100]) {
+    while (reste >= len) {
+      out.push({ url: `${base}silence-${len}.wav`, duration: len });
+      reste -= len;
+    }
+  }
+  return out;
+}
+
 /**
  * Lance le montage final : scènes bout à bout, voix calées, musique douce.
- * Le montage de fal joue chaque clip EN ENTIER (pas de coupe) : une scène dure
- * donc un nombre entier de clips, assez pour couvrir toute la phrase lue.
+ * Le montage de fal place les morceaux de chaque piste BOUT À BOUT (il ignore
+ * les horodatages) et joue chaque clip EN ENTIER : une scène dure donc un
+ * nombre entier de clips, et la voix de chaque scène est encadrée de silences
+ * exacts pour tomber pile sur ses images.
  */
 async function soumettreMontage(t: Trailer): Promise<{ statusUrl: string; responseUrl: string } | { erreur: string }> {
+  const base = `${getAppUrl()}/musique/`;
   const video: { url: string; timestamp: number; duration: number }[] = [];
   const voix: { url: string; timestamp: number; duration: number }[] = [];
   let t0 = 0;
+  let tv = 0; // position courante de la piste voix
+  const ajouterVoix = (url: string, duration: number) => {
+    voix.push({ url, timestamp: tv, duration });
+    tv += duration;
+  };
   for (const s of t.scenes) {
     const clip = dureeClipMs(s.clipSec);
-    const besoin = Math.max(((s.audioSec ?? 0) + 1.2) * 1000, 4000);
+    const voixMs = Math.round((s.audioSec ?? 0) * 1000);
+    const besoin = Math.max(voixMs + 1200, 4000);
     const n = Math.max(1, Math.ceil(besoin / clip));
     for (let k = 0; k < n; k++) video.push({ url: s.clipUrl!, timestamp: t0 + k * clip, duration: clip });
-    if (s.audioUrl) voix.push({ url: s.audioUrl, timestamp: t0 + 400, duration: Math.round((s.audioSec ?? 4) * 1000) });
-    t0 += n * clip;
+    const finScene = t0 + n * clip;
+    // Silence jusqu'au début de la phrase (0,4 s après le début de la scène)…
+    for (const x of silences(base, t0 + 400 - tv)) ajouterVoix(x.url, x.duration);
+    if (s.audioUrl && voixMs > 0) ajouterVoix(s.audioUrl, voixMs);
+    // …puis silence jusqu'à la fin de la scène.
+    for (const x of silences(base, finScene - tv)) ajouterVoix(x.url, x.duration);
+    t0 = finScene;
   }
   // Musique : morceaux qui bouclent parfaitement, sans jamais dépasser la vidéo
   // (sinon la piste son prolongerait le fichier sur un écran noir).
-  const base = `${getAppUrl()}/musique/boucle-`;
   const musique: { url: string; timestamp: number; duration: number }[] = [];
   let m = 0;
   for (const len of [12_800, 6_400, 3_200]) {
     while (m + len <= t0 - 200) {
-      musique.push({ url: `${base}${len}.mp3`, timestamp: m, duration: len });
+      musique.push({ url: `${base}boucle-${len}.mp3`, timestamp: m, duration: len });
       m += len;
     }
   }

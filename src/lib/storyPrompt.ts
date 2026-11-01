@@ -26,7 +26,7 @@ Qualité d'écriture :
 
 Originalité (très important) :
 - INTERDIT : la trame plate « le héros fait une activité banale (jouer, marcher, chercher) et tout le monde est content à la fin ». Ce genre d'histoire est un ÉCHEC.
-- Chaque histoire a un ÉLÉMENT IMAGINAIRE FORT et unique : un objet qui prend vie ou parle, un petit pouvoir inattendu, un monde aux règles amusantes, un problème cocasse à résoudre avec malice, une créature originale (inventée, jamais sous droits).
+- Chaque histoire a un ÉLÉMENT IMAGINAIRE FORT et unique, qui NAÎT DU THÈME et sert l'intrigue (pour un match de foot : un ballon qui parle ou des crampons magiques — jamais une créature sans rapport plaquée au milieu) : un objet qui prend vie ou parle, un petit pouvoir inattendu, un monde aux règles amusantes, un problème cocasse à résoudre avec malice, une créature originale (inventée, jamais sous droits).
 - Un vrai TWIST ou une surprise qui rend cette histoire mémorable et différente de toutes les autres. Un brin d'humour ou d'émerveillement.
 - Donne au héros un désir clair, un obstacle amusant, et une résolution MALINE (pas juste « il est gentil »). Reste 100% adapté à l'âge et rassurant.
 
@@ -39,12 +39,15 @@ Règles impératives :
 
 Format de sortie OBLIGATOIRE : réponds UNIQUEMENT avec un objet JSON strict, sans texte avant ni après, sans balises de code. Structure exacte :
 {
+  "plan": "string",
   "titre": "string",
   "personnages": "string",
   "pages": [
     { "texte": "string", "scene_illustration": "string" }
   ]
 }
+
+Le champ "plan" (écrit EN PREMIER, 5 à 8 lignes) fixe l'histoire AVANT de l'écrire : le désir du héros, le problème, chaque personnage secondaire (qui il est, comment il entre dans l'histoire), les 2–3 étapes, le moment fort, la résolution logique. Ensuite, les pages suivent CE plan, sans ajout gratuit.
 
 Le champ "personnages" COMMENCE TOUJOURS par la TENUE UNIQUE du héros, choisie une fois pour toutes et identique sur TOUTES les pages (ex. "Kamil (hero): bright yellow t-shirt, dark blue jeans, red sneakers") — sauf si l'histoire impose un changement explicite (pyjama le soir…), alors précise-le. Il contient ensuite une fiche visuelle EN ANGLAIS de CHAQUE personnage secondaire récurrent (compagnon, animal, créature, parent…) : nom, espèce, taille, couleurs exactes, matière/pelage, signes distinctifs, tenue. Exemple : "Puffi: a small round fluffy creature the size of a kitten, mint-green fur, big black eyes, tiny pink cheeks, two short leaf-shaped antennas". Cette fiche sera reprise mot pour mot sur chaque illustration : sois précis et NE CHANGE JAMAIS l'apparence d'un personnage d'une page à l'autre. Dans chaque "scene_illustration", nomme les personnages présents et reprends leurs traits clés.
 
@@ -211,7 +214,7 @@ export function buildUserMessage(req: StoryRequest): string {
     );
   }
 
-  lignes.push(
+  if (!theme) lignes.push(
     `Étincelle d'originalité à intégrer avec finesse, AU SERVICE du thème/de l'idée ci-dessus (adapte-la à l'âge, garde une histoire cohérente et rassurante ; ignore-la si elle ne s'accorde pas) : ${pickSpark()}.`,
   );
   lignes.push(

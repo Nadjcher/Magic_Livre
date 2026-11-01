@@ -71,7 +71,35 @@ async function callModel(
   system: string,
   userMessage: string,
   temperature = 0.9,
+  premium = false,
 ): Promise<string> {
+  // Écriture par un grand modèle (Claude via fal) : bien meilleur en français
+  // et en cohérence. Repli automatique sur Groq en cas d'échec.
+  if (env.falApiKey() && process.env.STORY_LLM !== "groq") {
+    const modele = premium
+      ? process.env.STORY_MODEL_PREMIUM || "anthropic/claude-opus-5.5"
+      : process.env.STORY_MODEL || "anthropic/claude-sonnet-5.5";
+    try {
+      const r = await fetch("https://fal.run/openrouter/router", {
+        method: "POST",
+        headers: { Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: modele,
+          system_prompt: system,
+          prompt: `${userMessage}\n\nRéponds UNIQUEMENT avec l'objet JSON demandé, sans texte autour.`,
+          temperature,
+          max_tokens: 8000,
+        }),
+        signal: AbortSignal.timeout(150_000),
+      });
+      const j = (await r.json()) as { output?: string; error?: unknown };
+      if (r.ok && j.output && j.output.includes("{")) return j.output.trim();
+      console.error("[texte] fal/openrouter :", r.status, JSON.stringify(j.error ?? j).slice(0, 200));
+    } catch (e) {
+      console.error("[texte] fal/openrouter :", String(e).slice(0, 200));
+    }
+  }
+
   const response = await client.chat.completions.create(
     {
       model,
@@ -91,10 +119,15 @@ async function callModel(
 
 /** Prompt « éditeur » : réécrit une histoire pour la clarifier et l'adapter à l'âge. */
 const EDITOR_SYSTEM = `Tu es un éditeur jeunesse exigeant. On te donne une histoire au format JSON. Tu la RÉÉCRIS pour l'améliorer, SANS changer la structure JSON ni le nombre de pages.
+CONTRÔLE DE COHÉRENCE (prioritaire) — corrige tout manquement :
+- Chaque personnage est PRÉSENTÉ (qui il est, à quoi il ressemble) la première fois qu'il apparaît ; aucun personnage ne surgit sans explication, aucun n'est nommé sans avoir été présenté.
+- Un personnage garde le même nom, la même espèce et la même apparence du début à la fin (texte, scene_illustration ET fiche "personnages" doivent concorder).
+- Chaque page découle logiquement de la précédente ; le problème posé au début est résolu à la fin par une action du héros qui a du sens ; pas d'élément magique nouveau et gratuit dans le dernier tiers.
+- Chaque "scene_illustration" nomme les personnages présents et rappelle leurs traits clés (espèce, couleurs, tenue du héros).
 Objectifs : clarté absolue (le parent et l'enfant comprennent tout de suite), émotion sincère, fluidité, et surtout un respect PARFAIT de l'âge indiqué (longueur de phrase et vocabulaire).
 Garde le même héros, le même fil, les mêmes scènes. Améliore le texte de chaque page et le titre si besoin. Conserve "scene_illustration" en anglais, détaillé, cohérent.
 IMPÉRATIF : supprime toute répétition mécanique (par ex. la même phrase recollée à la fin de chaque page) — chaque page doit avoir un texte différent. Corrige toute tournure maladroite ou agrammaticale (ex. « avance avec le sourire » → « avance en souriant »).
-Réponds UNIQUEMENT avec le même JSON strict : { "titre": string, "pages": [ { "texte": string, "scene_illustration": string } ] }.`;
+Réponds UNIQUEMENT avec le même JSON strict : { "titre": string, "personnages": string, "pages": [ { "texte": string, "scene_illustration": string } ] } ("personnages" : la fiche visuelle en anglais, corrigée si besoin, qui commence par la tenue du héros).`;
 
 /**
  * Passe de révision : demande au modèle de réécrire l'histoire validée pour
@@ -119,7 +152,8 @@ async function polishStory(
   let raw: string;
   try {
     // Température basse à la relecture (fidélité + correction).
-    raw = await callModel(client, model, EDITOR_SYSTEM, message, 0.4);
+    // Relecture : Sonnet suffit (et garde le temps total sous la limite).
+    raw = await callModel(client, model, EDITOR_SYSTEM, message, 0.4, false);
   } catch {
     return null;
   }
@@ -135,8 +169,8 @@ async function polishStory(
   ].join(" ");
   if (findProtectedNames(fullText).length > 0) return null;
 
-  // La relecture ne renvoie que titre + pages : on conserve la fiche personnages.
-  return { ...parsed.story, personnages: story.personnages };
+  // Fiche personnages : celle corrigée par l'éditeur, sinon l'originale.
+  return { ...parsed.story, personnages: parsed.story.personnages || story.personnages };
 }
 
 /**
@@ -170,7 +204,7 @@ export async function generateStory(req: StoryRequest): Promise<GenerateResult> 
     let raw: string;
     try {
       // Température élevée à l'écriture (créativité).
-      raw = await callModel(client, model, SYSTEM_PROMPT, userMessage, 1.0);
+      raw = await callModel(client, model, SYSTEM_PROMPT, userMessage, 0.9, req.premium);
     } catch {
       lastMessage =
         "Le service de génération est momentanément indisponible. Réessayez dans quelques instants.";
