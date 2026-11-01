@@ -4,7 +4,8 @@
  * Le jeton est cherché sous son nom standard (BLOB_READ_WRITE_TOKEN) MAIS aussi
  * sous un nom préfixé (ex. STORILOU_IMAGES_READ_WRITE_TOKEN) : Vercel propose un
  * « préfixe personnalisé » à la connexion du store, ce qui changeait le nom de
- * la variable et rendait le store invisible pour le site.
+ * la variable et rendait le store invisible pour le site. Les stores récents
+ * n'ont plus de jeton du tout (connexion OIDC + BLOB_STORE_ID).
  */
 
 import "server-only";
@@ -28,8 +29,20 @@ export function blobToken(): string | undefined {
   return name ? process.env[name] : undefined;
 }
 
+/**
+ * Store relié au projet : soit par jeton (ancienne méthode), soit par OIDC
+ * (nouvelle méthode Vercel : seule BLOB_STORE_ID est fournie, l'authentification
+ * passe par le jeton OIDC du déploiement, géré par @vercel/blob).
+ */
 export function blobEnabled(): boolean {
-  return Boolean(blobToken());
+  return Boolean(blobToken() || process.env.BLOB_STORE_ID);
+}
+
+/** Mode de connexion au store, pour le diagnostic. */
+export function blobMode(): "token" | "oidc" | null {
+  if (blobToken()) return "token";
+  if (process.env.BLOB_STORE_ID) return "oidc";
+  return null;
 }
 
 /** Envoie un fichier public sur Blob et renvoie son URL. Jette en cas d'échec. */

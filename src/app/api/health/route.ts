@@ -4,7 +4,8 @@
  * (uniquement des booléens et l'URL publique). À retirer une fois le site stable.
  */
 
-import { blobTokenName } from "@/lib/blobStore";
+import { blobMode, blobTokenName, putPublic } from "@/lib/blobStore";
+import { del } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAppUrl } from "@/lib/appUrl";
@@ -86,6 +87,7 @@ export async function GET(req: Request): Promise<Response> {
       FROM "Book" WHERE pages IS NOT NULL`;
     const r = rows[0];
     out.env.BLOB_READ_WRITE_TOKEN = blobTokenName() ?? false;
+    (out.env as Record<string, unknown>).blobMode = blobMode();
     (out.env as Record<string, unknown>).blobLikeVars = Object.keys(process.env).filter((k) => /BLOB|READ_WRITE/i.test(k));
     out.db.storage = true;
     (out as Record<string, unknown>).books = r
@@ -97,6 +99,21 @@ export async function GET(req: Request): Promise<Response> {
 
   // Diagnostic image : /api/health?img=1 — sonde directement l'API Gemini pour
   // chaque modèle et remonte le VRAI code/message d'erreur de Google.
+  // Test réel du stockage Blob : /api/health?blob=1 (dépose puis supprime un
+  // petit fichier ; ne renvoie que le résultat, jamais de secret).
+  if (new URL(req.url).searchParams.get("blob") === "1") {
+    const probe: Record<string, unknown> = { mode: blobMode() };
+    try {
+      const url = await putPublic("diagnostic/sonde.txt", Buffer.from("ok"), "text/plain");
+      probe.putOk = true;
+      await del(url).catch(() => undefined);
+    } catch (e) {
+      probe.putOk = false;
+      probe.error = String(e).slice(0, 300);
+    }
+    (out as Record<string, unknown>).blob = probe;
+  }
+
   const img = new URL(req.url).searchParams.get("img");
 
   // Test réel de bout en bout du portrait fal : /api/health?img=fal
