@@ -31,6 +31,21 @@ export async function GET(req: Request): Promise<Response> {
   const s = new URL(req.url).searchParams.get("s") ?? "";
   if (createHash("sha256").update(s).digest("hex") !== HASH) return new NextResponse("Non.", { status: 404 });
   const key = env.falApiKey();
+  if (new URL(req.url).searchParams.get("video") === "1") {
+    const h = { Authorization: `Key ${key}`, "Content-Type": "application/json" };
+    const t = Date.now();
+    const [v, a] = await Promise.all([
+      fetch("https://fal.run/fal-ai/kling-video/v2.5-turbo/standard/image-to-video", {
+        method: "POST", headers: h, signal: AbortSignal.timeout(280_000),
+        body: JSON.stringify({ prompt: "the boy reading in bed looks up and smiles, the stars twinkle and the moon glows, gentle camera push-in, children's animated film, keep the same art style, no text", image_url: REF.replace(".webp", ".webp"), duration: "5", negative_prompt: "blur, distortion, deformed face, text" }),
+      }).then(async (r) => ({ ok: r.ok, j: await r.json() })),
+      fetch("https://fal.run/fal-ai/elevenlabs/tts/multilingual-v2", {
+        method: "POST", headers: h,
+        body: JSON.stringify({ text: "Ce soir, Léo va découvrir que les étoiles savent garder un secret…", voice: "Matilda", language_code: "fr", stability: 0.45, style: 0.35, speed: 0.95 }),
+      }).then(async (r) => ({ ok: r.ok, j: await r.json() })),
+    ]);
+    return NextResponse.json({ s: Math.round((Date.now() - t) / 1000), v, a });
+  }
   const style = ILLUSTRATION_STYLES.feerique.prompt;
   const only = new URL(req.url).searchParams.get("only");
   const jobs = Object.entries(MODELES)
