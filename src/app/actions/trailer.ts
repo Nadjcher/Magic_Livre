@@ -109,7 +109,8 @@ export async function startTrailer(bookId: string): Promise<TrailerState> {
       // 2. Animations en file d'attente chez fal.
       const clips = await Promise.all(
         sources.map((source, i) => {
-          const sec = (voix[i]?.sec ?? 4) > 6.5 ? 10 : 5;
+          // 5 s si la phrase tient dedans, sinon 10 s (le clip est rejoué au besoin).
+          const sec = (voix[i]?.sec ?? 4) + 1.2 <= 5 ? 5 : 10;
           return soumettreClip(story, source, sec).then((c) => ({ c, sec }));
         }),
       );

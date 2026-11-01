@@ -14,10 +14,10 @@ export async function GET(req: Request): Promise<Response> {
     signal: AbortSignal.timeout(280_000),
     body: JSON.stringify({ tracks: [
       { id: "images", type: "video", keyframes: [
-        { url: "https://v3b.fal.media/files/b/0ab0b74d/4O7gZDVJ7voRStaqxholM_output.mp4", timestamp: 0, duration: 5000 },
-        { url: "https://v3b.fal.media/files/b/0ab0b74d/4O7gZDVJ7voRStaqxholM_output.mp4", timestamp: 5000, duration: 3000 } ] },
+        { url: "https://v3b.fal.media/files/b/0ab0b74d/4O7gZDVJ7voRStaqxholM_output.mp4", timestamp: 0, duration: 5040 },
+        { url: "https://v3b.fal.media/files/b/0ab0b74d/4O7gZDVJ7voRStaqxholM_output.mp4", timestamp: 5040, duration: 5040 } ] },
       { id: "voix", type: "audio", keyframes: [{ url: "https://v3b.fal.media/files/b/0ab0b74a/PROLhZEHSCl32QPoIft-H_output.mp3", timestamp: 400, duration: 4000 }] },
-      { id: "musique", type: "audio", keyframes: [{ url: "https://storilou.vercel.app/musique/berceuse.mp3", timestamp: 0, duration: 8000 }] },
+      { id: "musique", type: "audio", keyframes: [{ url: "https://storilou.vercel.app/musique/boucle-6400.mp3", timestamp: 0, duration: 6400 }, { url: "https://storilou.vercel.app/musique/boucle-3200.mp3", timestamp: 6400, duration: 3200 }] },
     ] }),
   });
   return NextResponse.json({ s: Math.round((Date.now() - t) / 1000), ok: r.ok, j: await r.json() });

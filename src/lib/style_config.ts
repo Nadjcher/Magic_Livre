@@ -234,8 +234,9 @@ export function buildIllustrationPrompt(opts: {
 
   if (opts.recurringCharacters?.trim()) {
     parts.push(
-      `Recurring characters — if they appear, draw them EXACTLY as described, identical on every page ` +
-        `(same species, colors, size and features): ${opts.recurringCharacters.trim()}`,
+      `Character sheet — the hero ALWAYS wears exactly the outfit described here, and recurring characters, ` +
+        `if they appear, are drawn EXACTLY as described, identical on every page (same species, colors, size ` +
+        `and features): ${opts.recurringCharacters.trim()}`,
     );
   }
 

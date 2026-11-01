@@ -103,27 +103,37 @@ async function resultat(statusUrl: string, responseUrl: string): Promise<{ ok: b
   return { ok: res.ok, json: (await res.json().catch(() => ({}))) as Record<string, unknown> };
 }
 
-/** Durée d'une scène à l'écran : la voix entière + une respiration. */
-function dureeScene(s: Trailer["scenes"][number]): number {
-  return Math.max(s.clipSec ?? 5, (s.audioSec ?? 0) + 1.2, 4);
-}
+// Durée réelle d'un clip Kling (24 i/s : 121 images = 5,04 s ; 241 = 10,04 s).
+const dureeClipMs = (sec: number | null | undefined) => (sec === 10 ? 10_040 : 5_040);
 
-/** Lance le montage final : scènes bout à bout, voix calées, musique douce. */
+/**
+ * Lance le montage final : scènes bout à bout, voix calées, musique douce.
+ * Le montage de fal joue chaque clip EN ENTIER (pas de coupe) : une scène dure
+ * donc un nombre entier de clips, assez pour couvrir toute la phrase lue.
+ */
 async function soumettreMontage(t: Trailer): Promise<{ statusUrl: string; responseUrl: string } | { erreur: string }> {
   const video: { url: string; timestamp: number; duration: number }[] = [];
   const voix: { url: string; timestamp: number; duration: number }[] = [];
   let t0 = 0;
   for (const s of t.scenes) {
-    const total = dureeScene(s);
-    const clip = (s.clipSec ?? 5) * 1000;
-    // Voix plus longue que le clip : le clip est rejoué pour couvrir la phrase.
-    for (let d = 0; d < total * 1000; d += clip) {
-      video.push({ url: s.clipUrl!, timestamp: t0 + d, duration: Math.min(clip, total * 1000 - d) });
-    }
+    const clip = dureeClipMs(s.clipSec);
+    const besoin = Math.max(((s.audioSec ?? 0) + 1.2) * 1000, 4000);
+    const n = Math.max(1, Math.ceil(besoin / clip));
+    for (let k = 0; k < n; k++) video.push({ url: s.clipUrl!, timestamp: t0 + k * clip, duration: clip });
     if (s.audioUrl) voix.push({ url: s.audioUrl, timestamp: t0 + 400, duration: Math.round((s.audioSec ?? 4) * 1000) });
-    t0 += Math.round(total * 1000);
+    t0 += n * clip;
   }
-  const musique = `${getAppUrl()}/musique/berceuse.mp3`;
+  // Musique : morceaux qui bouclent parfaitement, sans jamais dépasser la vidéo
+  // (sinon la piste son prolongerait le fichier sur un écran noir).
+  const base = `${getAppUrl()}/musique/boucle-`;
+  const musique: { url: string; timestamp: number; duration: number }[] = [];
+  let m = 0;
+  for (const len of [12_800, 6_400, 3_200]) {
+    while (m + len <= t0 - 200) {
+      musique.push({ url: `${base}${len}.mp3`, timestamp: m, duration: len });
+      m += len;
+    }
+  }
   const r = await fetch(`https://queue.fal.run/${MODELE_MONTAGE}`, {
     method: "POST",
     headers: entetes(),
@@ -131,7 +141,7 @@ async function soumettreMontage(t: Trailer): Promise<{ statusUrl: string; respon
       tracks: [
         { id: "images", type: "video", keyframes: video },
         { id: "voix", type: "audio", keyframes: voix },
-        { id: "musique", type: "audio", keyframes: [{ url: musique, timestamp: 0, duration: Math.min(t0, 355_000) }] },
+        ...(musique.length ? [{ id: "musique", type: "audio", keyframes: musique }] : []),
       ],
     }),
   });
