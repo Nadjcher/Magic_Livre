@@ -135,6 +135,27 @@ export async function GET(req: Request): Promise<Response> {
 
   // Sonde Gemini à coût quasi nul (une réponse texte d'un mot) : détecte
   // crédits épuisés (402), clé refusée (403)… — /api/health?img=cheap
+  // Liste des modèles accessibles à la clé (gratuit) : /api/health?img=models
+  if (img === "models") {
+    const key = env.geminiApiKey();
+    const noms: string[] = [];
+    let pageToken = "";
+    for (let n = 0; n < 5; n++) {
+      const r = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=${key}${pageToken ? `&pageToken=${pageToken}` : ""}`,
+      );
+      const j = (await r.json()) as { models?: { name: string; supportedGenerationMethods?: string[] }[]; nextPageToken?: string };
+      for (const m of j.models ?? []) noms.push(m.name.replace("models/", ""));
+      if (!j.nextPageToken) break;
+      pageToken = j.nextPageToken;
+    }
+    out.images = {
+      configured: { standard: env.geminiImageModel(), premium: env.geminiImageModelPremium(), vision: env.geminiVisionModel() },
+      models: noms.filter((x) => /image|flash|pro/i.test(x)),
+    };
+    return NextResponse.json(out, { status: 200 });
+  }
+
   if (img === "cheap") {
     const key = env.geminiApiKey();
     const r = await fetch(
