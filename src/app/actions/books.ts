@@ -128,7 +128,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
   }
 
   // Limite quotidienne pour contrôler les coûts.
-  const limit = await checkDailyBookLimit(user.id);
+  const limit = await checkDailyBookLimit(user.id, user.email);
   if (!limit.allowed) return { ok: false, message: limit.message };
 
   // Détermine un thème lisible pour l'affichage.

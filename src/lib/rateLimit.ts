@@ -21,10 +21,21 @@ export interface RateLimitResult {
   message: string;
 }
 
+/** Comptes administrateurs (variable ADMIN_EMAILS, séparés par des virgules) : sans limite. */
+export function estAdmin(email: string | null | undefined): boolean {
+  const liste = (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  return Boolean(email) && liste.includes(String(email).toLowerCase());
+}
+
 export async function checkDailyBookLimit(
   userId: string,
+  email?: string | null,
 ): Promise<RateLimitResult> {
   const limit = env.maxBooksPerDay();
+  if (estAdmin(email)) return { allowed: true, used: 0, limit, message: "" };
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
   // On ne compte que les livres réellement produits (ou en cours) et non
@@ -40,11 +51,27 @@ export async function checkDailyBookLimit(
   });
 
   if (used >= limit) {
+    // Heure à laquelle une place se libère (24 h après le plus ancien livre compté).
+    const plusAncien = await prisma.book.findFirst({
+      where: { userId, createdAt: { gte: since }, deletedAt: null, status: { not: "failed" } },
+      orderBy: { createdAt: "asc" },
+      select: { createdAt: true },
+    });
+    const libre = plusAncien
+      ? new Date(plusAncien.createdAt.getTime() + 24 * 60 * 60 * 1000).toLocaleTimeString("fr-FR", {
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: "Europe/Paris",
+        })
+      : null;
     return {
       allowed: false,
       used,
       limit,
-      message: `Vous avez atteint la limite de ${limit} livres par jour. Revenez demain pour en créer de nouveaux.`,
+      message:
+        `Vous avez atteint la limite de ${limit} livres par jour` +
+        (libre ? ` (une place se libère à ${libre}).` : ".") +
+        " Astuce : supprimer un livre de test dans votre bibliothèque libère aussitôt une place.",
     };
   }
 
