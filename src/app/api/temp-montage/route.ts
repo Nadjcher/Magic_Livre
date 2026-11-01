@@ -15,9 +15,11 @@ export async function GET(req: Request): Promise<Response> {
     body: JSON.stringify({ tracks: [
       { id: "images", type: "video", keyframes: [{ url: "https://v3b.fal.media/files/b/0ab0b74d/4O7gZDVJ7voRStaqxholM_output.mp4", timestamp: 0, duration: 5040 }, { url: "https://v3b.fal.media/files/b/0ab0b74d/4O7gZDVJ7voRStaqxholM_output.mp4", timestamp: 5040, duration: 5040 }] },
       { id: "voix", type: "audio", keyframes: [
-        { url: B + "silence-3200.wav", timestamp: 0, duration: 3200 },
-        { url: "https://v3b.fal.media/files/b/0ab0b74a/PROLhZEHSCl32QPoIft-H_output.mp3", timestamp: 3200, duration: 4000 },
-        { url: B + "silence-1600.wav", timestamp: 7200, duration: 1600 } ] },
+        { url: B + "silence-3200.mp3", timestamp: 0, duration: 3200 },
+        { url: B + "silence-400.mp3", timestamp: 3200, duration: 400 },
+        { url: B + "silence-200.mp3", timestamp: 3600, duration: 200 },
+        { url: "https://v3b.fal.media/files/b/0ab0b74a/PROLhZEHSCl32QPoIft-H_output.mp3", timestamp: 3800, duration: 4000 },
+        { url: B + "silence-1600.mp3", timestamp: 7800, duration: 1600 } ] },
     ] }),
   });
   return NextResponse.json({ ok: r.ok, j: await r.json() });

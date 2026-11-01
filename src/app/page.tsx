@@ -168,10 +168,9 @@ export default async function AccueilPage() {
 
   return (
     <div className="space-y-24 sm:space-y-28">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* ─── Héros ─── */}
-      <section className="grid items-center gap-12 pt-4 md:grid-cols-[1.1fr_.9fr] md:pt-10">
+      <section className="grid items-center gap-12 pt-0 md:grid-cols-[1.1fr_.9fr] md:pt-2">
         <div style={{ animation: "monter .6s .05s both" }}>
           <h1 className="text-[2.6rem] leading-[1.05] sm:text-6xl">
             Le livre dont votre enfant est le héros.
@@ -498,6 +497,9 @@ export default async function AccueilPage() {
           </div>
         </div>
       </section>
+      {/* Données structurées (placées en fin : un élément invisible en tête
+          décalait le haut de page à cause de l'espacement vertical). */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
     </div>
   );
 }

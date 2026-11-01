@@ -27,6 +27,14 @@ body {
   background-repeat: no-repeat;
 }
 
+/* Listes déroulantes : options lisibles (le navigateur les affiche sur fond
+   blanc par défaut, avec notre texte clair → invisibles). */
+select option,
+select optgroup {
+  background-color: #1e2c74;
+  color: #eef2ff;
+}
+
 /* Les titres parlent la langue du conte : Fraunces. */
 h1, h2, h3, .serif {
   font-family: var(--font-fraunces), Georgia, serif;
