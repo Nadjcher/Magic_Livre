@@ -87,7 +87,7 @@ async function callModel(
           model: modele,
           system_prompt: system,
           prompt: `${userMessage}\n\nRéponds UNIQUEMENT avec l'objet JSON demandé, sans texte autour.`,
-          temperature,
+          // (pas de « temperature » : imposée par le mode réflexion)
           // Les modèles Claude récents réfléchissent avant d'écrire (obligatoire
           // sur ce point d'accès) : marge de jetons pour la réflexion + le JSON.
           reasoning: true,

@@ -163,13 +163,13 @@ export async function GET(req: Request): Promise<Response> {
     const r = await fetch("https://fal.run/openrouter/router", {
       method: "POST",
       headers: { Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: modele, prompt: "Réponds juste par le mot : bonjour", max_tokens: 2000, reasoning: true }),
+      body: JSON.stringify({ model: modele, system_prompt: "Tu es un auteur jeunesse.", prompt: "Écris UNE phrase pour un enfant de 4 ans sur un ballon qui chante.", max_tokens: 3000, reasoning: true }),
     }).catch((e) => ({ ok: false, status: 0, text: async () => String(e) }) as const);
     const brut = await r.text().catch(() => "");
     let j: { output?: string; error?: unknown } = {};
     try { j = JSON.parse(brut); } catch { j = { error: brut.slice(0, 300) }; }
     if (!r.ok && !j.error) j.error = brut.slice(0, 300);
-    out.images = { modele, ok: r.ok, status: r.status, s: (Date.now() - t) / 1000, output: j.output?.slice(0, 40), error: j.error ? JSON.stringify(j.error).slice(0, 300) : undefined };
+    out.images = { modele, ok: r.ok, status: r.status, s: (Date.now() - t) / 1000, output: j.output?.slice(0, 200), error: j.error ? JSON.stringify(j.error).slice(0, 300) : undefined };
     return NextResponse.json(out, { status: 200 });
   }
 
