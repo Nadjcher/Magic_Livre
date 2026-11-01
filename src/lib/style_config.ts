@@ -212,6 +212,7 @@ export const BASE_IMAGE_PROMPT =
   "so every page looks like one consistent illustrated album; " +
   "absolutely no text, no letters, no words, no numbers, no watermark, no logo, no brand marks on clothing, no signature; " +
   "ONLY the characters named in the scene appear — no extra people, no extra children, no random animals; " +
+  "the hero appears only ONCE in the image (never duplicated); no speech bubbles, no captions; " +
   "wholesome and child-safe, no scary, no violent, no sad or dark elements";
 
 /**

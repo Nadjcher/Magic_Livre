@@ -371,7 +371,7 @@ async function addIllustrations(
         appearance: undefined,
         scene:
           `Character model sheet of ${c.nom}: ${c.visuel}. Full body, front view, alone, plain soft light ` +
-          "background, nothing else",
+          "background, nothing else. The species must be unmistakable at first glance.",
         stocker: false,
         seed: base + 600 + k,
       }),
@@ -389,7 +389,11 @@ async function addIllustrations(
 
   // 2. Couverture + pages, toutes ancrées sur les fiches, en parallèle.
   const pageCentrale = story.pages[Math.floor(story.pages.length / 2)];
-  const couvertureFiches = [...fiches.entries()].slice(0, 2).map(([name, f]) => ({ name, ...f }));
+  // Couverture : les personnages de sa scène (page centrale) d'abord, puis les principaux.
+  const couvertureFiches = (pageCentrale ? fichesPresentes(pageCentrale, fiches) : [])
+    .concat([...fiches.entries()].map(([name, f]) => ({ name, ...f })))
+    .filter((c, i, arr) => arr.findIndex((x) => x.name === c.name) === i)
+    .slice(0, 3);
   const [cover, pages] = await Promise.all([
     generateIllustration({
       ...commun,

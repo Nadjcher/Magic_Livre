@@ -63,7 +63,8 @@ function consignesCast(cast: CastRef[], premierIndex: number): string[] {
   return cast.map(
     (c, k) =>
       `Reference image ${premierIndex + k} is the character sheet of ${c.name}: draw ${c.name} EXACTLY like this ` +
-      "(same species, shape, colors, outfit and accessories) — never as another animal or person.",
+      "(SAME SPECIES — a crab stays a crab, a map stays a map —, same shape, colors, outfit and accessories), " +
+      "never as another animal or person.",
   );
 }
 
