@@ -1,12 +1,13 @@
 /**
  * Génération du PDF imprimable d'un livre, côté serveur.
  *
- * Format A4 paysage, une page PDF par page d'histoire (plus une page de titre),
- * police lisible pour enfants. Aucun filigrane : ce PDF n'est produit qu'après
+ * Format A4 paysage, mise en page d'album : couverture pleine page, dédicace,
+ * une page par page d'histoire (mises en page variées), « Fin », 4e de couverture. Aucun filigrane : ce PDF n'est produit qu'après
  * paiement validé.
  */
 
 import "server-only";
+import path from "node:path";
 import {
   Document,
   Page,
@@ -14,6 +15,9 @@ import {
   View,
   Image,
   StyleSheet,
+  Font,
+  Svg,
+  Path,
   renderToBuffer,
 } from "@react-pdf/renderer";
 import type { Story } from "./storySchema";
@@ -28,6 +32,18 @@ function pdfText(t: string): string {
   return t.replace(/[\u00A0\u202F\u2007\u2009]/g, " ");
 }
 
+/**
+ * Pour le livre (polices Fraunces/Nunito, qui connaissent l'espace insécable) :
+ * on garde « : ! ? ; » et les guillemets collés au mot, sans « : » orphelin en
+ * début de ligne.
+ */
+function texteLivre(t: string): string {
+  return t
+    .replace(/[\u202F\u2007\u2009]/g, "\u00A0")
+    .replace(/ ([:;!?»])/g, "\u00A0$1")
+    .replace(/« /g, "«\u00A0");
+}
+
 /** Version de l'histoire sûre pour le rendu PDF (texte et titre nettoyés). */
 function pdfSafe(story: Story): Story {
   return {
@@ -37,96 +53,219 @@ function pdfSafe(story: Story): Story {
   };
 }
 
-// Styles du PDF. On utilise les couleurs centralisées de style_config.
-const styles = StyleSheet.create({
-  page: {
-    flexDirection: "column",
-    backgroundColor: STYLE_CONFIG.couleurs.fond,
-    padding: 48,
-    justifyContent: "center",
-  },
-  coverTitle: {
-    fontSize: 36,
-    textAlign: "center",
-    color: STYLE_CONFIG.couleurs.primaire,
-    marginBottom: 24,
-  },
-  coverSubtitle: {
-    fontSize: 16,
-    textAlign: "center",
-    color: STYLE_CONFIG.couleurs.texteClair,
-  },
-  pageNumber: {
-    position: "absolute",
-    bottom: 24,
-    right: 48,
-    fontSize: 12,
-    color: STYLE_CONFIG.couleurs.texteClair,
-  },
-  storyText: {
-    fontSize: 22,
-    lineHeight: 1.6,
-    color: STYLE_CONFIG.couleurs.texte,
-    textAlign: "center",
-    marginHorizontal: 40,
-  },
-  sceneHint: {
-    marginTop: 28,
-    fontSize: 11,
-    fontStyle: "italic",
-    textAlign: "center",
-    color: STYLE_CONFIG.couleurs.texteClair,
-  },
-  illustration: {
-    width: "100%",
-    height: 340,
-    objectFit: "cover",
-    borderRadius: 10,
-    marginBottom: 20,
-  },
-  coverImage: {
-    width: 420,
-    height: 260,
-    objectFit: "cover",
-    borderRadius: 12,
-    marginBottom: 28,
-    alignSelf: "center",
-  },
-});
+// ---------------------------------------------------------------------------
+// Le livre : mise en page « album » (couverture pleine page, dédicace, pages
+// variées, page « Fin », 4e de couverture), polices Fraunces + Nunito.
+// ---------------------------------------------------------------------------
+
+const DOSSIER_POLICES = path.join(process.cwd(), "src", "pdf-assets");
+let policesEnregistrees = false;
+/** Enregistre les polices du livre (une seule fois). Repli : Helvetica. */
+function polices(): { titre: string; texte: string; italique: string } {
+  if (!policesEnregistrees) {
+    try {
+      Font.register({ family: "Fraunces", src: path.join(DOSSIER_POLICES, "Fraunces-SemiBold.ttf"), fontWeight: 600 });
+      Font.register({ family: "FrauncesItalic", src: path.join(DOSSIER_POLICES, "Fraunces-Italic.ttf") });
+      Font.register({
+        family: "Nunito",
+        fonts: [
+          { src: path.join(DOSSIER_POLICES, "Nunito-Medium.ttf"), fontWeight: 500 },
+          { src: path.join(DOSSIER_POLICES, "Nunito-Bold.ttf"), fontWeight: 700 },
+        ],
+      });
+      Font.registerHyphenationCallback((mot) => [mot]); // pas de coupure de mots
+      policesEnregistrees = true;
+    } catch {
+      return { titre: "Helvetica-Bold", texte: "Helvetica", italique: "Helvetica-Oblique" };
+    }
+  }
+  return { titre: "Fraunces", texte: "Nunito", italique: "FrauncesItalic" };
+}
+
+const NUIT = "#1B2868";
+const PAPIER = "#FBF8F3";
+const ENCRE = "#2A2F4F";
+const ROSE = "#D4698C";
+
+/** Taille du texte selon sa longueur (imagier très gros, mini-roman plus petit). */
+function tailleTexte(t: string): number {
+  const n = t.length;
+  if (n < 90) return 24;
+  if (n < 180) return 20;
+  if (n < 320) return 17;
+  if (n < 520) return 14.5;
+  return 12.5;
+}
+
+/** Petite étoile dessinée (ornement). */
+function Etoile({ taille = 14, couleur = ROSE }: { taille?: number; couleur?: string }) {
+  return (
+    <Svg width={taille} height={taille} viewBox="0 0 24 24">
+      <Path d="M12 2l2.6 6.9L22 10l-5.6 4.6L18 22l-6-3.8L6 22l1.6-7.4L2 10l7.4-1.1z" fill={couleur} />
+    </Svg>
+  );
+}
+
+function Ornement({ couleur = ROSE }: { couleur?: string }) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", marginVertical: 14 }}>
+      <View style={{ width: 60, height: 1, backgroundColor: couleur, opacity: 0.6 }} />
+      <View style={{ marginHorizontal: 10 }}>
+        <Etoile taille={12} couleur={couleur} />
+      </View>
+      <View style={{ width: 60, height: 1, backgroundColor: couleur, opacity: 0.6 }} />
+    </View>
+  );
+}
+
+/** Voile dégradé (bas de l'image) pour rendre le titre lisible : image PNG transparente. */
+function Voile({ hauteur }: { hauteur: number }) {
+  return (
+    <Image
+      src={path.join(DOSSIER_POLICES, "voile.png")}
+      style={{ position: "absolute", left: 0, bottom: 0, width: 842, height: hauteur }}
+    />
+  );
+}
+
+const plein = { position: "absolute" as const, top: 0, left: 0, width: 842, height: 595, objectFit: "cover" as const };
 
 /**
  * Construit le document PDF (élément React) à partir d'une histoire.
  * Séparé du rendu binaire pour faciliter les tests unitaires.
  */
-export function buildStoryDocument(story: Story): JSX.Element {
-  story = pdfSafe(story);
+export function buildStoryDocument(story: Story, childName?: string): JSX.Element {
+  const f = polices();
+  story =
+    f.texte === "Nunito"
+      ? { ...story, titre: texteLivre(story.titre), pages: story.pages.map((p) => ({ ...p, texte: texteLivre(p.texte) })) }
+      : pdfSafe(story);
+  const prenom = childName ? pdfText(childName) : "";
+  const date = new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+
   return (
     <Document title={story.titre} author="Storilou">
-      {/* Page de couverture */}
-      <Page size="A4" orientation="landscape" style={styles.page}>
-        {story.couvertureUrl ? <Image src={story.couvertureUrl} style={styles.coverImage} /> : null}
-        <Text style={styles.coverTitle}>{story.titre}</Text>
-        <Text style={styles.coverSubtitle}>Un livre créé avec Storilou</Text>
+      {/* Couverture pleine page */}
+      <Page size="A4" orientation="landscape" style={{ backgroundColor: NUIT }}>
+        {story.couvertureUrl ? <Image src={story.couvertureUrl} style={plein} /> : null}
+        <Voile hauteur={300} />
+        <View style={{ position: "absolute", left: 60, right: 60, bottom: 46, alignItems: "center" }}>
+          <Text style={{ fontFamily: f.titre, fontSize: story.titre.length > 45 ? 32 : 40, color: "#FFFFFF", textAlign: "center", lineHeight: 1.15 }}>
+            {story.titre}
+          </Text>
+          {prenom ? (
+            <Text style={{ fontFamily: f.italique, fontSize: 16, color: "#DCE3FF", marginTop: 12 }}>
+              Une histoire écrite pour {prenom}
+            </Text>
+          ) : null}
+        </View>
+        <Text style={{ position: "absolute", top: 22, right: 28, fontFamily: f.texte, fontSize: 9, color: "#FFFFFF", opacity: 0.8 }}>
+          STORILOU
+        </Text>
       </Page>
 
-      {/* Une page PDF par page d'histoire */}
-      {story.pages.map((p, index) => (
-        <Page
-          key={index}
-          size="A4"
-          orientation="landscape"
-          style={styles.page}
-        >
-          <View>
-            {p.imageUrl ? <Image src={p.imageUrl} style={styles.illustration} /> : null}
-            <Text style={styles.storyText}>{p.texte}</Text>
-            {!p.imageUrl ? (
-              <Text style={styles.sceneHint}>✦ {p.scene_illustration}</Text>
-            ) : null}
+      {/* Dédicace */}
+      <Page size="A4" orientation="landscape" style={{ backgroundColor: PAPIER, alignItems: "center", justifyContent: "center", padding: 80 }}>
+        <View style={{ flexDirection: "row", marginBottom: 18 }}>
+          <Etoile taille={10} />
+          <View style={{ marginHorizontal: 8 }}>
+            <Etoile taille={16} couleur="#7D8CFF" />
           </View>
-          <Text style={styles.pageNumber}>{index + 1}</Text>
-        </Page>
-      ))}
+          <Etoile taille={10} />
+        </View>
+        <Text style={{ fontFamily: f.italique, fontSize: 22, color: ENCRE }}>Ce livre appartient à</Text>
+        <Text style={{ fontFamily: f.titre, fontSize: 60, color: NUIT, marginTop: 10 }}>{prenom || "…………………"}</Text>
+        <Ornement />
+        <Text style={{ fontFamily: f.texte, fontSize: 16, color: "#5B6598", textAlign: "center", lineHeight: 1.6 }}>
+          Une histoire inventée rien que pour toi, en {date}.
+        </Text>
+      </Page>
+
+      {/* Pages de l'histoire, mises en page en alternance */}
+      {story.pages.map((p, index) => {
+        const taille = tailleTexte(p.texte);
+        const pleinePage = Boolean(p.imageUrl) && index % 2 === 0 && p.texte.length < 300;
+        const numero = (
+          <Text style={{ position: "absolute", bottom: 16, left: 0, right: 0, textAlign: "center", fontFamily: f.texte, fontSize: 9, color: "#8A90B4" }}>
+            {index + 1}
+          </Text>
+        );
+
+        if (pleinePage) {
+          return (
+            <Page key={index} size="A4" orientation="landscape" style={{ backgroundColor: NUIT }}>
+              <Image src={p.imageUrl as string} style={plein} />
+              <View
+                style={{
+                  position: "absolute",
+                  left: 70,
+                  right: 70,
+                  bottom: 34,
+                  backgroundColor: "#FFFFFF",
+                  opacity: 0.94,
+                  borderRadius: 18,
+                  paddingVertical: 16,
+                  paddingHorizontal: 28,
+                }}
+              >
+                <Text style={{ fontFamily: f.texte, fontWeight: 500, fontSize: taille, lineHeight: 1.45, color: ENCRE, textAlign: "center" }}>
+                  {p.texte}
+                </Text>
+              </View>
+              <Text style={{ position: "absolute", top: 16, right: 22, fontFamily: f.texte, fontSize: 9, color: "#FFFFFF" }}>
+                {index + 1}
+              </Text>
+            </Page>
+          );
+        }
+
+        return (
+          <Page key={index} size="A4" orientation="landscape" style={{ backgroundColor: PAPIER, flexDirection: "row" }}>
+            {p.imageUrl ? (
+              <Image src={p.imageUrl} style={{ width: 505, height: 595, objectFit: "cover" }} />
+            ) : null}
+            <View style={{ flex: 1, paddingHorizontal: 40, paddingVertical: 50, justifyContent: "center" }}>
+              <Ornement />
+              <Text style={{ fontFamily: f.texte, fontWeight: 500, fontSize: p.imageUrl ? Math.min(taille + 3, 24) : taille + 3, lineHeight: 1.55, color: ENCRE, textAlign: p.imageUrl ? "left" : "center" }}>
+                {p.texte}
+              </Text>
+              {!p.imageUrl ? (
+                <Text style={{ marginTop: 20, fontFamily: f.italique, fontSize: 10, color: "#8A90B4", textAlign: "center" }}>
+                  ✦ {p.scene_illustration}
+                </Text>
+              ) : null}
+            </View>
+            {numero}
+          </Page>
+        );
+      })}
+
+      {/* Fin */}
+      <Page size="A4" orientation="landscape" style={{ backgroundColor: PAPIER, alignItems: "center", justifyContent: "center" }}>
+        <Text style={{ fontFamily: f.titre, fontSize: 64, color: NUIT }}>Fin</Text>
+        <Ornement />
+        <Text style={{ fontFamily: f.italique, fontSize: 17, color: ENCRE, textAlign: "center", maxWidth: 520, lineHeight: 1.5 }}>
+          {prenom ? `Et toi, ${prenom}, quelle sera ta prochaine aventure ?` : "Et toi, quelle sera ta prochaine aventure ?"}
+        </Text>
+      </Page>
+
+      {/* 4e de couverture */}
+      <Page size="A4" orientation="landscape" style={{ backgroundColor: NUIT, alignItems: "center", justifyContent: "center", padding: 90 }}>
+        <View style={{ flexDirection: "row", marginBottom: 20 }}>
+          <Etoile taille={9} couleur="#FFFFFF" />
+          <View style={{ marginHorizontal: 10 }}>
+            <Etoile taille={14} couleur="#FF9FD6" />
+          </View>
+          <Etoile taille={9} couleur="#FFFFFF" />
+        </View>
+        <Text style={{ fontFamily: f.titre, fontSize: 24, color: "#FFFFFF", textAlign: "center" }}>{story.titre}</Text>
+        <Text style={{ fontFamily: f.texte, fontSize: 13, color: "#C9D2F5", textAlign: "center", marginTop: 18, lineHeight: 1.6, maxWidth: 520 }}>
+          {story.pages[0]?.texte ?? ""}
+        </Text>
+        <Text style={{ position: "absolute", bottom: 40, fontFamily: f.texte, fontSize: 10, color: "#9FAEE0" }}>
+          {prenom ? `Une histoire unique, créée pour ${prenom} · ` : ""}storilou
+        </Text>
+      </Page>
     </Document>
   );
 }
@@ -134,8 +273,8 @@ export function buildStoryDocument(story: Story): JSX.Element {
 /**
  * Rend l'histoire en un buffer PDF prêt à être envoyé au client.
  */
-export async function renderStoryPdf(story: Story): Promise<Buffer> {
-  return renderToBuffer(buildStoryDocument(story));
+export async function renderStoryPdf(story: Story, childName?: string): Promise<Buffer> {
+  return renderToBuffer(buildStoryDocument(story, childName));
 }
 
 // ---------------------------------------------------------------------------

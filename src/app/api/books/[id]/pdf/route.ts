@@ -34,6 +34,6 @@ export async function GET(
       couvertureUrl: cover,
       pages: acc.story.pages.map((p, i) => ({ ...p, imageUrl: pageImages[i] ?? null })),
     };
-    return renderStoryPdf(story);
+    return renderStoryPdf(story, acc.childName);
   });
 }

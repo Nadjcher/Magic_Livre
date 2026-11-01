@@ -7,6 +7,10 @@ const nextConfig = {
     serverComponentsExternalPackages: ["@react-pdf/renderer"],
     // La création de livre peut recevoir une photo (redimensionnée) en data URL.
     serverActions: { bodySizeLimit: "4mb" },
+    // Polices du livre PDF, lues sur disque au moment du rendu.
+    outputFileTracingIncludes: {
+      "/api/books/[id]/pdf": ["./src/pdf-assets/**"],
+    },
   },
   // En-têtes de sécurité appliqués à toutes les réponses.
   async headers() {

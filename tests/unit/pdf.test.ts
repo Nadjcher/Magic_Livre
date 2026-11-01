@@ -37,11 +37,11 @@ describe("construction du PDF", () => {
     expect(isValidElement(doc)).toBe(true);
   });
 
-  it("produit une page de couverture + une page par page d'histoire", () => {
+  it("produit couverture, dédicace, une page par page d'histoire, « Fin » et 4e de couverture", () => {
     const story = histoire(10);
-    const doc = buildStoryDocument(story);
-    // 1 couverture + 10 pages = 11 pages PDF.
-    expect(countPages(doc.props.children)).toBe(story.pages.length + 1);
+    const doc = buildStoryDocument(story, "Sami");
+    // couverture + dédicace + 10 pages + Fin + 4e de couverture = 14 pages PDF.
+    expect(countPages(doc.props.children)).toBe(story.pages.length + 4);
   });
 
   it("reflète le titre de l'histoire", () => {
