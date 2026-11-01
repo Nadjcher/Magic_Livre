@@ -8,7 +8,9 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Story } from "@/lib/storySchema";
+import { redrawPage } from "@/app/actions/illustrations";
 
 /* --- Petites icônes au trait (plus soignées que des emojis) --- */
 const ico = "stroke-current";
@@ -31,7 +33,17 @@ function IStop() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className={ico} strokeWidth="2" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>;
 }
 
-export default function BookReader({ story }: { story: Story }) {
+export default function BookReader({
+  story,
+  retouche,
+}: {
+  story: Story;
+  /** Livre du parent : permet de redessiner une illustration ratée. */
+  retouche?: { bookId: string; restantes: number };
+}) {
+  const router = useRouter();
+  const [redessin, setRedessin] = useState<{ enCours: boolean; message?: string }>({ enCours: false });
+  const [restantes, setRestantes] = useState(retouche?.restantes ?? 0);
   const totalEcrans = story.pages.length + 1;
   const [index, setIndex] = useState(0);
 
@@ -166,6 +178,29 @@ export default function BookReader({ story }: { story: Story }) {
           {index === 0 ? "✦" : `— ${index} —`}
         </span>
       </div>
+
+      {retouche && (index === 0 ? story.couvertureUrl : story.pages[index - 1]?.imageUrl) && (
+        <div className="flex flex-wrap items-center justify-center gap-3 text-sm">
+          <button
+            type="button"
+            disabled={redessin.enCours || restantes <= 0}
+            className="rounded-full border border-white/25 px-4 py-1.5 font-semibold text-magique-texte transition hover:border-white disabled:opacity-50"
+            onClick={async () => {
+              if (!confirm("Redessiner cette illustration ? (le texte ne change pas)")) return;
+              setRedessin({ enCours: true });
+              const r = await redrawPage(retouche.bookId, index === 0 ? -1 : index - 1);
+              if (typeof r.restantes === "number") setRestantes(r.restantes);
+              setRedessin({ enCours: false, message: r.message });
+              if (r.ok) router.refresh();
+            }}
+          >
+            {redessin.enCours ? "Nouveau dessin en cours… (≈ 30 s)" : "🔄 Redessiner cette illustration"}
+          </button>
+          <span className="text-magique-texteClair">
+            {redessin.message ?? `${restantes} retouche${restantes > 1 ? "s" : ""} gratuite${restantes > 1 ? "s" : ""}`}
+          </span>
+        </div>
+      )}
 
       {/* ─── Navigation ─── */}
       <div className="flex items-center justify-between">

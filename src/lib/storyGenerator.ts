@@ -361,7 +361,6 @@ async function addIllustrations(
         "pose, wearing EXACTLY the hero outfit from the character sheet, plain soft light background, nothing else",
       referenceImage: portrait ? undefined : req.photo,
       anchorImage: portrait ?? undefined,
-      stocker: false,
       seed: base + 500,
     }),
     ...cast.map((c, k) =>
@@ -372,7 +371,6 @@ async function addIllustrations(
         scene:
           `Character model sheet of ${c.nom}: ${c.visuel}. Full body, front view, alone, plain soft light ` +
           "background, nothing else. The species must be unmistakable at first glance.",
-        stocker: false,
         seed: base + 600 + k,
       }),
     ),
@@ -422,8 +420,22 @@ async function addIllustrations(
     }),
   ]);
   if (cover.error) errors.push(cover.error);
-  return { ...story, pages, couvertureUrl: cover.imageUrl, style };
+  // Fiches conservées (stockage privé) pour pouvoir redessiner une page plus tard.
+  const fichesUrls: Record<string, string> = {};
+  fichesCast.forEach((f, k) => {
+    if (f.imageUrl) fichesUrls[cast[k]!.nom] = f.imageUrl;
+  });
+  return {
+    ...story,
+    pages,
+    couvertureUrl: cover.imageUrl,
+    style,
+    fiches: { heros: ficheHeros.imageUrl ?? null, cast: fichesUrls },
+  };
 }
+
+/** Fiches des personnages présents (exporté pour « redessiner une page »). */
+export { fichesPresentes };
 
 /**
  * Décrit en quelques mots l'apparence physique d'un enfant à partir d'une photo,

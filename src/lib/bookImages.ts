@@ -20,8 +20,18 @@ const isDataUrl = (u: string | null | undefined): u is string =>
   typeof u === "string" && u.startsWith("data:");
 
 /** Adresse servant une image du livre (`cover` ou index de page). */
-export function bookImageUrl(bookId: string, which: "cover" | number): string {
-  return `/api/books/${bookId}/image?i=${which}`;
+export function bookImageUrl(bookId: string, which: "cover" | number, version?: string): string {
+  return `/api/books/${bookId}/image?i=${which}${version ? `&v=${version}` : ""}`;
+}
+
+/** Empreinte courte d'une référence d'image (change quand l'image est refaite). */
+function versionDe(ref: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < ref.length; i += Math.max(1, Math.floor(ref.length / 400))) {
+    h ^= ref.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(36);
 }
 
 /** Image qui ne peut pas être affichée telle quelle par le navigateur. */
@@ -35,11 +45,11 @@ export function lightenStory(story: Story, bookId: string): Story {
   return {
     ...story,
     couvertureUrl: viaRoute(story.couvertureUrl)
-      ? bookImageUrl(bookId, "cover")
+      ? bookImageUrl(bookId, "cover", versionDe(story.couvertureUrl as string))
       : story.couvertureUrl,
     pages: story.pages.map((p, i) => ({
       ...p,
-      imageUrl: viaRoute(p.imageUrl) ? bookImageUrl(bookId, i) : p.imageUrl,
+      imageUrl: viaRoute(p.imageUrl) ? bookImageUrl(bookId, i, versionDe(p.imageUrl as string)) : p.imageUrl,
     })),
   };
 }

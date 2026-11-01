@@ -76,6 +76,14 @@ export const storySchema = z.object({
   couvertureUrl: z.string().url().nullable().optional(),
   // Style d'illustration retenu (mémoire, utile pour un « tome » suivant).
   style: z.enum(ILLUSTRATION_STYLE_KEYS).optional(),
+  // Fiches de référence dessinées (héros + personnages secondaires), gardées pour
+  // pouvoir redessiner une page avec exactement les mêmes personnages.
+  fiches: z
+    .object({ heros: z.string().url().nullable().optional(), cast: z.record(z.string().url()).optional() })
+    .optional()
+    .catch(undefined),
+  // Nombre de pages redessinées à la demande (plafonné).
+  retouches: z.number().int().min(0).optional(),
   // Bande-annonce vidéo (produit payant) : scènes animées + voix off.
   video: trailerSchema.optional(),
 });
