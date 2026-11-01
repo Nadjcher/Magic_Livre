@@ -32,7 +32,10 @@ export async function GET(req: Request): Promise<Response> {
   if (createHash("sha256").update(s).digest("hex") !== HASH) return new NextResponse("Non.", { status: 404 });
   const key = env.falApiKey();
   const style = ILLUSTRATION_STYLES.feerique.prompt;
-  const jobs = Object.entries(MODELES).flatMap(([m, body]) =>
+  const only = new URL(req.url).searchParams.get("only");
+  const jobs = Object.entries(MODELES)
+    .filter(([m]) => !only || m.includes(only))
+    .flatMap(([m, body]) =>
     SCENES.map(async (scene, i) => {
       const t = Date.now();
       try {
