@@ -51,7 +51,7 @@ export default function DeluxeShop({
           return (
             <div
               key={p.sku}
-              className="flex items-start gap-3 rounded-2xl border border-magique-trait bg-white/70 p-4"
+              className="flex items-start gap-3 rounded-2xl border border-magique-trait bg-white/[0.06] p-4"
             >
               <span className="text-2xl" aria-hidden="true">{p.emoji}</span>
               <div className="flex-1">

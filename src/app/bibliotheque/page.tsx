@@ -13,7 +13,7 @@ import { bookImageUrl } from "@/lib/bookImages";
 const STATUT: Record<string, { label: string; classe: string }> = {
   draft: { label: "Brouillon", classe: "bg-black/5 text-magique-texteClair" },
   generating: { label: "En cours…", classe: "bg-or/15 text-or-fonce" },
-  ready: { label: "Prêt à lire", classe: "bg-magique-accent/15 text-emerald-800" },
+  ready: { label: "Prêt à lire", classe: "bg-magique-accent/15 text-emerald-200" },
   failed: { label: "Échec", classe: "bg-magique-rose/15 text-rose-700" },
 };
 

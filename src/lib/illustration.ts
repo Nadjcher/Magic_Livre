@@ -12,7 +12,7 @@
  */
 
 import "server-only";
-import { put } from "@vercel/blob";
+import { blobEnabled, compressImage, putPublic } from "./blobStore";
 import { env } from "./env";
 import { fetchAllWithTimeout } from "./imageFetch";
 import {
@@ -107,16 +107,13 @@ function pollinationsUrl(prompt: string, seed: number): string {
  * URL base64 (fonctionne, mais plus lourd en base).
  */
 async function storeImage(base64: string, mime: string, seed: number): Promise<string> {
-  const dataUrl = `data:${mime};base64,${base64}`;
-  if (!process.env.BLOB_READ_WRITE_TOKEN) return dataUrl;
+  // Recompression JPEG : ~6× plus léger, sans perte visible (base, Blob et PDF).
+  const c = await compressImage(Buffer.from(base64, "base64"), mime);
+  const dataUrl = `data:${c.mime};base64,${c.bytes.toString("base64")}`;
+  if (!blobEnabled()) return dataUrl;
   try {
-    const ext = mime.includes("jpeg") ? "jpg" : mime.includes("webp") ? "webp" : "png";
-    const blob = await put(
-      `illustrations/${seed}-${Date.now()}.${ext}`,
-      Buffer.from(base64, "base64"),
-      { access: "public", contentType: mime },
-    );
-    return blob.url;
+    const ext = c.mime.includes("jpeg") ? "jpg" : c.mime.includes("webp") ? "webp" : "png";
+    return await putPublic(`illustrations/${seed}.${ext}`, c.bytes, c.mime);
   } catch {
     return dataUrl;
   }

@@ -13,6 +13,7 @@ import BookReader from "@/components/BookReader";
 import DeleteBookButton from "@/components/DeleteBookButton";
 import AutoRefresh from "@/components/AutoRefresh";
 import Notice from "@/components/Notice";
+import GenerationOverlay from "@/components/GenerationOverlay";
 
 export default async function LivrePage({
   params,
@@ -77,10 +78,7 @@ export default async function LivrePage({
       {book.status === "generating" && (
         <>
           <AutoRefresh seconds={5} />
-          <Notice kind="info">
-            L'histoire et les illustrations sont en cours de création… Cette page
-            se met à jour toute seule, patientez un instant.
-          </Notice>
+          <GenerationOverlay inline />
         </>
       )}
 

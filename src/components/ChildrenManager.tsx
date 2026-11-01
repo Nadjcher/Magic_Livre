@@ -152,7 +152,7 @@ export default function ChildrenManager({ initial }: { initial: ChildView[] }) {
                     Modifier
                   </button>
                   <button
-                    className="text-red-600 hover:underline"
+                    className="text-red-300 hover:underline"
                     onClick={() => {
                       if (
                         confirm(

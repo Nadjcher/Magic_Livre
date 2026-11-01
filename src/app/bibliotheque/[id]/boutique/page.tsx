@@ -123,7 +123,7 @@ export default async function BoutiquePage({
             {kit.map((k) => (
               <div
                 key={k.nom}
-                className="flex items-center gap-3 rounded-2xl border border-magique-trait bg-white/60 p-4 opacity-80"
+                className="flex items-center gap-3 rounded-2xl border border-magique-trait bg-white/[0.06] p-4 opacity-80"
               >
                 <span className="text-2xl" aria-hidden="true">{k.emoji}</span>
                 <span className="font-semibold text-magique-texte">{k.nom}</span>

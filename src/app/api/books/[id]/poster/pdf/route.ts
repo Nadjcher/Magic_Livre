@@ -4,6 +4,7 @@
  */
 
 import { NextResponse } from "next/server";
+import { pdfResponse } from "@/lib/pdfResponse";
 import { getPaidBookStory, safeFileName } from "@/lib/bookAccess";
 import { fetchAsDataUrl } from "@/lib/imageFetch";
 import { renderPosterPdf } from "@/lib/pdf";
@@ -17,23 +18,17 @@ export async function GET(
   const acc = await getPaidBookStory(params.id);
   if (!acc.ok) return NextResponse.json({ error: acc.error }, { status: acc.status });
 
-  // Résout l'image du poster : couverture, et à défaut (absente OU injoignable)
-  // la première illustration de page.
-  const image =
-    (await fetchAsDataUrl(acc.story.couvertureUrl)) ??
-    (await fetchAsDataUrl(acc.story.pages[0]?.imageUrl));
-  const story = {
-    ...acc.story,
-    couvertureUrl: image,
-    pages: acc.story.pages.map((p) => ({ ...p, imageUrl: null })),
-  };
-
-  const pdf = await renderPosterPdf(story, acc.childName);
-  return new NextResponse(new Uint8Array(pdf), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${safeFileName(acc.title)}-poster.pdf"`,
-    },
+  // Image du poster : couverture, et à défaut (absente OU injoignable) la
+  // première illustration de page.
+  return pdfResponse(`${safeFileName(acc.title)}-poster.pdf`, async (q) => {
+    const image =
+      (await fetchAsDataUrl(acc.story.couvertureUrl, q)) ??
+      (await fetchAsDataUrl(acc.story.pages[0]?.imageUrl, q));
+    const story = {
+      ...acc.story,
+      couvertureUrl: image,
+      pages: acc.story.pages.map((p) => ({ ...p, imageUrl: null })),
+    };
+    return renderPosterPdf(story, acc.childName);
   });
 }

@@ -12,7 +12,7 @@
  */
 
 import "server-only";
-import { put } from "@vercel/blob";
+import { blobEnabled, compressImage, putPublic } from "./blobStore";
 import { prisma } from "./prisma";
 import type { Story } from "./storySchema";
 
@@ -38,47 +38,54 @@ export function lightenStory(story: Story, bookId: string): Story {
   };
 }
 
-/** Indique si un store Vercel Blob est configuré. */
-export function blobEnabled(): boolean {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
-}
+export { blobEnabled };
 
 async function uploadDataUrl(dataUrl: string, name: string): Promise<string> {
   const m = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
   if (!m) return dataUrl;
-  const mime = m[1] as string;
+  const { bytes, mime } = await compressImage(Buffer.from(m[2] as string, "base64"), m[1] as string);
   const ext = mime.includes("jpeg") ? "jpg" : mime.includes("webp") ? "webp" : "png";
-  const blob = await put(`illustrations/${name}.${ext}`, Buffer.from(m[2] as string, "base64"), {
-    access: "public",
-    contentType: mime,
-  });
-  return blob.url;
+  return putPublic(`illustrations/${name}.${ext}`, bytes, mime);
+}
+
+/** Recompresse une data URL lourde (PNG ou > 600 Ko) en JPEG léger. */
+async function shrinkDataUrl(dataUrl: string): Promise<string> {
+  const m = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
+  if (!m) return dataUrl;
+  const lourde = (m[2] as string).length > 800_000 || !(m[1] as string).includes("jpeg");
+  if (!lourde) return dataUrl;
+  const { bytes, mime } = await compressImage(Buffer.from(m[2] as string, "base64"), m[1] as string);
+  const out = `data:${mime};base64,${bytes.toString("base64")}`;
+  return out.length < dataUrl.length ? out : dataUrl;
 }
 
 /**
- * Déplace vers Vercel Blob les images encore embarquées d'un livre, puis met à
- * jour le livre en une seule écriture. Sans effet si Blob n'est pas configuré
- * ou si le livre n'a plus d'image embarquée. Ne jette jamais.
- * Renvoie l'histoire à jour (ou celle d'origine en cas d'échec).
+ * Allège un livre dont les images sont encore embarquées en base :
+ *  - avec Vercel Blob : les images partent sur Blob (base allégée à ~0) ;
+ *  - sans Blob : elles sont recompressées en JPEG (≈ 6× plus léger).
+ * Une seule écriture en base. Ne jette jamais : renvoie l'histoire à jour, ou
+ * celle d'origine en cas d'échec.
  */
 export async function migrateBookImagesToBlob(bookId: string, story: Story): Promise<Story> {
-  if (!blobEnabled()) return story;
   const aMigrer =
     isDataUrl(story.couvertureUrl) || story.pages.some((p) => isDataUrl(p.imageUrl));
   if (!aMigrer) return story;
+  const versBlob = blobEnabled();
+
+  const traiter = async (u: string | null | undefined, nom: string): Promise<string | null> => {
+    if (!isDataUrl(u)) return u ?? null;
+    return versBlob ? uploadDataUrl(u, nom) : shrinkDataUrl(u);
+  };
 
   try {
-    const stamp = Date.now();
     const [couvertureUrl, ...images] = await Promise.all([
-      isDataUrl(story.couvertureUrl)
-        ? uploadDataUrl(story.couvertureUrl, `${bookId}-c-${stamp}`)
-        : Promise.resolve(story.couvertureUrl ?? null),
-      ...story.pages.map((p, i) =>
-        isDataUrl(p.imageUrl)
-          ? uploadDataUrl(p.imageUrl, `${bookId}-${i}-${stamp}`)
-          : Promise.resolve(p.imageUrl ?? null),
-      ),
+      traiter(story.couvertureUrl, `${bookId}-c`),
+      ...story.pages.map((p, i) => traiter(p.imageUrl, `${bookId}-${i}`)),
     ]);
+    const changed =
+      couvertureUrl !== (story.couvertureUrl ?? null) ||
+      story.pages.some((p, i) => (images[i] ?? null) !== (p.imageUrl ?? null));
+    if (!changed) return story;
     const migrated: Story = {
       ...story,
       couvertureUrl,
@@ -87,7 +94,7 @@ export async function migrateBookImagesToBlob(bookId: string, story: Story): Pro
     await prisma.book.update({ where: { id: bookId }, data: { pages: migrated } });
     return migrated;
   } catch (e) {
-    console.error("[blob] migration du livre", bookId, "échouée :", String(e).slice(0, 200));
+    console.error("[images] allègement du livre", bookId, "échoué :", String(e).slice(0, 200));
     return story;
   }
 }

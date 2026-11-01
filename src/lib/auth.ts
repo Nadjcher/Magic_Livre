@@ -10,6 +10,12 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
 import { checkLoginRate } from "./rateLimitAuth";
+import { createHash } from "node:crypto";
+
+/** Même calcul que passwordFingerprint (session.ts, module « server-only »). */
+function fingerprint(hash: string): string {
+  return createHash("sha256").update(hash).digest("hex").slice(0, 16);
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
@@ -41,19 +47,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const ok = await bcrypt.compare(password, user.passwordHash);
         if (!ok) return null;
 
-        return { id: user.id, email: user.email };
+        return { id: user.id, email: user.email, pv: fingerprint(user.passwordHash) } as {
+          id: string;
+          email: string;
+        };
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
-      if (user?.id) token.id = user.id;
+      if (user?.id) {
+        token.id = user.id;
+        const pv = (user as { pv?: string }).pv;
+        if (pv) token.pv = pv;
+      }
       return token;
     },
     async session({ session, token }) {
       if (session.user && typeof token.id === "string") {
         session.user.id = token.id;
       }
+      if (typeof token.pv === "string") (session as { pv?: string }).pv = token.pv;
       return session;
     },
   },

@@ -12,6 +12,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { waitUntil } from "@vercel/functions";
 import { getCurrentUser, hasParentalConsent } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { createBookSchema, checkUserText } from "@/lib/validation";
@@ -67,7 +68,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
 
   // Détermine l'apparence du héros : description saisie, ou extraite d'une photo
   // optionnelle via vision (la photo n'est NI stockée NI mise dans le livre).
-  let appearance = input.appearance ?? "";
+  const appearance = input.appearance ?? "";
   if (appearance.length > 0) {
     const check = checkUserText(appearance);
     if (!check.ok) return { ok: false, message: check.message };
@@ -85,12 +86,6 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
     }
   }
 
-  // Si une photo est fournie sans description, on décrit le visage via vision
-  // (Gemini) pour renforcer la ressemblance du héros. Best-effort : en cas
-  // d'échec, on continue sans. La photo n'est jamais stockée.
-  if (photoRef && appearance.length === 0) {
-    appearance = await describeChildFromPhoto(photoRef);
-  }
 
   // Vérifie que l'enfant appartient bien à l'utilisateur.
   const child = await prisma.child.findFirst({
@@ -124,41 +119,81 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
     },
   });
 
-  // Lance la génération. En cas d'échec, marque le livre « failed ».
-  const result = await generateStory({
-    childFirstName: child.firstName,
-    childAge: child.age,
-    mode: input.mode,
-    themeId: input.themeId,
-    prompt: input.prompt,
-    longueur: input.longueur as LongueurKey,
-    style: input.style as IllustrationStyle,
-    appearance: appearance.length > 0 ? appearance : undefined,
-    photo: photoRef,
-    premium,
-  });
-
-  if (!result.ok) {
-    await prisma.book.update({
-      where: { id: book.id },
-      data: { status: "failed", errorMessage: result.message },
-    });
-    revalidatePath("/bibliotheque");
-    return { ok: false, message: result.message, bookId: book.id };
-  }
-
-  await prisma.book.update({
-    where: { id: book.id },
-    data: {
-      status: "ready",
-      title: result.story.titre,
-      pages: result.story,
-      errorMessage: null,
-    },
-  });
+  // La génération (1 à 3 minutes) tourne EN ARRIÈRE-PLAN sur le serveur : on
+  // répond tout de suite avec l'identifiant du livre. Fermer l'onglet, changer
+  // d'application ou perdre le réseau n'interrompt donc plus la création ; la
+  // page du livre se met à jour toute seule quand il est prêt.
+  waitUntil(
+    genererEtEnregistrer(book.id, {
+      childFirstName: child.firstName,
+      childAge: child.age,
+      mode: input.mode,
+      themeId: input.themeId,
+      prompt: input.prompt,
+      longueur: input.longueur as LongueurKey,
+      style: input.style as IllustrationStyle,
+      appearance,
+      photo: photoRef,
+      premium,
+    }),
+  );
 
   revalidatePath("/bibliotheque");
-  return { ok: true, message: "Votre livre est prêt !", bookId: book.id };
+  return { ok: true, message: "La création de votre livre a commencé.", bookId: book.id };
+}
+
+type GenerationInput = Omit<Parameters<typeof generateStory>[0], "appearance"> & {
+  appearance: string;
+};
+
+/**
+ * Génère le livre puis enregistre le résultat (« ready » ou « failed »).
+ * Ne jette jamais : toute erreur inattendue marque le livre « failed » pour que
+ * l'utilisateur ne reste pas bloqué devant un livre « en cours » éternel.
+ */
+async function genererEtEnregistrer(bookId: string, req: GenerationInput): Promise<void> {
+  try {
+    let appearance = req.appearance;
+    // Photo sans description : on décrit le visage (vision) pour renforcer la
+    // ressemblance. Best-effort. La photo n'est jamais stockée.
+    if (req.photo && appearance.length === 0) {
+      appearance = await describeChildFromPhoto(req.photo);
+    }
+
+    const result = await generateStory({
+      ...req,
+      appearance: appearance.length > 0 ? appearance : undefined,
+    });
+
+    if (!result.ok) {
+      await prisma.book.update({
+        where: { id: bookId },
+        data: { status: "failed", errorMessage: result.message },
+      });
+      return;
+    }
+
+    await prisma.book.update({
+      where: { id: bookId },
+      data: {
+        status: "ready",
+        title: result.story.titre,
+        pages: result.story,
+        errorMessage: null,
+      },
+    });
+  } catch (e) {
+    console.error("[livre] génération interrompue", bookId, String(e).slice(0, 300));
+    await prisma.book
+      .update({
+        where: { id: bookId },
+        data: {
+          status: "failed",
+          errorMessage: "La création a été interrompue. Supprimez ce livre et réessayez.",
+        },
+      })
+      .catch(() => undefined);
+  }
 }
 
 export async function deleteBook(bookId: string): Promise<{ ok: boolean; message: string }> {

@@ -149,7 +149,7 @@ export default function CreateBookForm({
               className={`flex-none rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
                 mode === "theme" && categorie === c.id
                   ? "border-magique-primaire bg-magique-primaire text-white"
-                  : "border-magique-trait bg-white/70 hover:border-magique-primaire"
+                  : "border-magique-trait bg-white/[0.06] hover:border-magique-primaire"
               }`}
             >
               {c.emoji} {c.label}
@@ -161,7 +161,7 @@ export default function CreateBookForm({
             className={`flex-none rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
               mode === "libre"
                 ? "border-magique-primaire bg-magique-primaire text-white"
-                : "border-magique-trait bg-white/70 hover:border-magique-primaire"
+                : "border-magique-trait bg-white/[0.06] hover:border-magique-primaire"
             }`}
           >
             ✏️ Mon idée à moi

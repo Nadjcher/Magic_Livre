@@ -22,7 +22,7 @@ export default function DeleteBookButton({
 
   return (
     <button
-      className="text-sm text-red-600 hover:underline disabled:opacity-50"
+      className="text-sm text-red-300 hover:underline disabled:opacity-50"
       disabled={pending}
       onClick={() => {
         if (!confirm(`Supprimer définitivement « ${title} » ?`)) return;

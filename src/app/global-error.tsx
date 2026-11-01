@@ -10,8 +10,8 @@ export default function GlobalError({ reset }: { error: Error & { digest?: strin
       <body
         style={{
           fontFamily: "system-ui, sans-serif",
-          background: "#eef2fd",
-          color: "#1b2250",
+          background: "#1e2c74",
+          color: "#eef2ff",
           display: "flex",
           minHeight: "100vh",
           alignItems: "center",
@@ -23,7 +23,7 @@ export default function GlobalError({ reset }: { error: Error & { digest?: strin
       >
         <div>
           <h1 style={{ fontSize: 28 }}>Oups, un pépin est survenu</h1>
-          <p style={{ color: "#5b6598", maxWidth: 420 }}>
+          <p style={{ color: "#b9c4ee", maxWidth: 420 }}>
             Réessayez dans un instant. Si le problème persiste, revenez un peu plus tard.
           </p>
           <button

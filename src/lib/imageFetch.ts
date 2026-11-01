@@ -8,6 +8,13 @@
  */
 
 import "server-only";
+import { compressImage } from "./blobStore";
+
+/** Qualité d'image pour les PDF : taille max (px) et qualité JPEG. */
+export interface ImgQuality {
+  maxPx: number;
+  quality: number;
+}
 
 const DEFAULT_TIMEOUT_MS = 20_000;
 const MAX_IMAGE_BYTES = 8_000_000; // 8 Mo par image
@@ -57,16 +64,29 @@ export async function fetchAllWithTimeout(
 /** Télécharge une image et la renvoie en data URL, ou null en cas de souci. */
 export async function fetchAsDataUrl(
   url: string | null | undefined,
+  q?: ImgQuality,
   timeoutMs = DEFAULT_TIMEOUT_MS,
 ): Promise<string | null> {
   if (!url) return null;
-  if (url.startsWith("data:")) return url;
   try {
-    const res = await fetchAllWithTimeout(url, {}, { timeoutMs, maxBytes: MAX_IMAGE_BYTES });
-    if (!res.ok || res.tooLarge || !res.bytes) return null;
-    if (!res.contentType.startsWith("image/")) return null;
-    if (res.bytes.length === 0) return null;
-    return `data:${res.contentType};base64,${res.bytes.toString("base64")}`;
+    let bytes: Buffer;
+    let mime: string;
+    const m = /^data:([^;]+);base64,(.+)$/.exec(url);
+    if (m) {
+      if (!q) return url;
+      bytes = Buffer.from(m[2] as string, "base64");
+      mime = m[1] as string;
+    } else {
+      const res = await fetchAllWithTimeout(url, {}, { timeoutMs, maxBytes: MAX_IMAGE_BYTES });
+      if (!res.ok || res.tooLarge || !res.bytes) return null;
+      if (!res.contentType.startsWith("image/")) return null;
+      if (res.bytes.length === 0) return null;
+      bytes = res.bytes;
+      mime = res.contentType;
+    }
+    // Recompression (PDF) : garde le fichier sous la limite de 4,5 Mo de Vercel.
+    if (q) ({ bytes, mime } = await compressImage(bytes, mime, q));
+    return `data:${mime};base64,${bytes.toString("base64")}`;
   } catch {
     return null;
   }
@@ -78,6 +98,7 @@ export async function fetchAsDataUrl(
  */
 export async function resolveImages(
   urls: (string | null | undefined)[],
+  q?: ImgQuality,
   concurrency = 4,
 ): Promise<(string | null)[]> {
   const results: (string | null)[] = new Array(urls.length).fill(null);
@@ -86,7 +107,7 @@ export async function resolveImages(
   async function worker(): Promise<void> {
     while (next < urls.length) {
       const i = next++;
-      results[i] = await fetchAsDataUrl(urls[i]);
+      results[i] = await fetchAsDataUrl(urls[i], q);
     }
   }
 

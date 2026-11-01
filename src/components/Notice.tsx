@@ -6,9 +6,9 @@
 type NoticeKind = "info" | "succes" | "erreur";
 
 const styles: Record<NoticeKind, string> = {
-  info: "border-magique-primaire/30 bg-magique-primaire/5 text-magique-texte",
-  succes: "border-magique-accent/40 bg-magique-accent/10 text-emerald-800",
-  erreur: "border-red-300 bg-red-50 text-red-800",
+  info: "border-white/20 bg-white/[0.07] text-magique-texte",
+  succes: "border-emerald-300/40 bg-emerald-400/10 text-emerald-100",
+  erreur: "border-red-300/50 bg-red-500/15 text-red-100",
 };
 
 export default function Notice({

@@ -122,7 +122,7 @@ export default function BookReader({ story }: { story: Story }) {
   return (
     <div className="space-y-5">
       {/* ─── La page du livre ─── */}
-      <div className="relative overflow-hidden rounded-3xl border border-magique-trait bg-gradient-to-b from-white to-parch shadow-conte">
+      <div className="relative overflow-hidden rounded-3xl border border-magique-trait bg-gradient-to-b from-white/[0.12] to-white/[0.04] shadow-conte backdrop-blur-md">
         <div
           key={index}
           className="anim-page flex min-h-[360px] flex-col items-center justify-center px-6 py-10 text-center sm:px-12"
@@ -173,7 +173,7 @@ export default function BookReader({ story }: { story: Story }) {
           onClick={precedent}
           disabled={index === 0}
           aria-label="Page précédente"
-          className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-magique-trait bg-white text-magique-primaire transition hover:-translate-y-0.5 hover:border-magique-primaire disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
+          className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-white/25 bg-white/10 text-white transition hover:-translate-y-0.5 hover:border-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
         >
           <IChevron dir="g" />
         </button>
@@ -191,7 +191,7 @@ export default function BookReader({ story }: { story: Story }) {
           onClick={suivant}
           disabled={index === totalEcrans - 1}
           aria-label="Page suivante"
-          className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-magique-trait bg-white text-magique-primaire transition hover:-translate-y-0.5 hover:border-magique-primaire disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
+          className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-white/25 bg-white/10 text-white transition hover:-translate-y-0.5 hover:border-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
         >
           <IChevron dir="d" />
         </button>

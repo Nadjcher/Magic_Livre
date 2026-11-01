@@ -226,7 +226,7 @@ export default async function AccueilPage() {
               </div>
             </div>
           </div>
-          <div className="absolute -bottom-5 -left-3 flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-magique-texte shadow-conte sm:-left-8">
+          <div className="absolute -bottom-5 -left-3 flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-nuit shadow-conte sm:-left-8">
             <Coche />
             Prête en deux minutes
           </div>
@@ -280,7 +280,7 @@ export default async function AccueilPage() {
         </p>
         <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {ILLUSTRATION_STYLE_KEYS.map((k) => (
-            <li key={k} className="overflow-hidden rounded-2xl border border-magique-trait bg-white">
+            <li key={k} className="overflow-hidden rounded-2xl border border-white/15 bg-white/[0.07]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={`/styles/${k}.webp`}
@@ -297,7 +297,7 @@ export default async function AccueilPage() {
       </section>
 
       {/* ─── Catalogue ─── */}
-      <section className="rounded-[2rem] border border-magique-trait bg-white/70 px-6 py-10 sm:px-10">
+      <section className="rounded-[2rem] border border-magique-trait bg-white/[0.06] px-6 py-10 sm:px-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h2 className="text-3xl sm:text-4xl">Une histoire pour chaque moment</h2>
@@ -317,7 +317,7 @@ export default async function AccueilPage() {
               <Link
                 key={t.id}
                 href={`/creer?theme=${t.id}`}
-                className="flex items-center gap-2 rounded-full border border-magique-trait bg-white px-4 py-2 text-[15px] font-semibold text-magique-texte transition hover:border-magique-primaire hover:text-magique-primaire"
+                className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[15px] font-semibold text-magique-texte transition hover:border-magique-primaire hover:text-magique-primaire"
               >
                 <span aria-hidden="true">{t.emoji}</span>
                 {t.titre}
@@ -359,7 +359,7 @@ export default async function AccueilPage() {
             <Link href={cta} className="btn-secondaire mt-6">Créer son histoire</Link>
           </div>
 
-          <div className="relative flex flex-col rounded-3xl border-2 border-magique-primaire bg-white p-6 shadow-or">
+          <div className="relative flex flex-col rounded-3xl border-2 border-magique-primaire bg-white/[0.1] p-6 shadow-or">
             <span className="absolute -top-3 left-6 rounded-full bg-magique-primaire px-3 py-1 text-xs font-bold text-white">
               Idéal à offrir
             </span>
@@ -378,7 +378,7 @@ export default async function AccueilPage() {
       {/* ─── Questions fréquentes ─── */}
       <section className="mx-auto max-w-3xl">
         <h2 className="text-center text-3xl sm:text-4xl">Questions fréquentes</h2>
-        <div className="mt-8 divide-y divide-magique-trait rounded-3xl border border-magique-trait bg-white/80">
+        <div className="mt-8 divide-y divide-magique-trait rounded-3xl border border-magique-trait bg-white/[0.06]">
           {FAQ.map((f) => (
             <details key={f.q} className="group px-6 py-5">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-magique-texte">

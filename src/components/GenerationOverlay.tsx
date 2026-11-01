@@ -15,10 +15,14 @@ const MESSAGES = [
   "On saupoudre un peu d'étoiles…",
   "Les personnages prennent vie…",
   "On dessine les illustrations…",
-  "Encore quelques secondes de magie…",
+  "On peaufine chaque page…",
 ];
 
-export default function GenerationOverlay() {
+/**
+ * `inline` : version encart (page du livre) au lieu du plein écran. La création
+ * tourne sur le serveur : on peut fermer la page, le livre attendra.
+ */
+export default function GenerationOverlay({ inline = false }: { inline?: boolean }) {
   const [i, setI] = useState(0);
 
   useEffect(() => {
@@ -28,7 +32,11 @@ export default function GenerationOverlay() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center px-6 text-center"
+      className={
+        inline
+          ? "flex flex-col items-center justify-center rounded-3xl px-6 py-14 text-center shadow-conte"
+          : "fixed inset-0 z-50 flex flex-col items-center justify-center px-6 text-center"
+      }
       style={{
         backgroundImage:
           "radial-gradient(60% 50% at 50% 40%, rgba(91,155,255,.45), rgba(91,155,255,0) 60%), linear-gradient(180deg,#121a44,#0f1a44)",
@@ -41,7 +49,7 @@ export default function GenerationOverlay() {
         <div
           className="halo-pulse absolute inset-0"
           style={{
-            background: "radial-gradient(circle, rgba(246,215,154,.5), rgba(246,215,154,0) 70%)",
+            background: "radial-gradient(circle, rgba(150,180,255,.55), rgba(150,180,255,0) 70%)",
           }}
         />
         <div className="anim-orbite absolute inset-0">
@@ -50,7 +58,7 @@ export default function GenerationOverlay() {
           <span className="absolute bottom-3 left-3 h-1.5 w-1.5 rounded-full bg-magique-rose" />
         </div>
         <div className="anim-flotte absolute inset-0 flex items-center justify-center">
-          <LogoMark className="h-20 w-20 drop-shadow-[0_0_18px_rgba(233,169,75,.6)]" />
+          <LogoMark className="h-20 w-20 drop-shadow-[0_0_18px_rgba(150,180,255,.7)]" />
         </div>
       </div>
 
@@ -63,14 +71,21 @@ export default function GenerationOverlay() {
           className="anim-balaie h-full w-full rounded-full"
           style={{
             backgroundImage:
-              "linear-gradient(90deg, rgba(233,169,75,0), #f0b863 45%, #f6d79a 50%, #f0b863 55%, rgba(233,169,75,0))",
+              "linear-gradient(90deg, rgba(120,150,255,0), #8ea2ff 40%, #e7a6ff 50%, #8ea2ff 60%, rgba(120,150,255,0))",
           }}
         />
       </div>
 
-      <Link href="/bibliotheque" className="mt-8 text-sm text-[#bcb4e4] underline hover:text-white">
-        Revenir à ma bibliothèque pendant ce temps
-      </Link>
+      <p className="mt-6 max-w-sm text-sm text-[#cdd7f4]">
+        Cela prend 1 à 3 minutes. Vous pouvez fermer cette page ou changer
+        d'onglet : la création continue et votre livre vous attendra dans la
+        bibliothèque.
+      </p>
+      {!inline && (
+        <Link href="/bibliotheque" className="mt-4 text-sm text-[#bcd0ff] underline hover:text-white">
+          Revenir à ma bibliothèque pendant ce temps
+        </Link>
+      )}
     </div>
   );
 }

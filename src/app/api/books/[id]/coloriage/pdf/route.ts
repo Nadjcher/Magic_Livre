@@ -4,6 +4,7 @@
  */
 
 import { NextResponse } from "next/server";
+import { pdfResponse } from "@/lib/pdfResponse";
 import { getPaidBookStory, safeFileName } from "@/lib/bookAccess";
 import { generateIllustration, illustrationsEnabled } from "@/lib/illustration";
 import { resolveImages } from "@/lib/imageFetch";
@@ -38,14 +39,9 @@ export async function GET(
     }),
   );
 
-  // Résout les dessins au trait en data URL avant le rendu (fiabilité).
-  const resolved = await resolveImages(urls);
-  const pdf = await renderColoringPdf(acc.story, resolved);
-  return new NextResponse(new Uint8Array(pdf), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${safeFileName(acc.title)}-coloriage.pdf"`,
-    },
+  // Résout les dessins au trait en data URL recompressées (fiabilité + taille).
+  return pdfResponse(`${safeFileName(acc.title)}-coloriage.pdf`, async (q) => {
+    const resolved = await resolveImages(urls, q);
+    return renderColoringPdf(acc.story, resolved);
   });
 }

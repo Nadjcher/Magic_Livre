@@ -4,7 +4,7 @@
  * Connexion par email + mot de passe.
  */
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -17,6 +17,14 @@ export default function ConnexionPage() {
   const [password, setPassword] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [info, setInfo] = useState<string | null>(null);
+
+  // Message après un changement de mot de passe (lu après le montage).
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("motdepasse") === "modifie") {
+      setInfo("Mot de passe modifié. Reconnectez-vous avec votre nouveau mot de passe.");
+    }
+  }, []);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -33,7 +41,8 @@ export default function ConnexionPage() {
         // Retour à la page demandée avant la connexion (ex. un thème du
         // catalogue) ; uniquement un chemin interne, jamais un autre site.
         const suite = new URLSearchParams(window.location.search).get("suite");
-        const interne = suite && suite.startsWith("/") && !suite.startsWith("//");
+        const interne =
+          suite && suite.startsWith("/") && !suite.startsWith("//") && !suite.startsWith("/\\");
         router.push(interne ? suite : "/bibliotheque");
         router.refresh();
       }
@@ -48,6 +57,7 @@ export default function ConnexionPage() {
         </EnTetePage>
 
         <form onSubmit={handleSubmit} className="carte-relief mt-6 space-y-4 p-6">
+          {info && <Notice kind="succes">{info}</Notice>}
           <div>
             <label className="block text-sm font-semibold" htmlFor="email">
               Adresse email

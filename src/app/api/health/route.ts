@@ -4,6 +4,7 @@
  * (uniquement des booléens et l'URL publique). À retirer une fois le site stable.
  */
 
+import { blobTokenName } from "@/lib/blobStore";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAppUrl } from "@/lib/appUrl";
@@ -84,7 +85,8 @@ export async function GET(req: Request): Promise<Response> {
              sum(CASE WHEN pages->>'couvertureUrl' LIKE 'data:%' THEN 1 ELSE 0 END) AS data_covers
       FROM "Book" WHERE pages IS NOT NULL`;
     const r = rows[0];
-    out.env.BLOB_READ_WRITE_TOKEN = present("BLOB_READ_WRITE_TOKEN");
+    out.env.BLOB_READ_WRITE_TOKEN = blobTokenName() ?? false;
+    (out.env as Record<string, unknown>).blobLikeVars = Object.keys(process.env).filter((k) => /BLOB|READ_WRITE/i.test(k));
     out.db.storage = true;
     (out as Record<string, unknown>).books = r
       ? { count: Number(r.n), avgKb: Number(r.avg_kb ?? 0), maxKb: Number(r.max_kb ?? 0), dataUrlCovers: Number(r.data_covers ?? 0) }
