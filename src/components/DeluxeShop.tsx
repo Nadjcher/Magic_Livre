@@ -62,8 +62,11 @@ export default function DeluxeShop({
                 <p className="mt-0.5 text-sm text-magique-texteClair">{p.description}</p>
                 <div className="mt-2">
                   {paye ? (
-                    <a href={`/api/books/${bookId}/${p.route}`} className="btn-primaire px-4 py-2 text-sm">
-                      Télécharger →
+                    <a
+                      href={p.route ? `/api/books/${bookId}/${p.route}` : `/bibliotheque/${bookId}/${p.sku}`}
+                      className="btn-primaire px-4 py-2 text-sm"
+                    >
+                      {p.route ? "Télécharger →" : "Ouvrir →"}
                     </a>
                   ) : (
                     <button

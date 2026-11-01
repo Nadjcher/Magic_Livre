@@ -9,6 +9,7 @@ import type { LongueurKey } from "./validation";
 import { LONGUEURS } from "./validation";
 import { findThemeById } from "./themes";
 import type { IllustrationStyle } from "./style_config";
+import { findFormat } from "./bookFormats";
 
 /** Prompt système fixe (indépendant de la saisie). */
 export const SYSTEM_PROMPT = `Tu es un auteur reconnu de contes illustrés pour enfants, en français. Tu écris comme les plus beaux albums jeunesse : tendre, imagé, musical.
@@ -69,6 +70,13 @@ export interface StoryRequest {
   photo?: { base64: string; mime: string };
   /** Édition premium : illustrations générées avec le modèle haut de gamme. */
   premium?: boolean;
+  /** Type de livre (imagier, comptine, album, enquête…). */
+  format?: string;
+  /**
+   * Autres personnages réels (frère, sœur, parent, doudou, animal…) avec leur
+   * apparence (décrite à partir d'une photo ou par le parent).
+   */
+  extras?: { name: string; role: string; appearance?: string }[];
 }
 
 /**
@@ -148,7 +156,10 @@ function pickSpark(): string {
  * demande. La saisie libre a déjà été filtrée en amont.
  */
 export function buildUserMessage(req: StoryRequest): string {
-  const { minPages, maxPages } = LONGUEURS[req.longueur];
+  const format = findFormat(req.format);
+  const { minPages, maxPages } = format?.pages
+    ? { minPages: format.pages.min, maxPages: format.pages.max }
+    : LONGUEURS[req.longueur];
 
   const lignes: string[] = [
     `Prénom de l'enfant (personnage principal) : ${req.childFirstName}`,
@@ -159,6 +170,27 @@ export function buildUserMessage(req: StoryRequest): string {
     "",
     `Nombre de pages souhaité : entre ${minPages} et ${maxPages} (garde chaque page à la longueur imposée par l'âge ci-dessus, même s'il y a beaucoup de pages).`,
   ];
+
+  if (format) {
+    lignes.push("", `TYPE DE LIVRE CHOISI : « ${format.label} ».`, format.brief, "");
+  }
+
+  if (req.extras && req.extras.length > 0) {
+    lignes.push(
+      "AUTRES PERSONNAGES RÉELS de la famille, qui DOIVENT apparaître dans l'histoire avec un vrai rôle " +
+        `(aux côtés de ${req.childFirstName}, qui reste le héros) :`,
+    );
+    for (const e of req.extras) {
+      lignes.push(
+        `- ${e.name} (${e.role})${e.appearance ? ` — apparence : ${e.appearance}` : ""}`,
+      );
+    }
+    lignes.push(
+      "Ajoute chacun d'eux dans la fiche « personnages » (en anglais) avec cette apparence exacte, " +
+        "et nomme-les dans les scene_illustration où ils apparaissent.",
+      "",
+    );
+  }
 
   const theme = req.mode === "theme" ? findThemeById(req.themeId) : undefined;
   if (theme) {

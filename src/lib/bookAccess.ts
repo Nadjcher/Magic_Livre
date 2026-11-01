@@ -8,6 +8,7 @@ import "server-only";
 import { getCurrentUser } from "./session";
 import { prisma } from "./prisma";
 import { storySchema, type Story } from "./storySchema";
+import { skusDonnantAcces } from "./products";
 
 export type BookAccess =
   | { ok: true; story: Story; bookId: string; title: string; childName: string }
@@ -36,7 +37,7 @@ export async function getPaidProductStory(
   }
 
   const paid = await prisma.order.findFirst({
-    where: { bookId: book.id, userId: user.id, status: "paid", sku },
+    where: { bookId: book.id, userId: user.id, status: "paid", sku: { in: skusDonnantAcces(sku) } },
   });
   if (!paid) {
     return { ok: false, status: 402, error: "Le téléchargement nécessite un paiement validé." };

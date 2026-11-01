@@ -10,7 +10,8 @@ import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { storySchema } from "@/lib/storySchema";
 import { lightenStory } from "@/lib/bookImages";
-import { DELUXE_PRODUCTS, formatEuros } from "@/lib/products";
+import { DELUXE_PRODUCTS, PACK_TOUT, formatEuros, skusPossedes } from "@/lib/products";
+import BuyAllButton from "@/components/BuyAllButton";
 import { confirmPaidSession, reconcilePendingOrders } from "@/lib/stripe";
 import PurchaseDownload from "@/components/PurchaseDownload";
 import BookExtras from "@/components/BookExtras";
@@ -51,6 +52,7 @@ export default async function BoutiquePage({
   // (retour sans session_id, webhook absent…).
   await reconcilePendingOrders(user.id, book.id);
 
+  const premium = book.tier === "premium";
   const parsed = storySchema.safeParse(book.pages);
   const cover = parsed.success ? lightenStory(parsed.data, book.id).couvertureUrl ?? null : null;
 
@@ -58,10 +60,14 @@ export default async function BoutiquePage({
     where: { bookId: book.id, userId: user.id, status: "paid" },
     select: { sku: true },
   });
-  const skusPayes = paidOrders.map((o) => o.sku);
+  // La formule « Tout compris » débloque le livre et tous les produits deluxe.
+  const skusPayes = skusPossedes(paidOrders.map((o) => o.sku));
   const paid = skusPayes.includes("book");
+  const toutPossede = ["book", ...DELUXE_PRODUCTS.map((p) => p.sku)].every((k) => skusPayes.includes(k));
+  const prixSepares =
+    (premium ? env.bookPricePremiumCents() : env.bookPriceCents()) +
+    DELUXE_PRODUCTS.reduce((n, p) => n + p.priceCents, 0);
 
-  const premium = book.tier === "premium";
   // Le MP3 n'est proposé que si la synthèse vocale est réellement configurée.
   const audioDisponible = env.voiceProvider() === "elevenlabs" && env.elevenLabsApiKey().length > 0;
   const kit = audioDisponible ? KIT : KIT.filter((k) => !k.nom.includes("MP3"));
@@ -87,6 +93,24 @@ export default async function BoutiquePage({
       )}
       {searchParams.paiement === "annule" && (
         <Notice kind="info">Paiement annulé. Vous pouvez réessayer quand vous voulez.</Notice>
+      )}
+
+      {/* Formule complète, mise en avant tant que tout n'est pas acheté */}
+      {!toutPossede && skusPayes.length === 0 && (
+        <section className="carte flex flex-col gap-4 border-2 border-magique-primaire sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-wide text-or">Meilleure offre</p>
+            <h2 className="font-serif text-2xl">
+              {PACK_TOUT.emoji} {PACK_TOUT.label}
+            </h2>
+            <p className="mt-1 text-sm text-magique-texteClair">{PACK_TOUT.description}</p>
+          </div>
+          <div className="flex-none text-center">
+            <p className="text-sm text-magique-texteClair line-through">{formatEuros(prixSepares)}</p>
+            <p className="font-serif text-3xl">{formatEuros(PACK_TOUT.priceCents)}</p>
+            <BuyAllButton bookId={book.id} />
+          </div>
+        </section>
       )}
 
       {/* En-tête visuel : couverture + édition du livre */}

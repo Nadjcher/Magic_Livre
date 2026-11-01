@@ -239,46 +239,79 @@ export function illustrationsEnabled(): boolean {
   return env.imageProvider() !== "none";
 }
 
+// Modèle de vision retenu (mis en cache). Google retire régulièrement des
+// modèles (« gemini-2.5-flash n'est plus disponible ») : en cas de 404, on
+// choisit automatiquement le modèle « flash » le plus récent accessible.
+let modeleVision: string | null = null;
+
+async function choisirModeleVision(key: string): Promise<string | null> {
+  try {
+    const r = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=${key}`,
+    );
+    const j = (await r.json()) as {
+      models?: { name: string; supportedGenerationMethods?: string[] }[];
+    };
+    const candidats = (j.models ?? [])
+      .filter((m) => m.supportedGenerationMethods?.includes("generateContent"))
+      .map((m) => m.name.replace("models/", ""))
+      .filter((n) => /flash/i.test(n) && !/image|tts|live|audio|embed|lite|thinking|exp|preview/i.test(n));
+    // Version la plus élevée d'abord (gemini-3.8-flash avant gemini-3-flash…).
+    const version = (n: string) => Number(/gemini-(\d+(?:\.\d+)?)/.exec(n)?.[1] ?? 0);
+    candidats.sort((a, b) => version(b) - version(a) || a.length - b.length);
+    return candidats[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /**
- * Décrit en une courte phrase l'apparence physique de l'enfant à partir de sa
- * photo, via Gemini (multimodal). Sert UNIQUEMENT à renforcer la ressemblance
- * du héros dessiné : la photo n'est ni stockée ni renvoyée, seule une
- * description neutre est produite. Renvoie "" si indisponible ou en cas d'échec.
+ * Décrit en une courte phrase l'apparence physique d'une personne (enfant,
+ * parent…) ou d'un animal/doudou à partir de sa photo, via Gemini. Sert
+ * UNIQUEMENT à dessiner un personnage ressemblant : la photo n'est ni stockée
+ * ni renvoyée. Renvoie "" si indisponible ou en cas d'échec.
  */
-export async function describeChildFromPhoto(ref: {
-  base64: string;
-  mime: string;
-}): Promise<string> {
+export async function describeChildFromPhoto(
+  ref: { base64: string; mime: string },
+  sujet = "child",
+): Promise<string> {
   const key = env.geminiApiKey();
   if (!key) return "";
 
-  const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/${env.geminiVisionModel()}:generateContent?key=${key}`;
   const prompt =
-    "Look at this photo of a child. In ONE short English phrase (max 20 words), describe only their " +
-    "visible physical appearance for an illustrator: hair color and hairstyle, eye color, skin tone, " +
-    "and glasses if any. Do NOT name or identify the person. Output only the description, nothing else.";
+    `Look at this photo of a ${sujet}. In ONE short English phrase (max 25 words), describe only the ` +
+    "visible physical appearance for an illustrator: approximate age, hair color and hairstyle, eye color, " +
+    "skin tone, glasses or beard if any (for an animal or a plush toy: species, colors, size, distinctive " +
+    "features). Do NOT name or identify the person. Output only the description, nothing else.";
 
-  try {
-    const res = await fetchAllWithTimeout(
-      url,
+  const appel = async (modele: string) =>
+    fetchAllWithTimeout(
+      `https://generativelanguage.googleapis.com/v1beta/models/${modele}:generateContent?key=${key}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [
-            {
-              parts: [
-                { inlineData: { mimeType: ref.mime, data: ref.base64 } },
-                { text: prompt },
-              ],
-            },
+            { parts: [{ inlineData: { mimeType: ref.mime, data: ref.base64 } }, { text: prompt }] },
           ],
         }),
       },
-      { timeoutMs: 20_000, maxBytes: 2_000_000 },
+      { timeoutMs: 25_000, maxBytes: 2_000_000 },
     );
-    if (!res.ok || !res.bytes) return "";
+
+  try {
+    let res = await appel(modeleVision ?? env.geminiVisionModel());
+    if (res.status === 404 || res.status === 400) {
+      const auto = await choisirModeleVision(key);
+      if (auto) {
+        modeleVision = auto;
+        res = await appel(auto);
+      }
+    }
+    if (!res.ok || !res.bytes) {
+      console.error("[vision] échec", res.status, res.bytes?.toString("utf8").slice(0, 160));
+      return "";
+    }
     const data = JSON.parse(res.bytes.toString("utf8")) as {
       candidates?: { content?: { parts?: { text?: string }[] } }[];
     };
@@ -287,7 +320,7 @@ export async function describeChildFromPhoto(ref: {
         ?.map((p) => p.text)
         .filter(Boolean)
         .join(" ") ?? "";
-    return txt.trim().replace(/\s+/g, " ").slice(0, 160);
+    return txt.trim().replace(/\s+/g, " ").slice(0, 200);
   } catch {
     return "";
   }

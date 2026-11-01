@@ -7,6 +7,8 @@
  */
 
 import Link from "next/link";
+import { DELUXE_PRODUCTS, PACK_TOUT } from "@/lib/products";
+import { BOOK_FORMATS } from "@/lib/bookFormats";
 import { auth } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { getAppUrl } from "@/lib/appUrl";
@@ -119,7 +121,7 @@ const FAQ = [
   },
   {
     q: "Pour quel âge ?",
-    r: "De 2 à 10 ans. Le texte s'adapte : une phrase courte et douce par page pour les tout-petits, une vraie intrigue pour les plus grands.",
+    r: "De 1 à 12 ans, avec un type de livre pour chaque âge : imagier et comptine pour les tout-petits, album et cherche-et-trouve, grande aventure, enquête à résoudre et mini-roman en chapitres pour les plus grands.",
   },
   {
     q: "Puis-je imprimer le livre ?",
@@ -272,6 +274,33 @@ export default async function AccueilPage() {
         </ol>
       </section>
 
+      {/* ─── Types de livres selon l'âge ─── */}
+      <section>
+        <h2 className="text-center text-3xl sm:text-4xl">Un vrai livre pour chaque âge</h2>
+        <p className="mx-auto mt-3 max-w-[52ch] text-center text-magique-texteClair">
+          On ne raconte pas la même chose à 2 ans et à 9 ans. Choisissez le format qui lui
+          ressemble : la structure, le vocabulaire et les illustrations s'adaptent.
+        </p>
+        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {BOOK_FORMATS.map((f) => (
+            <li key={f.id} className="carte p-5">
+              <p className="text-2xl" aria-hidden="true">{f.emoji}</p>
+              <p className="mt-2 font-semibold">{f.label}</p>
+              <p className="text-xs font-bold text-or">{f.ageMin}–{f.ageMax} ans</p>
+              <p className="mt-1 text-sm text-magique-texteClair">{f.description}</p>
+            </li>
+          ))}
+          <li className="carte p-5">
+            <p className="text-2xl" aria-hidden="true">👨‍👩‍👧</p>
+            <p className="mt-2 font-semibold">Toute la famille dedans</p>
+            <p className="text-xs font-bold text-or">Tous les âges</p>
+            <p className="mt-1 text-sm text-magique-texteClair">
+              Frère, sœur, parents, doudou ou chat : ajoutez jusqu'à 3 personnages avec leur photo.
+            </p>
+          </li>
+        </ul>
+      </section>
+
       {/* ─── Styles de dessin ─── */}
       <section>
         <h2 className="text-center text-3xl sm:text-4xl">12 styles de dessin, au choix</h2>
@@ -372,6 +401,18 @@ export default async function AccueilPage() {
             </ul>
             <Link href={cta} className="btn-primaire mt-6">Créer en premium</Link>
           </div>
+        </div>
+        <div className="carte mt-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[15px]">
+            <strong>👑 Formule Tout compris, {euros(PACK_TOUT.priceCents)}</strong>
+            <span className="text-magique-texteClair">
+              {" "}— le livre et son kit, le Pack Fête d'anniversaire, l'affiche A3 et la vidéo
+              souvenir de l'histoire.
+            </span>
+          </p>
+          <span className="text-sm text-magique-texteClair">
+            Ou à l'unité : {DELUXE_PRODUCTS.map((d) => `${d.label} ${euros(d.priceCents)}`).join(" · ")}
+          </span>
         </div>
       </section>
 

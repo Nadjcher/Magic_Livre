@@ -21,6 +21,7 @@ import { findProtectedNames } from "./protectedCharacters";
 import { generateIllustration, illustrationsEnabled } from "./illustration";
 import { faceIdentityEnabled, generateCharacterPortrait } from "./faceIdentity";
 import { ILLUSTRATION_STYLES } from "./style_config";
+import { findFormat } from "./bookFormats";
 
 export type GenerateResult =
   | { ok: true; story: Story; /** Diagnostic si des illustrations manquent. */ imageReport?: string }
@@ -247,6 +248,8 @@ async function addIllustrations(
   // L'enfant est TOUJOURS le personnage principal dessiné (jamais un
   // compagnon), pour que les illustrations le mettent au centre.
   const heroName = req.childFirstName;
+  // Indication visuelle propre au type de livre (imagier épuré, cherche-et-trouve détaillé…).
+  const indiceFormat = findFormat(req.format)?.illustration;
   const base = hashSeed(story.titre + req.childFirstName);
 
   const coverRequest = {
@@ -271,7 +274,7 @@ async function addIllustrations(
     mapLimit(story.pages, 4, async (p, i) => {
         const { imageUrl, error } = await generateIllustration({
           style,
-          scene: p.scene_illustration,
+          scene: indiceFormat ? `${p.scene_illustration}. ${indiceFormat}` : p.scene_illustration,
           heroName,
           appearance: req.appearance,
           // Avec un portrait ressemblant, il suffit comme référence (charge

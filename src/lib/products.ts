@@ -17,8 +17,35 @@ export interface DeluxeProduct {
   description: string;
   /** Prix en centimes. */
   priceCents: number;
-  /** Chemin de téléchargement, relatif à /api/books/{id}/. */
+  /** Chemin de téléchargement, relatif à /api/books/{id}/ (vide = page dédiée). */
   route: string;
+}
+
+/**
+ * Formule « Tout compris » : le livre + le kit + TOUS les produits deluxe, à
+ * prix réduit. Une commande « tout » débloque chacun de ces produits.
+ */
+export const PACK_TOUT = {
+  sku: "tout",
+  label: "Formule Tout compris",
+  emoji: "👑",
+  description:
+    "Le livre PDF + tout le kit, le Pack Fête, l'affiche A3 et la vidéo souvenir. " +
+    "Le cadeau complet, au meilleur prix.",
+  priceCents: 1299,
+} as const;
+
+/** Produits débloqués par la formule « Tout compris ». */
+export const INCLUS_DANS_TOUT = ["book", "pack_fete", "affiche_a3", "video"];
+
+/** SKUs qui donnent accès au produit `sku` (lui-même, ou la formule complète). */
+export function skusDonnantAcces(sku: string): string[] {
+  return INCLUS_DANS_TOUT.includes(sku) ? [sku, PACK_TOUT.sku] : [sku];
+}
+
+/** Liste des produits possédés à partir des commandes payées. */
+export function skusPossedes(payes: string[]): string[] {
+  return payes.includes(PACK_TOUT.sku) ? Array.from(new Set([...payes, ...INCLUS_DANS_TOUT])) : payes;
 }
 
 export const DELUXE_PRODUCTS: DeluxeProduct[] = [
@@ -29,7 +56,7 @@ export const DELUXE_PRODUCTS: DeluxeProduct[] = [
     description:
       "Le kit complet pour sa fête : invitations, banderole à son prénom, " +
       "étiquettes-cadeaux et cartes de remerciement, à son image.",
-    priceCents: 499,
+    priceCents: 299,
     route: "pack-fete/pdf",
   },
   {
@@ -39,8 +66,18 @@ export const DELUXE_PRODUCTS: DeluxeProduct[] = [
     description:
       "Le héros en très grand format A3, qualité impression, idéal encadré " +
       "au-dessus du lit.",
-    priceCents: 399,
+    priceCents: 199,
     route: "affiche-a3/pdf",
+  },
+  {
+    sku: "video",
+    label: "Vidéo souvenir",
+    emoji: "🎬",
+    description:
+      "L'histoire en vidéo : les illustrations s'animent doucement, le texte " +
+      "défile en musique. À regarder ensemble ou à partager avec la famille.",
+    priceCents: 299,
+    route: "",
   },
 ];
 

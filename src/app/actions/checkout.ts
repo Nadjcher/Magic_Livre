@@ -12,7 +12,7 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { createCheckoutSession } from "@/lib/stripe";
 import { env } from "@/lib/env";
-import { getDeluxeProduct } from "@/lib/products";
+import { getDeluxeProduct, PACK_TOUT, skusDonnantAcces } from "@/lib/products";
 
 export interface CheckoutResult {
   ok: boolean;
@@ -47,6 +47,10 @@ export async function startCheckout(
     productDescription = premium
       ? "PDF imprimable, illustrations haut de gamme + kit inclus (coloriage, affiche, invitation, autocollants, marque-pages)."
       : "Livre PDF imprimable + kit inclus (coloriage, affiche, invitation, autocollants, marque-pages).";
+  } else if (sku === PACK_TOUT.sku) {
+    amountCents = PACK_TOUT.priceCents;
+    productName = `${PACK_TOUT.label} — ${book.title}`;
+    productDescription = PACK_TOUT.description;
   } else {
     const product = getDeluxeProduct(sku);
     if (!product) return { ok: false, message: "Produit inconnu." };
@@ -57,7 +61,7 @@ export async function startCheckout(
 
   // Déjà acheté ? (une commande payée pour ce produit et ce livre.)
   const existingPaid = await prisma.order.findFirst({
-    where: { bookId: book.id, userId: user.id, sku, status: "paid" },
+    where: { bookId: book.id, userId: user.id, sku: { in: skusDonnantAcces(sku) }, status: "paid" },
   });
   if (existingPaid) {
     return {

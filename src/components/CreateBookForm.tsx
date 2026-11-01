@@ -7,6 +7,8 @@
  */
 
 import { useState, useTransition } from "react";
+import { findFormat, formatParDefaut, formatsPourAge } from "@/lib/bookFormats";
+import { ROLES_EXTRAS } from "@/lib/validation";
 import { useRouter } from "next/navigation";
 import { createBook } from "@/app/actions/books";
 import { THEMES, THEME_CATEGORIES, findThemeById, type ThemeCategory } from "@/lib/themes";
@@ -17,6 +19,34 @@ import GenerationOverlay from "./GenerationOverlay";
 import Link from "next/link";
 
 const STYLE_KEYS = Object.keys(ILLUSTRATION_STYLES) as IllustrationStyle[];
+
+/**
+ * Lit une photo, la redimensionne (max 512 px) et la renvoie en data URL JPEG
+ * légère. Elle reste dans le navigateur jusqu'à la création, puis n'est jamais
+ * conservée côté serveur.
+ */
+function lirePhotoReduite(file: File | undefined, done: (dataUrl: string) => void) {
+  if (!file) return done("");
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 512;
+      const ratio = Math.min(max / img.width, max / img.height, 1);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return done("");
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      done(canvas.toDataURL("image/jpeg", 0.82));
+    };
+    img.src = String(reader.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+type Extra = { name: string; role: string; photo: string };
 
 /** En-tête d'étape : pastille dorée numérotée + intitulé en serif. */
 function Etape({ n, children }: { n: string; children: React.ReactNode }) {
@@ -60,35 +90,27 @@ export default function CreateBookForm({
   const [erreur, setErreur] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  /**
-   * Lit une photo, la redimensionne (max 512 px) et la convertit en data URL
-   * JPEG légère. L'image reste dans le navigateur : elle n'est envoyée au
-   * serveur qu'à la création, pour en extraire une description, puis oubliée.
-   */
   function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) {
-      setPhoto("");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const max = 512;
-        const ratio = Math.min(max / img.width, max / img.height, 1);
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.round(img.width * ratio);
-        canvas.height = Math.round(img.height * ratio);
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        setPhoto(canvas.toDataURL("image/jpeg", 0.82));
-      };
-      img.src = String(reader.result);
-    };
-    reader.readAsDataURL(file);
+    lirePhotoReduite(e.target.files?.[0], setPhoto);
   }
+
+  // Enfant choisi → types de livres adaptés à son âge.
+  const [childId, setChildId] = useState(enfants[0]?.id ?? "");
+  const age = enfants.find((c) => c.id === childId)?.age ?? 5;
+  const formats = formatsPourAge(age);
+  const [formatId, setFormatId] = useState(formatParDefaut(enfants[0]?.age ?? 5).id);
+  const format = findFormat(formatId);
+
+  function choisirEnfant(id: string) {
+    setChildId(id);
+    const a = enfants.find((c) => c.id === id)?.age ?? 5;
+    if (!formatsPourAge(a).some((f) => f.id === formatId)) setFormatId(formatParDefaut(a).id);
+  }
+
+  // Autres personnages (famille, doudou, animal) : jusqu'à 3.
+  const [extras, setExtras] = useState<Extra[]>([]);
+  const majExtra = (i: number, patch: Partial<Extra>) =>
+    setExtras((xs) => xs.map((x, k) => (k === i ? { ...x, ...patch } : x)));
 
   if (enfants.length === 0) {
     return (
@@ -122,7 +144,14 @@ export default function CreateBookForm({
         <Etape n="1">
           <label htmlFor="childId">Pour quel enfant&nbsp;?</label>
         </Etape>
-        <select id="childId" name="childId" required className="champ">
+        <select
+          id="childId"
+          name="childId"
+          required
+          className="champ"
+          value={childId}
+          onChange={(e) => choisirEnfant(e.target.value)}
+        >
           {enfants.map((c) => (
             <option key={c.id} value={c.id}>
               {c.firstName} ({c.age} ans)
@@ -131,9 +160,48 @@ export default function CreateBookForm({
         </select>
       </div>
 
+      {/* Type de livre, selon l'âge */}
+      <div data-tilt className="carte">
+        <Etape n="2">Quel type de livre&nbsp;?</Etape>
+        <input type="hidden" name="format" value={formatId} />
+        <p className="-mt-1 mb-3 text-sm text-magique-texteClair">
+          Les formats adaptés à {age} ans.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Types de livre">
+          {formats.map((f) => {
+            const actif = f.id === formatId;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                role="radio"
+                aria-checked={actif}
+                onClick={() => setFormatId(f.id)}
+                className={`flex items-start gap-3 rounded-xl border-2 p-3 text-left transition ${
+                  actif
+                    ? "border-magique-primaire bg-magique-primaire/10 shadow-or"
+                    : "border-magique-trait hover:border-magique-primaire"
+                }`}
+              >
+                <span className="text-2xl" aria-hidden="true">{f.emoji}</span>
+                <span>
+                  <span className="flex flex-wrap items-center gap-2 font-semibold">
+                    {f.label}
+                    <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs font-bold text-magique-texteClair">
+                      {f.ageMin}–{f.ageMax} ans
+                    </span>
+                  </span>
+                  <span className="block text-sm text-magique-texteClair">{f.description}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Thème : catalogue ou idée libre */}
       <div data-tilt className="carte space-y-4">
-        <Etape n="2">Quelle histoire&nbsp;?</Etape>
+        <Etape n="3">Quelle histoire&nbsp;?</Etape>
         <input type="hidden" name="mode" value={mode} />
         {mode === "theme" && <input type="hidden" name="themeId" value={themeId} />}
 
@@ -225,7 +293,7 @@ export default function CreateBookForm({
 
       {/* Style des illustrations */}
       <div data-tilt className="carte">
-        <Etape n="3">Le style des illustrations</Etape>
+        <Etape n="4">Le style des illustrations</Etape>
         <input type="hidden" name="style" value={style} />
         <p className="-mt-1 mb-3 text-sm text-magique-texteClair">
           La même scène dessinée dans chaque style : choisissez celui qui vous plaît.
@@ -270,7 +338,7 @@ export default function CreateBookForm({
 
       {/* Apparence : description et/ou photo (optionnel) */}
       <div data-tilt className="carte space-y-3">
-        <Etape n="4">
+        <Etape n="5">
           <label htmlFor="appearance">
             À quoi ressemble l'enfant&nbsp;?{" "}
             <span className="text-base font-normal not-italic text-magique-texteClair">(optionnel)</span>
@@ -303,17 +371,98 @@ export default function CreateBookForm({
         </div>
       </div>
 
-      {/* Longueur */}
-      <div data-tilt className="carte">
-        <Etape n="5">
-          <label htmlFor="longueur">La longueur de l'histoire</label>
+      {/* Autres personnages */}
+      <div data-tilt className="carte space-y-4">
+        <Etape n="6">
+          D'autres personnages&nbsp;?{" "}
+          <span className="text-base font-normal not-italic text-magique-texteClair">(optionnel)</span>
         </Etape>
-        <select id="longueur" name="longueur" defaultValue="moyenne" className="champ">
-          <option value="courte">Courte (8-9 pages)</option>
-          <option value="moyenne">Moyenne (10-11 pages)</option>
-          <option value="longue">Longue (11-12 pages)</option>
-        </select>
+        <p className="-mt-2 text-sm text-magique-texteClair">
+          Un frère, une sœur, un parent, le doudou ou le chat de la maison : ajoutez-les
+          avec une photo, ils vivront l'aventure aux côtés de votre enfant (3 maximum).
+        </p>
+        {extras.map((x, i) => (
+          <div key={i} className="grid gap-3 rounded-2xl border border-magique-trait p-4 sm:grid-cols-[1fr_1fr_auto]">
+            <label className="block text-sm font-semibold">
+              Prénom ou nom
+              <input
+                name={`extra_${i}_name`}
+                required
+                maxLength={30}
+                value={x.name}
+                onChange={(e) => majExtra(i, { name: e.target.value })}
+                placeholder="Ex : Inès, Papi, Caramel"
+                className="champ mt-1"
+              />
+            </label>
+            <label className="block text-sm font-semibold">
+              C'est…
+              <select
+                name={`extra_${i}_role`}
+                value={x.role}
+                onChange={(e) => majExtra(i, { role: e.target.value })}
+                className="champ mt-1"
+              >
+                {ROLES_EXTRAS.map((r) => (
+                  <option key={r} value={r}>
+                    {r.charAt(0).toUpperCase() + r.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={() => setExtras((xs) => xs.filter((_, k) => k !== i))}
+              className="self-end rounded-full border border-magique-trait px-3 py-2 text-sm hover:border-red-300"
+              aria-label={`Retirer ${x.name || "ce personnage"}`}
+            >
+              Retirer
+            </button>
+            <div className="sm:col-span-3">
+              <label className="block text-sm font-semibold">
+                Photo (pour qu'il lui ressemble)
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => lirePhotoReduite(e.target.files?.[0], (d) => majExtra(i, { photo: d }))}
+                  className="mt-1 block w-full text-sm text-magique-texteClair"
+                />
+              </label>
+              <input type="hidden" name={`extra_${i}_photo`} value={x.photo} />
+              {x.photo && <p className="mt-1 text-xs text-magique-texteClair">✓ Photo ajoutée</p>}
+            </div>
+          </div>
+        ))}
+        {extras.length < 3 && (
+          <button
+            type="button"
+            className="btn-secondaire px-4 py-2 text-sm"
+            onClick={() => setExtras((xs) => [...xs, { name: "", role: "frère", photo: "" }])}
+          >
+            + Ajouter un personnage
+          </button>
+        )}
+        <p className="text-xs text-magique-texteClair">
+          🔒 Comme pour votre enfant, les photos servent seulement à dessiner les
+          personnages et ne sont jamais conservées.
+        </p>
       </div>
+
+      {/* Longueur (sauf pour les formats à nombre de pages fixe) */}
+      {format?.pages ? (
+        <input type="hidden" name="longueur" value="moyenne" />
+      ) : (
+        <div data-tilt className="carte">
+          <Etape n="7">
+            <label htmlFor="longueur">La longueur de l'histoire</label>
+          </Etape>
+          <select id="longueur" name="longueur" defaultValue="moyenne" className="champ">
+            <option value="courte">Courte (8-9 pages)</option>
+            <option value="moyenne">Moyenne (10-11 pages)</option>
+            <option value="longue">Longue (11-12 pages)</option>
+          </select>
+        </div>
+      )}
 
       {/* Édition premium : illustrations haute qualité (payante au téléchargement) */}
       <label className="carte flex cursor-pointer items-start gap-3">

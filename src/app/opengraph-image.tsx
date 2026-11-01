@@ -68,7 +68,7 @@ export default function OpengraphImage() {
             fontWeight: 700,
           }}
         >
-          Lecture gratuite · PDF dès 4,99 €
+          Lecture gratuite · PDF dès 6,99 €
         </div>
       </div>
     ),

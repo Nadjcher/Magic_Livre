@@ -15,7 +15,8 @@ import { revalidatePath } from "next/cache";
 import { waitUntil } from "@vercel/functions";
 import { getCurrentUser, hasParentalConsent } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { createBookSchema, checkUserText } from "@/lib/validation";
+import { createBookSchema, checkUserText, extraSchema } from "@/lib/validation";
+import { findFormat, formatsPourAge } from "@/lib/bookFormats";
 import { checkDailyBookLimit } from "@/lib/rateLimit";
 import { generateStory } from "@/lib/storyGenerator";
 import { describeChildFromPhoto } from "@/lib/illustration";
@@ -29,6 +30,20 @@ export interface CreateBookResult {
   /** Identifiant du livre créé (même en cas d'échec de génération). */
   bookId?: string;
 }
+
+type Photo = { base64: string; mime: string };
+
+/** Lit une photo envoyée en data URL (JPEG/PNG/WebP, taille bornée). */
+function lirePhoto(v: FormDataEntryValue | null): Photo | undefined {
+  if (typeof v !== "string") return undefined;
+  const m = /^data:(image\/(?:png|jpeg|jpg|webp));base64,(.+)$/i.exec(v);
+  if (!m) return undefined;
+  const mime = m[1] === "image/jpg" ? "image/jpeg" : (m[1] as string);
+  const data = m[2] ?? "";
+  return data.length > 0 && data.length <= 4_000_000 ? { base64: data, mime } : undefined;
+}
+
+type ExtraInput = { name: string; role: string; appearance?: string; photo?: Photo };
 
 export async function createBook(formData: FormData): Promise<CreateBookResult> {
   const user = await getCurrentUser();
@@ -49,6 +64,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
     themeId: formData.get("themeId") ? String(formData.get("themeId")) : undefined,
     prompt: formData.get("prompt") ? String(formData.get("prompt")) : undefined,
     longueur: String(formData.get("longueur") ?? ""),
+    format: formData.get("format") ? String(formData.get("format")) : undefined,
     style: formData.get("style") ? String(formData.get("style")) : undefined,
     appearance: formData.get("appearance")
       ? String(formData.get("appearance"))
@@ -75,15 +91,24 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
   }
   // Photo de référence : utilisée uniquement pour dessiner un héros ressemblant,
   // envoyée au modèle d'image au moment de la génération, puis JAMAIS stockée.
-  let photoRef: { base64: string; mime: string } | undefined;
-  const photo = formData.get("photo");
-  if (typeof photo === "string") {
-    const m = /^data:(image\/(?:png|jpeg|jpg|webp));base64,(.+)$/i.exec(photo);
-    if (m) {
-      const mime = m[1] === "image/jpg" ? "image/jpeg" : (m[1] as string);
-      const data = m[2] ?? "";
-      if (data.length > 0 && data.length <= 4_000_000) photoRef = { base64: data, mime };
+  const photoRef = lirePhoto(formData.get("photo"));
+
+  // Autres personnages (famille, doudou, animal) : jusqu'à 3.
+  const extras: ExtraInput[] = [];
+  for (let i = 0; i < 3; i++) {
+    const nom = String(formData.get(`extra_${i}_name`) ?? "").trim();
+    if (!nom) continue;
+    const e = extraSchema.safeParse({
+      name: nom,
+      role: String(formData.get(`extra_${i}_role`) ?? ""),
+      appearance: String(formData.get(`extra_${i}_appearance`) ?? "").trim() || undefined,
+    });
+    if (!e.success) return { ok: false, message: e.error.issues[0]?.message ?? "Personnage invalide." };
+    for (const t of [e.data.name, e.data.appearance].filter((x): x is string => Boolean(x))) {
+      const check = checkUserText(t);
+      if (!check.ok) return { ok: false, message: check.message };
     }
+    extras.push({ ...e.data, photo: lirePhoto(formData.get(`extra_${i}_photo`)) });
   }
 
 
@@ -92,6 +117,15 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
     where: { id: input.childId, userId: user.id },
   });
   if (!child) return { ok: false, message: "Enfant introuvable." };
+
+  // Le type de livre doit convenir à l'âge de l'enfant.
+  if (!formatsPourAge(child.age).some((f) => f.id === input.format)) {
+    const f = findFormat(input.format);
+    return {
+      ok: false,
+      message: `« ${f?.label ?? "Ce format"} » est prévu pour les ${f?.ageMin}–${f?.ageMax} ans. Choisissez un autre type de livre.`,
+    };
+  }
 
   // Limite quotidienne pour contrôler les coûts.
   const limit = await checkDailyBookLimit(user.id);
@@ -135,6 +169,8 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
       appearance,
       photo: photoRef,
       premium,
+      format: input.format,
+      extras,
     }),
   );
 
@@ -142,9 +178,18 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
   return { ok: true, message: "La création de votre livre a commencé.", bookId: book.id };
 }
 
-type GenerationInput = Omit<Parameters<typeof generateStory>[0], "appearance"> & {
+type GenerationInput = Omit<Parameters<typeof generateStory>[0], "appearance" | "extras"> & {
   appearance: string;
+  extras: ExtraInput[];
 };
+
+/** Sujet de la photo, pour la description d'apparence. */
+function sujetPhoto(role: string): string {
+  if (role === "doudou") return "plush toy";
+  if (role === "animal de compagnie") return "pet animal";
+  if (["maman", "papa", "mamie", "papi"].includes(role)) return "adult person";
+  return "child";
+}
 
 /**
  * Génère le livre puis enregistre le résultat (« ready » ou « failed »).
@@ -160,9 +205,20 @@ async function genererEtEnregistrer(bookId: string, req: GenerationInput): Promi
       appearance = await describeChildFromPhoto(req.photo);
     }
 
+    // Apparence des autres personnages : décrite depuis leur photo (jamais stockée).
+    const extras = await Promise.all(
+      req.extras.map(async (e) => ({
+        name: e.name,
+        role: e.role,
+        appearance:
+          e.appearance ?? (e.photo ? await describeChildFromPhoto(e.photo, sujetPhoto(e.role)) : undefined),
+      })),
+    );
+
     const result = await generateStory({
       ...req,
       appearance: appearance.length > 0 ? appearance : undefined,
+      extras: extras.map((e) => ({ ...e, appearance: e.appearance || undefined })),
     });
 
     if (!result.ok) {

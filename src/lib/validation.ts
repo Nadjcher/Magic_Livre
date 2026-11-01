@@ -8,6 +8,7 @@ import { findProtectedNames } from "./protectedCharacters";
 import { filterContent } from "./contentFilter";
 import { ILLUSTRATION_STYLE_KEYS } from "./style_config";
 import { findThemeById } from "./themes";
+import { BOOK_FORMAT_IDS } from "./bookFormats";
 
 /** Longueurs d'histoire proposées, avec le nombre de pages cible. */
 export const LONGUEURS = {
@@ -39,6 +40,32 @@ export const childSchema = z.object({
 
 export type ChildInput = z.infer<typeof childSchema>;
 
+/** Rôles proposés pour les autres personnages (famille, doudou, animal). */
+export const ROLES_EXTRAS = [
+  "frère",
+  "sœur",
+  "maman",
+  "papa",
+  "mamie",
+  "papi",
+  "cousin·e",
+  "ami·e",
+  "doudou",
+  "animal de compagnie",
+] as const;
+
+/** Un personnage supplémentaire (jusqu'à 3 par livre). */
+export const extraSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Le prénom du personnage est obligatoire.")
+    .max(30, "Le prénom du personnage est trop long.")
+    .regex(/^[\p{L}][\p{L} '-]*$/u, "Le prénom du personnage contient des caractères non autorisés."),
+  role: z.enum(ROLES_EXTRAS),
+  appearance: z.string().trim().max(120).optional(),
+});
+
 /** Schéma de création d'un livre. */
 export const createBookSchema = z
   .object({
@@ -53,6 +80,8 @@ export const createBookSchema = z
       .max(300, "La description de l'aventure est limitée à 300 caractères.")
       .optional(),
     longueur: z.enum(["courte", "moyenne", "longue"]),
+    // Type de livre (imagier, comptine, album, enquête…).
+    format: z.enum(BOOK_FORMAT_IDS).default("album"),
     // Style d'illustration (défaut : féerique). Dérivé du catalogue de styles.
     style: z.enum(ILLUSTRATION_STYLE_KEYS).default("feerique"),
     // Description libre de l'apparence (facultative, limitée).

@@ -7,7 +7,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser, hasParentalConsent } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { formatEuros, getDeluxeProduct } from "@/lib/products";
+import { formatEuros, getDeluxeProduct, PACK_TOUT } from "@/lib/products";
 import EnTetePage from "@/components/EnTetePage";
 import {
   ChangePasswordForm,
@@ -19,6 +19,7 @@ export const dynamic = "force-dynamic";
 
 function libelleProduit(sku: string): string {
   if (sku === "book") return "Livre PDF + kit";
+  if (sku === PACK_TOUT.sku) return PACK_TOUT.label;
   return getDeluxeProduct(sku)?.label ?? sku;
 }
 
