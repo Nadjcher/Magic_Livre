@@ -114,6 +114,7 @@ async function callModel(
       const j = (await r.json()) as { output?: string; error?: unknown };
       if (r.ok && j.output && j.output.includes("{")) {
         if (info) info.viaFal = true;
+        console.log("[texte] écrit par", modele);
         return j.output.trim();
       }
       console.error("[texte] fal/openrouter :", r.status, JSON.stringify(j.error ?? j).slice(0, 200));
