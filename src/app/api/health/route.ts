@@ -123,6 +123,27 @@ export async function GET(req: Request): Promise<Response> {
 
   const img = new URL(req.url).searchParams.get("img");
 
+  // Taille de la base : /api/health?db=1
+  if (new URL(req.url).searchParams.get("db") === "1") {
+    try {
+      const r = await prisma.$queryRaw<{ mo: number; livres: bigint; lourds: bigint }[]>`
+        SELECT round(pg_database_size(current_database()) / 1048576.0) AS mo,
+               (SELECT count(*) FROM "Book") AS livres,
+               (SELECT count(*) FROM "Book" WHERE pages::text LIKE '%data:image%') AS lourds`;
+      (out as Record<string, unknown>).base = { mo: Number(r[0]?.mo), livres: Number(r[0]?.livres), avecImagesEnBase: Number(r[0]?.lourds) };
+    } catch (e) {
+      (out as Record<string, unknown>).base = String(e).slice(0, 300);
+    }
+    try {
+      await prisma.$executeRaw`SELECT 1`;
+      const t = await prisma.verificationToken.deleteMany({ where: { expires: { lt: new Date() } } });
+      (out as Record<string, unknown>).ecriture = `ok (${t.count} jetons expirés supprimés)`;
+    } catch (e) {
+      (out as Record<string, unknown>).ecriture = `ÉCHEC : ${String(e).slice(0, 300)}`;
+    }
+    return NextResponse.json(out, { status: 200 });
+  }
+
   // Dernières commandes et leur statut chez Stripe (sans donnée personnelle) : /api/health?orders=1
   if (new URL(req.url).searchParams.get("orders") === "1") {
     const { getStripe } = await import("@/lib/stripe");
