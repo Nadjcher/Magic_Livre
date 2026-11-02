@@ -10,7 +10,7 @@ import { env } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "Conditions générales d’utilisation",
-  description: "Les conditions d’utilisation du service Storilou : création de livres personnalisés pour enfants, achats, données et consentement parental.",
+  description: "Les conditions d’utilisation du service Encore une histoire : création de livres personnalisés pour enfants, achats, données et consentement parental.",
   alternates: { canonical: "/cgu" },
 };
 
@@ -25,7 +25,7 @@ export default function CguPage() {
 
       <h2 className="text-xl font-semibold">1. Objet</h2>
       <p className="text-magique-texteClair">
-        « Storilou » permet à un parent ou représentant légal de créer
+        « Encore une histoire » permet à un parent ou représentant légal de créer
         des livres personnalisés pour enfants, à lire en ligne et à télécharger
         au format PDF après paiement.
       </p>

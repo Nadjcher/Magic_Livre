@@ -217,7 +217,7 @@ export async function lancerImpression(orderId: string): Promise<void> {
 
     const images = await imagesDuLivre(parsed.data, book.child.firstName, true);
     const pdf = await renderPrintPdf(parsed.data, book.child.firstName, images);
-    const fichier = await deposerPdf(pdf, `storilou-${orderId}.pdf`);
+    const fichier = await deposerPdf(pdf, `encoreunehistoire-${orderId}.pdf`);
     const gelatoId = await commanderGelato(orderId, order.userId, fichier, adresse);
 
     // Enregistre la commande d'impression sur le livre (relu juste avant).

@@ -99,7 +99,7 @@ export default function ThemePage({ params }: { params: { theme: string } }) {
 
       <section className="grid items-center gap-6 sm:grid-cols-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/exemple/page-pont.webp" alt="Exemple de page illustrée d'un livre Storilou" loading="lazy" className="w-full rounded-2xl shadow-conte" />
+        <img src="/exemple/page-pont.webp" alt="Exemple de page illustrée d'un livre Encore une histoire" loading="lazy" className="w-full rounded-2xl shadow-conte" />
         <div className="space-y-2">
           <h2 className="text-2xl">À son image, à chaque page</h2>
           <p className="text-magique-texteClair">

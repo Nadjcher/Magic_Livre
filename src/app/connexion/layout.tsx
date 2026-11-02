@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Connexion",
-  description: "Connectez-vous à Storilou pour retrouver les livres personnalisés de vos enfants.",
+  description: "Connectez-vous à Encore une histoire pour retrouver les livres personnalisés de vos enfants.",
   alternates: { canonical: "/connexion" },
 };
 

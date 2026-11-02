@@ -12,7 +12,7 @@ import EnTetePage from "@/components/EnTetePage";
 
 export const metadata: Metadata = {
   title: "Mes enfants",
-  description: "Espace personnel Storilou.",
+  description: "Espace personnel Encore une histoire.",
   robots: { index: false, follow: false },
 };
 

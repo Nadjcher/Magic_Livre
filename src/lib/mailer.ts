@@ -29,7 +29,7 @@ function shell(titre: string, corps: string): string {
 <div style="margin:0;padding:24px;background:#eef2fd;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1b2250">
   <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e6dcc4">
     <div style="background:linear-gradient(135deg,#16245c,#33407f);padding:28px 32px;text-align:center">
-      <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#ffffff">✦ Storilou</div>
+      <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#ffffff">✦ Encore une histoire</div>
     </div>
     <div style="padding:32px">
       <h1 style="font-family:Georgia,serif;font-size:22px;margin:0 0 12px">${titre}</h1>
@@ -58,7 +58,7 @@ export function emailConfigure(): boolean {
 }
 
 /**
- * Email simple aux couleurs de Storilou : un titre, un paragraphe, un bouton.
+ * Email simple aux couleurs de Encore une histoire : un titre, un paragraphe, un bouton.
  * Ne jette jamais (best-effort) ; ne fait rien si l'email n'est pas configuré.
  */
 export async function emailAvecBouton(
@@ -121,7 +121,7 @@ export async function sendVerificationEmail(email: string) {
   const url = `${baseUrl()}/verifier-email?token=${token}&email=${encodeURIComponent(email)}`;
   await sendMail(
     email,
-    "Confirmez votre adresse — Storilou",
+    "Confirmez votre adresse — Encore une histoire",
     shell(
       "Bienvenue ! Confirmez votre adresse",
       `<p style="font-size:15px;line-height:1.6;color:#3a4472;margin:0 0 16px">Merci d'avoir créé votre compte. Confirmez votre adresse email pour finaliser l'inscription.</p>${bouton(url, "Confirmer mon adresse")}`,
@@ -138,7 +138,7 @@ export async function sendResetEmail(email: string) {
   const url = `${baseUrl()}/reinitialiser?token=${token}&email=${encodeURIComponent(email)}`;
   await sendMail(
     email,
-    "Réinitialiser votre mot de passe — Storilou",
+    "Réinitialiser votre mot de passe — Encore une histoire",
     shell(
       "Réinitialiser votre mot de passe",
       `<p style="font-size:15px;line-height:1.6;color:#3a4472;margin:0 0 16px">Vous avez demandé à changer votre mot de passe. Ce lien est valable 1 heure.</p>${bouton(url, "Choisir un nouveau mot de passe")}<p style="font-size:13px;color:#5b6598;margin:16px 0 0">Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>`,

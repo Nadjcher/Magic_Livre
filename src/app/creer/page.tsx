@@ -15,7 +15,7 @@ import EnTetePage from "@/components/EnTetePage";
 
 export const metadata: Metadata = {
   title: "Créer un livre",
-  description: "Espace personnel Storilou.",
+  description: "Espace personnel Encore une histoire.",
   robots: { index: false, follow: false },
 };
 

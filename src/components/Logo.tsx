@@ -1,5 +1,5 @@
 /**
- * Logo de marque « Storilou » : petit livre ouvert surmonté d'une
+ * Logo de marque « Encore une histoire » : petit livre ouvert surmonté d'une
  * étoile, décliné du favicon. SVG inline pour rester net à toute taille.
  */
 
@@ -51,7 +51,7 @@ export default function Logo() {
   return (
     <span className="flex items-center gap-2">
       <LogoMark className="h-9 w-9 drop-shadow-sm" />
-      <span className="whitespace-nowrap font-serif text-lg font-bold text-gradient sm:text-xl">Storilou</span>
+      <span className="whitespace-nowrap font-serif text-lg font-bold text-gradient sm:text-xl">Encore une histoire</span>
     </span>
   );
 }

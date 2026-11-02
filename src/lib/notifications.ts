@@ -72,6 +72,6 @@ export async function alerterAdmin(sujet: string, detail: string): Promise<void>
   derniereAlerte.set(sujet, maintenant);
   const admins = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim()).filter(Boolean);
   for (const a of admins) {
-    await emailAvecBouton(a, `⚠️ Storilou : ${sujet}`, sujet, echapper(detail), `${getAppUrl()}/api/health`, "Voir le diagnostic");
+    await emailAvecBouton(a, `⚠️ Encore une histoire : ${sujet}`, sujet, echapper(detail), `${getAppUrl()}/api/health`, "Voir le diagnostic");
   }
 }

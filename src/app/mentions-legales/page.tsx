@@ -10,7 +10,7 @@ import { identiteLegale } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Mentions légales",
-  description: "Éditeur, hébergeur et contact du site Storilou, livres personnalisés pour enfants.",
+  description: "Éditeur, hébergeur et contact du site Encore une histoire, livres personnalisés pour enfants.",
   alternates: { canonical: "/mentions-legales" },
 };
 
@@ -32,7 +32,7 @@ export default function MentionsLegalesPage() {
       </p>
       <h2 className="text-xl font-semibold">Propriété intellectuelle</h2>
       <p>
-        La marque Storilou, la maquette et les textes du site appartiennent à l'éditeur. Les histoires et
+        La marque « Encore une histoire », la maquette et les textes du site appartiennent à l'éditeur. Les histoires et
         illustrations sont des créations originales générées à la demande ; aucun personnage protégé par des droits
         de tiers n'est utilisé.
       </p>

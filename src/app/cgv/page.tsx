@@ -12,7 +12,7 @@ import { env } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "Conditions générales de vente",
-  description: "Conditions générales de vente de Storilou : livres personnalisés pour enfants en PDF, dessin animé et livre imprimé relié.",
+  description: "Conditions générales de vente de Encore une histoire : livres personnalisés pour enfants en PDF, dessin animé et livre imprimé relié.",
   alternates: { canonical: "/cgv" },
 };
 
@@ -34,20 +34,20 @@ export default function CgvPage() {
 
       <H>1. Le vendeur</H>
       <p>
-        Le site Storilou est édité par {id.nom}, {id.statut}, SIREN {id.siren}, dont l'adresse est {id.adresse}.
+        Le site « Encore une histoire » est édité par {id.nom}, {id.statut}, SIREN {id.siren}, dont l'adresse est {id.adresse}.
         Contact : {id.email}. {id.tva}
       </p>
 
       <H>2. Objet</H>
       <p>
-        Les présentes conditions régissent la vente, par le site Storilou, de livres illustrés personnalisés pour
+        Les présentes conditions régissent la vente, par le site « Encore une histoire », de livres illustrés personnalisés pour
         enfants et de produits associés, à des consommateurs. Toute commande suppose leur acceptation, matérialisée
         par une case à cocher avant le paiement. Elles prévalent sur tout autre document.
       </p>
 
       <H>3. Les produits</H>
       <p>
-        Storilou crée, à partir des informations que vous fournissez (prénom, âge, thème, photo facultative), une
+        Encore une histoire crée, à partir des informations que vous fournissez (prénom, âge, thème, photo facultative), une
         histoire et des illustrations originales grâce à des outils d'intelligence artificielle. La lecture du livre
         à l'écran est gratuite : vous voyez l'intégralité du livre avant tout achat. Sont proposés à la vente :
       </p>
@@ -79,7 +79,7 @@ export default function CgvPage() {
 
       <H>6. Paiement</H>
       <p>
-        Le paiement s'effectue en ligne par carte bancaire, via le prestataire sécurisé Stripe. Storilou n'a jamais
+        Le paiement s'effectue en ligne par carte bancaire, via le prestataire sécurisé Stripe. Nous n'avons jamais
         accès à vos coordonnées bancaires. Le montant est débité au moment de la commande.
       </p>
 

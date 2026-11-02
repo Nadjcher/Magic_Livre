@@ -236,13 +236,13 @@ export function buildPrintDocument(story: Story, prenom: string, images: ImagesI
         <Text style={{ fontFamily: f.texte, fontSize: 12, color: "#C9D2F5", textAlign: "center", marginTop: 14, lineHeight: 1.6 }}>
           {sur(story.pages[0]?.texte ?? "")}
         </Text>
-        <Text style={{ fontFamily: f.texte, fontSize: 10, color: "#9FAEE0", marginTop: 24 }}>Une histoire unique, créée pour {nom} · storilou</Text>
+        <Text style={{ fontFamily: f.texte, fontSize: 10, color: "#9FAEE0", marginTop: 24 }}>Une histoire unique, créée pour {nom} · encoreunehistoire.fr</Text>
       </View>
     </Page>
   );
 
   return (
-    <Document title={titre} author="Storilou">
+    <Document title={titre} author="Encore une histoire">
       {couverture}
       <PageVide />
       {interieures}

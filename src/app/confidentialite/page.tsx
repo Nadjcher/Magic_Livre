@@ -8,7 +8,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Politique de confidentialité",
-  description: "Comment Storilou protège les données de votre famille : photo jamais conservée, données minimales, suppression à tout moment.",
+  description: "Comment Encore une histoire protège les données de votre famille : photo jamais conservée, données minimales, suppression à tout moment.",
   alternates: { canonical: "/confidentialite" },
 };
 

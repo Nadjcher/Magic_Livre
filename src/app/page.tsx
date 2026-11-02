@@ -1,5 +1,5 @@
 /**
- * Landing page Storilou.
+ * Landing page Encore une histoire.
  *
  * Positionnement : une histoire écrite pour l'enfant (âge, thème), un héros à
  * son image, prête en deux minutes, et lue gratuitement AVANT tout paiement.
@@ -9,7 +9,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT } from "@/lib/products";
-import { BOOK_FORMATS } from "@/lib/bookFormats";
+import AgeExplorer from "@/components/AgeExplorer";
 import { auth } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { getAppUrl } from "@/lib/appUrl";
@@ -17,7 +17,7 @@ import { findThemeById } from "@/lib/themes";
 import { ILLUSTRATION_STYLES, ILLUSTRATION_STYLE_KEYS } from "@/lib/style_config";
 
 export const metadata: Metadata = {
-  title: { absolute: "Livre personnalisé pour enfant, illustré à son image · Storilou" },
+  title: { absolute: "Livre personnalisé pour enfant, illustré à son image · Encore une histoire" },
   alternates: { canonical: "/" },
 };
 
@@ -48,31 +48,6 @@ const PROMESSES = [
   "Sans abonnement",
 ];
 
-const DIFFERENCES = [
-  {
-    icone: "✍️",
-    titre: "Écrite pour lui, pas un modèle",
-    texte:
-      "Chaque histoire est inventée pour votre enfant : son prénom, son âge, le thème que vous choisissez. Deux livres ne se ressemblent jamais.",
-  },
-  {
-    icone: "🎨",
-    titre: "Un héros à son image",
-    texte:
-      "Ajoutez une photo : nous dessinons un héros qui lui ressemble, le même de la couverture à la dernière page.",
-  },
-  {
-    icone: "⏱️",
-    titre: "Prête le temps d'enfiler le pyjama",
-    texte: "Une à deux minutes suffisent. Pas d'attente de plusieurs heures, pas de livraison à guetter.",
-  },
-  {
-    icone: "👀",
-    titre: "Vous la lisez avant de payer",
-    texte:
-      "Le livre entier s'affiche gratuitement à l'écran. Vous ne payez que si vous voulez le garder et l'imprimer.",
-  },
-];
 
 const ETAPES = [
   {
@@ -82,7 +57,7 @@ const ETAPES = [
   },
   {
     illu: "write",
-    titre: "Storilou écrit et illustre",
+    titre: "Nous écrivons et illustrons",
     texte: "Une histoire adaptée à son âge, illustrée à son image, en une à deux minutes.",
   },
   {
@@ -149,8 +124,8 @@ export default async function AccueilPage() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
-      { "@type": "Organization", "@id": `${APP_URL}/#organization`, name: "Storilou", url: APP_URL, logo: `${APP_URL}/icon.svg` },
-      { "@type": "WebSite", "@id": `${APP_URL}/#website`, url: APP_URL, name: "Storilou", inLanguage: "fr-FR", publisher: { "@id": `${APP_URL}/#organization` } },
+      { "@type": "Organization", "@id": `${APP_URL}/#organization`, name: "Encore une histoire", url: APP_URL, logo: `${APP_URL}/icon.svg` },
+      { "@type": "WebSite", "@id": `${APP_URL}/#website`, url: APP_URL, name: "Encore une histoire", inLanguage: "fr-FR", publisher: { "@id": `${APP_URL}/#organization` } },
       {
         "@type": "Product",
         name: "Livre illustré personnalisé pour enfant",
@@ -249,8 +224,47 @@ export default async function AccueilPage() {
         </div>
       </section>
 
+      {/* ─── Sommaire ─── */}
+      <nav aria-label="Sommaire de la page" className="-mt-12 sm:-mt-16">
+        <ul className="flex gap-2 overflow-x-auto pb-1 text-sm sm:justify-center">
+          {[
+            ["#comment", "Comment ça marche"],
+            ["#exemple", "Un exemple"],
+            ["#ages", "Pour chaque âge"],
+            ["#styles", "Styles de dessin"],
+            ["#themes", "Thèmes"],
+            ["#offres", "Ce que vous recevez"],
+            ["#prix", "Prix"],
+            ["#faq", "Questions"],
+          ].map(([href, label]) => (
+            <li key={href} className="flex-none">
+              <a href={href} className="block rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 font-semibold hover:border-white">
+                {label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      {/* ─── Comment ça marche (vraie séquence) ─── */}
+      <section id="comment" className="scroll-mt-24">
+        <h2 className="text-center text-3xl sm:text-4xl">Trois étapes, et c'est prêt</h2>
+        <ol className="mt-10 grid gap-6 sm:grid-cols-3">
+          {ETAPES.map((e, i) => (
+            <li key={e.titre} className="carte-relief flex flex-col items-center p-7 text-center">
+              <Illu nom={e.illu} alt="" className="mb-4 h-32 w-full object-contain" />
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-magique-primaire font-serif text-sm font-bold text-white">
+                {i + 1}
+              </span>
+              <h3 className="mt-3 text-xl">{e.titre}</h3>
+              <p className="mt-2 text-[15px] leading-relaxed text-magique-texteClair">{e.texte}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
       {/* ─── De la photo au livre ─── */}
-      <section>
+      <section id="exemple" className="scroll-mt-24">
         <h2 className="text-center text-3xl sm:text-4xl">De sa photo à son livre</h2>
         <p className="mx-auto mt-3 max-w-[52ch] text-center text-magique-texteClair">
           Vous ajoutez une photo, on dessine un héros qui lui ressemble vraiment, le même à
@@ -281,111 +295,18 @@ export default async function AccueilPage() {
         </p>
       </section>
 
-      {/* ─── Notre valeur, face au livre personnalisé classique ─── */}
-      <section>
-        <h2 className="text-center text-3xl sm:text-4xl">Pas un modèle où l'on change le prénom</h2>
-        <p className="mx-auto mt-3 max-w-[54ch] text-center text-magique-texteClair">
-          La plupart des livres personnalisés sont la même histoire pour tous les enfants, avec un prénom
-          inséré. Chez Storilou, chaque livre est écrit et dessiné pour un seul enfant.
-        </p>
-        <div className="mt-8 overflow-x-auto">
-          <table className="w-full min-w-[560px] border-separate border-spacing-0 overflow-hidden rounded-3xl border border-white/15 text-sm">
-            <thead>
-              <tr className="bg-white/[0.06]">
-                <th className="p-4 text-left font-semibold"> </th>
-                <th className="p-4 text-left font-semibold text-magique-texteClair">Livre personnalisé classique</th>
-                <th className="p-4 text-left font-semibold">✦ Storilou</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                ["L'histoire", "La même pour tous, prénom inséré", "Inventée pour votre enfant, unique"],
-                ["Le héros", "Un avatar à choisir dans une liste", "Dessiné d'après sa photo, le même à chaque page"],
-                ["L'âge", "Un livre « 3-8 ans »", "Écrit pour son âge exact, de 1 à 12 ans"],
-                ["La famille", "Rarement", "Frère, sœur, parents, doudou, animal"],
-                ["Avant d'acheter", "Un aperçu de quelques pages", "Le livre entier, gratuitement"],
-                ["Délai", "Plusieurs jours", "Environ 3 minutes"],
-                ["Prix", "25 à 40 €", "Dès 6,99 €"],
-              ].map(([critere, eux, nous]) => (
-                <tr key={critere} className="border-t border-white/10">
-                  <td className="border-t border-white/10 p-4 font-semibold">{critere}</td>
-                  <td className="border-t border-white/10 p-4 text-magique-texteClair">{eux}</td>
-                  <td className="border-t border-white/10 p-4">{nous}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* ─── Ce qui fait la différence ─── */}
-      <section className="grid gap-10 md:grid-cols-[.85fr_1.15fr] md:gap-14">
-        <div>
-          <h2 className="text-3xl leading-tight sm:text-4xl">
-            Une vraie histoire, pensée pour votre enfant.
-          </h2>
-          <p className="mt-4 max-w-[38ch] text-magique-texteClair">
-            Pas un texte tout prêt où l'on glisse son prénom : un récit inventé pour lui, que vous
-            découvrez avant de décider.
-          </p>
-        </div>
-        <ul className="grid gap-8 sm:grid-cols-2">
-          {DIFFERENCES.map((d) => (
-            <li key={d.titre}>
-              <span className="text-3xl" aria-hidden="true">{d.icone}</span>
-              <h3 className="mt-3 text-xl">{d.titre}</h3>
-              <p className="mt-2 leading-relaxed text-magique-texteClair">{d.texte}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* ─── Comment ça marche (vraie séquence) ─── */}
-      <section>
-        <h2 className="text-center text-3xl sm:text-4xl">Trois étapes, et c'est prêt</h2>
-        <ol className="mt-10 grid gap-6 sm:grid-cols-3">
-          {ETAPES.map((e, i) => (
-            <li key={e.titre} className="carte-relief flex flex-col items-center p-7 text-center">
-              <Illu nom={e.illu} alt="" className="mb-4 h-32 w-full object-contain" />
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-magique-primaire font-serif text-sm font-bold text-white">
-                {i + 1}
-              </span>
-              <h3 className="mt-3 text-xl">{e.titre}</h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-magique-texteClair">{e.texte}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      {/* ─── Types de livres selon l'âge ─── */}
-      <section>
+      {/* ─── Un livre pour chaque âge ─── */}
+      <section id="ages" className="scroll-mt-24">
         <h2 className="text-center text-3xl sm:text-4xl">Un vrai livre pour chaque âge</h2>
-        <p className="mx-auto mt-3 max-w-[52ch] text-center text-magique-texteClair">
-          On ne raconte pas la même chose à 2 ans et à 9 ans. Choisissez le format qui lui
-          ressemble : la structure, le vocabulaire et les illustrations s'adaptent.
+        <p className="mx-auto mt-3 max-w-[54ch] text-center text-magique-texteClair">
+          On ne raconte pas la même chose à 2 ans et à 9 ans. Choisissez l'âge de votre enfant :
+          le type de livre, les phrases et les dessins s'adaptent.
         </p>
-        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {BOOK_FORMATS.map((f) => (
-            <li key={f.id} className="carte p-5">
-              <p className="text-2xl" aria-hidden="true">{f.emoji}</p>
-              <p className="mt-2 font-semibold">{f.label}</p>
-              <p className="text-xs font-bold text-or">{f.ageMin}–{f.ageMax} ans</p>
-              <p className="mt-1 text-sm text-magique-texteClair">{f.description}</p>
-            </li>
-          ))}
-          <li className="carte p-5">
-            <p className="text-2xl" aria-hidden="true">👨‍👩‍👧</p>
-            <p className="mt-2 font-semibold">Toute la famille dedans</p>
-            <p className="text-xs font-bold text-or">Tous les âges</p>
-            <p className="mt-1 text-sm text-magique-texteClair">
-              Frère, sœur, parents, doudou ou chat : ajoutez jusqu'à 3 personnages avec leur photo.
-            </p>
-          </li>
-        </ul>
+        <AgeExplorer />
       </section>
 
       {/* ─── Styles de dessin ─── */}
-      <section>
+      <section id="styles" className="scroll-mt-24">
         <h2 className="text-center text-3xl sm:text-4xl">12 styles de dessin, au choix</h2>
         <p className="mx-auto mt-3 max-w-[50ch] text-center text-magique-texteClair">
           La même scène, dessinée de douze façons. Choisissez celle que votre enfant préférera.
@@ -409,7 +330,7 @@ export default async function AccueilPage() {
       </section>
 
       {/* ─── Catalogue ─── */}
-      <section className="rounded-[2rem] border border-magique-trait bg-white/[0.06] px-6 py-10 sm:px-10">
+      <section id="themes" className="scroll-mt-24 rounded-[2rem] border border-magique-trait bg-white/[0.06] px-6 py-10 sm:px-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h2 className="text-3xl sm:text-4xl">Une histoire pour chaque moment</h2>
@@ -442,8 +363,70 @@ export default async function AccueilPage() {
         </div>
       </section>
 
-      {/* ─── Prix ─── */}
+      {/* ─── Ce que vous recevez ─── */}
+      <section id="offres" className="scroll-mt-24">
+        <h2 className="text-center text-3xl sm:text-4xl">Ce que vous recevez</h2>
+        <p className="mx-auto mt-3 max-w-[52ch] text-center text-magique-texteClair">
+          Vous lisez d'abord le livre en entier, gratuitement. Ensuite, gardez-le sous la forme qui vous plaît.
+        </p>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            ["📖", "La lecture à l'écran", "Le livre complet, sur ordinateur, tablette ou téléphone, avec lecture à voix haute.", "Gratuit"],
+            ["📄", "Le livre PDF + son kit", "À imprimer chez vous, avec coloriage, affiche, invitation, autocollants et marque-pages.", `Dès ${prix}`],
+            ["📕", "Le livre imprimé", "Relié, couverture rigide, 28 × 21 cm, 30 pages. Imprimé et livré chez vous.", euros(LIVRE_IMPRIME.priceCents)],
+            ["🎬", "Le livre en dessin animé", "Chaque page s'anime et une voix raconte l'histoire, en musique. Une vraie vidéo.", euros(DELUXE_PRODUCTS.find((d) => d.sku === "video")?.priceCents ?? 999)],
+            ["🎈", "Le pack fête et l'affiche A3", "Invitations, banderole et étiquettes à son image, et le héros en grand format.", `Dès ${euros(Math.min(...DELUXE_PRODUCTS.filter((d) => d.sku !== "video").map((d) => d.priceCents)))}`],
+            ["👑", "La formule Tout compris", "Le livre, le kit, le pack fête, l'affiche et le dessin animé, au meilleur prix.", euros(PACK_TOUT.priceCents)],
+          ].map(([icone, titre, texte, tarif]) => (
+            <div key={titre} className="carte flex flex-col">
+              <p className="text-3xl" aria-hidden="true">{icone}</p>
+              <h3 className="mt-2 text-lg">{titre}</h3>
+              <p className="mt-1 flex-1 text-sm text-magique-texteClair">{texte}</p>
+              <p className="mt-3 font-serif text-xl">{tarif}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── Notre valeur, face au livre personnalisé classique ─── */}
       <section>
+        <h2 className="text-center text-3xl sm:text-4xl">Pas un modèle où l'on change le prénom</h2>
+        <p className="mx-auto mt-3 max-w-[54ch] text-center text-magique-texteClair">
+          La plupart des livres personnalisés sont la même histoire pour tous les enfants, avec un prénom
+          inséré. Ici, chaque livre est écrit et dessiné pour un seul enfant.
+        </p>
+        <div className="mt-8 overflow-x-auto">
+          <table className="w-full min-w-[560px] border-separate border-spacing-0 overflow-hidden rounded-3xl border border-white/15 text-sm">
+            <thead>
+              <tr className="bg-white/[0.06]">
+                <th className="p-4 text-left font-semibold"> </th>
+                <th className="p-4 text-left font-semibold text-magique-texteClair">Livre personnalisé classique</th>
+                <th className="p-4 text-left font-semibold">✦ Encore une histoire</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                ["L'histoire", "La même pour tous, prénom inséré", "Inventée pour votre enfant, unique"],
+                ["Le héros", "Un avatar à choisir dans une liste", "Dessiné d'après sa photo, le même à chaque page"],
+                ["L'âge", "Un livre « 3-8 ans »", "Écrit pour son âge exact, de 1 à 12 ans"],
+                ["La famille", "Rarement", "Frère, sœur, parents, doudou, animal"],
+                ["Avant d'acheter", "Un aperçu de quelques pages", "Le livre entier, gratuitement"],
+                ["Délai", "Plusieurs jours", "Environ 3 minutes"],
+                ["Prix", "25 à 40 €", "Dès 6,99 €"],
+              ].map(([critere, eux, nous]) => (
+                <tr key={critere} className="border-t border-white/10">
+                  <td className="border-t border-white/10 p-4 font-semibold">{critere}</td>
+                  <td className="border-t border-white/10 p-4 text-magique-texteClair">{eux}</td>
+                  <td className="border-t border-white/10 p-4">{nous}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* ─── Prix ─── */}
+      <section id="prix" className="scroll-mt-24">
         <h2 className="text-center text-3xl sm:text-4xl">Des prix simples, sans abonnement</h2>
         <p className="mx-auto mt-3 max-w-[48ch] text-center text-magique-texteClair">
           Vous lisez d'abord. Vous payez seulement pour garder le livre, en une fois.
@@ -501,7 +484,7 @@ export default async function AccueilPage() {
       </section>
 
       {/* ─── Questions fréquentes ─── */}
-      <section className="mx-auto max-w-3xl">
+      <section id="faq" className="scroll-mt-24 mx-auto max-w-3xl">
         <h2 className="text-center text-3xl sm:text-4xl">Questions fréquentes</h2>
         <div className="mt-8 divide-y divide-magique-trait rounded-3xl border border-magique-trait bg-white/[0.06]">
           {FAQ.map((f) => (

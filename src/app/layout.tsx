@@ -32,11 +32,11 @@ const DESCRIPTION =
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: "Storilou · Livres personnalisés pour enfants",
-    template: "%s · Storilou",
+    default: "Encore une histoire · Livres personnalisés pour enfants",
+    template: "%s · Encore une histoire",
   },
   description: DESCRIPTION,
-  applicationName: "Storilou",
+  applicationName: "Encore une histoire",
   category: "family",
   keywords: [
     "livre personnalisé enfant",
@@ -57,14 +57,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fr_FR",
     url: APP_URL,
-    siteName: "Storilou",
-    title: "Storilou · Livres personnalisés pour enfants",
+    siteName: "Encore une histoire",
+    title: "Encore une histoire · Livres personnalisés pour enfants",
     description: DESCRIPTION,
     // L'image est fournie par src/app/opengraph-image.tsx (générée à la volée).
   },
   twitter: {
     card: "summary_large_image",
-    title: "Storilou · Livres personnalisés pour enfants",
+    title: "Encore une histoire · Livres personnalisés pour enfants",
     description: DESCRIPTION,
     // L'image est fournie par src/app/twitter-image.tsx.
   },
@@ -108,7 +108,7 @@ export default function RootLayout({
             <Link href="/confidentialite" className="hover:text-white">
               Confidentialité
             </Link>
-            <span className="text-[#6f7bb0]">© {new Date().getFullYear()} Storilou</span>
+            <span className="text-[#6f7bb0]">© {new Date().getFullYear()} Encore une histoire</span>
           </div>
         </footer>
       </body>

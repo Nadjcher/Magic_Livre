@@ -2,7 +2,7 @@
  * Identité légale du vendeur, lue dans les variables d'environnement (Vercel) :
  * rien à modifier dans le code pour la compléter.
  *
- *   LEGAL_NOM        ex. « Jean Dupont » ou « Storilou SAS »
+ *   LEGAL_NOM        ex. « Jean Dupont » ou « Encore une histoire SAS »
  *   LEGAL_STATUT     ex. « Entrepreneur individuel (micro-entreprise) »
  *   LEGAL_SIREN      ex. « 123 456 789 »
  *   LEGAL_ADRESSE    adresse postale complète

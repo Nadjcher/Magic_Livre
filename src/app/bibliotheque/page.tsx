@@ -16,7 +16,7 @@ import { waitUntil } from "@vercel/functions";
 
 export const metadata: Metadata = {
   title: "Ma bibliothèque",
-  description: "Espace personnel Storilou.",
+  description: "Espace personnel Encore une histoire.",
   robots: { index: false, follow: false },
 };
 

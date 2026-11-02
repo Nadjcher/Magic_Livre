@@ -6,7 +6,7 @@ import { ImageResponse } from "next/og";
  * aucun fichier binaire à maintenir.
  */
 export const runtime = "nodejs";
-export const alt = "Storilou — livres illustrés personnalisés pour enfants";
+export const alt = "Encore une histoire — livres illustrés personnalisés pour enfants";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -42,7 +42,7 @@ export default function OpengraphImage() {
         {/* Petite étoile décorative (carré pivoté : évite une police externe) */}
         <div style={{ width: 22, height: 22, background: "#f6b8e0", transform: "rotate(45deg)", borderRadius: 4, display: "flex" }} />
         <div style={{ fontSize: 78, fontWeight: 700, marginTop: 24, lineHeight: 1.05, display: "flex" }}>
-          Storilou
+          Encore une histoire
         </div>
         <div
           style={{

@@ -20,7 +20,7 @@ import {
 
 export const metadata: Metadata = {
   title: "Mon compte",
-  description: "Espace personnel Storilou.",
+  description: "Espace personnel Encore une histoire.",
   robots: { index: false, follow: false },
 };
 
