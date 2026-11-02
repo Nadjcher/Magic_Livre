@@ -11,6 +11,7 @@ import { env } from "./env";
 import { prisma } from "./prisma";
 import { getAppUrl } from "./appUrl";
 import { apresPaiement } from "./notifications";
+import { marquerPayee } from "./orders";
 import { waitUntil } from "@vercel/functions";
 
 let cached: Stripe | null = null;
@@ -125,11 +126,8 @@ export async function confirmPaidSession(
     if (session.payment_status !== "paid") return false;
     const orderId = session.metadata?.orderId;
     if (!orderId) return false;
-    const r = await prisma.order.updateMany({
-      where: { id: orderId, userId, bookId, status: { not: "paid" } },
-      data: { status: "paid", stripeSessionId: session.id },
-    });
-    if (r.count > 0) waitUntil(apresPaiement(orderId).catch(() => undefined));
+    const nouveau = await marquerPayee(orderId, { sessionId: session.id, userId, bookId });
+    if (nouveau) waitUntil(apresPaiement(orderId).catch(() => undefined));
     return true;
   } catch {
     return false;
@@ -168,11 +166,8 @@ export async function reconcilePendingOrders(
           order.stripeSessionId as string,
         );
         if (session.payment_status === "paid") {
-          const r = await prisma.order.updateMany({
-            where: { id: order.id, status: "pending" },
-            data: { status: "paid" },
-          });
-          if (r.count > 0) waitUntil(apresPaiement(order.id).catch(() => undefined));
+          const nouveau = await marquerPayee(order.id);
+          if (nouveau) waitUntil(apresPaiement(order.id).catch(() => undefined));
         }
       } catch {
         /* on continue avec les autres commandes */

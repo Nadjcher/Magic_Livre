@@ -162,8 +162,8 @@ export async function GET(req: Request): Promise<Response> {
         let correction: string | undefined;
         if (new URL(req.url).searchParams.get("fix") === "1" && c.status !== "paid" && stripe.payment_status === "paid" && stripe.metaOk) {
           try {
-            const r = await prisma.order.updateMany({ where: { id: c.id, status: { not: "paid" } }, data: { status: "paid" } });
-            correction = `ok (${r.count})`;
+            const { marquerPayee } = await import("@/lib/orders");
+            correction = (await marquerPayee(c.id)) ? "payée" : "inchangée";
           } catch (e) {
             correction = `ÉCHEC : ${String(e).slice(0, 400)}`;
           }

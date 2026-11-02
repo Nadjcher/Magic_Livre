@@ -6,8 +6,8 @@
 
 import { NextResponse } from "next/server";
 import { constructWebhookEvent } from "@/lib/stripe";
-import { prisma } from "@/lib/prisma";
 import { apresPaiement } from "@/lib/notifications";
+import { marquerEchouee, marquerPayee } from "@/lib/orders";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
@@ -39,22 +39,16 @@ export async function POST(req: Request): Promise<Response> {
     if (orderId && session.payment_status === "paid") {
       // On retrouve la commande via orderId (robuste même si l'enregistrement
       // du stripeSessionId avait échoué). On rattache la session au passage.
-      const r = await prisma.order.updateMany({
-        where: { id: orderId, status: { not: "paid" } },
-        data: { status: "paid", stripeSessionId: session.id },
-      });
+      const nouveau = await marquerPayee(orderId, { sessionId: session.id });
       // Email de confirmation (une seule fois : au passage à « payé »).
       // Fabrication du livre imprimé (long) en arrière-plan : on répond vite à Stripe.
-      if (r.count > 0) waitUntil(apresPaiement(orderId).catch(() => undefined));
+      if (nouveau) waitUntil(apresPaiement(orderId).catch(() => undefined));
     }
   } else if (event.type === "checkout.session.expired") {
     const session = event.data.object as Stripe.Checkout.Session;
     const orderId = session.metadata?.orderId;
     if (orderId) {
-      await prisma.order.updateMany({
-        where: { id: orderId },
-        data: { status: "failed" },
-      });
+      await marquerEchouee(orderId);
     }
   }
 
