@@ -45,7 +45,7 @@ export default function ThemePage({ params }: { params: { theme: string } }) {
   const url = `${getAppUrl()}/catalogue/${t.id}`;
   const faq = [
     { q: "Comment le livre est-il personnalisé ?", r: "Vous indiquez le prénom et l'âge de votre enfant, et vous pouvez ajouter une photo : nous écrivons une histoire unique sur ce thème et nous dessinons un héros qui lui ressemble, le même à chaque page." },
-    { q: "Pour quel âge ?", r: "De 2 à 12 ans : le type de livre, la longueur des phrases et le vocabulaire s'adaptent à l'âge exact de votre enfant." },
+    { q: "Pour quel âge ?", r: "De 1 à 12 ans : le type de livre, la longueur des phrases et le vocabulaire s'adaptent à l'âge exact de votre enfant." },
     { q: "Combien ça coûte ?", r: "La lecture à l'écran est gratuite. Vous payez seulement si vous voulez garder le livre : PDF à imprimer dès 6,99 €, sans abonnement." },
   ];
   const jsonLd = [

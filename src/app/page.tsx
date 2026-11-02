@@ -43,7 +43,7 @@ function Coche() {
 
 const PROMESSES = [
   "Lu gratuitement avant tout achat",
-  "Écrit pour son âge, de 2\u00A0à\u00A012\u00A0ans",
+  "Écrit pour son âge, de 1\u00A0à\u00A012\u00A0ans",
   "Sa photo n'est jamais conservée",
 ];
 
@@ -101,7 +101,7 @@ const FAQ = [
   },
   {
     q: "Pour quel âge ?",
-    r: "De 2 à 12 ans, avec un type de livre pour chaque âge : imagier et comptine pour les tout-petits, album et cherche-et-trouve, grande aventure, enquête à résoudre et mini-roman en chapitres pour les plus grands.",
+    r: "De 1 à 12 ans, avec un type de livre pour chaque âge : imagier et comptine pour les tout-petits, album et cherche-et-trouve, grande aventure, enquête à résoudre et mini-roman en chapitres pour les plus grands.",
   },
   {
     q: "Puis-je imprimer le livre ?",
@@ -384,7 +384,7 @@ export default async function AccueilPage() {
               {[
                 ["L'histoire", "La même pour tous, prénom inséré", "Inventée pour votre enfant, unique"],
                 ["Le héros", "Un avatar à choisir dans une liste", "Dessiné d'après sa photo, le même à chaque page"],
-                ["L'âge", "Un livre « 3-8 ans »", "Écrit pour son âge exact, de 2 à 12 ans"],
+                ["L'âge", "Un livre « 3-8 ans »", "Écrit pour son âge exact, de 1 à 12 ans"],
                 ["La famille", "Rarement", "Frère, sœur, parents, doudou, animal"],
                 ["Avant d'acheter", "Un aperçu de quelques pages", "Le livre entier, gratuitement"],
                 ["Délai", "Plusieurs jours", "Environ 3 minutes"],
