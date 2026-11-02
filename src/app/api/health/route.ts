@@ -89,6 +89,8 @@ export async function GET(req: Request): Promise<Response> {
     out.env.BLOB_READ_WRITE_TOKEN = blobTokenName() ?? false;
     (out.env as Record<string, unknown>).EMAIL = Boolean(process.env.EMAIL_SERVER_HOST && process.env.EMAIL_FROM);
     (out.env as Record<string, unknown>).ADMIN_EMAILS = Boolean(process.env.ADMIN_EMAILS);
+    (out.env as Record<string, unknown>).STRIPE_MODE = (process.env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live") ? "réel" : "test";
+    (out.env as Record<string, unknown>).LEGAL = ["LEGAL_NOM", "LEGAL_SIREN", "LEGAL_ADRESSE", "LEGAL_MEDIATEUR"].filter((k) => !process.env[k]);
     (out.env as Record<string, unknown>).GELATO = process.env.GELATO_API_KEY ? process.env.GELATO_MODE === "order" ? "production" : "brouillon" : false;
     (out.env as Record<string, unknown>).blobMode = blobMode();
     (out.env as Record<string, unknown>).blobLikeVars = Object.keys(process.env).filter((k) => /BLOB|READ_WRITE/i.test(k));

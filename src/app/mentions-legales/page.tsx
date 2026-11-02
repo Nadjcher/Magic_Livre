@@ -1,11 +1,12 @@
 /**
  * Mentions légales.
  *
- * ⚠️ Modèle à compléter et à faire relire par un juriste avant toute ouverture
- * des paiements. Les champs entre crochets doivent être renseignés.
+ * L'identité de l'éditeur est lue dans les variables d'environnement (lib/legal).
  */
 
 import type { Metadata } from "next";
+import Link from "next/link";
+import { identiteLegale } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Mentions légales",
@@ -15,33 +16,29 @@ export const metadata: Metadata = {
 
 
 export default function MentionsLegalesPage() {
+  const id = identiteLegale();
   return (
-    <article className="prose mx-auto max-w-2xl space-y-4">
+    <article className="mx-auto max-w-2xl space-y-4 leading-relaxed">
       <h1 className="text-3xl sm:text-4xl">Mentions légales</h1>
-
       <h2 className="text-xl font-semibold">Éditeur du site</h2>
-      <p className="text-magique-texteClair">
-        [Nom de la société ou de l'éditeur], [forme juridique], au capital de
-        [montant], immatriculée au RCS de [ville] sous le numéro [SIREN].
-        Siège social : [adresse]. Adresse email : [email de contact].
-        Directeur de la publication : [nom].
+      <p>
+        {id.nom}, {id.statut}. SIREN : {id.siren}. Adresse : {id.adresse}. Email : {id.email}.
+        Directeur de la publication : {id.nom}. {id.tva}
       </p>
-
       <h2 className="text-xl font-semibold">Hébergement</h2>
-      <p className="text-magique-texteClair">
-        Site hébergé par [nom de l'hébergeur], [adresse de l'hébergeur].
-        Base de données hébergée par [Supabase / Neon / autre].
+      <p>
+        Site hébergé par Vercel Inc., 440 N Barranca Avenue #4133, Covina, CA 91723, États-Unis (vercel.com).
+        Base de données hébergée par Neon Inc. (neon.tech), serveurs situés dans l'Union européenne.
       </p>
-
       <h2 className="text-xl font-semibold">Propriété intellectuelle</h2>
-      <p className="text-magique-texteClair">
-        Les héros proposés dans l'application sont des créations originales. Les
-        histoires générées sont destinées à un usage familial. Aucun personnage
-        protégé par des droits de tiers n'est utilisé.
+      <p>
+        La marque Storilou, la maquette et les textes du site appartiennent à l'éditeur. Les histoires et
+        illustrations sont des créations originales générées à la demande ; aucun personnage protégé par des droits
+        de tiers n'est utilisé.
       </p>
-
-      <p className="text-sm italic text-magique-texteClair">
-        Document à faire valider par un juriste avant le lancement payant.
+      <h2 className="text-xl font-semibold">Ventes</h2>
+      <p>
+        Les ventes sont régies par nos <Link href="/cgv" className="underline">conditions générales de vente</Link>.
       </p>
     </article>
   );

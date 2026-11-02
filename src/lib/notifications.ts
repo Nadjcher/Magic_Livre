@@ -56,7 +56,8 @@ export async function notifierAchat(orderId: string): Promise<void> {
     order.user.email,
     `Merci ! Vos téléchargements sont prêts`,
     "Merci pour votre achat 💙",
-    `Votre paiement pour ${echapper(produit)} (« ${echapper(order.book.title)} ») est confirmé. Tout est disponible dans la boutique du livre, à télécharger quand vous voulez.`,
+    `Votre paiement pour ${echapper(produit)} (« ${echapper(order.book.title)} ») est confirmé. Tout est disponible dans la boutique du livre, à télécharger quand vous voulez. ` +
+      "Conformément à votre demande d'accès immédiat, vous avez renoncé à votre droit de rétractation pour ce contenu numérique (article L221-28, 13° du Code de la consommation).",
     `${getAppUrl()}/bibliotheque/${order.bookId}/boutique`,
     "Télécharger",
   );

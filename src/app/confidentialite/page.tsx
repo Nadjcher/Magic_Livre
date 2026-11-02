@@ -57,9 +57,12 @@ export default function ConfidentialitePage() {
 
       <h2 className="text-xl font-semibold">Sous-traitants</h2>
       <p className="text-magique-texteClair">
-        Génération de texte : Anthropic. Paiement : Stripe. Hébergement :
-        [Vercel / autre]. Base de données : [Supabase / Neon]. Chacun traite les
-        données pour notre compte, dans le cadre de ses propres engagements.
+        Écriture des histoires : Anthropic (modèles Claude), via fal.ai et OpenRouter.
+        Illustrations, animations et voix : fal.ai (modèles d'images, de vidéo et ElevenLabs), Google
+        (Gemini). Paiement : Stripe. Impression et livraison du livre relié : Gelato. Hébergement : Vercel.
+        Base de données : Neon. Envoi des emails : notre prestataire SMTP. Chacun traite les données
+        uniquement pour fournir le service. La photo éventuellement fournie est transmise aux outils
+        d'illustration le temps de la création, puis n'est jamais conservée.
       </p>
 
       <p className="text-sm italic text-magique-texteClair">

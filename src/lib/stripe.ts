@@ -40,6 +40,8 @@ export async function createCheckoutSession(params: {
   amountCents: number;
   /** Produit expédié : demande l'adresse de livraison et le téléphone. */
   livraison?: readonly string[];
+  /** Trace du consentement du client (CGV, renonciation). */
+  consentement?: string;
 }): Promise<{ sessionId: string; url: string }> {
   const stripe = getStripe();
   const baseUrl = env.authUrl();
@@ -74,6 +76,7 @@ export async function createCheckoutSession(params: {
       userId: params.userId,
       bookId: params.bookId,
       orderId: params.orderId,
+      ...(params.consentement ? { consentement: params.consentement } : {}),
     },
     success_url: `${baseUrl}/bibliotheque/${params.bookId}/boutique?paiement=succes&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl}/bibliotheque/${params.bookId}/boutique?paiement=annule`,

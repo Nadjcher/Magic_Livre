@@ -9,6 +9,7 @@
 import { useState, useTransition } from "react";
 import { startCheckout } from "@/app/actions/checkout";
 import Notice from "./Notice";
+import CaseConsentement from "./CaseConsentement";
 
 export default function PurchaseDownload({
   bookId,
@@ -21,6 +22,7 @@ export default function PurchaseDownload({
 }) {
   const [erreur, setErreur] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [accord, setAccord] = useState(false);
 
   if (paid) {
     return (
@@ -32,13 +34,14 @@ export default function PurchaseDownload({
 
   return (
     <div className="space-y-3">
+      <CaseConsentement coche={accord} onChange={setAccord} />
       <button
         className="btn-primaire"
-        disabled={pending}
+        disabled={pending || !accord}
         onClick={() =>
           startTransition(async () => {
             setErreur(null);
-            const res = await startCheckout(bookId);
+            const res = await startCheckout(bookId, "book", true);
             if (res.ok && res.url) {
               window.location.href = res.url;
             } else {

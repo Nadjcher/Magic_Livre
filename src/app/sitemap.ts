@@ -21,6 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/inscription", priority: 0.5, freq: "yearly" },
     { path: "/mentions-legales", priority: 0.2, freq: "yearly" },
     { path: "/cgu", priority: 0.2, freq: "yearly" },
+    { path: "/cgv", priority: 0.2, freq: "yearly" },
     { path: "/confidentialite", priority: 0.2, freq: "yearly" },
   ];
 

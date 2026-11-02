@@ -10,6 +10,7 @@ import { useState, useTransition } from "react";
 import { startCheckout } from "@/app/actions/checkout";
 import { formatEuros, type DeluxeProduct } from "@/lib/products";
 import Notice from "./Notice";
+import CaseConsentement from "./CaseConsentement";
 
 export default function DeluxeShop({
   bookId,
@@ -25,12 +26,13 @@ export default function DeluxeShop({
   const [erreur, setErreur] = useState<string | null>(null);
   const [encours, setEncours] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [accord, setAccord] = useState(false);
 
   function acheter(sku: string) {
     startTransition(async () => {
       setErreur(null);
       setEncours(sku);
-      const res = await startCheckout(bookId, sku);
+      const res = await startCheckout(bookId, sku, true);
       if (res.ok && res.url) {
         window.location.href = res.url;
       } else {
@@ -67,7 +69,7 @@ export default function DeluxeShop({
                 <div className="mt-2 flex flex-wrap gap-2">
                   {p.physique ? (
                     <>
-                      <button onClick={() => acheter(p.sku)} disabled={pending} className="btn-primaire px-4 py-2 text-sm">
+                      <button onClick={() => acheter(p.sku)} disabled={pending || !accord} className="btn-primaire px-4 py-2 text-sm">
                         {encours === p.sku ? "Redirection…" : `${paye ? "Commander un autre exemplaire" : "Commander"} (${formatEuros(p.priceCents)})`}
                       </button>
                       <a href={`/api/books/${bookId}/apercu-impression`} target="_blank" rel="noopener" className="btn-secondaire px-4 py-2 text-sm">
@@ -87,7 +89,7 @@ export default function DeluxeShop({
                   ) : (
                     <button
                       onClick={() => acheter(p.sku)}
-                      disabled={pending}
+                      disabled={pending || !accord}
                       className="btn-secondaire px-4 py-2 text-sm"
                     >
                       {encours === p.sku ? "Redirection…" : `Acheter (${formatEuros(p.priceCents)})`}
@@ -98,6 +100,10 @@ export default function DeluxeShop({
             </div>
           );
         })}
+      </div>
+
+      <div className="mt-4">
+        <CaseConsentement coche={accord} onChange={setAccord} physique={produits.every((p) => p.physique)} />
       </div>
 
       {erreur && (

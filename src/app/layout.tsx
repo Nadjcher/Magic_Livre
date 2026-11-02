@@ -102,6 +102,9 @@ export default function RootLayout({
             <Link href="/cgu" className="hover:text-white">
               CGU
             </Link>
+            <Link href="/cgv" className="hover:text-white">
+              CGV
+            </Link>
             <Link href="/confidentialite" className="hover:text-white">
               Confidentialité
             </Link>

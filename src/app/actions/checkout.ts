@@ -14,6 +14,7 @@ import { createCheckoutSession } from "@/lib/stripe";
 import { env } from "@/lib/env";
 import { getDeluxeProduct, PACK_TOUT, PAYS_LIVRAISON, skusDonnantAcces } from "@/lib/products";
 import { impressionConfiguree } from "@/lib/print";
+import { VERSION_CGV } from "@/lib/legal";
 
 export interface CheckoutResult {
   ok: boolean;
@@ -24,7 +25,12 @@ export interface CheckoutResult {
 export async function startCheckout(
   bookId: string,
   sku = "book",
+  /** Case cochée : CGV acceptées (+ renonciation à la rétractation pour le numérique). */
+  consentement = false,
 ): Promise<CheckoutResult> {
+  if (!consentement) {
+    return { ok: false, message: "Merci d'accepter les conditions générales de vente avant de payer." };
+  }
   const user = await getCurrentUser();
   if (!user) return { ok: false, message: "Vous devez être connecté." };
 
@@ -97,6 +103,8 @@ export async function startCheckout(
       productDescription,
       amountCents,
       livraison: getDeluxeProduct(sku)?.physique ? PAYS_LIVRAISON : undefined,
+      // Preuve du consentement (CGV, renonciation à la rétractation).
+      consentement: `${getDeluxeProduct(sku)?.physique ? "cgv+bien-personnalise" : "cgv+renonciation-retractation"} v${VERSION_CGV} ${new Date().toISOString()}`,
     });
 
     await prisma.order.update({
