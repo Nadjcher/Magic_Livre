@@ -102,3 +102,15 @@ describe("checkUserText (personnages protégés + filtre)", () => {
     expect(res.ok).toBe(true);
   });
 });
+
+import { signer, signatureValide } from "@/lib/bookPipeline";
+describe("appel interne signé (étape illustrations)", () => {
+  it("accepte une signature valide et refuse le reste", () => {
+    process.env.AUTH_SECRET = "secret-de-test";
+    const corps = JSON.stringify({ bookId: "b1" });
+    expect(signatureValide(corps, signer(corps))).toBe(true);
+    expect(signatureValide(corps + " ", signer(corps))).toBe(false);
+    expect(signatureValide(corps, null)).toBe(false);
+    expect(signatureValide(corps, "abc")).toBe(false);
+  });
+});

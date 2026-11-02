@@ -11,14 +11,26 @@
  */
 
 import "server-only";
+import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
 
-export const STALE_GENERATING_MS = 6 * 60 * 1000; // 6 minutes (> durée max de 5 min)
+// Deux étapes de 5 min au plus (texte, puis illustrations) : au-delà de 12 min,
+// la création est forcément interrompue.
+export const STALE_GENERATING_MS = 12 * 60 * 1000;
 
 /** Libère les livres de l'utilisateur bloqués en génération depuis trop longtemps. */
 export async function failStaleBooks(userId: string): Promise<void> {
   const cutoff = new Date(Date.now() - STALE_GENERATING_MS);
   try {
+    // Texte déjà écrit : le livre devient lisible, les illustrations pourront
+    // être complétées depuis sa page.
+    await prisma.book.updateMany({
+      where: { userId, status: "generating", createdAt: { lt: cutoff }, NOT: { pages: { equals: Prisma.DbNull } } },
+      data: {
+        status: "ready",
+        errorMessage: "Illustrations manquantes : la création des images a été interrompue.",
+      },
+    });
     await prisma.book.updateMany({
       where: { userId, status: "generating", createdAt: { lt: cutoff } },
       data: {

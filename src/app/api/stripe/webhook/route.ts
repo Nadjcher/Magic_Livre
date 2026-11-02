@@ -7,6 +7,7 @@
 import { NextResponse } from "next/server";
 import { constructWebhookEvent } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
+import { notifierAchat } from "@/lib/notifications";
 import type Stripe from "stripe";
 
 // Le webhook a besoin du corps brut pour vérifier la signature.
@@ -36,10 +37,12 @@ export async function POST(req: Request): Promise<Response> {
     if (orderId && session.payment_status === "paid") {
       // On retrouve la commande via orderId (robuste même si l'enregistrement
       // du stripeSessionId avait échoué). On rattache la session au passage.
-      await prisma.order.updateMany({
-        where: { id: orderId },
+      const r = await prisma.order.updateMany({
+        where: { id: orderId, status: { not: "paid" } },
         data: { status: "paid", stripeSessionId: session.id },
       });
+      // Email de confirmation (une seule fois : au passage à « payé »).
+      if (r.count > 0) await notifierAchat(orderId).catch(() => undefined);
     }
   } else if (event.type === "checkout.session.expired") {
     const session = event.data.object as Stripe.Checkout.Session;

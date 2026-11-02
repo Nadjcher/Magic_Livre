@@ -22,9 +22,17 @@ import { generateIllustration, illustrationsEnabled } from "./illustration";
 import { faceIdentityEnabled, generateCharacterPortrait } from "./faceIdentity";
 import { ILLUSTRATION_STYLES } from "./style_config";
 import { findFormat } from "./bookFormats";
+import { fetchAsDataUrl } from "./imageFetch";
 
 export type GenerateResult =
-  | { ok: true; story: Story; /** Diagnostic si des illustrations manquent. */ imageReport?: string }
+  | {
+      ok: true;
+      story: Story;
+      /** Diagnostic si des illustrations manquent. */
+      imageReport?: string;
+      /** Portrait ressemblant (fal) déjà calculé, pour l'étape d'illustration. */
+      portrait?: { base64: string; mime: string } | null;
+    }
   | { ok: false; message: string };
 
 /** Vrai si le texte des pages est majoritairement en anglais (au lieu du français). */
@@ -208,7 +216,10 @@ async function polishStory(
  * invalide. Applique le filtre de contenu et le refus des personnages protégés
  * sur la sortie avant de renvoyer le résultat.
  */
-export async function generateStory(req: StoryRequest): Promise<GenerateResult> {
+export async function generateStory(
+  req: StoryRequest,
+  { illustrer = true }: { illustrer?: boolean } = {},
+): Promise<GenerateResult> {
   let userMessage = buildUserMessage(req);
   const client = createClient();
   // Édition premium : modèle de texte haut de gamme (configurable).
@@ -283,6 +294,10 @@ export async function generateStory(req: StoryRequest): Promise<GenerateResult> 
     // n'est utile qu'avec le modèle de repli (et économise du temps).
     const polished = info.viaFal ? null : await polishStory(client, model, parsed.story, req);
     const base = polished ?? parsed.story;
+
+    // Étape « texte seul » : les illustrations seront faites par une seconde
+    // exécution (son propre budget de temps), cf. illustrateStory.
+    if (!illustrer) return { ok: true, story: { ...base, style }, portrait: await portraitPromise };
 
     // Texte validé : on ajoute les illustrations si la génération est activée.
     const errors: string[] = [];
@@ -432,6 +447,71 @@ async function addIllustrations(
     style,
     fiches: { heros: ficheHeros.imageUrl ?? null, cast: fichesUrls },
   };
+}
+
+/**
+ * Étape 2 de la création : illustre une histoire déjà écrite, puis RÉPARE
+ * automatiquement les images manquantes (un second essai, avec les mêmes
+ * fiches de personnages) tant que le temps le permet.
+ */
+export async function illustrateStory(
+  story: Story,
+  req: StoryRequest,
+  portrait: { base64: string; mime: string } | null,
+): Promise<{ story: Story; imageReport?: string }> {
+  const debut = Date.now();
+  const errors: string[] = [];
+  let illustre = await addIllustrations(story, req, portrait, errors);
+
+  const manquantes = () =>
+    (illustre.couvertureUrl ? 0 : 1) + illustre.pages.filter((p) => !p.imageUrl).length;
+  if (manquantes() > 0 && Date.now() - debut < 180_000 && illustrationsEnabled()) {
+    illustre = await reparer(illustre, req, errors);
+  }
+  return { story: illustre, imageReport: imageReportOf(illustre, errors) };
+}
+
+/** Redessine les images absentes avec les fiches conservées (héros + personnages). */
+async function reparer(story: Story, req: StoryRequest, errors: string[]): Promise<Story> {
+  const versRef = async (u: string | null | undefined) => {
+    const d = await fetchAsDataUrl(u, { maxPx: 1024, quality: 86 });
+    const m = d ? /^data:([^;]+);base64,(.+)$/.exec(d) : null;
+    return m ? { mime: m[1] as string, base64: m[2] as string } : undefined;
+  };
+  const ancre = (await versRef(story.fiches?.heros)) ?? (await versRef(story.couvertureUrl));
+  const fiches = new Map<string, { base64: string; mime: string }>();
+  for (const [nom, url] of Object.entries(story.fiches?.cast ?? {})) {
+    const r = await versRef(url);
+    if (r) fiches.set(nom, r);
+  }
+  const commun = {
+    style: story.style ?? req.style ?? "feerique",
+    heroName: req.childFirstName,
+    appearance: req.appearance,
+    premium: req.premium,
+    recurringCharacters: story.personnages,
+    referenceImage: ancre ? undefined : req.photo,
+    anchorImage: ancre,
+  };
+  const graine = Date.now() % 1_000_000;
+  const [cover, pages] = await Promise.all([
+    story.couvertureUrl
+      ? Promise.resolve(null)
+      : generateIllustration({
+          ...commun,
+          scene: `Book cover illustration for the story "${story.titre}": ${req.childFirstName} in an emblematic moment, NOT a plain portrait`,
+          castRefs: [...fiches.entries()].slice(0, 3).map(([name, f]) => ({ name, ...f })),
+          seed: graine,
+        }),
+    mapLimit(story.pages, 4, async (p, i) => {
+      if (p.imageUrl) return p;
+      const r = await generateIllustration({ ...commun, scene: p.scene_illustration, castRefs: fichesPresentes(p, fiches), seed: graine + i + 1 });
+      if (r.error) errors.push(r.error);
+      return { ...p, imageUrl: r.imageUrl };
+    }),
+  ]);
+  if (cover?.error) errors.push(cover.error);
+  return { ...story, couvertureUrl: story.couvertureUrl ?? cover?.imageUrl ?? null, pages };
 }
 
 /** Fiches des personnages présents (exporté pour « redessiner une page »). */

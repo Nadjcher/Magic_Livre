@@ -19,6 +19,7 @@ import { createBookSchema, checkUserText, extraSchema } from "@/lib/validation";
 import { findFormat, formatsPourAge } from "@/lib/bookFormats";
 import { checkDailyBookLimit } from "@/lib/rateLimit";
 import { generateStory } from "@/lib/storyGenerator";
+import { lancerIllustrations } from "@/lib/bookPipeline";
 import { describeChildFromPhoto } from "@/lib/illustration";
 import { findThemeById } from "@/lib/themes";
 import type { LongueurKey } from "@/lib/validation";
@@ -220,11 +221,13 @@ async function genererEtEnregistrer(bookId: string, req: GenerationInput): Promi
       })),
     );
 
-    const result = await generateStory({
+    // Étape 1 : le texte (enregistré tout de suite, le livre reste « en cours »).
+    const reqGeneration = {
       ...req,
       appearance: appearance.length > 0 ? appearance : undefined,
       extras: extras.map((e) => ({ ...e, appearance: e.appearance || undefined })),
-    });
+    };
+    const result = await generateStory(reqGeneration, { illustrer: false });
 
     if (!result.ok) {
       await prisma.book.update({
@@ -236,13 +239,14 @@ async function genererEtEnregistrer(bookId: string, req: GenerationInput): Promi
 
     await prisma.book.update({
       where: { id: bookId },
-      data: {
-        status: "ready",
-        title: result.story.titre,
-        pages: result.story,
-        // Livre lisible ; on garde la raison si des illustrations manquent.
-        errorMessage: result.imageReport ?? null,
-      },
+      data: { title: result.story.titre, pages: result.story },
+    });
+
+    // Étape 2 : les illustrations, dans une nouvelle exécution (5 min à elle).
+    await lancerIllustrations({
+      bookId,
+      req: { ...reqGeneration, extras: reqGeneration.extras },
+      portrait: result.portrait ?? null,
     });
   } catch (e) {
     console.error("[livre] génération interrompue", bookId, String(e).slice(0, 300));

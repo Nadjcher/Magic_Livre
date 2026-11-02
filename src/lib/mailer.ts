@@ -52,6 +52,38 @@ function bouton(url: string, label: string): string {
   <a href="${url}" style="color:#4f5fe0;word-break:break-all">${url}</a></p>`;
 }
 
+/** Vrai si l'envoi d'emails est configuré (serveur SMTP). */
+export function emailConfigure(): boolean {
+  return Boolean(process.env.EMAIL_SERVER_HOST && process.env.EMAIL_FROM);
+}
+
+/**
+ * Email simple aux couleurs de Storilou : un titre, un paragraphe, un bouton.
+ * Ne jette jamais (best-effort) ; ne fait rien si l'email n'est pas configuré.
+ */
+export async function emailAvecBouton(
+  to: string,
+  sujet: string,
+  titre: string,
+  paragraphe: string,
+  url: string,
+  libelle: string,
+): Promise<boolean> {
+  if (!emailConfigure()) return false;
+  try {
+    await sendMail(
+      to,
+      sujet,
+      shell(titre, `<p style="font-size:15px;line-height:1.6;color:#3a4472;margin:0 0 16px">${paragraphe}</p>${bouton(url, libelle)}`),
+      `${paragraphe}\n\n${libelle} : ${url}`,
+    );
+    return true;
+  } catch (e) {
+    console.error("[email] envoi impossible :", String(e).slice(0, 200));
+    return false;
+  }
+}
+
 export async function sendMail(to: string, subject: string, html: string, text: string) {
   const transport = createTransport({
     host: process.env.EMAIL_SERVER_HOST,

@@ -9,6 +9,7 @@ import "server-only";
 import Stripe from "stripe";
 import { env } from "./env";
 import { prisma } from "./prisma";
+import { notifierAchat } from "./notifications";
 
 let cached: Stripe | null = null;
 
@@ -109,10 +110,11 @@ export async function confirmPaidSession(
     if (session.payment_status !== "paid") return false;
     const orderId = session.metadata?.orderId;
     if (!orderId) return false;
-    await prisma.order.updateMany({
+    const r = await prisma.order.updateMany({
       where: { id: orderId, userId, bookId, status: { not: "paid" } },
       data: { status: "paid", stripeSessionId: session.id },
     });
+    if (r.count > 0) await notifierAchat(orderId).catch(() => undefined);
     return true;
   } catch {
     return false;
@@ -146,10 +148,11 @@ export async function reconcilePendingOrders(
           order.stripeSessionId as string,
         );
         if (session.payment_status === "paid") {
-          await prisma.order.update({
-            where: { id: order.id },
+          const r = await prisma.order.updateMany({
+            where: { id: order.id, status: "pending" },
             data: { status: "paid" },
           });
+          if (r.count > 0) await notifierAchat(order.id).catch(() => undefined);
         }
       } catch {
         /* on continue avec les autres commandes */
