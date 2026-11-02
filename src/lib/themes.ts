@@ -11,9 +11,10 @@
 
 import type { IllustrationStyle } from "./style_config";
 
-export type ThemeCategory = "fetes" | "grandir" | "emotions" | "aventures" | "passions";
+export type ThemeCategory = "classiques" | "fetes" | "grandir" | "emotions" | "aventures" | "passions";
 
 export const THEME_CATEGORIES: { id: ThemeCategory; label: string; emoji: string }[] = [
+  { id: "classiques", label: "Grands classiques", emoji: "👑" },
   { id: "fetes", label: "Fêtes & occasions", emoji: "🎁" },
   { id: "grandir", label: "Grandir", emoji: "🌱" },
   { id: "emotions", label: "Émotions", emoji: "💛" },
@@ -37,7 +38,76 @@ export interface Theme {
   saison?: boolean;
 }
 
+/** Les grands classiques revisités sont réservés aux membres du Club. */
+export function estClassique(t: Theme | undefined): boolean {
+  return t?.categorie === "classiques";
+}
+
+/** Consigne commune : relecture libre d'un conte du domaine public. */
+function classique(conte: string, elements: string, adaptation: string): string {
+  return (
+    `GRAND CLASSIQUE REVISITÉ : réécris librement « ${conte} » (œuvre du domaine public). L'enfant devient le ` +
+    `héros ou l'héroïne de cette histoire. Garde les moments emblématiques que les parents reconnaîtront : ` +
+    `${elements}. ${adaptation} Version douce adaptée à l'âge : aucune violence, personne n'est mangé ni blessé, ` +
+    "les « méchants » sont surtout maladroits ou finissent par changer. N'utilise AUCUN élément propre aux " +
+    "adaptations au cinéma ou en dessin animé (noms inventés par les studios, chansons, apparence des personnages)."
+  );
+}
+
+const CLASSIQUES: Theme[] = [
+  { id: "chaperon-rouge", titre: "Le Petit Chaperon rouge", emoji: "🧺", categorie: "classiques", style: "classique",
+    accroche: "La galette, le pot de beurre… et un loup bien trop gourmand.",
+    brief: classique("Le Petit Chaperon rouge", "la cape rouge, le panier pour Mère-Grand, le chemin dans la forêt, le loup et le célèbre « Mère-Grand, comme vous avez de grandes oreilles ! »", "L'enfant déjoue le loup par sa malice, et le loup finit par devenir gentil.") },
+  { id: "trois-petits-cochons", titre: "Les Trois Petits Cochons", emoji: "🐷", categorie: "classiques", style: "anim3d",
+    accroche: "Paille, bois ou briques : qui construira la maison la plus solide ?",
+    brief: classique("Les Trois Petits Cochons", "les trois maisons de paille, de bois et de briques, le loup qui souffle « Je vais souffler et ta maison s'envolera ! »", "L'enfant aide les trois petits cochons à bâtir et à rester unis.") },
+  { id: "boucle-d-or", titre: "Boucle d'or et les trois ours", emoji: "🐻", categorie: "classiques", style: "aquarelle",
+    accroche: "Trois bols, trois chaises, trois lits… et une petite visite surprise.",
+    brief: classique("Boucle d'or et les trois ours", "la maison des trois ours, les bols de porridge trop chaud, trop froid, juste bien, la petite chaise cassée, les trois lits", "L'enfant prend la place de Boucle d'or, s'excuse et devient l'ami des oursons.") },
+  { id: "haricot-magique", titre: "Jack et le haricot magique", emoji: "🌱", categorie: "classiques", style: "aventure",
+    accroche: "Un haricot qui pousse jusqu'au ciel, et un géant au château des nuages.",
+    brief: classique("Jack et le haricot magique", "la vache échangée contre des haricots, la tige géante qui monte jusqu'aux nuages, le château du géant, la poule aux œufs d'or et la harpe qui chante", "Le géant est bougon mais pas méchant, et l'enfant s'en fait un ami.") },
+  { id: "hansel-gretel", titre: "La Maison en pain d'épices", emoji: "🍬", categorie: "classiques", style: "feerique",
+    accroche: "Les petits cailloux blancs et une maison toute en friandises.",
+    brief: classique("Hansel et Gretel", "les cailloux blancs puis les miettes de pain, la forêt profonde, la maison en pain d'épices et en sucre d'orge", "La sorcière est remplacée par une vieille confiseuse solitaire que l'enfant rend heureuse.") },
+  { id: "petit-poucet", titre: "Le Petit Poucet", emoji: "🥾", categorie: "classiques", style: "classique",
+    accroche: "Le plus petit, mais le plus malin : les bottes de sept lieues !",
+    brief: classique("Le Petit Poucet", "les petits cailloux semés sur le chemin, la forêt, la maison de l'ogre, les bottes de sept lieues", "L'enfant est le plus petit mais le plus malin ; l'ogre est un grand gaillard grognon qui finit par l'aider.") },
+  { id: "chat-botte", titre: "Le Chat botté", emoji: "🐱", categorie: "classiques", style: "classique",
+    accroche: "Un chat en bottes, très rusé, qui fait de son ami un marquis.",
+    brief: classique("Le Chat botté", "le chat qui réclame des bottes et un sac, le « marquis de Carabas », le carrosse du roi, l'ogre qui se transforme en souris", "Le chat est le fidèle complice de l'enfant ; l'ogre devient une souris rigolote et inoffensive.") },
+  { id: "vilain-petit-canard", titre: "Le Vilain Petit Canard", emoji: "🦢", categorie: "classiques", style: "aquarelle",
+    accroche: "Être différent, et découvrir qu'on est un cygne magnifique.",
+    brief: classique("Le Vilain Petit Canard", "l'œuf plus gros que les autres, le caneton moqué parce qu'il est différent, le long hiver, la métamorphose en cygne", "L'enfant accompagne et défend le petit canard ; message tendre sur la différence.") },
+  { id: "musiciens-breme", titre: "Les Musiciens de Brême", emoji: "🎺", categorie: "classiques", style: "anim3d",
+    accroche: "Un âne, un chien, un chat et un coq partent former un orchestre.",
+    brief: classique("Les Musiciens de Brême", "l'âne, le chien, le chat et le coq qui partent pour Brême devenir musiciens, la pyramide d'animaux devant la fenêtre, le grand concert", "L'enfant rejoint l'orchestre ; les voleurs sont de simples farceurs qui s'enfuient en riant.") },
+  { id: "lievre-tortue", titre: "Le Lièvre et la Tortue", emoji: "🐢", categorie: "classiques", style: "aquarelle",
+    accroche: "« Rien ne sert de courir, il faut partir à point. »",
+    brief: classique("Le Lièvre et la Tortue (La Fontaine)", "le pari, le lièvre trop sûr de lui qui fait la sieste, la tortue qui avance pas à pas, la morale « Rien ne sert de courir, il faut partir à point »", "L'enfant est l'arbitre et l'encourageur de la course.") },
+  { id: "alice-merveilles", titre: "Au pays des merveilles", emoji: "🐇", categorie: "classiques", style: "feerique",
+    accroche: "Suivre un lapin pressé et tomber dans un monde complètement fou.",
+    brief: classique("Alice au pays des merveilles (Lewis Carroll)", "le lapin blanc pressé avec sa montre, la chute dans le terrier, la potion « Bois-moi » qui fait rapetisser, le goûter du Chapelier, le chat qui sourit et disparaît, la Reine de cœur", "L'enfant vit l'aventure à la place d'Alice ; la Reine est capricieuse mais pas cruelle. S'inspirer des illustrations anciennes de John Tenniel, pas des films.") },
+  { id: "pinocchio", titre: "Pinocchio", emoji: "🪵", categorie: "classiques", style: "classique",
+    accroche: "Une marionnette en bois qui rêve de devenir un vrai petit garçon.",
+    brief: classique("Pinocchio (Collodi)", "Geppetto le menuisier, la marionnette qui prend vie, le nez qui s'allonge à chaque mensonge, le grillon qui parle, la baleine géante", "L'enfant est l'ami de Pinocchio et l'aide à dire la vérité. Ne pas reprendre l'apparence du dessin animé.") },
+  { id: "magicien-oz", titre: "Le Magicien d'Oz", emoji: "🌪️", categorie: "classiques", style: "aventure",
+    accroche: "La route de briques jaunes, un épouvantail, un homme en fer et un lion peureux.",
+    brief: classique("Le Magicien d'Oz (L. Frank Baum)", "la tornade, la route de briques jaunes, l'épouvantail qui veut un cerveau, le bûcheron en fer qui veut un cœur, le lion qui veut du courage, la Cité d'Émeraude", "L'enfant mène l'équipe ; chacun découvre qu'il avait déjà ce qu'il cherchait. Chaussures argentées (comme dans le livre), pas de souliers de rubis.") },
+  { id: "ali-baba", titre: "Ali Baba et la caverne aux trésors", emoji: "💎", categorie: "classiques", style: "aventure",
+    accroche: "« Sésame, ouvre-toi ! » et une caverne pleine de merveilles.",
+    brief: classique("Ali Baba (Les Mille et Une Nuits)", "la formule « Sésame, ouvre-toi ! », la caverne secrète remplie de trésors, les quarante voleurs, la servante rusée", "Les voleurs deviennent des marchands farceurs ; l'enfant rend chaque trésor à son vrai propriétaire.") },
+  { id: "livre-jungle", titre: "Le Livre de la jungle", emoji: "🐺", categorie: "classiques", style: "aventure",
+    accroche: "Grandir parmi les loups, avec un ours sage et une panthère protectrice.",
+    brief: classique("Le Livre de la jungle (Rudyard Kipling)", "l'enfant élevé par la meute de loups, Baloo l'ours qui enseigne la loi de la jungle, Bagheera la panthère noire, le grand conseil du rocher", "L'enfant vit les aventures de Mowgli ; le tigre est fier mais finit par respecter l'enfant. Ne pas reprendre les chansons ni l'apparence du dessin animé.") },
+  { id: "robin-des-bois", titre: "Robin des bois", emoji: "🏹", categorie: "classiques", style: "aventure",
+    accroche: "La forêt de Sherwood, un arc, et des amis qui aident les plus pauvres.",
+    brief: classique("la légende de Robin des bois", "la forêt de Sherwood, l'arc et la flèche, les joyeux compagnons, le tournoi de tir à l'arc, partager avec ceux qui n'ont rien", "L'enfant est un jeune archer du groupe ; le shérif est un grincheux qui finit par se montrer généreux.") },
+];
+
+
 export const THEMES: readonly Theme[] = [
+  ...CLASSIQUES,
   // --- Fêtes & occasions ---
   {
     id: "noel",

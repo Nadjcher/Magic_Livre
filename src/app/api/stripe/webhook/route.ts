@@ -8,6 +8,7 @@ import { NextResponse } from "next/server";
 import { constructWebhookEvent } from "@/lib/stripe";
 import { apresPaiement } from "@/lib/notifications";
 import { marquerEchouee, marquerPayee } from "@/lib/orders";
+import { synchroniser } from "@/lib/subscription";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
@@ -30,6 +31,24 @@ export async function POST(req: Request): Promise<Response> {
   } catch {
     // Signature invalide : on refuse sans détailler l'erreur.
     return NextResponse.json({ error: "Signature invalide." }, { status: 400 });
+  }
+
+  // Abonnements Club : on recopie l'état de l'abonnement à chaque événement.
+  try {
+    if (event.type === "checkout.session.completed") {
+      const sess = event.data.object as Stripe.Checkout.Session;
+      if (sess.mode === "subscription" && sess.subscription) {
+        await synchroniser(typeof sess.subscription === "string" ? sess.subscription : sess.subscription.id);
+      }
+    } else if (event.type.startsWith("customer.subscription.")) {
+      await synchroniser((event.data.object as Stripe.Subscription).id);
+    } else if (event.type === "invoice.paid") {
+      const inv = event.data.object as unknown as { subscription?: string | { id: string }; parent?: { subscription_details?: { subscription?: string } } };
+      const sub = inv.subscription ?? inv.parent?.subscription_details?.subscription;
+      if (sub) await synchroniser(typeof sub === "string" ? sub : sub.id);
+    }
+  } catch (e) {
+    console.error("[club] webhook :", String(e).slice(0, 200));
   }
 
   if (event.type === "checkout.session.completed") {

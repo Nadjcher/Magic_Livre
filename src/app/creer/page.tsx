@@ -10,6 +10,7 @@ import { getCurrentUser, hasParentalConsent } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import CreateBookForm from "@/components/CreateBookForm";
+import { getAbonnement } from "@/lib/subscription";
 import ConsentForm from "@/components/ConsentForm";
 import EnTetePage from "@/components/EnTetePage";
 
@@ -55,6 +56,7 @@ export default async function CreerPage({
     );
   }
 
+  const ab = await getAbonnement(user.id);
   const children = await prisma.child.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "asc" },
@@ -80,6 +82,7 @@ export default async function CreerPage({
         initialThemeId={searchParams.theme}
         prixStandard={euros(env.bookPriceCents())}
         prixPremium={euros(env.bookPricePremiumCents())}
+        abonnement={{ actif: ab.actif, label: ab.label, restants: ab.restants, quota: ab.quota, premium: ab.premium }}
       />
     </div>
   );

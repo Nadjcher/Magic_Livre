@@ -109,3 +109,34 @@ export function getDeluxeProduct(sku: string): DeluxeProduct | undefined {
 export function formatEuros(cents: number): string {
   return `${(cents / 100).toFixed(2).replace(".", ",")} €`;
 }
+
+/** Formules d'abonnement (paiement mensuel Stripe, sans engagement). */
+export type PlanClub = "club" | "clubplus";
+export const PLANS_CLUB: Record<PlanClub, { label: string; priceCents: number; livres: number; premium: boolean; avantages: string[] }> = {
+  club: {
+    label: "Le Club",
+    priceCents: 999,
+    livres: 4,
+    premium: false,
+    avantages: [
+      "1 nouveau livre par semaine (4 par mois)",
+      "Les grands classiques revisités, avec votre enfant en héros",
+      "Le PDF et le kit de chaque livre inclus",
+      "Le livre imprimé à 24,90 € au lieu de 34,90 €",
+    ],
+  },
+  clubplus: {
+    label: "Le Club+",
+    priceCents: 1499,
+    livres: 8,
+    premium: true,
+    avantages: [
+      "2 nouveaux livres par semaine (8 par mois)",
+      "Tous les livres en édition premium (illustrations haute qualité)",
+      "Les grands classiques revisités",
+      "Le PDF et le kit de chaque livre inclus",
+      "Le livre imprimé à 24,90 € au lieu de 34,90 €",
+    ],
+  },
+};
+export const PRIX_IMPRIME_ABONNE = 2490;

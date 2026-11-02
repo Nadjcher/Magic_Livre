@@ -10,7 +10,8 @@ import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { storySchema } from "@/lib/storySchema";
 import { lightenStory } from "@/lib/bookImages";
-import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, formatEuros, skusPossedes } from "@/lib/products";
+import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PRIX_IMPRIME_ABONNE, formatEuros, skusPossedes } from "@/lib/products";
+import { getAbonnement } from "@/lib/subscription";
 import { impressionConfiguree } from "@/lib/print";
 import BuyAllButton from "@/components/BuyAllButton";
 import { confirmPaidSession, reconcilePendingOrders } from "@/lib/stripe";
@@ -61,6 +62,7 @@ export default async function BoutiquePage({
   await Promise.race([reconcilePendingOrders(user.id, book.id), new Promise((ok) => setTimeout(ok, 6000))]);
 
   const premium = book.tier === "premium";
+  const abonnement = await getAbonnement(user.id);
   const parsed = storySchema.safeParse(book.pages);
   const cover = parsed.success ? lightenStory(parsed.data, book.id).couvertureUrl ?? null : null;
 
@@ -167,7 +169,12 @@ export default async function BoutiquePage({
 
       {/* Le vrai livre relié, livré à la maison */}
       {impressionConfiguree() && (
-        <DeluxeShop bookId={book.id} produits={[LIVRE_IMPRIME]} skusPayes={skusPayes} titre="Le livre imprimé 📕" />
+        <DeluxeShop
+          bookId={book.id}
+          produits={[abonnement.actif ? { ...LIVRE_IMPRIME, priceCents: PRIX_IMPRIME_ABONNE } : LIVRE_IMPRIME]}
+          skusPayes={skusPayes}
+          titre={abonnement.actif ? "Le livre imprimé 📕 (prix membre du Club)" : "Le livre imprimé 📕"}
+        />
       )}
 
       {/* Produits deluxe à l'unité */}

@@ -123,6 +123,19 @@ export async function GET(req: Request): Promise<Response> {
 
   const img = new URL(req.url).searchParams.get("img");
 
+  // Table des abonnements (création automatique) : /api/health?club=1
+  if (new URL(req.url).searchParams.get("club") === "1") {
+    try {
+      const { assurerTable } = await import("@/lib/subscription");
+      await assurerTable();
+      const r = await prisma.$queryRaw<{ n: bigint }[]>`SELECT count(*) AS n FROM "Subscription"`;
+      (out as Record<string, unknown>).club = { table: "ok", abonnes: Number(r[0]?.n ?? 0) };
+    } catch (e) {
+      (out as Record<string, unknown>).club = { table: "ÉCHEC", erreur: String(e).slice(0, 300) };
+    }
+    return NextResponse.json(out, { status: 200 });
+  }
+
   // Taille de la base : /api/health?db=1
   if (new URL(req.url).searchParams.get("db") === "1") {
     try {

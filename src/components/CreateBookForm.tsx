@@ -12,7 +12,7 @@ import { ROLES_EXTRAS } from "@/lib/validation";
 import { groupePourAge } from "@/lib/ageGroups";
 import { useRouter } from "next/navigation";
 import { createBook } from "@/app/actions/books";
-import { THEMES, THEME_CATEGORIES, findThemeById, type ThemeCategory } from "@/lib/themes";
+import { THEMES, THEME_CATEGORIES, estClassique, findThemeById, type ThemeCategory } from "@/lib/themes";
 import type { ChildView } from "./ChildrenManager";
 import { ILLUSTRATION_STYLES, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
 import Notice from "./Notice";
@@ -65,15 +65,18 @@ export default function CreateBookForm({
   initialThemeId,
   prixStandard,
   prixPremium,
+  abonnement,
 }: {
   enfants: ChildView[];
   /** Thème présélectionné (lien « Créer ce livre » du catalogue). */
   initialThemeId?: string;
   prixStandard: string;
   prixPremium: string;
+  /** Abonnement Club (livres inclus restants, accès aux classiques). */
+  abonnement: { actif: boolean; label: string; restants: number; quota: number; premium: boolean };
 }) {
   const router = useRouter();
-  const themeInitial = findThemeById(initialThemeId) ?? THEMES[0]!;
+  const themeInitial = findThemeById(initialThemeId) ?? THEMES.find((t) => !estClassique(t))!;
   const [mode, setMode] = useState<"theme" | "libre">("theme");
   const [themeId, setThemeId] = useState(themeInitial.id);
   const [categorie, setCategorie] = useState<ThemeCategory>(themeInitial.categorie);
@@ -114,6 +117,8 @@ export default function CreateBookForm({
     if (!stylesPourAge(a).includes(style)) setStyle("feerique");
   }
 
+  const classiqueVerrouille = mode === "theme" && estClassique(findThemeById(themeId)) && !abonnement.actif;
+
   // Autres personnages (famille, doudou, animal) : jusqu'à 3.
   const [extras, setExtras] = useState<Extra[]>([]);
   const majExtra = (i: number, patch: Partial<Extra>) =>
@@ -146,6 +151,14 @@ export default function CreateBookForm({
         })
       }
     >
+      {abonnement.actif ? (
+        <Notice kind="succes">
+          👑 {abonnement.label} : {abonnement.restants > 0
+            ? `ce livre est inclus (${abonnement.restants} sur ${abonnement.quota} restant${abonnement.restants > 1 ? "s" : ""} ce mois-ci)${abonnement.premium ? ", en édition premium" : ""}.`
+            : "vos livres du mois sont utilisés ; celui-ci sera lisible gratuitement, et téléchargeable à l'unité."}
+        </Notice>
+      ) : null}
+
       {/* Choix de l'enfant */}
       <div data-tilt className="carte">
         <Etape n="1">
@@ -268,6 +281,9 @@ export default function CreateBookForm({
                   <span>
                     <span className="flex flex-wrap items-center gap-2 font-semibold">
                       {t.titre}
+                      {estClassique(t) && !abonnement.actif && (
+                        <span className="rounded-full bg-or/15 px-2 py-0.5 text-xs font-bold text-or">👑 Club</span>
+                      )}
                       {t.saison && (
                         <span className="rounded-full bg-magique-rose/15 px-2 py-0.5 text-xs font-bold text-magique-rose">
                           De saison
@@ -476,7 +492,7 @@ export default function CreateBookForm({
       )}
 
       {/* Édition premium : illustrations haute qualité (payante au téléchargement) */}
-      <label className="carte flex cursor-pointer items-start gap-3">
+      <label className={`carte flex cursor-pointer items-start gap-3 ${abonnement.premium ? "hidden" : ""}`}>
         <input type="checkbox" name="premium" className="mt-1 h-5 w-5 accent-magique-primaire" />
         <span>
           <span className="font-serif text-lg">✦ Édition premium</span>
@@ -488,9 +504,16 @@ export default function CreateBookForm({
         </span>
       </label>
 
+      {classiqueVerrouille && (
+        <Notice kind="info">
+          « {findThemeById(themeId)?.titre} » fait partie des grands classiques revisités, réservés aux membres du Club.{" "}
+          <Link href="/club" className="font-semibold underline">Découvrir le Club</Link>
+        </Notice>
+      )}
+
       {erreur && <Notice kind="erreur">{erreur}</Notice>}
 
-      <button type="submit" className="btn-primaire w-full text-lg" disabled={pending}>
+      <button type="submit" className="btn-primaire w-full text-lg" disabled={pending || classiqueVerrouille}>
         {pending ? "Création de l'histoire en cours…" : "✦ Créer le livre"}
       </button>
 

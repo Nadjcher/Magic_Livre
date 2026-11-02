@@ -29,6 +29,9 @@ export default async function Header() {
             <Link href="/enfants" className="hover:text-magique-primaire">
               Mes enfants
             </Link>
+            <Link href="/club" className="hover:text-magique-primaire">
+              Le Club
+            </Link>
             <Link href="/compte" className="hover:text-magique-primaire">
               Mon compte
             </Link>
@@ -47,6 +50,9 @@ export default async function Header() {
           <div className="flex items-center gap-4 text-sm">
             <Link href="/catalogue" className="hidden hover:text-magique-primaire sm:inline">
               Catalogue
+            </Link>
+            <Link href="/club" className="hidden hover:text-magique-primaire sm:inline">
+              Le Club
             </Link>
             <Link href="/connexion" className="btn-primaire whitespace-nowrap px-4 py-2 text-sm">
               Se connecter

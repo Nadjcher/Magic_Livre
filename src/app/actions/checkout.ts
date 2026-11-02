@@ -12,7 +12,8 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { createCheckoutSession } from "@/lib/stripe";
 import { env } from "@/lib/env";
-import { getDeluxeProduct, PACK_TOUT, PAYS_LIVRAISON, skusDonnantAcces } from "@/lib/products";
+import { getDeluxeProduct, PACK_TOUT, PAYS_LIVRAISON, PRIX_IMPRIME_ABONNE, skusDonnantAcces } from "@/lib/products";
+import { getAbonnement } from "@/lib/subscription";
 import { impressionConfiguree } from "@/lib/print";
 import { VERSION_CGV } from "@/lib/legal";
 
@@ -65,6 +66,8 @@ export async function startCheckout(
       return { ok: false, message: "Le livre imprimé n'est pas encore disponible." };
     }
     amountCents = product.priceCents;
+    // Prix membre du Club pour le livre imprimé.
+    if (product.sku === "imprime" && (await getAbonnement(user.id)).actif) amountCents = PRIX_IMPRIME_ABONNE;
     productName = `${product.label} — ${book.title}`;
     productDescription = product.description;
   }

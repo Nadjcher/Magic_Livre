@@ -11,6 +11,9 @@ import { getCurrentUser, hasParentalConsent } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { formatEuros, getDeluxeProduct, PACK_TOUT } from "@/lib/products";
 import { libelleStatut, suiviGelato } from "@/lib/print";
+import { getAbonnement } from "@/lib/subscription";
+import ClubManager from "@/components/ClubManager";
+import Notice from "@/components/Notice";
 import EnTetePage from "@/components/EnTetePage";
 import {
   ChangePasswordForm,
@@ -33,7 +36,7 @@ function libelleProduit(sku: string): string {
   return getDeluxeProduct(sku)?.label ?? sku;
 }
 
-export default async function ComptePage() {
+export default async function ComptePage({ searchParams }: { searchParams: { club?: string } }) {
   const user = await getCurrentUser();
   if (!user) redirect("/connexion?suite=/compte");
 
@@ -55,6 +58,7 @@ export default async function ComptePage() {
     }),
   ]);
   const total = achats.reduce((n, a) => n + a.amount, 0);
+  const ab = await getAbonnement(user.id);
 
   // Livres imprimés : statut et suivi de colis chez l'imprimeur.
   const lignesImpression = await prisma.$queryRaw<{ id: string; title: string; imp: unknown }[]>`
@@ -124,6 +128,39 @@ export default async function ComptePage() {
         </div>
       </section>
 
+      {searchParams.club === "bienvenue" && ab.actif && (
+        <Notice kind="succes">Bienvenue dans le {ab.label} ! Vos {ab.quota} livres du mois vous attendent.</Notice>
+      )}
+
+      {/* Abonnement */}
+      <section className="carte space-y-3">
+        <h2 className="text-xl">Mon abonnement</h2>
+        {ab.actif ? (
+          <>
+            <p>
+              <strong>{ab.label}</strong> · {ab.restants} livre{ab.restants > 1 ? "s" : ""} restant{ab.restants > 1 ? "s" : ""} sur {ab.quota} ce mois-ci
+            </p>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+              <div className="h-full rounded-full bg-magique-primaire" style={{ width: `${(ab.utilises / ab.quota) * 100}%` }} />
+            </div>
+            <p className="text-sm text-magique-texteClair">
+              {ab.cancelAtPeriodEnd
+                ? `Résilié : actif jusqu'au ${ab.periodEnd?.toLocaleDateString("fr-FR")}.`
+                : `Prochain renouvellement le ${ab.periodEnd?.toLocaleDateString("fr-FR")} (le compteur repart à zéro).`}
+            </p>
+            <ClubManager resilie={ab.cancelAtPeriodEnd} />
+          </>
+        ) : (
+          <p className="text-sm text-magique-texteClair">
+            Pas d'abonnement.{" "}
+            <Link href="/club" className="font-semibold text-magique-primaire underline">
+              Découvrir le Club
+            </Link>{" "}
+            : un nouveau livre chaque semaine et les grands classiques revisités.
+          </p>
+        )}
+      </section>
+
       {/* Achats */}
       <section className="carte space-y-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -142,7 +179,7 @@ export default async function ComptePage() {
             {achats.map((a) => (
               <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
                 <div>
-                  <p className="font-semibold">{libelleProduit(a.sku)}</p>
+                  <p className="font-semibold">{a.amount === 0 && a.sku === "book" ? "Livre inclus dans l'abonnement" : libelleProduit(a.sku)}</p>
                   <p className="text-magique-texteClair">
                     {a.book.title} · {a.createdAt.toLocaleDateString("fr-FR")}
                   </p>

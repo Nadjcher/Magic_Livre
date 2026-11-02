@@ -7,7 +7,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { identiteLegale, VERSION_CGV } from "@/lib/legal";
-import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PAYS_LIVRAISON, formatEuros } from "@/lib/products";
+import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PAYS_LIVRAISON, PLANS_CLUB, PRIX_IMPRIME_ABONNE, formatEuros } from "@/lib/products";
 import { env } from "@/lib/env";
 
 export const metadata: Metadata = {
@@ -62,6 +62,19 @@ export default function CgvPage() {
       <p>
         Les contenus étant générés automatiquement, de légères imperfections sont possibles. Vous pouvez faire
         redessiner gratuitement une illustration depuis la page du livre (dans la limite indiquée) avant tout achat.
+      </p>
+
+      <H>3 bis. Abonnement « Club »</H>
+      <p>
+        Le Club est un abonnement mensuel sans engagement : {PLANS_CLUB.club.label} ({formatEuros(PLANS_CLUB.club.priceCents)} par
+        mois, {PLANS_CLUB.club.livres} livres inclus par période) et {PLANS_CLUB.clubplus.label} ({formatEuros(PLANS_CLUB.clubplus.priceCents)} par
+        mois, {PLANS_CLUB.clubplus.livres} livres inclus par période, en édition premium). Il donne accès aux grands classiques
+        revisités et au livre imprimé au prix membre de {formatEuros(PRIX_IMPRIME_ABONNE)}. Le prélèvement a lieu à la
+        souscription puis à chaque date anniversaire mensuelle. Les livres non utilisés ne sont pas reportés sur la
+        période suivante. L'abonnement est résiliable à tout moment depuis l'espace « Mon compte » : la résiliation prend
+        effet à la fin de la période déjà payée, sans frais. Les livres créés pendant l'abonnement, et leurs fichiers,
+        restent acquis. Conformément à l'article L221-28, 13° du Code de la consommation, l'abonné qui demande l'accès
+        immédiat aux contenus renonce à son droit de rétractation.
       </p>
 
       <H>4. Prix</H>

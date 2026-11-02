@@ -8,7 +8,7 @@
 
 import Link from "next/link";
 import type { Metadata } from "next";
-import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT } from "@/lib/products";
+import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PLANS_CLUB } from "@/lib/products";
 import AgeExplorer from "@/components/AgeExplorer";
 import { auth } from "@/lib/auth";
 import { env } from "@/lib/env";
@@ -67,6 +67,8 @@ const ETAPES = [
 ];
 
 const THEMES_VITRINE = [
+  "chaperon-rouge",
+  "haricot-magique",
   "noel",
   "rentree",
   "petit-frere",
@@ -352,6 +354,7 @@ export default async function AccueilPage() {
             ["📕", "Le livre imprimé", "Relié, couverture rigide, 28 × 21 cm, 30 pages. Imprimé et livré chez vous.", euros(LIVRE_IMPRIME.priceCents)],
             ["🎬", "Le livre en dessin animé", "Chaque page s'anime et une voix raconte l'histoire, en musique. Une vraie vidéo.", euros(DELUXE_PRODUCTS.find((d) => d.sku === "video")?.priceCents ?? 999)],
             ["🎈", "Le pack fête et l'affiche A3", "Invitations, banderole et étiquettes à son image, et le héros en grand format.", `Dès ${euros(Math.min(...DELUXE_PRODUCTS.filter((d) => d.sku !== "video").map((d) => d.priceCents)))}`],
+            ["⭐", "Le Club des histoires", "Un nouveau livre chaque semaine et les grands classiques revisités, sans engagement.", `Dès ${euros(PLANS_CLUB.club.priceCents)} / mois`],
             ["👑", "La formule Tout compris", "Le livre, le kit, le pack fête, l'affiche et le dessin animé, au meilleur prix.", euros(PACK_TOUT.priceCents)],
           ].map(([icone, titre, texte, tarif]) => (
             <div key={titre} className="carte flex flex-col">

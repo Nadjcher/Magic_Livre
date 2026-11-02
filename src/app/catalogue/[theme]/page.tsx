@@ -7,7 +7,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { THEMES, THEME_CATEGORIES, findThemeById } from "@/lib/themes";
+import { THEMES, THEME_CATEGORIES, estClassique, findThemeById } from "@/lib/themes";
 import { getAppUrl } from "@/lib/appUrl";
 
 export function generateStaticParams() {
@@ -35,6 +35,7 @@ const APPORTS: Record<string, string[]> = {
   emotions: ["Met des mots sur ce qu'il ressent", "Montre une façon douce de surmonter la difficulté", "Idéal pour le rituel du soir"],
   aventures: ["Une histoire palpitante mais rassurante", "Votre enfant en héros courageux", "Donne le goût de la lecture"],
   passions: ["Part de ce qu'il aime déjà", "Nourrit sa curiosité", "Une histoire qu'il voudra relire"],
+  classiques: ["Un conte que toute la famille connaît", "Votre enfant à la place du héros", "Une version douce, adaptée à son âge"],
 };
 
 export default function ThemePage({ params }: { params: { theme: string } }) {
@@ -79,6 +80,11 @@ export default function ThemePage({ params }: { params: { theme: string } }) {
         <Link href={`/creer?theme=${t.id}`} className="btn-primaire text-lg">
           Créer ce livre pour mon enfant
         </Link>
+        {estClassique(t) && (
+          <p className="text-sm text-or">
+            👑 Grand classique revisité, réservé aux membres du <Link href="/club" className="underline">Club</Link>.
+          </p>
+        )}
         <p className="text-sm text-magique-texteClair">Lecture gratuite, prêt en quelques minutes, sans abonnement</p>
       </header>
 

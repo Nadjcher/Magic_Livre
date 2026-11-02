@@ -21,7 +21,8 @@ import { checkDailyBookLimit } from "@/lib/rateLimit";
 import { generateStory } from "@/lib/storyGenerator";
 import { lancerIllustrations } from "@/lib/bookPipeline";
 import { describeChildFromPhoto } from "@/lib/illustration";
-import { findThemeById } from "@/lib/themes";
+import { estClassique, findThemeById } from "@/lib/themes";
+import { getAbonnement, inclureLivre } from "@/lib/subscription";
 import type { LongueurKey } from "@/lib/validation";
 import { stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
 
@@ -137,6 +138,12 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
   const limit = await checkDailyBookLimit(user.id, user.email);
   if (!limit.allowed) return { ok: false, message: limit.message };
 
+  // Abonnement Club : grands classiques réservés, livres inclus, premium (Club+).
+  const abonnement = await getAbonnement(user.id);
+  if (input.mode === "theme" && estClassique(findThemeById(input.themeId)) && !abonnement.actif) {
+    return { ok: false, message: "Les grands classiques revisités sont réservés aux membres du Club." };
+  }
+
   // Détermine un thème lisible pour l'affichage.
   const theme =
     input.mode === "theme"
@@ -145,7 +152,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
 
   // Édition choisie : premium = illustrations haut de gamme + prix supérieur.
   const premium =
-    formData.get("premium") === "on" || formData.get("premium") === "true";
+    abonnement.premium || formData.get("premium") === "on" || formData.get("premium") === "true";
 
   // Crée le livre en statut « generating ».
   const book = await prisma.book.create({
@@ -158,6 +165,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
       tier: premium ? "premium" : "standard",
     },
   });
+  const inclus = await inclureLivre(user.id, book.id, abonnement);
 
   // La génération (1 à 3 minutes) tourne EN ARRIÈRE-PLAN sur le serveur : on
   // répond tout de suite avec l'identifiant du livre. Fermer l'onglet, changer
@@ -181,7 +189,13 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
   );
 
   revalidatePath("/bibliotheque");
-  return { ok: true, message: "La création de votre livre a commencé.", bookId: book.id };
+  return {
+    ok: true,
+    message: inclus
+      ? "La création a commencé. Ce livre est inclus dans votre abonnement."
+      : "La création de votre livre a commencé.",
+    bookId: book.id,
+  };
 }
 
 type GenerationInput = Omit<Parameters<typeof generateStory>[0], "appearance" | "extras"> & {
