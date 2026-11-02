@@ -42,10 +42,9 @@ function Coche() {
 }
 
 const PROMESSES = [
-  "Lecture gratuite avant tout achat",
-  "Adaptée à son âge (1 à 12 ans)",
-  "Photo jamais conservée",
-  "Sans abonnement",
+  "Lu gratuitement avant tout achat",
+  "Écrit pour son âge, de 2\u00A0à\u00A012\u00A0ans",
+  "Sa photo n'est jamais conservée",
 ];
 
 
@@ -58,7 +57,7 @@ const ETAPES = [
   {
     illu: "write",
     titre: "Nous écrivons et illustrons",
-    texte: "Une histoire adaptée à son âge, illustrée à son image, en une à deux minutes.",
+    texte: "Une histoire adaptée à son âge, illustrée à son image, en quelques minutes.",
   },
   {
     illu: "together",
@@ -94,7 +93,7 @@ const FAQ = [
   },
   {
     q: "Combien de temps faut-il ?",
-    r: "Une à deux minutes après avoir validé : l'histoire et toutes les illustrations sont créées pendant ce temps.",
+    r: "Quelques minutes après avoir validé (environ 3 minutes) : l'histoire et toutes les illustrations sont créées pendant ce temps.",
   },
   {
     q: "Que devient la photo de mon enfant ?",
@@ -102,7 +101,7 @@ const FAQ = [
   },
   {
     q: "Pour quel âge ?",
-    r: "De 1 à 12 ans, avec un type de livre pour chaque âge : imagier et comptine pour les tout-petits, album et cherche-et-trouve, grande aventure, enquête à résoudre et mini-roman en chapitres pour les plus grands.",
+    r: "De 2 à 12 ans, avec un type de livre pour chaque âge : imagier et comptine pour les tout-petits, album et cherche-et-trouve, grande aventure, enquête à résoudre et mini-roman en chapitres pour les plus grands.",
   },
   {
     q: "Puis-je imprimer le livre ?",
@@ -130,7 +129,7 @@ export default async function AccueilPage() {
         "@type": "Product",
         name: "Livre illustré personnalisé pour enfant",
         description:
-          "Une histoire écrite pour votre enfant, adaptée à son âge et illustrée à son image, prête en deux minutes. Lecture gratuite à l'écran, PDF à imprimer.",
+          "Une histoire écrite pour votre enfant, adaptée à son âge et illustrée à son image, prête en quelques minutes. Lecture gratuite à l'écran, PDF à imprimer.",
         brand: { "@id": `${APP_URL}/#organization` },
         offers: {
           "@type": "Offer",
@@ -156,9 +155,12 @@ export default async function AccueilPage() {
           <h1 className="text-[2.6rem] leading-[1.05] sm:text-6xl">
             Le livre dont votre enfant est le héros.
           </h1>
-          <p className="mt-6 max-w-[46ch] text-lg leading-relaxed text-magique-texteClair">
-            Une histoire écrite pour lui, adaptée à son âge et illustrée à son image. Prête en deux
-            minutes, et vous la lisez gratuitement avant de payer quoi que ce soit.
+          <p className="mt-5 font-serif text-xl italic text-or sm:text-2xl">
+            « Encore une histoire ! » Ce soir, ce sera la sienne.
+          </p>
+          <p className="mt-4 max-w-[44ch] text-lg leading-relaxed text-magique-texteClair">
+            Une histoire inventée pour lui, avec son prénom, son visage et ceux qu'il aime. Vous la
+            lisez en entier avant de décider de la garder.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-5">
             <Link href={cta} className="btn-primaire text-lg">
@@ -168,9 +170,9 @@ export default async function AccueilPage() {
               Lire un exemple
             </Link>
           </div>
-          <ul className="mt-8 grid max-w-md grid-cols-1 gap-2.5 sm:grid-cols-2">
+          <ul className="mt-8 space-y-2.5">
             {PROMESSES.map((p) => (
-              <li key={p} className="flex items-center gap-2 text-sm text-magique-texte">
+              <li key={p} className="flex items-center gap-2.5 text-[15px] text-magique-texte">
                 <Coche />
                 {p}
               </li>
@@ -217,34 +219,8 @@ export default async function AccueilPage() {
             </figcaption>
           </figure>
 
-          {/* Flèche magique entre la photo et le livre */}
-          <div className="absolute -bottom-4 left-2 flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-nuit shadow-conte sm:left-0">
-            ✨ Prête en 2 minutes
-          </div>
         </div>
       </section>
-
-      {/* ─── Sommaire ─── */}
-      <nav aria-label="Sommaire de la page" className="-mt-12 sm:-mt-16">
-        <ul className="sans-barre flex gap-2 overflow-x-auto text-sm md:flex-wrap md:justify-center md:overflow-visible">
-          {[
-            ["#comment", "Étapes"],
-            ["#exemple", "Exemple"],
-            ["#ages", "Par âge"],
-            ["#styles", "Styles"],
-            ["#themes", "Thèmes"],
-            ["#offres", "Offres"],
-            ["#prix", "Prix"],
-            ["#faq", "Questions fréquentes"],
-          ].map(([href, label]) => (
-            <li key={href} className="flex-none">
-              <a href={href} className="block rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 font-semibold hover:border-white">
-                {label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
 
       {/* ─── Comment ça marche (vraie séquence) ─── */}
       <section id="comment" className="scroll-mt-24">
@@ -408,7 +384,7 @@ export default async function AccueilPage() {
               {[
                 ["L'histoire", "La même pour tous, prénom inséré", "Inventée pour votre enfant, unique"],
                 ["Le héros", "Un avatar à choisir dans une liste", "Dessiné d'après sa photo, le même à chaque page"],
-                ["L'âge", "Un livre « 3-8 ans »", "Écrit pour son âge exact, de 1 à 12 ans"],
+                ["L'âge", "Un livre « 3-8 ans »", "Écrit pour son âge exact, de 2 à 12 ans"],
                 ["La famille", "Rarement", "Frère, sœur, parents, doudou, animal"],
                 ["Avant d'acheter", "Un aperçu de quelques pages", "Le livre entier, gratuitement"],
                 ["Délai", "Plusieurs jours", "Environ 3 minutes"],

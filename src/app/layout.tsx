@@ -27,7 +27,7 @@ const nunito = Nunito({
 const APP_URL = getAppUrl();
 const DESCRIPTION =
   "Le livre dont votre enfant est le héros : une histoire écrite pour lui, adaptée à son âge et " +
-  "illustrée à son image, prête en deux minutes. Lecture gratuite avant achat, sans abonnement.";
+  "illustrée à son image, prête en quelques minutes. Lecture gratuite avant achat, sans abonnement.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),

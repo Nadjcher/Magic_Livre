@@ -77,7 +77,7 @@ export default function GenerationOverlay({ inline = false }: { inline?: boolean
       </div>
 
       <p className="mt-6 max-w-sm text-sm text-[#cdd7f4]">
-        Cela prend 1 à 3 minutes. Vous pouvez fermer cette page ou changer
+        Cela prend 2 à 4 minutes. Vous pouvez fermer cette page ou changer
         d'onglet : la création continue et votre livre vous attendra dans la
         bibliothèque.
       </p>
