@@ -138,7 +138,16 @@ export async function GET(req: Request): Promise<Response> {
             stripe = { erreur: String(e).slice(0, 160) };
           }
         }
-        return { sku: c.sku, status: c.status, cree: c.createdAt, session: Boolean(c.stripeSessionId), stripe };
+        let correction: string | undefined;
+        if (new URL(req.url).searchParams.get("fix") === "1" && c.status !== "paid" && stripe.payment_status === "paid" && stripe.metaOk) {
+          try {
+            const r = await prisma.order.updateMany({ where: { id: c.id, status: { not: "paid" } }, data: { status: "paid" } });
+            correction = `ok (${r.count})`;
+          } catch (e) {
+            correction = `ÉCHEC : ${String(e).slice(0, 400)}`;
+          }
+        }
+        return { sku: c.sku, status: c.status, cree: c.createdAt, session: Boolean(c.stripeSessionId), stripe, correction };
       }),
     );
     return NextResponse.json(out, { status: 200 });
