@@ -123,6 +123,34 @@ export async function GET(req: Request): Promise<Response> {
 
   const img = new URL(req.url).searchParams.get("img");
 
+  // Test de connexion au serveur d'emails (n'envoie rien) : /api/health?mail=1
+  if (new URL(req.url).searchParams.get("mail") === "1") {
+    const { createTransport } = await import("nodemailer");
+    const from = process.env.EMAIL_FROM ?? "";
+    const info: Record<string, unknown> = {
+      host: process.env.EMAIL_SERVER_HOST ?? null,
+      port: process.env.EMAIL_SERVER_PORT ?? "587 (défaut)",
+      userSet: Boolean(process.env.EMAIL_SERVER_USER),
+      passSet: Boolean(process.env.EMAIL_SERVER_PASSWORD),
+      fromDomaine: from.replace(/^.*@/, "").replace(/>.*$/, "") || null,
+    };
+    try {
+      const t = createTransport({
+        host: process.env.EMAIL_SERVER_HOST,
+        port: Number(process.env.EMAIL_SERVER_PORT ?? 587),
+        auth: { user: process.env.EMAIL_SERVER_USER, pass: process.env.EMAIL_SERVER_PASSWORD },
+        connectionTimeout: 10_000,
+      });
+      await t.verify();
+      info.connexion = "OK";
+    } catch (e) {
+      info.connexion = "ÉCHEC";
+      info.erreur = String(e).replace(/pass\S*/gi, "").slice(0, 300);
+    }
+    (out as Record<string, unknown>).mail = info;
+    return NextResponse.json(out, { status: 200 });
+  }
+
   // Derniers livres : statut, diagnostic des images (gratuit, sans appel IA).
   try {
     const derniers = await prisma.$queryRaw<
