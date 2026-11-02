@@ -86,7 +86,7 @@ export async function imagesDuLivre(story: Story, prenom: string, hd: boolean): 
 }
 
 /** Dépose le PDF sur le stockage public de fal (l'imprimeur doit pouvoir le télécharger). */
-async function deposerPdf(pdf: Buffer, nom: string): Promise<string> {
+export async function deposerPdf(pdf: Buffer, nom: string): Promise<string> {
   const init = await fetch("https://rest.alpha.fal.ai/storage/upload/initiate?storage_type=fal-cdn-v3", {
     method: "POST",
     headers: { Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" },
@@ -99,7 +99,7 @@ async function deposerPdf(pdf: Buffer, nom: string): Promise<string> {
   return j.file_url;
 }
 
-type Adresse = {
+export type Adresse = {
   firstName: string;
   lastName: string;
   addressLine1: string;
@@ -113,7 +113,7 @@ type Adresse = {
 };
 
 /** Crée la commande chez Gelato. Renvoie l'identifiant de commande Gelato. */
-async function commanderGelato(orderId: string, userId: string, fichier: string, adresse: Adresse): Promise<string> {
+export async function commanderGelato(orderId: string, userId: string, fichier: string, adresse: Adresse): Promise<string> {
   const r = await fetch("https://order.gelatoapis.com/v4/orders", {
     method: "POST",
     headers: { "X-API-KEY": cleGelato(), "Content-Type": "application/json" },
