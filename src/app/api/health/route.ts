@@ -123,6 +123,27 @@ export async function GET(req: Request): Promise<Response> {
 
   const img = new URL(req.url).searchParams.get("img");
 
+  // Dernières commandes et leur statut chez Stripe (sans donnée personnelle) : /api/health?orders=1
+  if (new URL(req.url).searchParams.get("orders") === "1") {
+    const { getStripe } = await import("@/lib/stripe");
+    const cmds = await prisma.order.findMany({ orderBy: { createdAt: "desc" }, take: 6, select: { id: true, sku: true, status: true, createdAt: true, stripeSessionId: true } });
+    (out as Record<string, unknown>).orders = await Promise.all(
+      cmds.map(async (c) => {
+        let stripe: Record<string, unknown> = {};
+        if (c.stripeSessionId) {
+          try {
+            const ses = await getStripe().checkout.sessions.retrieve(c.stripeSessionId);
+            stripe = { status: ses.status, payment_status: ses.payment_status, metaOk: ses.metadata?.orderId === c.id, mode: ses.livemode ? "réel" : "test" };
+          } catch (e) {
+            stripe = { erreur: String(e).slice(0, 160) };
+          }
+        }
+        return { sku: c.sku, status: c.status, cree: c.createdAt, session: Boolean(c.stripeSessionId), stripe };
+      }),
+    );
+    return NextResponse.json(out, { status: 200 });
+  }
+
   // Test de connexion au serveur d'emails (n'envoie rien) : /api/health?mail=1
   if (new URL(req.url).searchParams.get("mail") === "1") {
     const { createTransport } = await import("nodemailer");
