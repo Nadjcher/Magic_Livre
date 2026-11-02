@@ -6,6 +6,8 @@
  * Source unique : formulaire, validation serveur et prompt s'appuient dessus.
  */
 
+import type { IllustrationStyle } from "./style_config";
+
 export interface BookFormat {
   id: string;
   label: string;
@@ -20,11 +22,14 @@ export interface BookFormat {
   brief: string;
   /** Indication ajoutée aux scènes d'illustration (en anglais). */
   illustration?: string;
+  /** Style de dessin conseillé pour ce type de livre (présélectionné). */
+  styleConseille?: IllustrationStyle;
 }
 
 export const BOOK_FORMATS: BookFormat[] = [
   {
     id: "imagier",
+    styleConseille: "pastel",
     label: "Imagier des premiers mots",
     emoji: "🧸",
     ageMin: 1,
@@ -41,6 +46,7 @@ export const BOOK_FORMATS: BookFormat[] = [
   },
   {
     id: "comptine",
+    styleConseille: "aquarelle",
     label: "Comptine rimée",
     emoji: "🎵",
     ageMin: 1,
@@ -55,6 +61,7 @@ export const BOOK_FORMATS: BookFormat[] = [
   },
   {
     id: "album",
+    styleConseille: "feerique",
     label: "Album illustré",
     emoji: "📖",
     ageMin: 3,
@@ -66,6 +73,7 @@ export const BOOK_FORMATS: BookFormat[] = [
   },
   {
     id: "cherche",
+    styleConseille: "anim3d",
     label: "Cherche et trouve",
     emoji: "🔍",
     ageMin: 4,
@@ -81,6 +89,7 @@ export const BOOK_FORMATS: BookFormat[] = [
   },
   {
     id: "aventure",
+    styleConseille: "aventure",
     label: "Grande aventure",
     emoji: "🗺️",
     ageMin: 5,
@@ -93,6 +102,7 @@ export const BOOK_FORMATS: BookFormat[] = [
   },
   {
     id: "enquete",
+    styleConseille: "bd",
     label: "Enquête à résoudre",
     emoji: "🕵️",
     ageMin: 7,
@@ -107,6 +117,7 @@ export const BOOK_FORMATS: BookFormat[] = [
   },
   {
     id: "roman",
+    styleConseille: "realiste",
     label: "Mini-roman en chapitres",
     emoji: "📚",
     ageMin: 8,
@@ -117,6 +128,105 @@ export const BOOK_FORMATS: BookFormat[] = [
       "FORMAT MINI-ROMAN : chaque page est un court CHAPITRE qui commence par son titre entre guillemets " +
       "(« Chapitre 1 — La lettre bleue »), 6 à 9 phrases riches, dialogues, un suspense léger en fin de " +
       "chapitre qui donne envie de tourner la page. Vocabulaire riche mais compréhensible pour l'âge.",
+  },
+  {
+    id: "dodo",
+    styleConseille: "pastel",
+    label: "Histoire du soir",
+    emoji: "🌙",
+    ageMin: 2,
+    ageMax: 6,
+    description: "Une histoire douce et apaisante, pour s'endormir en souriant.",
+    brief:
+      "FORMAT HISTOIRE DU SOIR : rythme lent et berçant, phrases douces, beaucoup de sensations calmes (couverture " +
+      "chaude, lumière tamisée, respiration lente). Une petite aventure tranquille qui se termine au lit, les yeux " +
+      "qui se ferment. Aucune tension forte. Dernière page : un « bonne nuit » tendre adressé à l'enfant.",
+    illustration: "calm cozy night atmosphere, soft moonlight, gentle warm lamps, peaceful",
+  },
+  {
+    id: "drole",
+    styleConseille: "anim3d",
+    label: "Histoire rigolote",
+    emoji: "😂",
+    ageMin: 4,
+    ageMax: 9,
+    description: "Des situations absurdes et des gags : fous rires garantis.",
+    brief:
+      "FORMAT HISTOIRE RIGOLOTE : humour enfantin et absurde (objets qui font n'importe quoi, quiproquos, chutes " +
+      "comiques, bruits rigolos, répétition comique en crescendo). Chaque page a au moins un gag. L'humour n'est " +
+      "jamais moqueur envers l'enfant. Une chute finale très drôle et tendre.",
+    illustration: "funny exaggerated expressions, comedic slapstick moment",
+  },
+  {
+    id: "realiste",
+    styleConseille: "realiste",
+    label: "Histoire de la vie réelle",
+    emoji: "🏫",
+    ageMin: 5,
+    ageMax: 12,
+    description: "Sans magie : l'école, le sport, les amitiés, un défi du quotidien.",
+    brief:
+      "FORMAT RÉALISTE : AUCUNE magie, aucun animal qui parle. Une histoire de la vraie vie (école, match, " +
+      "spectacle, déménagement, nouvelle amitié, petit frère, peur à surmonter) où l'enfant relève un défi crédible " +
+      "grâce à son courage, son idée ou l'aide des autres. Personnages humains, dialogues naturels, émotions justes.",
+    illustration: "realistic everyday setting, believable people, no fantasy creatures",
+  },
+  {
+    id: "bd",
+    styleConseille: "bd",
+    label: "Bande dessinée",
+    emoji: "💥",
+    ageMin: 6,
+    ageMax: 12,
+    description: "De l'action, des dialogues qui claquent et des rebondissements.",
+    brief:
+      "FORMAT BANDE DESSINÉE : récit très visuel et dynamique, beaucoup de dialogues courts et percutants, " +
+      "onomatopées (Boum ! Zioup !), action et humour. Chaque page est une scène forte, comme une planche de BD, " +
+      "avec un rebondissement final.",
+    illustration: "dynamic comic panel composition, action lines, expressive poses",
+  },
+  {
+    id: "manga",
+    styleConseille: "manga",
+    label: "Manga",
+    emoji: "⚡",
+    ageMin: 7,
+    ageMax: 12,
+    description: "Amitié, rivalité, entraînement et dépassement de soi, façon manga.",
+    brief:
+      "FORMAT MANGA : esprit shōnen bienveillant. Le héros a un rêve (devenir le meilleur dans quelque chose), un " +
+      "rival respectueux, un mentor, un entraînement, un tournoi ou un défi. Chapitres rythmés, dialogues vifs, " +
+      "moment où il veut abandonner puis se relève grâce à ses amis. Aucune violence : les combats sont des " +
+      "compétitions, des défis ou des jeux.",
+    illustration: "anime action pose, speed lines, intense determined expression",
+  },
+  {
+    id: "scifi",
+    styleConseille: "anim3d",
+    label: "Science-fiction",
+    emoji: "🚀",
+    ageMin: 7,
+    ageMax: 12,
+    description: "Robots, vaisseaux et planètes lointaines : une mission dans le futur.",
+    brief:
+      "FORMAT SCIENCE-FICTION : futur ou espace, technologie inventée mais cohérente (robot compagnon, vaisseau, " +
+      "planète aux règles étranges). Une mission avec un problème scientifique à résoudre par la logique et " +
+      "l'observation. Émerveillement et curiosité, fin optimiste.",
+    illustration: "futuristic sci-fi setting, spaceships, glowing technology, alien planet",
+  },
+  {
+    id: "fantasy",
+    styleConseille: "classique",
+    label: "Saga fantastique",
+    emoji: "🐉",
+    ageMin: 8,
+    ageMax: 12,
+    description: "Un monde imaginaire, une quête épique et des créatures légendaires.",
+    brief:
+      "FORMAT SAGA FANTASTIQUE : un monde imaginaire riche (royaumes, forêts anciennes, dragons bienveillants, " +
+      "magie avec des règles). Le héros découvre qu'il a un rôle à jouer, réunit une équipe, affronte une épreuve " +
+      "épique (énigme, traversée, choix courageux). Ton épique mais jamais effrayant ; fin victorieuse et lumineuse.",
+    illustration: "epic fantasy landscape, castles, ancient forests, majestic friendly dragon",
   },
 ];
 

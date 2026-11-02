@@ -7,8 +7,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AGE_GROUPS, findAgeGroup } from "@/lib/ageGroups";
-import { formatsPourAge } from "@/lib/bookFormats";
-import { ILLUSTRATION_STYLES, stylesPourAge } from "@/lib/style_config";
+import { BOOK_FORMATS } from "@/lib/bookFormats";
+import { ILLUSTRATION_STYLES } from "@/lib/style_config";
 
 export function generateStaticParams() {
   return AGE_GROUPS.map((g) => ({ age: g.slug }));
@@ -27,14 +27,8 @@ export function generateMetadata({ params }: { params: { age: string } }): Metad
 export default function AgePage({ params }: { params: { age: string } }) {
   const g = findAgeGroup(params.age);
   if (!g) notFound();
-  const formats = Array.from(
-    new Map(
-      Array.from({ length: g.ageMax - g.ageMin + 1 }, (_, k) => formatsPourAge(g.ageMin + k))
-        .flat()
-        .map((f) => [f.id, f]),
-    ).values(),
-  );
-  const styles = stylesPourAge(g.ageType);
+  const formats = BOOK_FORMATS.filter((f) => f.ageMax >= g.ageType && f.ageMin <= g.ageMax);
+  const styles = g.styles;
 
   return (
     <article className="mx-auto max-w-3xl space-y-10">
@@ -66,11 +60,11 @@ export default function AgePage({ params }: { params: { age: string } }) {
 
       <section className="space-y-4">
         <h2 className="text-2xl">Les styles de dessin adaptés</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {styles.map((s) => (
             <figure key={s} className="overflow-hidden rounded-xl border border-white/15">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`/styles/${s}.webp`} alt={`Style ${ILLUSTRATION_STYLES[s].label}`} loading="lazy" className="aspect-[4/3] w-full object-cover" />
+              <img src={`/styles/ages/${g.slug}/${s}.webp`} alt={`Style ${ILLUSTRATION_STYLES[s].label}, exemple pour ${g.label}`} loading="lazy" className="aspect-[4/3] w-full object-cover" />
               <figcaption className="p-2 text-xs font-semibold">{ILLUSTRATION_STYLES[s].label}</figcaption>
             </figure>
           ))}

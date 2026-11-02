@@ -9,6 +9,7 @@
 import { useState, useTransition } from "react";
 import { findFormat, formatParDefaut, formatsPourAge } from "@/lib/bookFormats";
 import { ROLES_EXTRAS } from "@/lib/validation";
+import { groupePourAge } from "@/lib/ageGroups";
 import { useRouter } from "next/navigation";
 import { createBook } from "@/app/actions/books";
 import { THEMES, THEME_CATEGORIES, findThemeById, type ThemeCategory } from "@/lib/themes";
@@ -102,7 +103,9 @@ export default function CreateBookForm({
   const format = findFormat(formatId);
 
   // Styles de dessin adaptés à l'âge (pas de manga ni de BD pour un tout-petit).
-  const stylesAge = stylesPourAge(age);
+  // Styles conseillés pour son âge d'abord, puis les autres styles autorisés.
+  const groupe = groupePourAge(age);
+  const stylesAge = [...groupe.styles.filter((k) => stylesPourAge(age).includes(k)), ...stylesPourAge(age).filter((k) => !groupe.styles.includes(k))];
   const styleAffiche: IllustrationStyle = stylesAge.includes(style) ? style : "feerique";
 
   function choisirEnfant(id: string) {
@@ -181,7 +184,11 @@ export default function CreateBookForm({
                 type="button"
                 role="radio"
                 aria-checked={actif}
-                onClick={() => setFormatId(f.id)}
+                onClick={() => {
+                  setFormatId(f.id);
+                  // Style conseillé pour ce type de livre (s'il convient à l'âge).
+                  if (f.styleConseille && stylesPourAge(age).includes(f.styleConseille)) setStyle(f.styleConseille);
+                }}
                 className={`flex items-start gap-3 rounded-xl border-2 p-3 text-left transition ${
                   actif
                     ? "border-magique-primaire bg-magique-primaire/10 shadow-or"
@@ -304,7 +311,7 @@ export default function CreateBookForm({
           La même scène dessinée dans chaque style. Seuls les styles adaptés à {age} ans sont proposés.
         </p>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Styles d'illustration">
-          {STYLE_KEYS.filter((k) => stylesAge.includes(k)).map((s) => {
+          {stylesAge.map((s) => {
             const actif = styleAffiche === s;
             return (
               <button
@@ -321,7 +328,7 @@ export default function CreateBookForm({
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={`/styles/${s}.webp`}
+                  src={groupe.styles.includes(s) ? `/styles/ages/${groupe.slug}/${s}.webp` : `/styles/${s}.webp`}
                   alt={`Exemple du style ${ILLUSTRATION_STYLES[s].label}`}
                   loading="lazy"
                   className="aspect-[4/3] w-full object-cover"

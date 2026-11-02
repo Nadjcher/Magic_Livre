@@ -9,8 +9,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AGE_GROUPS } from "@/lib/ageGroups";
-import { formatsPourAge, type BookFormat } from "@/lib/bookFormats";
-import { ILLUSTRATION_STYLES, stylesPourAge } from "@/lib/style_config";
+import { BOOK_FORMATS, type BookFormat } from "@/lib/bookFormats";
+import { ILLUSTRATION_STYLES } from "@/lib/style_config";
 
 const EXTRAITS: Record<string, string> = {
   "bebe-1-2-ans": "Voici la balle rouge de Léo. Boum, boum ! Elle rebondit. Et toi, où est ta balle ?",
@@ -20,17 +20,16 @@ const EXTRAITS: Record<string, string> = {
   "9-12-ans": "Chapitre 3 — La lettre sans expéditeur. Inès relut la phrase pour la troisième fois : pendant la nuit, l'encre bleue avait changé de couleur…",
 };
 
-function formatsDuGroupe(min: number, max: number): BookFormat[] {
-  const m = new Map<string, BookFormat>();
-  for (let a = min; a <= max; a++) for (const f of formatsPourAge(a)) m.set(f.id, f);
-  return [...m.values()];
+/** Types de livres vraiment faits pour cette tranche (pas ceux qui ne la frôlent qu'à la marge). */
+function formatsDuGroupe(type: number, max: number): BookFormat[] {
+  return BOOK_FORMATS.filter((f) => f.ageMax >= type && f.ageMin <= max);
 }
 
 export default function AgeExplorer() {
   const [slug, setSlug] = useState(AGE_GROUPS[1]!.slug);
   const g = AGE_GROUPS.find((x) => x.slug === slug)!;
-  const formats = formatsDuGroupe(g.ageMin, g.ageMax);
-  const styles = stylesPourAge(g.ageType).slice(0, 6);
+  const formats = formatsDuGroupe(g.ageType, g.ageMax);
+  const styles = g.styles;
 
   return (
     <div className="mt-8 space-y-6">
@@ -54,7 +53,7 @@ export default function AgeExplorer() {
       <div className="grid gap-6 md:grid-cols-[1.1fr_.9fr]">
         <div className="space-y-4">
           <p className="text-magique-texteClair">{g.intro}</p>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {formats.map((f) => (
               <div key={f.id} className="carte p-4">
                 <p className="text-2xl" aria-hidden="true">{f.emoji}</p>
@@ -74,7 +73,7 @@ export default function AgeExplorer() {
             {styles.map((s) => (
               <figure key={s} className="overflow-hidden rounded-xl border border-white/15">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/styles/${s}.webp`} alt={`Style ${ILLUSTRATION_STYLES[s].label}`} loading="lazy" className="aspect-[4/3] w-full object-cover" />
+                <img src={`/styles/ages/${g.slug}/${s}.webp`} alt={`Style ${ILLUSTRATION_STYLES[s].label}, exemple pour ${g.label}`} loading="lazy" className="aspect-[4/3] w-full object-cover" />
                 <figcaption className="px-2 py-1 text-[11px] font-semibold">{ILLUSTRATION_STYLES[s].label}</figcaption>
               </figure>
             ))}

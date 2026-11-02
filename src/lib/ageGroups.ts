@@ -3,6 +3,8 @@
  * référencement) : chacune présente les types de livres et les styles adaptés.
  */
 
+import type { IllustrationStyle } from "./style_config";
+
 export interface AgeGroup {
   slug: string;
   label: string;
@@ -12,11 +14,17 @@ export interface AgeGroup {
   ageType: number;
   intro: string;
   besoins: string[];
+  /** Styles de dessin conseillés, du plus adapté au moins adapté. */
+  styles: IllustrationStyle[];
+  /** Le héros des images d'exemple de cette tranche (pour les aperçus). */
+  heros: string;
 }
 
 export const AGE_GROUPS: AgeGroup[] = [
   {
     slug: "bebe-1-2-ans",
+    styles: ["pastel", "aquarelle", "papier", "crayon", "feerique", "anim3d"],
+    heros: "a 2-year-old toddler girl with short curly hair, round cheeks and yellow overalls, hugging a soft teddy bear",
     label: "1 à 2 ans",
     ageMin: 1,
     ageMax: 2,
@@ -28,6 +36,8 @@ export const AGE_GROUPS: AgeGroup[] = [
   },
   {
     slug: "3-4-ans",
+    styles: ["anim3d", "feerique", "pastel", "aquarelle", "papier", "classique"],
+    heros: "a 4-year-old boy in a red raincoat and rain boots, with a small friendly green baby dinosaur",
     label: "3 à 4 ans",
     ageMin: 3,
     ageMax: 4,
@@ -39,6 +49,8 @@ export const AGE_GROUPS: AgeGroup[] = [
   },
   {
     slug: "5-6-ans",
+    styles: ["anim3d", "aventure", "bd", "aquarelle", "feerique", "classique"],
+    heros: "a 6-year-old girl explorer with braids, a little backpack and a curious red fox companion",
     label: "5 à 6 ans",
     ageMin: 5,
     ageMax: 6,
@@ -50,6 +62,8 @@ export const AGE_GROUPS: AgeGroup[] = [
   },
   {
     slug: "7-8-ans",
+    styles: ["bd", "manga", "anim3d", "aventure", "pixel", "realiste"],
+    heros: "an 8-year-old boy with a skateboard and a small round friendly robot companion",
     label: "7 à 8 ans",
     ageMin: 7,
     ageMax: 8,
@@ -61,6 +75,8 @@ export const AGE_GROUPS: AgeGroup[] = [
   },
   {
     slug: "9-12-ans",
+    styles: ["manga", "realiste", "bd", "anim3d", "pixel", "classique"],
+    heros: "an 11-year-old girl detective with a ponytail, a notebook and a magnifying glass, with her grey cat",
     label: "9 à 12 ans",
     ageMin: 9,
     ageMax: 12,
@@ -74,4 +90,9 @@ export const AGE_GROUPS: AgeGroup[] = [
 
 export function findAgeGroup(slug: string): AgeGroup | undefined {
   return AGE_GROUPS.find((g) => g.slug === slug);
+}
+
+/** Tranche d'âge d'un enfant (pour les aperçus de styles adaptés). */
+export function groupePourAge(age: number): AgeGroup {
+  return AGE_GROUPS.find((g) => age >= g.ageMin && age <= g.ageMax) ?? AGE_GROUPS[AGE_GROUPS.length - 1]!;
 }
