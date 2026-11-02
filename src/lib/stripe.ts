@@ -9,6 +9,7 @@ import "server-only";
 import Stripe from "stripe";
 import { env } from "./env";
 import { prisma } from "./prisma";
+import { getAppUrl } from "./appUrl";
 import { apresPaiement } from "./notifications";
 import { waitUntil } from "@vercel/functions";
 
@@ -44,7 +45,7 @@ export async function createCheckoutSession(params: {
   consentement?: string;
 }): Promise<{ sessionId: string; url: string }> {
   const stripe = getStripe();
-  const baseUrl = env.authUrl();
+  const baseUrl = getAppUrl();
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
@@ -153,7 +154,12 @@ export async function reconcilePendingOrders(
         bookId,
         status: "pending",
         stripeSessionId: { not: null },
+        // Seulement les commandes récentes (les sessions Stripe expirent en 24 h) :
+        // le retour de paiement reste rapide.
+        createdAt: { gt: new Date(Date.now() - 2 * 24 * 3600 * 1000) },
       },
+      orderBy: { createdAt: "desc" },
+      take: 5,
       select: { id: true, stripeSessionId: true },
     });
     for (const order of pending) {
