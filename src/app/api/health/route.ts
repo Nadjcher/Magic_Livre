@@ -159,16 +159,7 @@ export async function GET(req: Request): Promise<Response> {
             stripe = { erreur: String(e).slice(0, 160) };
           }
         }
-        let correction: string | undefined;
-        if (new URL(req.url).searchParams.get("fix") === "1" && c.status !== "paid" && stripe.payment_status === "paid" && stripe.metaOk) {
-          try {
-            const { marquerPayee } = await import("@/lib/orders");
-            correction = (await marquerPayee(c.id)) ? "payée" : "inchangée";
-          } catch (e) {
-            correction = `ÉCHEC : ${String(e).slice(0, 400)}`;
-          }
-        }
-        return { sku: c.sku, status: c.status, cree: c.createdAt, session: Boolean(c.stripeSessionId), stripe, correction };
+        return { sku: c.sku, status: c.status, cree: c.createdAt, session: Boolean(c.stripeSessionId), stripe };
       }),
     );
     return NextResponse.json(out, { status: 200 });
