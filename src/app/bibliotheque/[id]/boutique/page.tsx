@@ -10,7 +10,8 @@ import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { storySchema } from "@/lib/storySchema";
 import { lightenStory } from "@/lib/bookImages";
-import { DELUXE_PRODUCTS, PACK_TOUT, formatEuros, skusPossedes } from "@/lib/products";
+import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, formatEuros, skusPossedes } from "@/lib/products";
+import { impressionConfiguree } from "@/lib/print";
 import BuyAllButton from "@/components/BuyAllButton";
 import { confirmPaidSession, reconcilePendingOrders } from "@/lib/stripe";
 import PurchaseDownload from "@/components/PurchaseDownload";
@@ -26,6 +27,9 @@ const KIT = [
   { emoji: "🔖", nom: "Marque-pages" },
   { emoji: "🎧", nom: "Histoire audio (MP3)" },
 ];
+
+// Après paiement d'un livre imprimé, la fabrication du fichier peut démarrer ici.
+export const maxDuration = 300;
 
 export default async function BoutiquePage({
   params,
@@ -155,6 +159,11 @@ export default async function BoutiquePage({
             ))}
           </div>
         </div>
+      )}
+
+      {/* Le vrai livre relié, livré à la maison */}
+      {impressionConfiguree() && (
+        <DeluxeShop bookId={book.id} produits={[LIVRE_IMPRIME]} skusPayes={skusPayes} titre="Le livre imprimé 📕" />
       )}
 
       {/* Produits deluxe à l'unité */}

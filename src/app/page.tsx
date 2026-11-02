@@ -8,7 +8,7 @@
 
 import Link from "next/link";
 import type { Metadata } from "next";
-import { DELUXE_PRODUCTS, PACK_TOUT } from "@/lib/products";
+import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT } from "@/lib/products";
 import { BOOK_FORMATS } from "@/lib/bookFormats";
 import { auth } from "@/lib/auth";
 import { env } from "@/lib/env";
@@ -494,6 +494,7 @@ export default async function AccueilPage() {
             </span>
           </p>
           <span className="text-sm text-magique-texteClair">
+            📕 Livre imprimé et relié, livré chez vous : {euros(LIVRE_IMPRIME.priceCents)}.<br />
             Ou à l'unité : {DELUXE_PRODUCTS.map((d) => `${d.label} ${euros(d.priceCents)}`).join(" · ")}
           </span>
         </div>

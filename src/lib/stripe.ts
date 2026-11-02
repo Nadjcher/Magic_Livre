@@ -9,7 +9,8 @@ import "server-only";
 import Stripe from "stripe";
 import { env } from "./env";
 import { prisma } from "./prisma";
-import { notifierAchat } from "./notifications";
+import { apresPaiement } from "./notifications";
+import { waitUntil } from "@vercel/functions";
 
 let cached: Stripe | null = null;
 
@@ -37,6 +38,8 @@ export async function createCheckoutSession(params: {
   productDescription: string;
   /** Montant à facturer en centimes. */
   amountCents: number;
+  /** Produit expédié : demande l'adresse de livraison et le téléphone. */
+  livraison?: readonly string[];
 }): Promise<{ sessionId: string; url: string }> {
   const stripe = getStripe();
   const baseUrl = env.authUrl();
@@ -59,6 +62,14 @@ export async function createCheckoutSession(params: {
     // On rattache les identifiants pour les retrouver dans le webhook.
     // orderId permet de valider la commande même si l'enregistrement du
     // stripeSessionId a échoué côté application.
+    ...(params.livraison
+      ? {
+          shipping_address_collection: {
+            allowed_countries: params.livraison as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[],
+          },
+          phone_number_collection: { enabled: true },
+        }
+      : {}),
     metadata: {
       userId: params.userId,
       bookId: params.bookId,
@@ -114,7 +125,7 @@ export async function confirmPaidSession(
       where: { id: orderId, userId, bookId, status: { not: "paid" } },
       data: { status: "paid", stripeSessionId: session.id },
     });
-    if (r.count > 0) await notifierAchat(orderId).catch(() => undefined);
+    if (r.count > 0) waitUntil(apresPaiement(orderId).catch(() => undefined));
     return true;
   } catch {
     return false;
@@ -152,7 +163,7 @@ export async function reconcilePendingOrders(
             where: { id: order.id, status: "pending" },
             data: { status: "paid" },
           });
-          if (r.count > 0) await notifierAchat(order.id).catch(() => undefined);
+          if (r.count > 0) waitUntil(apresPaiement(order.id).catch(() => undefined));
         }
       } catch {
         /* on continue avec les autres commandes */

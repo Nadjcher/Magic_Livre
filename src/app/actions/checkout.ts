@@ -12,7 +12,8 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { createCheckoutSession } from "@/lib/stripe";
 import { env } from "@/lib/env";
-import { getDeluxeProduct, PACK_TOUT, skusDonnantAcces } from "@/lib/products";
+import { getDeluxeProduct, PACK_TOUT, PAYS_LIVRAISON, skusDonnantAcces } from "@/lib/products";
+import { impressionConfiguree } from "@/lib/print";
 
 export interface CheckoutResult {
   ok: boolean;
@@ -54,6 +55,9 @@ export async function startCheckout(
   } else {
     const product = getDeluxeProduct(sku);
     if (!product) return { ok: false, message: "Produit inconnu." };
+    if (product.physique && !impressionConfiguree()) {
+      return { ok: false, message: "Le livre imprimé n'est pas encore disponible." };
+    }
     amountCents = product.priceCents;
     productName = `${product.label} — ${book.title}`;
     productDescription = product.description;
@@ -63,7 +67,7 @@ export async function startCheckout(
   const existingPaid = await prisma.order.findFirst({
     where: { bookId: book.id, userId: user.id, sku: { in: skusDonnantAcces(sku) }, status: "paid" },
   });
-  if (existingPaid) {
+  if (existingPaid && !getDeluxeProduct(sku)?.physique) {
     return {
       ok: false,
       message:
@@ -92,6 +96,7 @@ export async function startCheckout(
       productName,
       productDescription,
       amountCents,
+      livraison: getDeluxeProduct(sku)?.physique ? PAYS_LIVRAISON : undefined,
     });
 
     await prisma.order.update({

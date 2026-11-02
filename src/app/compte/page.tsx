@@ -10,6 +10,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser, hasParentalConsent } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { formatEuros, getDeluxeProduct, PACK_TOUT } from "@/lib/products";
+import { libelleStatut, suiviGelato } from "@/lib/print";
 import EnTetePage from "@/components/EnTetePage";
 import {
   ChangePasswordForm,
@@ -54,6 +55,22 @@ export default async function ComptePage() {
     }),
   ]);
   const total = achats.reduce((n, a) => n + a.amount, 0);
+
+  // Livres imprimés : statut et suivi de colis chez l'imprimeur.
+  const lignesImpression = await prisma.$queryRaw<{ id: string; title: string; imp: unknown }[]>`
+    SELECT id, title, pages->'impressions' AS imp FROM "Book"
+    WHERE "userId" = ${user.id} AND "deletedAt" IS NULL AND pages ? 'impressions'`;
+  const impressions = (
+    await Promise.all(
+      lignesImpression.flatMap((l) =>
+        (Array.isArray(l.imp) ? (l.imp as { gelatoId: string; creeLe: number }[]) : []).map(async (i) => ({
+          titre: l.title,
+          date: new Date(i.creeLe),
+          suivi: await suiviGelato(i.gelatoId),
+        })),
+      ),
+    )
+  ).sort((a, b) => b.date.getTime() - a.date.getTime());
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -146,6 +163,32 @@ export default async function ComptePage() {
           </ul>
         )}
       </section>
+
+      {impressions.length > 0 && (
+        <section className="carte space-y-4">
+          <h2 className="text-xl">Mes livres imprimés 📦</h2>
+          <ul className="divide-y divide-magique-trait">
+            {impressions.map((i, k) => (
+              <li key={k} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
+                <div>
+                  <p className="font-semibold">{i.titre}</p>
+                  <p className="text-magique-texteClair">Commandé le {i.date.toLocaleDateString("fr-FR")}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="rounded-full bg-white/10 px-3 py-1 font-semibold">
+                    {i.suivi ? libelleStatut(i.suivi.statut) : "En préparation"}
+                  </span>
+                  {i.suivi?.suivi && (
+                    <a href={i.suivi.suivi} target="_blank" rel="noopener" className="underline">
+                      Suivre le colis
+                    </a>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Sécurité */}
       <section className="carte space-y-4">

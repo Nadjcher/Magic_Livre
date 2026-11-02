@@ -28,6 +28,21 @@ export async function notifierLivrePret(bookId: string): Promise<void> {
   );
 }
 
+/**
+ * Actions au passage d'une commande à « payée » (appelé une seule fois, au
+ * moment exact de la transition) : livre imprimé envoyé à l'imprimeur, ou
+ * email avec les liens de téléchargement.
+ */
+export async function apresPaiement(orderId: string): Promise<void> {
+  const order = await prisma.order.findUnique({ where: { id: orderId }, select: { sku: true } });
+  if (order?.sku === "imprime") {
+    const { lancerImpression } = await import("./print");
+    await lancerImpression(orderId);
+    return;
+  }
+  await notifierAchat(orderId);
+}
+
 /** Confirmation d'achat avec le lien vers les téléchargements. */
 export async function notifierAchat(orderId: string): Promise<void> {
   const order = await prisma.order.findUnique({

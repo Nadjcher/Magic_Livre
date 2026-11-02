@@ -28,7 +28,7 @@ import { STYLE_CONFIG } from "./style_config";
  * normales) que la typographie française place avant « : ! ? ; » et dans les
  * guillemets : elles s'affichaient « / ». On les remplace par des espaces.
  */
-function pdfText(t: string): string {
+export function pdfText(t: string): string {
   return t.replace(/[\u00A0\u202F\u2007\u2009]/g, " ");
 }
 
@@ -37,7 +37,7 @@ function pdfText(t: string): string {
  * on garde « : ! ? ; » et les guillemets collés au mot, sans « : » orphelin en
  * début de ligne.
  */
-function texteLivre(t: string): string {
+export function texteLivre(t: string): string {
   return t
     .replace(/[\u202F\u2007\u2009]/g, "\u00A0")
     .replace(/ ([:;!?»])/g, "\u00A0$1")
@@ -58,10 +58,10 @@ function pdfSafe(story: Story): Story {
 // variées, page « Fin », 4e de couverture), polices Fraunces + Nunito.
 // ---------------------------------------------------------------------------
 
-const DOSSIER_POLICES = path.join(process.cwd(), "src", "pdf-assets");
+export const DOSSIER_POLICES = path.join(process.cwd(), "src", "pdf-assets");
 let policesEnregistrees = false;
 /** Enregistre les polices du livre (une seule fois). Repli : Helvetica. */
-function polices(): { titre: string; texte: string; italique: string } {
+export function polices(): { titre: string; texte: string; italique: string } {
   if (!policesEnregistrees) {
     try {
       Font.register({ family: "Fraunces", src: path.join(DOSSIER_POLICES, "Fraunces-SemiBold.ttf"), fontWeight: 600 });
@@ -82,13 +82,13 @@ function polices(): { titre: string; texte: string; italique: string } {
   return { titre: "Fraunces", texte: "Nunito", italique: "FrauncesItalic" };
 }
 
-const NUIT = "#1B2868";
-const PAPIER = "#FBF8F3";
-const ENCRE = "#2A2F4F";
-const ROSE = "#D4698C";
+export const NUIT = "#1B2868";
+export const PAPIER = "#FBF8F3";
+export const ENCRE = "#2A2F4F";
+export const ROSE = "#D4698C";
 
 /** Taille du texte selon sa longueur (imagier très gros, mini-roman plus petit). */
-function tailleTexte(t: string): number {
+export function tailleTexte(t: string): number {
   const n = t.length;
   if (n < 90) return 24;
   if (n < 180) return 20;
@@ -98,7 +98,7 @@ function tailleTexte(t: string): number {
 }
 
 /** Petite étoile dessinée (ornement). */
-function Etoile({ taille = 14, couleur = ROSE }: { taille?: number; couleur?: string }) {
+export function Etoile({ taille = 14, couleur = ROSE }: { taille?: number; couleur?: string }) {
   return (
     <Svg width={taille} height={taille} viewBox="0 0 24 24">
       <Path d="M12 2l2.6 6.9L22 10l-5.6 4.6L18 22l-6-3.8L6 22l1.6-7.4L2 10l7.4-1.1z" fill={couleur} />
@@ -106,7 +106,7 @@ function Etoile({ taille = 14, couleur = ROSE }: { taille?: number; couleur?: st
   );
 }
 
-function Ornement({ couleur = ROSE }: { couleur?: string }) {
+export function Ornement({ couleur = ROSE }: { couleur?: string }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", marginVertical: 14 }}>
       <View style={{ width: 60, height: 1, backgroundColor: couleur, opacity: 0.6 }} />

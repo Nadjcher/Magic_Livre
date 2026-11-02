@@ -7,11 +7,13 @@
 import { NextResponse } from "next/server";
 import { constructWebhookEvent } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
-import { notifierAchat } from "@/lib/notifications";
+import { apresPaiement } from "@/lib/notifications";
+import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
 // Le webhook a besoin du corps brut pour vérifier la signature.
 export const runtime = "nodejs";
+export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request): Promise<Response> {
@@ -42,7 +44,8 @@ export async function POST(req: Request): Promise<Response> {
         data: { status: "paid", stripeSessionId: session.id },
       });
       // Email de confirmation (une seule fois : au passage à « payé »).
-      if (r.count > 0) await notifierAchat(orderId).catch(() => undefined);
+      // Fabrication du livre imprimé (long) en arrière-plan : on répond vite à Stripe.
+      if (r.count > 0) waitUntil(apresPaiement(orderId).catch(() => undefined));
     }
   } else if (event.type === "checkout.session.expired") {
     const session = event.data.object as Stripe.Checkout.Session;

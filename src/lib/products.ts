@@ -19,6 +19,8 @@ export interface DeluxeProduct {
   priceCents: number;
   /** Chemin de téléchargement, relatif à /api/books/{id}/ (vide = page dédiée). */
   route: string;
+  /** Produit physique expédié (adresse demandée au paiement). */
+  physique?: boolean;
 }
 
 /**
@@ -81,8 +83,25 @@ export const DELUXE_PRODUCTS: DeluxeProduct[] = [
   },
 ];
 
+/** Livre imprimé et relié, expédié chez le client (imprimeur Gelato). */
+export const LIVRE_IMPRIME: DeluxeProduct = {
+  sku: "imprime",
+  label: "Livre imprimé, couverture rigide",
+  emoji: "📕",
+  description:
+    "Le vrai livre relié, 28 × 21 cm, couverture rigide, 30 pages sur papier épais : " +
+    "l'histoire, ses personnages, des pages souvenir et à dessiner. Livré chez vous en 7 à 10 jours.",
+  priceCents: 3490,
+  route: "",
+  physique: true,
+};
+
+/** Pays de livraison du livre imprimé. */
+export const PAYS_LIVRAISON = ["FR", "BE", "LU", "CH", "MC", "DE", "ES", "IT", "NL", "PT", "AT", "IE"] as const;
+
 /** Retrouve un produit deluxe par son sku. */
 export function getDeluxeProduct(sku: string): DeluxeProduct | undefined {
+  if (sku === LIVRE_IMPRIME.sku) return LIVRE_IMPRIME;
   return DELUXE_PRODUCTS.find((p) => p.sku === sku);
 }
 

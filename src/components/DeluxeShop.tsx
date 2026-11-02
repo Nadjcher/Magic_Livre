@@ -15,10 +15,12 @@ export default function DeluxeShop({
   bookId,
   produits,
   skusPayes,
+  titre = "Produits deluxe, à l'unité ✦",
 }: {
   bookId: string;
   produits: DeluxeProduct[];
   skusPayes: string[];
+  titre?: string;
 }) {
   const [erreur, setErreur] = useState<string | null>(null);
   const [encours, setEncours] = useState<string | null>(null);
@@ -40,9 +42,11 @@ export default function DeluxeShop({
 
   return (
     <div className="carte">
-      <h2 className="font-serif text-xl">Produits deluxe, à l'unité ✦</h2>
+      <h2 className="font-serif text-xl">{titre}</h2>
       <p className="mb-4 mt-1 text-sm text-magique-texteClair">
-        Des créations supplémentaires, à acheter séparément quand vous voulez.
+        {produits.some((p) => p.physique)
+          ? "Imprimé et expédié par notre imprimeur partenaire, livraison incluse."
+          : "Des créations supplémentaires, à acheter séparément quand vous voulez."}
       </p>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -60,8 +64,20 @@ export default function DeluxeShop({
                   <span className="font-serif text-magique-primaire">{formatEuros(p.priceCents)}</span>
                 </div>
                 <p className="mt-0.5 text-sm text-magique-texteClair">{p.description}</p>
-                <div className="mt-2">
-                  {paye ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {p.physique ? (
+                    <>
+                      <button onClick={() => acheter(p.sku)} disabled={pending} className="btn-primaire px-4 py-2 text-sm">
+                        {encours === p.sku ? "Redirection…" : `${paye ? "Commander un autre exemplaire" : "Commander"} (${formatEuros(p.priceCents)})`}
+                      </button>
+                      <a href={`/api/books/${bookId}/apercu-impression`} target="_blank" rel="noopener" className="btn-secondaire px-4 py-2 text-sm">
+                        Voir l'aperçu avant impression
+                      </a>
+                      {paye && (
+                        <a href="/compte" className="self-center text-sm underline">Suivre ma commande</a>
+                      )}
+                    </>
+                  ) : paye ? (
                     <a
                       href={p.route ? `/api/books/${bookId}/${p.route}` : `/bibliotheque/${bookId}/${p.sku}`}
                       className="btn-primaire px-4 py-2 text-sm"

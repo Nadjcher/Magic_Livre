@@ -82,6 +82,11 @@ export const storySchema = z.object({
     .object({ heros: z.string().url().nullable().optional(), cast: z.record(z.string().url()).optional() })
     .optional()
     .catch(undefined),
+  // Commandes de livre imprimé (imprimeur Gelato).
+  impressions: z
+    .array(z.object({ orderId: z.string(), gelatoId: z.string(), creeLe: z.number() }))
+    .optional()
+    .catch(undefined),
   // Nombre de pages redessinées à la demande (plafonné).
   retouches: z.number().int().min(0).optional(),
   // Bande-annonce vidéo (produit payant) : scènes animées + voix off.
