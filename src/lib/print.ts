@@ -31,7 +31,7 @@ export function impressionConfiguree(): boolean {
 }
 
 /** Agrandit une illustration pour l'impression (≈ 3 400 px de large). Repli : l'image d'origine. */
-async function agrandir(dataUrl: string | null): Promise<string | null> {
+export async function agrandir(dataUrl: string | null): Promise<string | null> {
   if (!dataUrl || !env.falApiKey()) return dataUrl;
   try {
     const r = await fetch("https://fal.run/fal-ai/esrgan", {
