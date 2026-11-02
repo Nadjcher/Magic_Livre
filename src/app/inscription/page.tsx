@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Notice from "@/components/Notice";
 import EnTetePage from "@/components/EnTetePage";
+import AuthVisuel from "@/components/AuthVisuel";
 import { register } from "@/app/actions/auth";
 
 export default function InscriptionPage() {
@@ -118,13 +119,8 @@ export default function InscriptionPage() {
           </p>
         </form>
       </div>
-      <div className="order-1 mx-auto max-w-xs md:order-2 md:max-w-none">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/illustrations/feerique/login.webp"
-          alt="Une enveloppe scellée d'une étoile"
-          className="w-full"
-        />
+      <div className="order-1 hidden md:order-2 md:block">
+        <AuthVisuel titre="Son premier livre, gratuit à lire" texte="Créez votre compte et découvrez son histoire avant de payer quoi que ce soit." />
       </div>
     </div>
   );

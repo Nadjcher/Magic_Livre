@@ -285,3 +285,11 @@ h1, h2, h3, .serif {
   .relief-avant,
   .relief-milieu { transform: none !important; }
 }
+
+/* Défilement horizontal sans barre visible (sommaire de l'accueil sur mobile). */
+.sans-barre {
+  scrollbar-width: none;
+}
+.sans-barre::-webkit-scrollbar {
+  display: none;
+}

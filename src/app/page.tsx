@@ -226,16 +226,16 @@ export default async function AccueilPage() {
 
       {/* ─── Sommaire ─── */}
       <nav aria-label="Sommaire de la page" className="-mt-12 sm:-mt-16">
-        <ul className="flex gap-2 overflow-x-auto pb-1 text-sm sm:justify-center">
+        <ul className="sans-barre flex gap-2 overflow-x-auto text-sm md:flex-wrap md:justify-center md:overflow-visible">
           {[
-            ["#comment", "Comment ça marche"],
-            ["#exemple", "Un exemple"],
-            ["#ages", "Pour chaque âge"],
-            ["#styles", "Styles de dessin"],
+            ["#comment", "Étapes"],
+            ["#exemple", "Exemple"],
+            ["#ages", "Par âge"],
+            ["#styles", "Styles"],
             ["#themes", "Thèmes"],
-            ["#offres", "Ce que vous recevez"],
+            ["#offres", "Offres"],
             ["#prix", "Prix"],
-            ["#faq", "Questions"],
+            ["#faq", "Questions fréquentes"],
           ].map(([href, label]) => (
             <li key={href} className="flex-none">
               <a href={href} className="block rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 font-semibold hover:border-white">

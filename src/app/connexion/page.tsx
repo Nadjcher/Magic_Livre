@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Notice from "@/components/Notice";
 import EnTetePage from "@/components/EnTetePage";
+import AuthVisuel from "@/components/AuthVisuel";
 
 export default function ConnexionPage() {
   const router = useRouter();
@@ -105,13 +106,8 @@ export default function ConnexionPage() {
           </p>
         </form>
       </div>
-      <div className="order-1 mx-auto max-w-xs md:order-2 md:max-w-none">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/illustrations/feerique/login.webp"
-          alt="Une enveloppe scellée d'une étoile"
-          className="w-full"
-        />
+      <div className="order-1 hidden md:order-2 md:block">
+        <AuthVisuel titre="Vos histoires vous attendent" texte="Retrouvez les livres de vos enfants, prêts à être lus ce soir." />
       </div>
     </div>
   );
