@@ -79,7 +79,7 @@ export async function createCheckoutSession(params: {
       orderId: params.orderId,
       ...(params.consentement ? { consentement: params.consentement } : {}),
     },
-    success_url: `${baseUrl}/bibliotheque/${params.bookId}/boutique?paiement=succes&session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `${baseUrl}/api/stripe/retour?book=${params.bookId}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl}/bibliotheque/${params.bookId}/boutique?paiement=annule`,
   });
 

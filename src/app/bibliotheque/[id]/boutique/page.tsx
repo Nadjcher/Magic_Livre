@@ -50,11 +50,15 @@ export default async function BoutiquePage({
   // Filet de sécurité : si on revient d'un paiement, on confirme directement
   // auprès de Stripe (indépendant du webhook) pour débloquer le téléchargement.
   if (searchParams.session_id) {
-    await confirmPaidSession(searchParams.session_id, user.id, book.id);
+    // Anciens liens de retour : confirmation bornée à 8 s pour ne jamais bloquer la page.
+    await Promise.race([
+      confirmPaidSession(searchParams.session_id, user.id, book.id),
+      new Promise((ok) => setTimeout(ok, 8000)),
+    ]);
   }
   // Rattrapage : réconcilie toute commande payée restée « en attente »
   // (retour sans session_id, webhook absent…).
-  await reconcilePendingOrders(user.id, book.id);
+  await Promise.race([reconcilePendingOrders(user.id, book.id), new Promise((ok) => setTimeout(ok, 6000))]);
 
   const premium = book.tier === "premium";
   const parsed = storySchema.safeParse(book.pages);
