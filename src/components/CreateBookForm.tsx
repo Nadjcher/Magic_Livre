@@ -19,7 +19,6 @@ import Notice from "./Notice";
 import GenerationOverlay from "./GenerationOverlay";
 import Link from "next/link";
 
-const STYLE_KEYS = Object.keys(ILLUSTRATION_STYLES) as IllustrationStyle[];
 
 /**
  * Lit une photo, la redimensionne (max 512 px) et la renvoie en data URL JPEG

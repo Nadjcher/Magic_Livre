@@ -53,7 +53,7 @@ export default function AgeExplorer() {
       <div className="grid gap-6 md:grid-cols-[1.1fr_.9fr]">
         <div className="space-y-4">
           <p className="text-magique-texteClair">{g.intro}</p>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             {formats.map((f) => (
               <div key={f.id} className="carte p-4">
                 <p className="text-2xl" aria-hidden="true">{f.emoji}</p>
