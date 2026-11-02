@@ -59,7 +59,9 @@ export default function CataloguePage() {
               {themes.map((t) => (
                 <article key={t.id} className="carte flex flex-col">
                   <span className="text-3xl" aria-hidden="true">{t.emoji}</span>
-                  <h3 className="mt-2 text-lg">{t.titre}</h3>
+                  <h3 className="mt-2 text-lg">
+                    <Link href={`/catalogue/${t.id}`} className="hover:underline">{t.titre}</Link>
+                  </h3>
                   <p className="mt-1 flex-1 text-sm leading-relaxed text-magique-texteClair">
                     {t.accroche}
                   </p>

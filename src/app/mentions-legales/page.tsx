@@ -5,6 +5,15 @@
  * des paiements. Les champs entre crochets doivent être renseignés.
  */
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Mentions légales",
+  description: "Éditeur, hébergeur et contact du site Storilou, livres personnalisés pour enfants.",
+  alternates: { canonical: "/mentions-legales" },
+};
+
+
 export default function MentionsLegalesPage() {
   return (
     <article className="prose mx-auto max-w-2xl space-y-4">

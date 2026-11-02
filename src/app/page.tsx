@@ -7,6 +7,7 @@
  */
 
 import Link from "next/link";
+import type { Metadata } from "next";
 import { DELUXE_PRODUCTS, PACK_TOUT } from "@/lib/products";
 import { BOOK_FORMATS } from "@/lib/bookFormats";
 import { auth } from "@/lib/auth";
@@ -14,6 +15,11 @@ import { env } from "@/lib/env";
 import { getAppUrl } from "@/lib/appUrl";
 import { findThemeById } from "@/lib/themes";
 import { ILLUSTRATION_STYLES, ILLUSTRATION_STYLE_KEYS } from "@/lib/style_config";
+
+export const metadata: Metadata = {
+  title: { absolute: "Livre personnalisé pour enfant, illustré à son image · Storilou" },
+  alternates: { canonical: "/" },
+};
 
 const APP_URL = getAppUrl();
 
@@ -273,6 +279,43 @@ export default async function AccueilPage() {
         <p className="mt-4 text-center text-xs text-magique-texteClair">
           Exemple réalisé avec un enfant fictif. Votre photo n'est jamais conservée.
         </p>
+      </section>
+
+      {/* ─── Notre valeur, face au livre personnalisé classique ─── */}
+      <section>
+        <h2 className="text-center text-3xl sm:text-4xl">Pas un modèle où l'on change le prénom</h2>
+        <p className="mx-auto mt-3 max-w-[54ch] text-center text-magique-texteClair">
+          La plupart des livres personnalisés sont la même histoire pour tous les enfants, avec un prénom
+          inséré. Chez Storilou, chaque livre est écrit et dessiné pour un seul enfant.
+        </p>
+        <div className="mt-8 overflow-x-auto">
+          <table className="w-full min-w-[560px] border-separate border-spacing-0 overflow-hidden rounded-3xl border border-white/15 text-sm">
+            <thead>
+              <tr className="bg-white/[0.06]">
+                <th className="p-4 text-left font-semibold"> </th>
+                <th className="p-4 text-left font-semibold text-magique-texteClair">Livre personnalisé classique</th>
+                <th className="p-4 text-left font-semibold">✦ Storilou</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                ["L'histoire", "La même pour tous, prénom inséré", "Inventée pour votre enfant, unique"],
+                ["Le héros", "Un avatar à choisir dans une liste", "Dessiné d'après sa photo, le même à chaque page"],
+                ["L'âge", "Un livre « 3-8 ans »", "Écrit pour son âge exact, de 1 à 12 ans"],
+                ["La famille", "Rarement", "Frère, sœur, parents, doudou, animal"],
+                ["Avant d'acheter", "Un aperçu de quelques pages", "Le livre entier, gratuitement"],
+                ["Délai", "Plusieurs jours", "Environ 3 minutes"],
+                ["Prix", "25 à 40 €", "Dès 6,99 €"],
+              ].map(([critere, eux, nous]) => (
+                <tr key={critere} className="border-t border-white/10">
+                  <td className="border-t border-white/10 p-4 font-semibold">{critere}</td>
+                  <td className="border-t border-white/10 p-4 text-magique-texteClair">{eux}</td>
+                  <td className="border-t border-white/10 p-4">{nous}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       {/* ─── Ce qui fait la différence ─── */}

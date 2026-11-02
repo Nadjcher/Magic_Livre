@@ -4,7 +4,16 @@
  * ⚠️ Modèle à faire relire par un juriste avant l'ouverture des paiements.
  */
 
+import type { Metadata } from "next";
+
 import { env } from "@/lib/env";
+
+export const metadata: Metadata = {
+  title: "Conditions générales d’utilisation",
+  description: "Les conditions d’utilisation du service Storilou : création de livres personnalisés pour enfants, achats, données et consentement parental.",
+  alternates: { canonical: "/cgu" },
+};
+
 
 export default function CguPage() {
   return (

@@ -3,6 +3,8 @@
  * création.
  */
 
+import type { Metadata } from "next";
+
 import { redirect } from "next/navigation";
 import { getCurrentUser, hasParentalConsent } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
@@ -10,6 +12,13 @@ import { env } from "@/lib/env";
 import CreateBookForm from "@/components/CreateBookForm";
 import ConsentForm from "@/components/ConsentForm";
 import EnTetePage from "@/components/EnTetePage";
+
+export const metadata: Metadata = {
+  title: "Créer un livre",
+  description: "Espace personnel Storilou.",
+  robots: { index: false, follow: false },
+};
+
 
 function euros(cents: number): string {
   return `${(cents / 100).toFixed(2).replace(".", ",")} €`;

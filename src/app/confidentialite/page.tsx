@@ -4,6 +4,15 @@
  * ⚠️ Modèle à faire relire par un juriste avant l'ouverture des paiements.
  */
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Politique de confidentialité",
+  description: "Comment Storilou protège les données de votre famille : photo jamais conservée, données minimales, suppression à tout moment.",
+  alternates: { canonical: "/confidentialite" },
+};
+
+
 export default function ConfidentialitePage() {
   return (
     <article className="mx-auto max-w-2xl space-y-4">

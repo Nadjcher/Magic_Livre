@@ -10,6 +10,7 @@ import type { Story } from "@/lib/storySchema";
 import BookReader from "@/components/BookReader";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/demo" },
   title: "Un aperçu de la magie",
   description:
     "Feuilletez un exemple de conte personnalisé : illustrations et lecture à voix haute. Sans compte.",

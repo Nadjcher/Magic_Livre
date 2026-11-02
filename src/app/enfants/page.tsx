@@ -2,11 +2,20 @@
  * Page de gestion des enfants.
  */
 
+import type { Metadata } from "next";
+
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import ChildrenManager from "@/components/ChildrenManager";
 import EnTetePage from "@/components/EnTetePage";
+
+export const metadata: Metadata = {
+  title: "Mes enfants",
+  description: "Espace personnel Storilou.",
+  robots: { index: false, follow: false },
+};
+
 
 export default async function EnfantsPage() {
   const user = await getCurrentUser();

@@ -3,6 +3,8 @@
  * confirmation d'email) et suppression du compte (RGPD).
  */
 
+import type { Metadata } from "next";
+
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser, hasParentalConsent } from "@/lib/session";
@@ -14,6 +16,13 @@ import {
   DeleteAccountForm,
   ResendVerificationButton,
 } from "@/components/AccountForms";
+
+export const metadata: Metadata = {
+  title: "Mon compte",
+  description: "Espace personnel Storilou.",
+  robots: { index: false, follow: false },
+};
+
 
 export const dynamic = "force-dynamic";
 

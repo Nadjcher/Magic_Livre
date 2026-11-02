@@ -2,6 +2,8 @@
  * Bibliothèque : l'étagère des contes, avec couverture, enfant et statut.
  */
 
+import type { Metadata } from "next";
+
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
@@ -11,6 +13,13 @@ import DeleteBookButton from "@/components/DeleteBookButton";
 import { bookImageUrl, migrateBookImagesToBlob } from "@/lib/bookImages";
 import { storySchema } from "@/lib/storySchema";
 import { waitUntil } from "@vercel/functions";
+
+export const metadata: Metadata = {
+  title: "Ma bibliothèque",
+  description: "Espace personnel Storilou.",
+  robots: { index: false, follow: false },
+};
+
 
 /**
  * Allège en arrière-plan quelques anciens livres dont les images sont encore

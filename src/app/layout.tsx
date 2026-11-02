@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Nunito } from "next/font/google";
 import Link from "next/link";
+import { AGE_GROUPS } from "@/lib/ageGroups";
 import "./globals.css";
 import Header from "@/components/Header";
 import MagicParticles from "@/components/MagicParticles";
@@ -46,7 +47,6 @@ export const metadata: Metadata = {
     "histoire du soir",
     "livre à imprimer enfant",
   ],
-  alternates: { canonical: "/" },
   formatDetection: { telephone: false, email: false, address: false },
   robots: {
     index: true,
@@ -91,6 +91,11 @@ export default function RootLayout({
             <Link href="/catalogue" className="hover:text-white">
               Catalogue
             </Link>
+            {AGE_GROUPS.map((g) => (
+              <Link key={g.slug} href={`/livre-personnalise/${g.slug}`} className="hover:text-white">
+                Livre {g.label}
+              </Link>
+            ))}
             <Link href="/mentions-legales" className="hover:text-white">
               Mentions légales
             </Link>

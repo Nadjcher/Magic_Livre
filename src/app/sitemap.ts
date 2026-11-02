@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAppUrl } from "@/lib/appUrl";
+import { THEMES } from "@/lib/themes";
+import { AGE_GROUPS } from "@/lib/ageGroups";
 
 /**
  * Plan du site pour les moteurs de recherche. On n'y liste que les pages
@@ -21,6 +23,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/cgu", priority: 0.2, freq: "yearly" },
     { path: "/confidentialite", priority: 0.2, freq: "yearly" },
   ];
+
+  for (const t of THEMES) pages.push({ path: `/catalogue/${t.id}`, priority: 0.8, freq: "monthly" });
+  for (const g of AGE_GROUPS) pages.push({ path: `/livre-personnalise/${g.slug}`, priority: 0.8, freq: "monthly" });
 
   return pages.map((p) => ({
     url: `${BASE_URL}${p.path}`,
