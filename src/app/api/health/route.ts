@@ -123,6 +123,19 @@ export async function GET(req: Request): Promise<Response> {
 
   const img = new URL(req.url).searchParams.get("img");
 
+  // Où tournent le site et la base, et temps d'une requête : /api/health?perf=1
+  if (new URL(req.url).searchParams.get("perf") === "1") {
+    const t = [];
+    for (let i = 0; i < 3; i++) {
+      const d = Date.now();
+      await prisma.$queryRaw`SELECT 1`;
+      t.push(Date.now() - d);
+    }
+    const hote = (process.env.DATABASE_URL ?? "").match(/@[^/]*?\.([a-z]+-[a-z]+-\d)\.aws/)?.[1] ?? "inconnue";
+    (out as Record<string, unknown>).perf = { regionSite: process.env.VERCEL_REGION ?? "inconnue", regionBase: hote, requetesMs: t };
+    return NextResponse.json(out, { status: 200 });
+  }
+
   // Table des abonnements (création automatique) : /api/health?club=1
   if (new URL(req.url).searchParams.get("club") === "1") {
     try {
