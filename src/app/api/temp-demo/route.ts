@@ -3,7 +3,10 @@ import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
-import { generateStory } from "@/lib/storyGenerator";
+import { generateStory, fichesPresentes } from "@/lib/storyGenerator";
+import { generateIllustration } from "@/lib/illustration";
+import { storySchema } from "@/lib/storySchema";
+import { fetchAsDataUrl } from "@/lib/imageFetch";
 import { getAppUrl } from "@/lib/appUrl";
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -16,6 +19,40 @@ const DEMOS: Record<string, { prenom: string; age: number; req: Record<string, u
 export async function GET(req: Request): Promise<Response> {
   const u = new URL(req.url);
   if (createHash("sha256").update(u.searchParams.get("s") ?? "").digest("hex") !== "60f9804f692b5d47e044b4a8dc4d13f189abfb311f95c2e15e2feab7d81d2fd3") return new NextResponse("Non.", { status: 404 });
+  if (u.searchParams.get("repare") === "1") {
+    const emails0 = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+    const adm = await prisma.user.findFirst({ where: { email: { in: emails0 } }, orderBy: { createdAt: "asc" } });
+    const livres = await prisma.book.findMany({ where: { userId: adm?.id, status: "ready", deletedAt: null, createdAt: { gt: new Date(Date.now() - 3 * 3600_000) } }, include: { child: true } });
+    const out: Record<string, string> = {};
+    const debut = Date.now();
+    for (const b of livres) {
+      const p = storySchema.safeParse(b.pages);
+      if (!p.success) continue;
+      const st = p.data;
+      const ref = async (x: string | null | undefined) => {
+        const dd = await fetchAsDataUrl(x, { maxPx: 1024, quality: 86 });
+        const m = dd ? /^data:([^;]+);base64,(.+)$/.exec(dd) : null;
+        return m ? { mime: m[1] as string, base64: m[2] as string } : undefined;
+      };
+      const ancre = (await ref(st.fiches?.heros)) ?? (await ref(st.couvertureUrl));
+      const fiches = new Map<string, { base64: string; mime: string }>();
+      for (const [nom, url] of Object.entries(st.fiches?.cast ?? {})) { const r0 = await ref(url); if (r0) fiches.set(nom, r0); }
+      let faits = 0;
+      const pages = [];
+      for (let i = 0; i < st.pages.length; i++) {
+        const pg = st.pages[i]!;
+        if (pg.imageUrl || Date.now() - debut > 240_000) { pages.push(pg); continue; }
+        const r1 = await generateIllustration({ style: st.style ?? "feerique", scene: pg.scene_illustration.replace(/\b(wolf|big bad|eat|eaten|swallow|teeth|claws)\b/gi, "friendly fox"), heroName: b.child.firstName, recurringCharacters: st.personnages, anchorImage: ancre, castRefs: fichesPresentes(pg, fiches), seed: Date.now() % 1e6 + i });
+        if (r1.imageUrl) faits++;
+        pages.push({ ...pg, imageUrl: r1.imageUrl });
+      }
+      const maj = { ...st, pages };
+      const manq = pages.filter((x) => !x.imageUrl).length + (st.couvertureUrl ? 0 : 1);
+      await prisma.book.update({ where: { id: b.id }, data: { pages: maj as never, errorMessage: manq ? \`Illustrations manquantes : \${manq}\` : null } });
+      out[b.title] = \`\${faits} ajoutées, \${manq} manquantes\`;
+    }
+    return NextResponse.json(out);
+  }
   const d = DEMOS[u.searchParams.get("d") ?? ""];
   if (!d) return NextResponse.json({ erreur: "démo inconnue" });
   const emails = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
