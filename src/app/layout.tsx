@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Fraunces, Nunito } from "next/font/google";
 import Link from "next/link";
+import { Suspense } from "react";
+import BarreNavigation from "@/components/BarreNavigation";
 import { AGE_GROUPS } from "@/lib/ageGroups";
 import "./globals.css";
 import Header from "@/components/Header";
@@ -84,6 +86,9 @@ export default function RootLayout({
       <body className="flex min-h-screen flex-col font-sans">
         <MagicParticles />
         <TiltProvider />
+        <Suspense fallback={null}>
+          <BarreNavigation />
+        </Suspense>
         <Header />
         <main className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
         <footer className="relative z-10 mt-8 bg-nuit px-4 py-8 text-sm text-[#9fb0e0]">
