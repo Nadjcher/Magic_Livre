@@ -12,6 +12,8 @@ import { getAppUrl } from "@/lib/appUrl";
 import { PLANS_CLUB, type PlanClub } from "@/lib/products";
 import { getAbonnement, synchroniser } from "@/lib/subscription";
 import { VERSION_CGV } from "@/lib/legal";
+import { MESSAGE_FERME, ventesOuvertes } from "@/lib/lancement";
+import { estAdmin } from "@/lib/rateLimit";
 
 export interface ClubResult {
   ok: boolean;
@@ -22,6 +24,7 @@ export interface ClubResult {
 export async function startClub(plan: PlanClub, consentement: boolean): Promise<ClubResult> {
   const user = await getCurrentUser();
   if (!user) return { ok: false, message: "Créez un compte ou connectez-vous pour rejoindre le Club." };
+  if (!ventesOuvertes() && !estAdmin(user.email)) return { ok: false, message: MESSAGE_FERME };
   if (!consentement) return { ok: false, message: "Merci d'accepter les conditions générales de vente." };
   const def = PLANS_CLUB[plan];
   if (!def) return { ok: false, message: "Formule inconnue." };

@@ -10,6 +10,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PLANS_CLUB } from "@/lib/products";
 import AgeExplorer from "@/components/AgeExplorer";
+import WaitlistForm from "@/components/WaitlistForm";
+import { DATE_OUVERTURE, ventesOuvertes } from "@/lib/lancement";
 import AvisListe, { Etoiles } from "@/components/AvisListe";
 import { avisPublics } from "@/lib/reviews";
 import { auth } from "@/lib/auth";
@@ -191,6 +193,14 @@ export default async function AccueilPage() {
           <p className="mt-4 text-sm text-magique-texteClair">
             Lecture gratuite. Vous payez seulement pour garder le livre : PDF dès {prix}, livre imprimé {euros(LIVRE_IMPRIME.priceCents)}.
           </p>
+          {!ventesOuvertes() && (
+            <div className="mt-6 max-w-lg rounded-2xl border border-white/15 bg-white/[0.06] p-4">
+              <p className="text-sm font-semibold">✨ Ouverture des commandes le {DATE_OUVERTURE}. Soyez prévenu(e) :</p>
+              <div className="mt-2">
+                <WaitlistForm source="accueil" />
+              </div>
+            </div>
+          )}
           <ul className="mt-6 space-y-2.5">
             {PROMESSES.map((p) => (
               <li key={p} className="flex items-center gap-2.5 text-[15px] text-magique-texte">

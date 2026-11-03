@@ -12,6 +12,9 @@ import { storySchema } from "@/lib/storySchema";
 import { lightenStory } from "@/lib/bookImages";
 import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PRIX_IMPRIME_ABONNE, formatEuros, skusPossedes } from "@/lib/products";
 import { getAbonnement } from "@/lib/subscription";
+import { ventesOuvertes } from "@/lib/lancement";
+import { estAdmin } from "@/lib/rateLimit";
+import BandeauLancement from "@/components/BandeauLancement";
 import { impressionConfiguree } from "@/lib/print";
 import BuyAllButton from "@/components/BuyAllButton";
 import { confirmPaidSession, reconcilePendingOrders } from "@/lib/stripe";
@@ -94,6 +97,8 @@ export default async function BoutiquePage({
           Tous les cadeaux ci-dessous sont créés à partir de l'histoire de {book.child.firstName}.
         </p>
       </div>
+
+      {!ventesOuvertes() && !estAdmin(user.email) && <BandeauLancement source="boutique" />}
 
       {searchParams.paiement === "succes" && (
         <Notice kind="succes">

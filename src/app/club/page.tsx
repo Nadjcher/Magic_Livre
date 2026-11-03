@@ -6,6 +6,9 @@ import { getCurrentUser } from "@/lib/session";
 import { getAbonnement } from "@/lib/subscription";
 import { THEMES } from "@/lib/themes";
 import ClubPlans from "@/components/ClubPlans";
+import BandeauLancement from "@/components/BandeauLancement";
+import { ventesOuvertes } from "@/lib/lancement";
+import { estAdmin } from "@/lib/rateLimit";
 import Notice from "@/components/Notice";
 
 export const metadata: Metadata = {
@@ -29,6 +32,8 @@ export default async function ClubPage({ searchParams }: { searchParams: { annul
           monde, réécrits pour lui. Sans engagement : vous arrêtez quand vous voulez.
         </p>
       </header>
+
+      {!ventesOuvertes() && !(user && estAdmin(user.email)) && <BandeauLancement source="club" />}
 
       {searchParams.annule && <Notice kind="info">Abonnement non souscrit. Vous pouvez réessayer quand vous voulez.</Notice>}
 

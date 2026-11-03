@@ -14,6 +14,8 @@ import { createCheckoutSession } from "@/lib/stripe";
 import { env } from "@/lib/env";
 import { getDeluxeProduct, PACK_TOUT, PAYS_LIVRAISON, PRIX_IMPRIME_ABONNE, skusDonnantAcces } from "@/lib/products";
 import { getAbonnement } from "@/lib/subscription";
+import { MESSAGE_FERME, ventesOuvertes } from "@/lib/lancement";
+import { estAdmin } from "@/lib/rateLimit";
 import { impressionConfiguree } from "@/lib/print";
 import { VERSION_CGV } from "@/lib/legal";
 
@@ -29,11 +31,14 @@ export async function startCheckout(
   /** Case cochée : CGV acceptées (+ renonciation à la rétractation pour le numérique). */
   consentement = false,
 ): Promise<CheckoutResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Vous devez être connecté." };
+  if (!ventesOuvertes() && !estAdmin(user.email)) {
+    return { ok: false, message: MESSAGE_FERME };
+  }
   if (!consentement) {
     return { ok: false, message: "Merci d'accepter les conditions générales de vente avant de payer." };
   }
-  const user = await getCurrentUser();
-  if (!user) return { ok: false, message: "Vous devez être connecté." };
 
   const book = await prisma.book.findFirst({
     where: { id: bookId, userId: user.id, deletedAt: null },
