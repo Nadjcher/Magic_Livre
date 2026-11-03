@@ -62,7 +62,16 @@ export default function ConfidentialitePage() {
         (Gemini). Paiement : Stripe. Impression et livraison du livre relié : Gelato. Hébergement : Vercel.
         Base de données : Neon. Envoi des emails : notre prestataire SMTP. Chacun traite les données
         uniquement pour fournir le service. La photo éventuellement fournie est transmise aux outils
-        d'illustration le temps de la création, puis n'est jamais conservée.
+        d'illustration le temps de la création, puis n'est jamais conservée par
+        nos soins ; ses métadonnées (position GPS, date) sont supprimées avant tout envoi.
+      </p>
+      <h2 className="text-xl font-semibold">Transferts hors de l'Union européenne</h2>
+      <p className="text-magique-texteClair">
+        Le site et la base de données sont hébergés dans l'Union européenne (Francfort). Certains
+        prestataires (outils d'intelligence artificielle, paiement, envoi d'emails) sont établis aux
+        États-Unis : les transferts sont encadrés par les clauses contractuelles types de la Commission
+        européenne et/ou le cadre de protection des données UE–États-Unis. Ces prestataires ne sont
+        autorisés à utiliser les données que pour fournir le service.
       </p>
 
       <p className="text-sm italic text-magique-texteClair">

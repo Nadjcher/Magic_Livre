@@ -24,6 +24,14 @@ const nextConfig = {
           },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          // Politique de contenu prudente : interdit l'intégration du site dans un
+          // autre site, les plugins, la modification de l'adresse de base, et
+          // n'autorise l'envoi de formulaires que vers le site et Stripe.
+          {
+            key: "Content-Security-Policy",
+            value:
+              "frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://checkout.stripe.com; upgrade-insecure-requests",
+          },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-DNS-Prefetch-Control", value: "off" },
           {

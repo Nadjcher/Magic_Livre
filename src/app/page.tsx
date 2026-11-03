@@ -2,7 +2,7 @@
  * Landing page Encore une histoire.
  *
  * Positionnement : une histoire écrite pour l'enfant (âge, thème), un héros à
- * son image, prête en deux minutes, et lue gratuitement AVANT tout paiement.
+ * son image, prête en quelques minutes, et lue gratuitement AVANT tout paiement.
  * Un seul élément fort (le livre en relief du héros), le reste sobre.
  */
 
@@ -188,7 +188,10 @@ export default async function AccueilPage() {
               Lire un exemple
             </Link>
           </div>
-          <ul className="mt-8 space-y-2.5">
+          <p className="mt-4 text-sm text-magique-texteClair">
+            Lecture gratuite. Vous payez seulement pour garder le livre : PDF dès {prix}, livre imprimé {euros(LIVRE_IMPRIME.priceCents)}.
+          </p>
+          <ul className="mt-6 space-y-2.5">
             {PROMESSES.map((p) => (
               <li key={p} className="flex items-center gap-2.5 text-[15px] text-magique-texte">
                 <Coche />

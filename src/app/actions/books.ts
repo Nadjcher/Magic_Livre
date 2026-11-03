@@ -12,12 +12,13 @@
  */
 
 import { revalidatePath } from "next/cache";
+import sharp from "sharp";
 import { waitUntil } from "@vercel/functions";
 import { getCurrentUser, hasParentalConsent } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { createBookSchema, checkUserText, extraSchema } from "@/lib/validation";
 import { findFormat, formatsPourAge } from "@/lib/bookFormats";
-import { checkDailyBookLimit } from "@/lib/rateLimit";
+import { checkDailyBookLimit, estAdmin } from "@/lib/rateLimit";
 import { generateStory } from "@/lib/storyGenerator";
 import { lancerIllustrations } from "@/lib/bookPipeline";
 import { describeChildFromPhoto } from "@/lib/illustration";
@@ -35,14 +36,28 @@ export interface CreateBookResult {
 
 type Photo = { base64: string; mime: string };
 
-/** Lit une photo envoyée en data URL (JPEG/PNG/WebP, taille bornée). */
-function lirePhoto(v: FormDataEntryValue | null): Photo | undefined {
+/**
+ * Lit une photo envoyée en data URL et la RÉ-ENCODE côté serveur : on vérifie
+ * que c'est une vraie image (pas seulement son type déclaré), on la limite à
+ * 1 024 px et on supprime TOUTES ses métadonnées (EXIF : position GPS, date,
+ * appareil). La photo n'est jamais enregistrée.
+ */
+async function lirePhoto(v: FormDataEntryValue | null): Promise<Photo | undefined> {
   if (typeof v !== "string") return undefined;
   const m = /^data:(image\/(?:png|jpeg|jpg|webp));base64,(.+)$/i.exec(v);
   if (!m) return undefined;
-  const mime = m[1] === "image/jpg" ? "image/jpeg" : (m[1] as string);
   const data = m[2] ?? "";
-  return data.length > 0 && data.length <= 4_000_000 ? { base64: data, mime } : undefined;
+  if (data.length === 0 || data.length > 4_000_000) return undefined;
+  try {
+    const propre = await sharp(Buffer.from(data, "base64"), { limitInputPixels: 40_000_000 })
+      .rotate()
+      .resize({ width: 1024, height: 1024, fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 88 })
+      .toBuffer();
+    return { base64: propre.toString("base64"), mime: "image/jpeg" };
+  } catch {
+    return undefined; // pas une image valide
+  }
 }
 
 type ExtraInput = { name: string; role: string; appearance?: string; photo?: Photo };
@@ -93,7 +108,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
   }
   // Photo de référence : utilisée uniquement pour dessiner un héros ressemblant,
   // envoyée au modèle d'image au moment de la génération, puis JAMAIS stockée.
-  const photoRef = lirePhoto(formData.get("photo"));
+  const photoRef = await lirePhoto(formData.get("photo"));
 
   // Autres personnages (famille, doudou, animal) : jusqu'à 3.
   const extras: ExtraInput[] = [];
@@ -110,7 +125,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
       const check = checkUserText(t);
       if (!check.ok) return { ok: false, message: check.message };
     }
-    extras.push({ ...e.data, photo: lirePhoto(formData.get(`extra_${i}_photo`)) });
+    extras.push({ ...e.data, photo: await lirePhoto(formData.get(`extra_${i}_photo`)) });
   }
 
 
@@ -132,6 +147,19 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
       ok: false,
       message: `« ${f?.label ?? "Ce format"} » est prévu pour les ${f?.ageMin}–${f?.ageMax} ans. Choisissez un autre type de livre.`,
     };
+  }
+
+  // Anti-abus : tant que l'adresse email n'est pas confirmée, un seul livre
+  // (sinon, des comptes jetables pourraient générer des livres en masse).
+  if (!user.emailVerified && !estAdmin(user.email)) {
+    const deja = await prisma.book.count({ where: { userId: user.id } });
+    if (deja >= 1) {
+      return {
+        ok: false,
+        message:
+          "Confirmez votre adresse email pour créer d'autres livres : cliquez sur le lien reçu par email (ou renvoyez-le depuis « Mon compte »).",
+      };
+    }
   }
 
   // Limite quotidienne pour contrôler les coûts.
