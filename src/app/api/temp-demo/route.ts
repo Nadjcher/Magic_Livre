@@ -48,8 +48,8 @@ export async function GET(req: Request): Promise<Response> {
       }
       const maj = { ...st, pages };
       const manq = pages.filter((x) => !x.imageUrl).length + (st.couvertureUrl ? 0 : 1);
-      await prisma.book.update({ where: { id: b.id }, data: { pages: maj as never, errorMessage: manq ? `Illustrations manquantes : \${manq}` : null } });
-      out[b.title] = `\${faits} ajoutées, \${manq} manquantes`;
+      await prisma.book.update({ where: { id: b.id }, data: { pages: maj as never, errorMessage: manq ? `Illustrations manquantes : ${manq}` : null } });
+      out[b.title] = `${faits} ajoutées, ${manq} manquantes`;
     }
     return NextResponse.json(out);
   }
