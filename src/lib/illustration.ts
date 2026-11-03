@@ -134,7 +134,9 @@ export async function generateIllustration(
           // adoucit la scène et on essaie l'autre modèle, plus tolérant.
           if (/content_policy|content checker|flagged/i.test(r.error)) {
             model = autre;
-            texte = `${prompt.replace(/\b(cry|crying|cries|sob|sobbing|tears?|scared|afraid|fear|sad)\b/gi, "worried")}. Gentle, wholesome, joyful children's picture book scene.`;
+            texte = `${prompt
+              .replace(/\b(cry|crying|cries|sob|sobbing|tears?|scared|afraid|fear|sad)\b/gi, "worried")
+              .replace(/\b(eat|eats|eating|eaten|devour\w*|swallow\w*|bite|biting|teeth|fangs|claws|growl\w*|monster|scary|danger\w*|attack\w*)\b/gi, "playful")}. Gentle, wholesome, joyful children's picture book scene, everyone smiling and friendly.`;
             continue;
           }
           if (!r.retry) break;
