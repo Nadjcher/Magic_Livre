@@ -19,6 +19,23 @@ const DEMOS: Record<string, { prenom: string; age: number; req: Record<string, u
 export async function GET(req: Request): Promise<Response> {
   const u = new URL(req.url);
   if (createHash("sha256").update(u.searchParams.get("s") ?? "").digest("hex") !== "60f9804f692b5d47e044b4a8dc4d13f189abfb311f95c2e15e2feab7d81d2fd3") return new NextResponse("Non.", { status: 404 });
+  if (u.searchParams.get("voir") === "1") {
+    const emailsV = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+    const admV = await prisma.user.findFirst({ where: { email: { in: emailsV } }, orderBy: { createdAt: "asc" } });
+    const livres = await prisma.book.findMany({ where: { userId: admV?.id, status: "ready", createdAt: { gt: new Date(Date.now() - 3 * 3600_000) } } });
+    const res: Record<string, unknown> = {};
+    for (const b of livres) {
+      const p = storySchema.safeParse(b.pages);
+      if (!p.success) continue;
+      const mini = async (x: string | null | undefined) => {
+        const dd = await fetchAsDataUrl(x, { maxPx: 1024, quality: 80 });
+        if (!dd) return null;
+        return "data:image/jpeg;base64," + (await sharp(Buffer.from(dd.split(",")[1]!, "base64")).resize({ width: 320 }).jpeg({ quality: 65 }).toBuffer()).toString("base64");
+      };
+      res[b.title] = { textes: p.data.pages.map((x) => x.texte), images: await Promise.all([p.data.couvertureUrl, ...p.data.pages.map((x) => x.imageUrl)].map(mini)) };
+    }
+    return NextResponse.json(res);
+  }
   if (u.searchParams.get("repare") === "1") {
     const emails0 = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
     const adm = await prisma.user.findFirst({ where: { email: { in: emails0 } }, orderBy: { createdAt: "asc" } });
