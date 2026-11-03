@@ -18,6 +18,8 @@ export default function robots(): MetadataRoute.Robots {
         "/bibliotheque",
         "/enfants",
         "/compte",
+        "/admin",
+        "/avis/",
         "/reinitialiser",
         "/verifier-email",
         "/mot-de-passe-oublie",

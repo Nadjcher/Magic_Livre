@@ -105,6 +105,13 @@ export default async function BoutiquePage({
         <Notice kind="info">Paiement annulé. Vous pouvez réessayer quand vous voulez.</Notice>
       )}
 
+      {paid && (
+        <div className="carte flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p>⭐ Votre enfant a aimé son histoire ? Votre avis aide d'autres parents.</p>
+          <Link href={`/avis/${book.id}`} className="btn-secondaire flex-none px-4 py-2 text-sm">Donner mon avis</Link>
+        </div>
+      )}
+
       {/* Formule complète, mise en avant tant que tout n'est pas acheté */}
       {!toutPossede && skusPayes.length === 0 && (
         <section className="carte flex flex-col gap-4 border-2 border-magique-primaire sm:flex-row sm:items-center sm:justify-between">

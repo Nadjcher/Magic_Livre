@@ -96,6 +96,9 @@ export default function RootLayout({
             <Link href="/catalogue" className="hover:text-white">
               Catalogue
             </Link>
+            <Link href="/avis" className="hover:text-white">
+              Avis des parents
+            </Link>
             {AGE_GROUPS.map((g) => (
               <Link key={g.slug} href={`/livre-personnalise/${g.slug}`} className="hover:text-white">
                 Livre {g.label}

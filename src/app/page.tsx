@@ -10,6 +10,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PLANS_CLUB } from "@/lib/products";
 import AgeExplorer from "@/components/AgeExplorer";
+import AvisListe, { Etoiles } from "@/components/AvisListe";
+import { avisPublics } from "@/lib/reviews";
 import { auth } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { getAppUrl } from "@/lib/appUrl";
@@ -121,6 +123,8 @@ export default async function AccueilPage() {
   const cta = session?.user ? "/creer" : "/inscription";
   const prix = euros(env.bookPriceCents());
   const prixPremium = euros(env.bookPricePremiumCents());
+  // Avis vérifiés (affichés et transmis à Google uniquement s'il y en a de vrais).
+  const avis = await avisPublics(6);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -140,6 +144,18 @@ export default async function AccueilPage() {
           availability: "https://schema.org/InStock",
           url: `${APP_URL}/creer`,
         },
+        ...(avis.total > 0
+          ? {
+              aggregateRating: { "@type": "AggregateRating", ratingValue: avis.moyenne, reviewCount: avis.total, bestRating: 5, worstRating: 1 },
+              review: avis.avis.slice(0, 5).map((a) => ({
+                "@type": "Review",
+                reviewRating: { "@type": "Rating", ratingValue: a.note, bestRating: 5 },
+                author: { "@type": "Person", name: a.auteur.split(",")[0] },
+                reviewBody: a.texte,
+                datePublished: new Date(a.createdAt).toISOString().slice(0, 10),
+              })),
+            }
+          : {}),
       },
       {
         "@type": "FAQPage",
@@ -461,6 +477,23 @@ export default async function AccueilPage() {
           </span>
         </div>
       </section>
+
+      {/* ─── Avis des parents (seulement quand il y en a de vrais) ─── */}
+      {avis.total > 0 && (
+        <section id="avis" className="scroll-mt-24">
+          <h2 className="text-center text-3xl sm:text-4xl">Ce qu'en disent les parents</h2>
+          <p className="mt-3 text-center">
+            <Etoiles note={avis.moyenne} taille="text-xl" /> <strong>{avis.moyenne.toLocaleString("fr-FR")}/5</strong>{" "}
+            <span className="text-magique-texteClair">· {avis.total} avis vérifié{avis.total > 1 ? "s" : ""}</span>
+          </p>
+          <div className="mt-8">
+            <AvisListe avis={avis.avis.slice(0, 3)} />
+          </div>
+          <p className="mt-6 text-center">
+            <Link href="/avis" className="font-semibold text-magique-primaire hover:underline">Lire tous les avis</Link>
+          </p>
+        </section>
+      )}
 
       {/* ─── Questions fréquentes ─── */}
       <section id="faq" className="scroll-mt-24 mx-auto max-w-3xl">
