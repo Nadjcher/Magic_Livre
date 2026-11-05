@@ -6,11 +6,16 @@
  * - sinon → bouton d'achat qui lance Stripe Checkout.
  */
 
+import Picto from "@/components/Picto";
 import { useState, useTransition } from "react";
 import { startCheckout } from "@/app/actions/checkout";
 import { formatEuros, type DeluxeProduct } from "@/lib/products";
 import Notice from "./Notice";
 import CaseConsentement from "./CaseConsentement";
+
+
+/** Petit dessin associé à chaque produit. */
+const PICTO_SKU: Record<string, string> = { pack_fete: "fete", affiche_a3: "affiche", video: "video", tout: "tout", imprime: "imprime" };
 
 export default function DeluxeShop({
   bookId,
@@ -59,7 +64,7 @@ export default function DeluxeShop({
               key={p.sku}
               className="flex items-start gap-3 rounded-2xl border border-magique-trait bg-white/[0.06] p-4"
             >
-              <span className="text-2xl" aria-hidden="true">{p.emoji}</span>
+              <Picto cle={`offres/${PICTO_SKU[p.sku] ?? p.sku}`} secours={p.emoji} taille={48} />
               <div className="flex-1">
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="font-semibold text-magique-texte">{p.label}</span>

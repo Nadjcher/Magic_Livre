@@ -6,6 +6,7 @@
  * autocollants, marque-pages, et audio MP3 si la synthèse vocale est configurée).
  */
 
+import Picto from "@/components/Picto";
 import { useState } from "react";
 import Notice from "./Notice";
 
@@ -74,7 +75,7 @@ export default function BookExtras({
             href={`/api/books/${bookId}/${p.href}`}
             className="group flex items-start gap-3 rounded-2xl border border-magique-trait bg-white/[0.06] p-4 transition hover:-translate-y-0.5 hover:border-magique-primaire hover:shadow-douce"
           >
-            <span className="text-2xl" aria-hidden="true">{p.emoji}</span>
+            <Picto cle={`extras/${p.cle}`} secours={p.emoji} taille={44} />
             <span>
               <span className="block font-semibold text-magique-texte">{p.titre}</span>
               <span className="block text-sm text-magique-texteClair">{p.desc}</span>

@@ -3,6 +3,7 @@
  * direct pour créer le livre. Page publique (prospects, référencement).
  */
 
+import Picto from "@/components/Picto";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { THEMES, THEME_CATEGORIES } from "@/lib/themes";
@@ -39,7 +40,8 @@ export default function CataloguePage() {
         >
           <p className="font-serif italic text-[#cdd7f4]">De saison</p>
           <h2 className="mt-1 text-3xl text-white sm:text-4xl">
-            <span aria-hidden="true">{t.emoji}</span> {t.titre}
+            <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={56} className="mr-2 inline-block align-middle" />
+            {t.titre}
           </h2>
           <p className="mt-3 max-w-[48ch] text-[#cdd7f4]">{t.accroche}</p>
           <Link href={`/creer?theme=${t.id}`} className="btn-primaire mt-6">
@@ -53,13 +55,14 @@ export default function CataloguePage() {
         return (
           <section key={c.id} id={c.id} className="scroll-mt-24">
             <h2 className="text-2xl sm:text-3xl">
-              <span aria-hidden="true">{c.emoji}</span> {c.label}
+              <Picto cle={`categories/${c.id}`} secours={c.emoji} taille={40} className="mr-2 inline-block align-middle" />
+              {c.label}
             </h2>
             <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {themes.map((t) => (
-                <article key={t.id} className="carte flex flex-col">
-                  <span className="text-3xl" aria-hidden="true">{t.emoji}</span>
-                  <h3 className="mt-2 text-lg">
+                <article key={t.id} className="relative flex flex-col rounded-2xl bg-white/[0.05] p-5 pl-24 transition hover:bg-white/[0.08]">
+                  <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={64} className="absolute left-5 top-5" />
+                  <h3 className="text-lg">
                     <Link href={`/catalogue/${t.id}`} className="hover:underline">{t.titre}</Link>
                   </h3>
                   <p className="mt-1 flex-1 text-sm leading-relaxed text-magique-texteClair">

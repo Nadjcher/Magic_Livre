@@ -6,6 +6,7 @@
  * de dessin adaptés.
  */
 
+import Picto from "@/components/Picto";
 import { useState } from "react";
 import Link from "next/link";
 import { AGE_GROUPS } from "@/lib/ageGroups";
@@ -55,10 +56,12 @@ export default function AgeExplorer() {
           <p className="text-magique-texteClair">{g.intro}</p>
           <div className="grid gap-3 sm:grid-cols-2">
             {formats.map((f) => (
-              <div key={f.id} className="carte p-4">
-                <p className="text-2xl" aria-hidden="true">{f.emoji}</p>
-                <p className="mt-1 font-semibold">{f.label}</p>
-                <p className="text-sm text-magique-texteClair">{f.description}</p>
+              <div key={f.id} className="flex items-start gap-3 rounded-2xl bg-white/[0.05] p-3">
+                <Picto cle={`formats/${f.id}`} secours={f.emoji} taille={52} />
+                <div className="min-w-0">
+                  <p className="font-semibold">{f.label}</p>
+                  <p className="text-sm text-magique-texteClair">{f.description}</p>
+                </div>
               </div>
             ))}
           </div>

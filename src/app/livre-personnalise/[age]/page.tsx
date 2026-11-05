@@ -3,6 +3,7 @@
  * besoins de l'âge, types de livres et styles adaptés.
  */
 
+import Picto from "@/components/Picto";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -49,10 +50,12 @@ export default function AgePage({ params }: { params: { age: string } }) {
         <h2 className="text-2xl">Les livres conçus pour {g.label}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           {formats.map((f) => (
-            <div key={f.id} className="carte">
-              <p className="text-2xl" aria-hidden="true">{f.emoji}</p>
-              <h3 className="mt-1 text-lg">{f.label}</h3>
-              <p className="text-sm text-magique-texteClair">{f.description}</p>
+            <div key={f.id} className="flex items-start gap-4 border-t border-white/10 py-4">
+              <Picto cle={`formats/${f.id}`} secours={f.emoji} taille={60} />
+              <div>
+                <h3 className="text-lg">{f.label}</h3>
+                <p className="text-sm text-magique-texteClair">{f.description}</p>
+              </div>
             </div>
           ))}
         </div>

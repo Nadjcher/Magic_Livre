@@ -18,6 +18,7 @@ import { auth } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { getAppUrl } from "@/lib/appUrl";
 import { findThemeById } from "@/lib/themes";
+import Picto from "@/components/Picto";
 import { ILLUSTRATION_STYLES, ILLUSTRATION_STYLE_KEYS } from "@/lib/style_config";
 
 export const metadata: Metadata = {
@@ -256,15 +257,16 @@ export default async function AccueilPage() {
       {/* ─── Comment ça marche (vraie séquence) ─── */}
       <section id="comment" className="scroll-mt-24">
         <h2 className="text-center text-3xl sm:text-4xl">Trois étapes, et c'est prêt</h2>
-        <ol className="mt-10 grid gap-6 sm:grid-cols-3">
+        <ol className="relative mt-10 grid gap-10 sm:grid-cols-3 sm:gap-8">
+          <li aria-hidden="true" className="pointer-events-none absolute left-[18%] right-[18%] top-20 hidden border-t-2 border-dashed border-white/20 sm:block" />
           {ETAPES.map((e, i) => (
-            <li key={e.titre} className="carte-relief flex flex-col items-center p-7 text-center">
-              <Illu nom={e.illu} alt="" className="mb-4 h-32 w-full object-contain" />
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-magique-primaire font-serif text-sm font-bold text-nuit">
-                {i + 1}
-              </span>
-              <h3 className="mt-3 text-xl">{e.titre}</h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-magique-texteClair">{e.texte}</p>
+            <li key={e.titre} className="relative flex flex-col items-center text-center">
+              <Illu nom={e.illu} alt="" className="h-40 w-40 object-contain drop-shadow-[0_18px_24px_rgba(5,10,40,.45)]" />
+              <h3 className="mt-4 text-xl">
+                <span className="mr-1.5 font-serif text-or">{i + 1}.</span>
+                {e.titre}
+              </h3>
+              <p className="mt-2 max-w-[30ch] text-[15px] leading-relaxed text-magique-texteClair">{e.texte}</p>
             </li>
           ))}
         </ol>
@@ -337,7 +339,7 @@ export default async function AccueilPage() {
       </section>
 
       {/* ─── Catalogue ─── */}
-      <section id="themes" className="scroll-mt-24 rounded-[2rem] border border-magique-trait bg-white/[0.06] px-6 py-10 sm:px-10">
+      <section id="themes" className="scroll-mt-24">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h2 className="text-3xl sm:text-4xl">Une histoire pour chaque moment</h2>
@@ -349,7 +351,7 @@ export default async function AccueilPage() {
             Voir tout le catalogue
           </Link>
         </div>
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {THEMES_VITRINE.map((id) => {
             const t = findThemeById(id);
             if (!t) return null;
@@ -357,10 +359,10 @@ export default async function AccueilPage() {
               <Link
                 key={t.id}
                 href={`/creer?theme=${t.id}`}
-                className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[15px] font-semibold text-magique-texte transition hover:border-magique-primaire hover:text-magique-primaire"
+                className="group flex flex-col items-center gap-2 rounded-2xl px-3 py-4 text-center text-[15px] font-semibold text-magique-texte transition hover:bg-white/[0.07]"
               >
-                <span aria-hidden="true">{t.emoji}</span>
-                {t.titre}
+                <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={72} className="transition duration-300 group-hover:-translate-y-1 group-hover:rotate-[-3deg]" />
+                <span className="leading-snug">{t.titre}</span>
                 {t.saison && (
                   <span className="rounded-full bg-magique-rose/15 px-2 py-0.5 text-xs text-or-clair">De saison</span>
                 )}
@@ -376,23 +378,27 @@ export default async function AccueilPage() {
         <p className="mx-auto mt-3 max-w-[52ch] text-center text-magique-texteClair">
           Vous lisez d'abord le livre en entier, gratuitement. Ensuite, gardez-le sous la forme qui vous plaît.
         </p>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mx-auto mt-8 grid max-w-5xl gap-x-12 sm:grid-cols-2">
           {[
-            ["📖", "La lecture à l'écran", "Le livre complet, sur ordinateur, tablette ou téléphone, avec lecture à voix haute.", "Gratuit"],
-            ["📄", "Le livre PDF + son kit", "À imprimer chez vous, avec coloriage, affiche, invitation, autocollants et marque-pages.", `Dès ${prix}`],
-            ["📕", "Le livre imprimé", "Relié, couverture rigide, 28 × 21 cm, 30 pages. Imprimé et livré chez vous.", euros(LIVRE_IMPRIME.priceCents)],
-            ["🎬", "Le livre en dessin animé", "Chaque page s'anime et une voix raconte l'histoire, en musique. Une vraie vidéo.", euros(DELUXE_PRODUCTS.find((d) => d.sku === "video")?.priceCents ?? 999)],
-            ["🎈", "Le pack fête et l'affiche A3", "Invitations, banderole et étiquettes à son image, et le héros en grand format.", `Dès ${euros(Math.min(...DELUXE_PRODUCTS.filter((d) => d.sku !== "video").map((d) => d.priceCents)))}`],
-            ["⭐", "Le Club des histoires", "Un nouveau livre chaque semaine et les grands classiques revisités, sans engagement.", `Dès ${euros(PLANS_CLUB.club.priceCents)} / mois`],
+            ["offres/ecran", "La lecture à l'écran", "Le livre complet, sur ordinateur, tablette ou téléphone, avec lecture à voix haute.", "Gratuit"],
+            ["offres/pdf", "Le livre PDF + son kit", "À imprimer chez vous, avec coloriage, affiche, invitation, autocollants et marque-pages.", `Dès ${prix}`],
+            ["offres/imprime", "Le livre imprimé", "Relié, couverture rigide, 28 × 21 cm, 30 pages. Imprimé et livré chez vous.", euros(LIVRE_IMPRIME.priceCents)],
+            ["offres/video", "Le livre en dessin animé", "Chaque page s'anime et une voix raconte l'histoire, en musique. Une vraie vidéo.", euros(DELUXE_PRODUCTS.find((d) => d.sku === "video")?.priceCents ?? 999)],
+            ["offres/fete", "Le pack fête et l'affiche A3", "Invitations, banderole et étiquettes à son image, et le héros en grand format.", `Dès ${euros(Math.min(...DELUXE_PRODUCTS.filter((d) => d.sku !== "video").map((d) => d.priceCents)))}`],
+            ["offres/club", "Le Club des histoires", "Un nouveau livre chaque semaine et les grands classiques revisités, sans engagement.", `Dès ${euros(PLANS_CLUB.club.priceCents)} / mois`],
           ].map(([icone, titre, texte, tarif]) => (
-            <div key={titre} className="carte flex flex-col">
-              <p className="text-3xl" aria-hidden="true">{icone}</p>
-              <h3 className="mt-2 text-lg">{titre}</h3>
-              <p className="mt-1 flex-1 text-sm text-magique-texteClair">{texte}</p>
-              <p className="mt-3 font-serif text-xl">{tarif}</p>
-            </div>
+            <li key={titre} className="flex items-start gap-4 border-t border-white/10 py-5">
+              <Picto cle={icone ?? ""} taille={64} />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between sm:gap-x-3">
+                  <h3 className="text-lg">{titre}</h3>
+                  <p className="font-serif text-lg text-or-clair">{tarif}</p>
+                </div>
+                <p className="mt-1 text-sm text-magique-texteClair">{texte}</p>
+              </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </section>
 
       {/* ─── Notre valeur, face au livre personnalisé classique ─── */}
@@ -477,14 +483,16 @@ export default async function AccueilPage() {
         </div>
         <div className="carte mt-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-[15px]">
-            <strong>👑 Formule Tout compris, {euros(PACK_TOUT.priceCents)}</strong>
+            <Picto cle="offres/tout" taille={30} className="mr-1.5 inline-block align-middle" />
+            <strong>Formule Tout compris, {euros(PACK_TOUT.priceCents)}</strong>
             <span className="text-magique-texteClair">
               {" "}— le livre et son kit, le Pack Fête d'anniversaire, l'affiche A3 et l'histoire
               en dessin animé.
             </span>
           </p>
           <span className="text-sm text-magique-texteClair">
-            📕 Livre imprimé et relié, livré chez vous : {euros(LIVRE_IMPRIME.priceCents)}.<br />
+            <Picto cle="offres/imprime" taille={22} className="mr-1 inline-block align-middle" />
+            Livre imprimé et relié, livré chez vous : {euros(LIVRE_IMPRIME.priceCents)}.<br />
             Ou à l'unité : {DELUXE_PRODUCTS.map((d) => `${d.label} ${euros(d.priceCents)}`).join(" · ")}
           </span>
         </div>

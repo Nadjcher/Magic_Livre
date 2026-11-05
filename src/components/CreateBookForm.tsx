@@ -6,6 +6,7 @@
  * personnages protégés et un indicateur de progression pendant la génération.
  */
 
+import Picto from "@/components/Picto";
 import { useState, useTransition } from "react";
 import { findFormat, formatParDefaut, formatsPourAge } from "@/lib/bookFormats";
 import { ROLES_EXTRAS } from "@/lib/validation";
@@ -207,7 +208,7 @@ export default function CreateBookForm({
                     : "border-magique-trait hover:border-magique-primaire"
                 }`}
               >
-                <span className="text-2xl" aria-hidden="true">{f.emoji}</span>
+                <Picto cle={`formats/${f.id}`} secours={f.emoji} taille={44} />
                 <span>
                   <span className="flex flex-wrap items-center gap-2 font-semibold">
                     {f.label}
@@ -244,7 +245,8 @@ export default function CreateBookForm({
                   : "border-magique-trait bg-white/[0.06] hover:border-magique-primaire"
               }`}
             >
-              {c.emoji} {c.label}
+              <Picto cle={`categories/${c.id}`} secours={c.emoji} taille={22} className="-my-1 mr-1 inline-block align-middle" />
+              {c.label}
             </button>
           ))}
           <button
@@ -277,7 +279,7 @@ export default function CreateBookForm({
                       : "border-magique-trait hover:border-magique-primaire"
                   }`}
                 >
-                  <span className="text-2xl" aria-hidden="true">{t.emoji}</span>
+                  <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={48} />
                   <span>
                     <span className="flex flex-wrap items-center gap-2 font-semibold">
                       {t.titre}

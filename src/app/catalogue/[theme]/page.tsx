@@ -4,6 +4,7 @@
  * direct pour créer le livre.
  */
 
+import Picto from "@/components/Picto";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -74,7 +75,7 @@ export default function ThemePage({ params }: { params: { theme: string } }) {
       </nav>
 
       <header className="space-y-4 text-center">
-        <p className="text-5xl" aria-hidden="true">{t.emoji}</p>
+        <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={128} className="mx-auto" />
         <h1 className="text-3xl sm:text-5xl">{t.titre}</h1>
         <p className="mx-auto max-w-[48ch] text-lg text-magique-texteClair">{t.accroche}</p>
         <Link href={`/creer?theme=${t.id}`} className="btn-primaire text-lg">
@@ -130,8 +131,9 @@ export default function ThemePage({ params }: { params: { theme: string } }) {
           <h2 className="text-2xl">Dans la même famille</h2>
           <div className="grid gap-3 sm:grid-cols-3">
             {voisins.map((v) => (
-              <Link key={v.id} href={`/catalogue/${v.id}`} className="carte carte-interactive">
-                <span aria-hidden="true">{v.emoji}</span> <span className="font-semibold">{v.titre}</span>
+              <Link key={v.id} href={`/catalogue/${v.id}`} className="flex items-center gap-3 rounded-2xl bg-white/[0.05] p-3 transition hover:bg-white/[0.09]">
+                <Picto cle={`themes/${v.id}`} secours={v.emoji} taille={48} />
+                <span className="font-semibold">{v.titre}</span>
               </Link>
             ))}
           </div>
