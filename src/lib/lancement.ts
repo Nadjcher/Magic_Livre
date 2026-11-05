@@ -36,9 +36,11 @@ function table(): Promise<void> {
   return pret;
 }
 
-export async function inscrireAttente(email: string, source: string): Promise<void> {
+/** Inscrit l'adresse ; renvoie true si elle est nouvelle (pour l'email de bienvenue). */
+export async function inscrireAttente(email: string, source: string): Promise<boolean> {
   await table();
-  await prisma.$executeRaw`INSERT INTO "Waitlist" (email, source) VALUES (${email}, ${source}) ON CONFLICT (email) DO NOTHING`;
+  const n = await prisma.$executeRaw`INSERT INTO "Waitlist" (email, source) VALUES (${email}, ${source}) ON CONFLICT (email) DO NOTHING`;
+  return n > 0;
 }
 
 export async function compterAttente(): Promise<{ liste: number; comptes: number }> {

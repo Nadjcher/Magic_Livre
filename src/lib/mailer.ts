@@ -4,7 +4,7 @@
  */
 
 import "server-only";
-import { createTransport } from "nodemailer";
+import { createTransport, type Transporter } from "nodemailer";
 import { randomBytes } from "crypto";
 import { prisma } from "./prisma";
 import { getAppUrl } from "./appUrl";
@@ -84,16 +84,57 @@ export async function emailAvecBouton(
   }
 }
 
-export async function sendMail(to: string, subject: string, html: string, text: string) {
-  const transport = createTransport({
+// Connexion SMTP réutilisée entre les envois (plus rapide pour les campagnes).
+let transportPartage: Transporter | null = null;
+function transport(): Transporter {
+  if (transportPartage) return transportPartage;
+  transportPartage = createTransport({
     host: process.env.EMAIL_SERVER_HOST,
     port: Number(process.env.EMAIL_SERVER_PORT ?? 587),
+    pool: true,
+    maxConnections: 2,
     auth: {
       user: process.env.EMAIL_SERVER_USER,
       pass: process.env.EMAIL_SERVER_PASSWORD,
     },
   });
-  await transport.sendMail({ from: process.env.EMAIL_FROM, to, subject, html, text });
+  return transportPartage;
+}
+
+export async function sendMail(to: string, subject: string, html: string, text: string, headers?: Record<string, string>) {
+  await transport().sendMail({ from: process.env.EMAIL_FROM, to, subject, html, text, headers });
+}
+
+/**
+ * Email marketing (liste d'attente, campagnes) : plusieurs paragraphes, un bouton,
+ * et un lien de désinscription en un clic (en-têtes List-Unsubscribe, exigés par
+ * Gmail/Yahoo, et lien visible en pied d'email, exigé par le RGPD).
+ */
+export async function emailMarketing(
+  to: string,
+  sujet: string,
+  titre: string,
+  paragraphes: string[],
+  url: string,
+  libelle: string,
+  desinscription: string,
+): Promise<boolean> {
+  if (!emailConfigure()) return false;
+  const corps =
+    paragraphes.map((p) => `<p style="font-size:15px;line-height:1.6;color:#3a4472;margin:0 0 16px">${p}</p>`).join("") +
+    bouton(url, libelle) +
+    `<p style="font-size:12px;line-height:1.6;color:#8278a6;margin:24px 0 0">Vous recevez cet email car vous vous êtes inscrit(e) sur Encore une histoire. <a href="${desinscription}" style="color:#8278a6">Ne plus recevoir ces emails</a>.</p>`;
+  const texte = `${paragraphes.join("\n\n").replace(/<[^>]+>/g, "")}\n\n${libelle} : ${url}\n\nNe plus recevoir ces emails : ${desinscription}`;
+  try {
+    await sendMail(to, sujet, shell(titre, corps), texte, {
+      "List-Unsubscribe": `<${desinscription.replace("/desinscription?", "/api/desinscription?")}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    });
+    return true;
+  } catch (e) {
+    console.error("[email] envoi marketing impossible :", String(e).slice(0, 200));
+    return false;
+  }
 }
 
 /** Crée un jeton à usage unique pour `identifier`, valable `heures`. */
