@@ -42,7 +42,7 @@ export default function AgeExplorer() {
             role="tab"
             aria-selected={x.slug === slug}
             onClick={() => setSlug(x.slug)}
-            className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+            className={`min-h-11 rounded-full border px-4 py-2 text-sm font-semibold transition ${
               x.slug === slug ? "border-magique-primaire bg-magique-primaire text-nuit" : "border-white/20 hover:border-white"
             }`}
           >
@@ -69,7 +69,7 @@ export default function AgeExplorer() {
 
         <div className="space-y-4">
           <figure className="carte-relief p-6">
-            <p className="text-xs font-bold uppercase tracking-wide text-or">Extrait d'un livre pour {g.label}</p>
+            <p className="text-[13px] font-bold uppercase tracking-wide text-or">Extrait d'un livre pour {g.label}</p>
             <blockquote className="mt-3 font-serif text-lg leading-relaxed">{EXTRAITS[g.slug]}</blockquote>
           </figure>
           <div className="grid grid-cols-3 gap-2">

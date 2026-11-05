@@ -51,7 +51,7 @@ export default function MotDePasseOubliePage() {
         </button>
         {message && <Notice kind="succes">{message}</Notice>}
         <p className="pt-1 text-center text-sm text-magique-texteClair">
-          <Link href="/connexion" className="font-semibold text-magique-primaire hover:underline">
+          <Link href="/connexion" className="inline-block py-2 font-semibold text-magique-primaire hover:underline">
             Retour à la connexion
           </Link>
         </p>

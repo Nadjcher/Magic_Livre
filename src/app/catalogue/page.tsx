@@ -63,14 +63,14 @@ export default function CataloguePage() {
                 <article key={t.id} className="relative flex flex-col rounded-2xl bg-white/[0.05] p-5 pl-24 transition hover:bg-white/[0.08]">
                   <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={64} className="absolute left-5 top-5" />
                   <h3 className="text-lg">
-                    <Link href={`/catalogue/${t.id}`} className="hover:underline">{t.titre}</Link>
+                    <Link href={`/catalogue/${t.id}`} className="after:absolute after:inset-0 after:rounded-2xl hover:underline">{t.titre}</Link>
                   </h3>
                   <p className="mt-1 flex-1 text-sm leading-relaxed text-magique-texteClair">
                     {t.accroche}
                   </p>
                   <Link
                     href={`/creer?theme=${t.id}`}
-                    className="mt-4 text-sm font-semibold text-magique-primaire hover:underline"
+                    className="relative z-10 mt-2 inline-flex min-h-11 w-fit items-center text-sm font-semibold text-magique-primaire hover:underline"
                   >
                     Créer ce livre →
                   </Link>

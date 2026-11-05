@@ -53,6 +53,17 @@ const PROMESSES = [
 ];
 
 
+/** Notre livre face au livre personnalisé classique. */
+const COMPARATIF: [string, string, string][] = [
+                ["L'histoire", "La même pour tous, prénom inséré", "Inventée pour votre enfant, unique"],
+                ["Le héros", "Un avatar à choisir dans une liste", "Dessiné d'après sa photo, le même à chaque page"],
+                ["L'âge", "Un livre « 3-8 ans »", "Écrit pour son âge exact, de 1 à 12 ans"],
+                ["La famille", "Rarement", "Frère, sœur, parents, doudou, animal"],
+                ["Avant d'acheter", "Un aperçu de quelques pages", "Le livre entier, gratuitement"],
+                ["Délai", "Plusieurs jours", "Environ 3 minutes"],
+                ["Prix", "25 à 40 €", "Dès 6,99 €"],
+];
+
 const ETAPES = [
   {
     illu: "imagine",
@@ -187,7 +198,7 @@ export default async function AccueilPage() {
             <Link href={cta} className="btn-primaire text-lg">
               Créer son histoire
             </Link>
-            <Link href="/demo" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">
+            <Link href="/demo" className="inline-flex min-h-11 items-center font-semibold text-magique-primaire underline-offset-4 hover:underline">
               Lire un exemple
             </Link>
           </div>
@@ -299,7 +310,7 @@ export default async function AccueilPage() {
             ))}
           </div>
         </div>
-        <p className="mt-4 text-center text-xs text-magique-texteClair">
+        <p className="mt-4 text-center text-[13px] text-magique-texteClair">
           Exemple réalisé avec un enfant fictif. Votre photo n'est jamais conservée.
         </p>
       </section>
@@ -408,7 +419,17 @@ export default async function AccueilPage() {
           La plupart des livres personnalisés sont la même histoire pour tous les enfants, avec un prénom
           inséré. Ici, chaque livre est écrit et dessiné pour un seul enfant.
         </p>
-        <div className="mt-8 overflow-x-auto">
+        {/* Mobile : une fiche par critère (pas de tableau qui défile de côté). */}
+        <ul className="mt-8 space-y-3 sm:hidden">
+          {COMPARATIF.map(([critere, eux, nous]) => (
+            <li key={critere} className="rounded-2xl bg-white/[0.05] p-4">
+              <p className="font-semibold">{critere}</p>
+              <p className="mt-2 text-[15px]"><span className="mr-1.5 text-or">✦</span>{nous}</p>
+              <p className="mt-1 text-sm text-magique-texteClair">Ailleurs : {eux}</p>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-8 hidden sm:block">
           <table className="w-full min-w-[560px] border-separate border-spacing-0 overflow-hidden rounded-3xl border border-white/15 text-sm">
             <thead>
               <tr className="bg-white/[0.06]">
@@ -418,15 +439,7 @@ export default async function AccueilPage() {
               </tr>
             </thead>
             <tbody>
-              {[
-                ["L'histoire", "La même pour tous, prénom inséré", "Inventée pour votre enfant, unique"],
-                ["Le héros", "Un avatar à choisir dans une liste", "Dessiné d'après sa photo, le même à chaque page"],
-                ["L'âge", "Un livre « 3-8 ans »", "Écrit pour son âge exact, de 1 à 12 ans"],
-                ["La famille", "Rarement", "Frère, sœur, parents, doudou, animal"],
-                ["Avant d'acheter", "Un aperçu de quelques pages", "Le livre entier, gratuitement"],
-                ["Délai", "Plusieurs jours", "Environ 3 minutes"],
-                ["Prix", "25 à 40 €", "Dès 6,99 €"],
-              ].map(([critere, eux, nous]) => (
+              {COMPARATIF.map(([critere, eux, nous]) => (
                 <tr key={critere} className="border-t border-white/10">
                   <td className="border-t border-white/10 p-4 font-semibold">{critere}</td>
                   <td className="border-t border-white/10 p-4 text-magique-texteClair">{eux}</td>
@@ -552,7 +565,7 @@ export default async function AccueilPage() {
           </div>
           <div className="mx-auto w-full max-w-xs">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/exemple/page-lanternes.webp" alt="Léo libère des lanternes dans le ciel étoilé" loading="lazy" className="w-full rounded-3xl" />
+            <img src="/exemple/page-lanternes.webp" alt="Léo libère des lanternes dans le ciel étoilé" width={1200} height={675} loading="lazy" className="h-auto w-full rounded-3xl" />
           </div>
         </div>
       </section>

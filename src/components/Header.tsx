@@ -15,7 +15,7 @@ export default async function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-white/10 bg-[#18245f]/80 backdrop-blur-md">
       <nav className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" aria-label="Accueil Encore une histoire">
+        <Link href="/" aria-label="Accueil Encore une histoire" className="flex min-h-11 items-center">
           <Logo />
         </Link>
         {connecte ? (
@@ -47,14 +47,19 @@ export default async function Header() {
             </form>
           </NavMenu>
         ) : (
-          <div className="flex items-center gap-4 text-sm">
-            <Link href="/catalogue" className="hidden hover:text-magique-primaire sm:inline">
-              Catalogue
-            </Link>
-            <Link href="/club" className="hidden hover:text-magique-primaire sm:inline">
-              Le Club
-            </Link>
-            <Link href="/connexion" className="btn-primaire whitespace-nowrap px-4 py-2 text-sm">
+          <div className="flex items-center gap-3 text-sm">
+            <NavMenu>
+              <Link href="/catalogue" className="hover:text-magique-primaire">
+                Catalogue
+              </Link>
+              <Link href="/club" className="hover:text-magique-primaire">
+                Le Club
+              </Link>
+              <Link href="/avis" className="hover:text-magique-primaire sm:hidden">
+                Avis des parents
+              </Link>
+            </NavMenu>
+            <Link href="/connexion" className="btn-primaire order-first whitespace-nowrap px-4 py-2 text-sm sm:order-last">
               Se connecter
             </Link>
           </div>

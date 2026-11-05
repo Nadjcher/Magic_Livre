@@ -78,7 +78,7 @@ export default function AgePage({ params }: { params: { age: string } }) {
         <h2 className="text-2xl">Les autres âges</h2>
         <div className="flex flex-wrap gap-2">
           {AGE_GROUPS.filter((x) => x.slug !== g.slug).map((x) => (
-            <Link key={x.slug} href={`/livre-personnalise/${x.slug}`} className="rounded-full border border-white/20 px-4 py-2 text-sm hover:border-white">
+            <Link key={x.slug} href={`/livre-personnalise/${x.slug}`} className="inline-flex min-h-11 items-center rounded-full border border-white/20 px-4 py-2 text-sm hover:border-white">
               {x.label}
             </Link>
           ))}

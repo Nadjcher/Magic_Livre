@@ -106,7 +106,7 @@ export default function ThemePage({ params }: { params: { theme: string } }) {
 
       <section className="grid items-center gap-6 sm:grid-cols-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/exemple/page-pont.webp" alt="Exemple de page illustrée d'un livre Encore une histoire" loading="lazy" className="w-full rounded-2xl shadow-conte" />
+        <img src="/exemple/page-pont.webp" alt="Exemple de page illustrée d'un livre Encore une histoire" loading="lazy" width={1200} height={675} className="h-auto w-full rounded-2xl shadow-conte" />
         <div className="space-y-2">
           <h2 className="text-2xl">À son image, à chaque page</h2>
           <p className="text-magique-texteClair">
@@ -120,7 +120,7 @@ export default function ThemePage({ params }: { params: { theme: string } }) {
         <h2 className="text-2xl">Questions fréquentes</h2>
         {faq.map((f) => (
           <details key={f.q} className="carte">
-            <summary className="cursor-pointer font-semibold">{f.q}</summary>
+            <summary className="cursor-pointer py-2 font-semibold">{f.q}</summary>
             <p className="mt-2 text-magique-texteClair">{f.r}</p>
           </details>
         ))}

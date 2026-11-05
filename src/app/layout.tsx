@@ -92,7 +92,7 @@ export default function RootLayout({
         <Header />
         <main className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
         <footer className="relative z-10 mt-8 bg-nuit px-4 py-8 text-sm text-[#9fb0e0]">
-          <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-5">
+          <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-5 gap-y-1 sm:gap-y-3 [&>a]:py-3 sm:[&>a]:py-0">
             <Link href="/catalogue" className="hover:text-white">
               Catalogue
             </Link>

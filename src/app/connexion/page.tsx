@@ -94,7 +94,7 @@ export default function ConnexionPage() {
           </button>
           {erreur && <Notice kind="erreur">{erreur}</Notice>}
           <p className="text-center text-sm">
-            <Link href="/mot-de-passe-oublie" className="text-magique-texteClair hover:underline">
+            <Link href="/mot-de-passe-oublie" className="inline-block py-2 text-magique-texteClair hover:underline">
               Mot de passe oublié ?
             </Link>
           </p>

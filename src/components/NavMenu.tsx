@@ -27,7 +27,7 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
         aria-expanded={ouvert}
         aria-controls="menu-mobile"
         aria-label={ouvert ? "Fermer le menu" : "Ouvrir le menu"}
-        className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white sm:hidden"
+        className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white sm:hidden"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
           {ouvert ? <path d="M6 6l12 12M18 6 6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
@@ -39,7 +39,7 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
           id="menu-mobile"
           className="absolute inset-x-0 top-full border-b border-magique-trait bg-[#18245f]/95 px-4 py-4 shadow-lg backdrop-blur-md sm:hidden"
         >
-          <div className="flex flex-col gap-4 text-base">{children}</div>
+          <div className="flex flex-col text-base [&>*]:py-3 [&>a]:block">{children}</div>
         </div>
       )}
     </>

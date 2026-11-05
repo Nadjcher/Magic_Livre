@@ -105,7 +105,7 @@ export default function InscriptionPage() {
             {pending ? "Création…" : "Créer mon compte"}
           </button>
           {erreur && <Notice kind="erreur">{erreur}</Notice>}
-          <p className="text-center text-xs text-magique-texteClair">
+          <p className="text-center text-[13px] text-magique-texteClair">
             En créant un compte, vous acceptez les{" "}
             <Link href="/cgu" className="underline">CGU</Link> et la{" "}
             <Link href="/confidentialite" className="underline">politique de confidentialité</Link>.

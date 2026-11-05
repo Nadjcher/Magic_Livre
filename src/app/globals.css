@@ -6,6 +6,12 @@
   color-scheme: dark;
 }
 
+/* Les ancres (#prix, #faq…) ne passent pas sous l'en-tête collant. */
+html { scroll-padding-top: 5.5rem; }
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
 /* Fond « bleu nuit lumineux » : dégradé indigo → pervenche, halos célestes et
    champ d'étoiles très discret, fixés pendant le défilement. */
 body {
@@ -57,11 +63,11 @@ p, li, figcaption, blockquote { text-wrap: pretty; }
 @layer components {
   /* Bouton principal : or en relief, léger soulèvement au survol. */
   .btn-primaire {
-    @apply relative overflow-hidden inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-bold text-white shadow-douce transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#5468f0] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+    @apply relative overflow-hidden inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-6 py-3 font-bold text-white shadow-douce transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#5468f0] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
     background-color: #4a5ee8; /* bleu plein : texte blanc lisible (contraste AA) */
   }
   .btn-secondaire {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-white/40 bg-white/10 px-6 py-3 font-bold text-white backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:border-white hover:bg-white hover:text-nuit;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-white/40 bg-white/10 px-6 py-3 font-bold text-white backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:border-white hover:bg-white hover:text-nuit;
   }
   /* Carte en verre bleuté (lumineuse sur le fond bleu nuit). */
   .carte {
@@ -71,7 +77,7 @@ p, li, figcaption, blockquote { text-wrap: pretty; }
     @apply hover:-translate-y-1 hover:shadow-conte;
   }
   .champ {
-    @apply w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-white outline-none transition placeholder:text-[#c6cff3] focus:border-magique-primaire focus:ring-2 focus:ring-magique-primaire/40;
+    @apply min-h-11 w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-white outline-none transition placeholder:text-[#c6cff3] focus:border-magique-primaire focus:ring-2 focus:ring-magique-primaire/40;
   }
 }
 
