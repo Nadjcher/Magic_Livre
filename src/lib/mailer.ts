@@ -27,7 +27,7 @@ async function activeTokenCount(identifier: string): Promise<number> {
 function shell(titre: string, corps: string): string {
   return `
 <div style="margin:0;padding:24px;background:#eef2fd;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1b2250">
-  <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e6dcc4">
+  <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #dfe5f7">
     <div style="background:linear-gradient(135deg,#16245c,#33407f);padding:28px 32px;text-align:center">
       <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#ffffff">✦ Encore une histoire</div>
     </div>
@@ -35,7 +35,7 @@ function shell(titre: string, corps: string): string {
       <h1 style="font-family:Georgia,serif;font-size:22px;margin:0 0 12px">${titre}</h1>
       ${corps}
     </div>
-    <div style="padding:20px 32px;background:#faf4e8;border-top:1px solid #e6dcc4;font-size:12px;line-height:1.6;color:#8278a6">
+    <div style="padding:20px 32px;background:#f4f6fd;border-top:1px solid #dfe5f7;font-size:12px;line-height:1.6;color:#8278a6">
       <a href="${baseUrl()}/confidentialite" style="color:#8278a6">Confidentialité</a> ·
       <a href="${baseUrl()}/cgu" style="color:#8278a6">CGU</a> ·
       Vous pouvez supprimer votre compte et vos données à tout moment depuis « Mon compte ».
@@ -46,7 +46,7 @@ function shell(titre: string, corps: string): string {
 
 function bouton(url: string, label: string): string {
   return `<div style="text-align:center;margin:8px 0 24px">
-    <a href="${url}" style="display:inline-block;background:linear-gradient(135deg,#4f6ef0,#8b5ae0);color:#ffffff;text-decoration:none;font-weight:700;padding:14px 30px;border-radius:999px">${label}</a>
+    <a href="${url}" style="display:inline-block;background:#4a5ee8;color:#ffffff;text-decoration:none;font-weight:700;padding:14px 30px;border-radius:999px">${label}</a>
   </div>
   <p style="font-size:13px;line-height:1.6;color:#5b6598;margin:0">Si le bouton ne fonctionne pas, copiez ce lien :<br>
   <a href="${url}" style="color:#4f5fe0;word-break:break-all">${url}</a></p>`;

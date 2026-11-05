@@ -61,7 +61,7 @@ const COMPARATIF: [string, string, string][] = [
                 ["La famille", "Rarement", "Frère, sœur, parents, doudou, animal"],
                 ["Avant d'acheter", "Un aperçu de quelques pages", "Le livre entier, gratuitement"],
                 ["Délai", "Plusieurs jours", "Environ 3 minutes"],
-                ["Prix", "25 à 40 €", "Dès 6,99 €"],
+                ["Prix", "25 à 40 €, imprimé seulement", "Livre imprimé 34,90 €, PDF dès 6,99 €"],
 ];
 
 const ETAPES = [
@@ -106,16 +106,16 @@ const KIT = [
 
 const FAQ = [
   {
+    q: "Que devient la photo de mon enfant ?",
+    r: "Elle sert uniquement à dessiner le héros. Elle est envoyée de façon chiffrée à notre prestataire d'illustration (fal.ai) le temps du dessin, n'est jamais enregistrée chez nous et n'apparaît jamais dans le livre : il ne contient que des illustrations. La liste de nos prestataires est dans la politique de confidentialité.",
+  },
+  {
     q: "C'est vraiment gratuit ?",
     r: "Oui. Créer le livre et le lire en entier à l'écran ne coûte rien. Vous payez seulement si vous voulez télécharger le PDF et le kit, en une fois, sans abonnement.",
   },
   {
     q: "Combien de temps faut-il ?",
     r: "Quelques minutes après avoir validé (environ 3 minutes) : l'histoire et toutes les illustrations sont créées pendant ce temps.",
-  },
-  {
-    q: "Que devient la photo de mon enfant ?",
-    r: "Elle sert uniquement à dessiner le héros pendant la création : elle est transmise à nos outils d'illustration le temps du dessin, puis nous ne la conservons jamais. Le livre ne contient que des illustrations.",
   },
   {
     q: "Pour quel âge ?",
@@ -206,12 +206,10 @@ export default async function AccueilPage() {
             Lecture gratuite. Vous payez seulement pour garder le livre : PDF dès {prix}, livre imprimé {euros(LIVRE_IMPRIME.priceCents)}.
           </p>
           {!ventesOuvertes() && (
-            <div className="mt-6 max-w-lg rounded-2xl border border-white/15 bg-white/[0.06] p-4">
-              <p className="text-sm font-semibold">✨ Ouverture des commandes le {DATE_OUVERTURE}. Soyez prévenu(e) :</p>
-              <div className="mt-2">
-                <WaitlistForm source="accueil" />
-              </div>
-            </div>
+            <p className="mt-3 max-w-[52ch] text-sm text-or-clair">
+              Créez et lisez son livre gratuitement dès ce soir. Les achats ouvrent le {DATE_OUVERTURE} : nous vous
+              prévenons par email.
+            </p>
           )}
           <ul className="mt-6 space-y-2.5">
             {PROMESSES.map((p) => (
@@ -245,7 +243,7 @@ export default async function AccueilPage() {
               />
               <div className="absolute inset-x-6 bottom-6">
                 <p className="font-serif text-2xl leading-tight text-white">Léo et la forêt des lanternes</p>
-                <p className="mt-1 text-sm text-[#dce3ff]">Une histoire écrite pour Léo, 5 ans</p>
+                <p className="mt-1 text-sm text-magique-texteClair">Une histoire écrite pour Léo, 5 ans</p>
               </div>
             </div>
           </div>
@@ -457,7 +455,7 @@ export default async function AccueilPage() {
         <p className="mx-auto mt-3 max-w-[48ch] text-center text-magique-texteClair">
           Vous lisez d'abord. Vous payez seulement pour garder le livre, en une fois.
         </p>
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
+        <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <div className="carte flex flex-col">
             <h3 className="text-xl">Découvrir</h3>
             <p className="mt-2 font-serif text-4xl text-magique-texte">0 €</p>
@@ -466,7 +464,7 @@ export default async function AccueilPage() {
               <li className="flex gap-2"><Coche />Lecture à voix haute</li>
               <li className="flex gap-2"><Coche />Sur ordinateur, tablette ou téléphone</li>
             </ul>
-            <Link href={cta} className="btn-secondaire mt-6">Créer gratuitement</Link>
+            <Link href={cta} className="btn-secondaire mt-6 w-full whitespace-nowrap px-3 text-[15px]">Créer gratuitement</Link>
           </div>
 
           <div className="carte flex flex-col">
@@ -477,21 +475,33 @@ export default async function AccueilPage() {
                 <li key={k} className="flex gap-2"><Coche />{k}</li>
               ))}
             </ul>
-            <Link href={cta} className="btn-secondaire mt-6">Créer son histoire</Link>
+            <Link href={cta} className="btn-secondaire mt-6 w-full whitespace-nowrap px-3 text-[15px]">Créer son histoire</Link>
+          </div>
+
+          <div className="carte flex flex-col">
+            <h3 className="text-xl">Le livre premium</h3>
+            <p className="mt-2 font-serif text-4xl text-magique-texte">{prixPremium}</p>
+            <ul className="mt-5 flex-1 space-y-2.5 text-[15px]">
+              <li className="flex gap-2"><Coche />Tout le livre PDF et son kit</li>
+              <li className="flex gap-2"><Coche />Illustrations haute qualité</li>
+              <li className="flex gap-2"><Coche />Ressemblance renforcée avec la photo</li>
+            </ul>
+            <Link href={cta} className="btn-secondaire mt-6 w-full whitespace-nowrap px-3 text-[15px]">Créer en premium</Link>
           </div>
 
           <div className="relative flex flex-col rounded-3xl border-2 border-magique-primaire bg-white/[0.1] p-6 shadow-douce">
             <span className="absolute -top-3 left-6 rounded-full bg-magique-primaire px-3 py-1 text-xs font-bold text-nuit">
               Idéal à offrir
             </span>
-            <h3 className="text-xl">Premium</h3>
-            <p className="mt-2 font-serif text-4xl text-magique-texte">{prixPremium}</p>
+            <h3 className="text-xl">Le livre imprimé</h3>
+            <p className="mt-2 font-serif text-4xl text-magique-texte">{euros(LIVRE_IMPRIME.priceCents)}</p>
             <ul className="mt-5 flex-1 space-y-2.5 text-[15px]">
-              <li className="flex gap-2"><Coche />Tout le contenu du livre et du kit</li>
-              <li className="flex gap-2"><Coche />Illustrations haute qualité</li>
-              <li className="flex gap-2"><Coche />Ressemblance renforcée avec la photo</li>
+              <li className="flex gap-2"><Coche />Relié, couverture rigide, 28 × 21 cm</li>
+              <li className="flex gap-2"><Coche />30 pages, prêt à offrir</li>
+              <li className="flex gap-2"><Coche />Livré chez vous en 7 à 10 jours ouvrés</li>
             </ul>
-            <Link href={cta} className="btn-primaire mt-6">Créer en premium</Link>
+            <p className="mt-4 text-sm text-or-clair">Commandé avant le 10 décembre : sous le sapin.</p>
+            <Link href={cta} className="btn-primaire mt-4 w-full whitespace-nowrap px-3 text-[15px]">Créer son livre</Link>
           </div>
         </div>
         <div className="carte mt-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -504,8 +514,6 @@ export default async function AccueilPage() {
             </span>
           </p>
           <span className="text-sm text-magique-texteClair">
-            <Picto cle="offres/imprime" taille={22} className="mr-1 inline-block align-middle" />
-            Livre imprimé et relié, livré chez vous : {euros(LIVRE_IMPRIME.priceCents)}.<br />
             Ou à l'unité : {DELUXE_PRODUCTS.map((d) => `${d.label} ${euros(d.priceCents)}`).join(" · ")}
           </span>
         </div>
@@ -555,13 +563,21 @@ export default async function AccueilPage() {
         <div className="grid items-center gap-8 md:grid-cols-[1fr_.8fr]">
           <div>
             <h2 className="text-3xl text-white sm:text-4xl">Ce soir, l'histoire parle de lui.</h2>
-            <p className="mt-4 max-w-[42ch] text-[#cdd7f4]">
+            <p className="mt-4 max-w-[42ch] text-magique-texteClair">
               Quelques minutes pour la créer, toute une vie pour s'en souvenir. Lecture gratuite, sans
               engagement.
             </p>
             <Link href={cta} className="btn-primaire mt-8 text-lg">
               Créer son histoire
             </Link>
+            {!ventesOuvertes() && (
+              <div className="mt-8 max-w-md">
+                <p className="text-sm font-semibold text-white">Être prévenu(e) de l'ouverture des achats, le {DATE_OUVERTURE} :</p>
+                <div className="mt-2">
+                  <WaitlistForm source="accueil" />
+                </div>
+              </div>
+            )}
           </div>
           <div className="mx-auto w-full max-w-xs">
             {/* eslint-disable-next-line @next/next/no-img-element */}

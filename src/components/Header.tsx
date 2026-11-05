@@ -49,14 +49,17 @@ export default async function Header() {
         ) : (
           <div className="flex items-center gap-2 text-sm sm:gap-3">
             <NavMenu>
+              <Link href="/demo" className="hover:text-magique-primaire">
+                Lire un exemple
+              </Link>
+              <Link href="/#prix" className="hover:text-magique-primaire">
+                Prix
+              </Link>
               <Link href="/catalogue" className="hover:text-magique-primaire">
                 Catalogue
               </Link>
               <Link href="/club" className="hover:text-magique-primaire">
                 Le Club
-              </Link>
-              <Link href="/avis" className="hover:text-magique-primaire sm:hidden">
-                Avis des parents
               </Link>
               <Link href="/connexion" className="font-semibold text-magique-primaire sm:hidden">
                 Se connecter ou créer un compte

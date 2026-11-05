@@ -17,6 +17,12 @@ export default function ConnexionPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
+  // Garde la destination (ex. /creer?theme=…) si le visiteur crée plutôt un compte.
+  const [lienInscription, setLienInscription] = useState("/inscription");
+  useEffect(() => {
+    const suite = new URLSearchParams(window.location.search).get("suite");
+    if (suite && suite.startsWith("/") && !suite.startsWith("//")) setLienInscription(`/inscription?suite=${encodeURIComponent(suite)}`);
+  }, []);
   const [pending, startTransition] = useTransition();
   const [info, setInfo] = useState<string | null>(null);
 
@@ -100,7 +106,7 @@ export default function ConnexionPage() {
           </p>
           <p className="pt-1 text-center text-sm text-magique-texteClair">
             Pas encore de compte ?{" "}
-            <Link href="/inscription" className="font-semibold text-magique-primaire hover:underline">
+            <Link href={lienInscription} className="font-semibold text-magique-primaire hover:underline">
               Créer un compte
             </Link>
           </p>

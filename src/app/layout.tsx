@@ -9,6 +9,7 @@ import Header from "@/components/Header";
 import MagicParticles from "@/components/MagicParticles";
 import TiltProvider from "@/components/TiltProvider";
 import { getAppUrl } from "@/lib/appUrl";
+import { avisPublics } from "@/lib/reviews";
 
 // Fraunces : serif de conte, caractérielle (titres). Nunito : ronde et
 // chaleureuse (texte/UI). Chargées sans FOUT via next/font.
@@ -76,6 +77,17 @@ export const viewport = {
   themeColor: "#16245c",
 };
 
+/** Lien « Avis des parents » : affiché seulement quand il y a de vrais avis publiés. */
+async function LienAvis() {
+  const { total } = await avisPublics(1).catch(() => ({ total: 0 }));
+  if (total === 0) return null;
+  return (
+    <Link href="/avis" className="hover:text-white">
+      Avis des parents
+    </Link>
+  );
+}
+
 export default function RootLayout({
   children,
 }: {
@@ -91,14 +103,12 @@ export default function RootLayout({
         </Suspense>
         <Header />
         <main className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
-        <footer className="relative z-10 mt-8 bg-nuit px-4 py-8 text-sm text-[#9fb0e0]">
+        <footer className="relative z-10 mt-8 bg-nuit px-4 py-8 text-sm text-magique-texteClair">
           <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-5 gap-y-1 sm:gap-y-3 [&>a]:py-3 sm:[&>a]:py-0">
             <Link href="/catalogue" className="hover:text-white">
               Catalogue
             </Link>
-            <Link href="/avis" className="hover:text-white">
-              Avis des parents
-            </Link>
+            <LienAvis />
             {AGE_GROUPS.map((g) => (
               <Link key={g.slug} href={`/livre-personnalise/${g.slug}`} className="hover:text-white">
                 Livre {g.label}

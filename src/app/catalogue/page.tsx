@@ -18,6 +18,8 @@ export const metadata: Metadata = {
 
 export default function CataloguePage() {
   const saison = THEMES.filter((t) => t.saison);
+  // Les grands classiques (réservés au Club) viennent en dernier, clairement signalés.
+  const categories = [...THEME_CATEGORIES.filter((c) => c.id !== "classiques"), ...THEME_CATEGORIES.filter((c) => c.id === "classiques")];
 
   return (
     <div className="space-y-12">
@@ -29,6 +31,15 @@ export default function CataloguePage() {
         </p>
       </header>
 
+      <nav className="sans-barre -mx-4 flex gap-2 overflow-x-auto px-4 sm:flex-wrap sm:justify-center" aria-label="Catégories">
+        {categories.map((c) => (
+          <a key={c.id} href={`#${c.id}`} className="flex min-h-11 flex-none items-center gap-2 rounded-full border border-white/20 px-4 text-sm font-semibold transition hover:border-white">
+            <Picto cle={`categories/${c.id}`} secours={c.emoji} taille={24} />
+            {c.label}
+          </a>
+        ))}
+      </nav>
+
       {saison.map((t) => (
         <section
           key={t.id}
@@ -38,19 +49,19 @@ export default function CataloguePage() {
               "linear-gradient(160deg,#16245c,#0f1a44)",
           }}
         >
-          <p className="font-serif italic text-[#cdd7f4]">De saison</p>
+          <p className="font-serif italic text-magique-texteClair">De saison</p>
           <h2 className="mt-1 text-3xl text-white sm:text-4xl">
             <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={56} className="mr-2 inline-block align-middle" />
             {t.titre}
           </h2>
-          <p className="mt-3 max-w-[48ch] text-[#cdd7f4]">{t.accroche}</p>
+          <p className="mt-3 max-w-[48ch] text-magique-texteClair">{t.accroche}</p>
           <Link href={`/creer?theme=${t.id}`} className="btn-primaire mt-6">
             Créer ce livre
           </Link>
         </section>
       ))}
 
-      {THEME_CATEGORIES.map((c) => {
+      {categories.map((c) => {
         const themes = THEMES.filter((t) => t.categorie === c.id);
         return (
           <section key={c.id} id={c.id} className="scroll-mt-24">
@@ -58,6 +69,11 @@ export default function CataloguePage() {
               <Picto cle={`categories/${c.id}`} secours={c.emoji} taille={40} className="mr-2 inline-block align-middle" />
               {c.label}
             </h2>
+            {c.id === "classiques" && (
+              <p className="mt-2 text-magique-texteClair">
+                Réservés aux membres du <Link href="/club" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">Club</Link> : les contes que vous connaissez par cœur, réécrits avec votre enfant en héros.
+              </p>
+            )}
             <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {themes.map((t) => (
                 <article key={t.id} className="relative flex flex-col rounded-2xl bg-white/[0.05] p-5 pl-24 transition hover:bg-white/[0.08]">
@@ -69,10 +85,10 @@ export default function CataloguePage() {
                     {t.accroche}
                   </p>
                   <Link
-                    href={`/creer?theme=${t.id}`}
+                    href={c.id === "classiques" ? "/club" : `/creer?theme=${t.id}`}
                     className="relative z-10 mt-2 inline-flex min-h-11 w-fit items-center text-sm font-semibold text-magique-primaire hover:underline"
                   >
-                    Créer ce livre →
+                    {c.id === "classiques" ? "Avec le Club →" : "Créer ce livre →"}
                   </Link>
                 </article>
               ))}

@@ -40,7 +40,10 @@ export default function InscriptionPage() {
       if (login?.error) {
         router.push("/connexion");
       } else {
-        router.push("/creer");
+        // Retour là où le visiteur allait (ex. le thème choisi dans le catalogue).
+        const suite = new URLSearchParams(window.location.search).get("suite");
+        const interne = suite && suite.startsWith("/") && !suite.startsWith("//") && !suite.startsWith("/\\");
+        router.push(interne ? suite : "/creer");
         router.refresh();
       }
     });

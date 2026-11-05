@@ -36,7 +36,7 @@ export default function ClubPlans({ connecte, membre }: { connecte: boolean; mem
           return (
             <div key={k} className={`relative flex flex-col rounded-3xl border-2 p-6 ${vedette ? "border-magique-primaire bg-white/[0.1] shadow-douce" : "border-white/15 bg-white/[0.06]"}`}>
               {vedette && (
-                <span className="absolute -top-3 left-6 rounded-full bg-magique-primaire px-3 py-1 text-xs font-bold text-nuit">Le plus choisi</span>
+                <span className="absolute -top-3 left-6 rounded-full bg-magique-primaire px-3 py-1 text-xs font-bold text-nuit">Le plus complet</span>
               )}
               <h2 className="text-2xl">{p.label}</h2>
               <p className="mt-2 font-serif text-4xl">

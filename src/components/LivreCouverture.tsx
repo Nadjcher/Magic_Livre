@@ -59,7 +59,7 @@ export default function LivreCouverture({
         )}
         <div className="absolute inset-x-4 bottom-3.5 pl-1">
           <p className="line-clamp-3 font-serif text-[15px] leading-snug text-white sm:text-base">{titreAffiche}</p>
-          {enfant && <p className="mt-0.5 text-xs text-[#d4dbff]">Pour {enfant}</p>}
+          {enfant && <p className="mt-0.5 text-xs text-magique-texteClair">Pour {enfant}</p>}
         </div>
       </div>
     </Link>

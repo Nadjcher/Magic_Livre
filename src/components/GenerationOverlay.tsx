@@ -87,7 +87,7 @@ export default function GenerationOverlay({
             >
               {k < etape ? "✓" : ""}
             </span>
-            <span className={k === etape ? "text-white" : "text-[#cdd7f4]"}>{e(p)}</span>
+            <span className={k === etape ? "text-white" : "text-magique-texteClair"}>{e(p)}</span>
           </li>
         ))}
       </ol>
@@ -102,7 +102,7 @@ export default function GenerationOverlay({
         <p className="text-sm leading-relaxed text-[#e3e8ff]">{QUESTIONS[q]!(enfant)}</p>
       </div>
 
-      <p className="mt-6 max-w-sm text-sm text-[#cdd7f4]">
+      <p className="mt-6 max-w-sm text-sm text-magique-texteClair">
         Cela prend 2 à 4 minutes. Vous pouvez fermer cette page : la création continue et le livre vous attendra
         dans la bibliothèque.
       </p>

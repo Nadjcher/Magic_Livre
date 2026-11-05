@@ -17,7 +17,7 @@ export default function AuthVisuel({ titre, texte }: { titre: string; texte: str
           <div className="absolute inset-y-0 left-0 w-3" style={{ background: "linear-gradient(90deg,rgba(0,0,0,.4),rgba(255,255,255,.1))" }} aria-hidden="true" />
           <figcaption className="absolute inset-x-6 bottom-6">
             <p className="font-serif text-2xl leading-tight text-white">{titre}</p>
-            <p className="mt-1 text-sm text-[#dce3ff]">{texte}</p>
+            <p className="mt-1 text-sm text-magique-texteClair">{texte}</p>
           </figcaption>
         </div>
       </div>
