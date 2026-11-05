@@ -42,7 +42,7 @@ export default function AgeExplorer() {
             aria-selected={x.slug === slug}
             onClick={() => setSlug(x.slug)}
             className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-              x.slug === slug ? "border-magique-primaire bg-magique-primaire text-white" : "border-white/20 hover:border-white"
+              x.slug === slug ? "border-magique-primaire bg-magique-primaire text-nuit" : "border-white/20 hover:border-white"
             }`}
           >
             {x.label}

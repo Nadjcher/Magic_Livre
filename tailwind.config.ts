@@ -20,7 +20,7 @@ const config: Config = {
         // ré-accordant à la palette « Nuit féerique » bleue.
         magique: {
           fond: "#1e2c74", // bleu nuit lumineux (fond de page)
-          primaire: "#7d8cff", // bleu féerique (pervenche lumineuse, couleur de marque)
+          primaire: "#a3afff", // bleu féerique (pervenche lumineuse, couleur de marque ; contraste AA en texte sur le fond)
           secondaire: "#ff8fc4", // rose féerique (étincelle)
           accent: "#8fbcff", // bleu pervenche clair (lueur céleste)
           rose: "#ff8fc4",
@@ -37,7 +37,8 @@ const config: Config = {
       },
       boxShadow: {
         conte: "0 30px 60px -28px rgba(5,10,40,.75)",
-        or: "0 10px 30px rgba(125,140,255,.45)",
+        // Ombre neutre (plus de halo coloré : signature typique des pages « faites par IA »).
+        or: "0 12px 26px -12px rgba(5,10,40,.7)",
       },
     },
   },

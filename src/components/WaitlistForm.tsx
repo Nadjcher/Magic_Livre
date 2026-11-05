@@ -16,8 +16,8 @@ export default function WaitlistForm({ source = "accueil" }: { source?: string }
     >
       <input type="hidden" name="source" value={source} />
       <label className="sr-only" htmlFor={`attente-${source}`}>Votre email</label>
-      <input id={`attente-${source}`} name="email" type="email" required placeholder="Votre email" className="champ sm:max-w-xs" />
-      <button type="submit" className="btn-primaire whitespace-nowrap px-5 py-2" disabled={pending}>
+      <input id={`attente-${source}`} name="email" type="email" required placeholder="Votre email" className="champ min-w-0 sm:flex-1" />
+      <button type="submit" className="btn-primaire shrink-0 whitespace-nowrap px-5 py-2" disabled={pending}>
         {pending ? "…" : "Me prévenir à l'ouverture"}
       </button>
       {msg && !msg.ok && <p className="text-sm text-red-300">{msg.t}</p>}

@@ -20,7 +20,7 @@ body {
     radial-gradient(1px 1px at 92% 76%, rgba(255, 255, 255, 0.6), transparent 60%),
     radial-gradient(1px 1px at 6% 88%, rgba(255, 255, 255, 0.55), transparent 60%),
     radial-gradient(48rem 40rem at 8% -8%, rgba(125, 150, 255, 0.45), transparent 60%),
-    radial-gradient(42rem 38rem at 108% 12%, rgba(185, 140, 255, 0.32), transparent 60%),
+    radial-gradient(42rem 38rem at 108% 12%, rgba(120, 165, 255, 0.26), transparent 60%),
     radial-gradient(50rem 40rem at 50% 115%, rgba(255, 143, 196, 0.2), transparent 60%),
     linear-gradient(180deg, #1b2868 0%, #24358c 45%, #22328a 70%, #1b2868 100%);
   background-attachment: fixed;
@@ -42,6 +42,11 @@ h1, h2, h3, .serif {
   letter-spacing: -0.01em;
 }
 
+/* Typographie soignée : titres équilibrés, pas de mot orphelin en fin de
+   paragraphe (« sienne. » seul sur sa ligne…). */
+h1, h2, h3 { text-wrap: balance; }
+p, li, figcaption, blockquote { text-wrap: pretty; }
+
 /* Accessibilité : focus clavier toujours visible. */
 :focus-visible {
   outline: 3px solid rgba(170, 185, 255, 0.8);
@@ -52,8 +57,8 @@ h1, h2, h3, .serif {
 @layer components {
   /* Bouton principal : or en relief, léger soulèvement au survol. */
   .btn-primaire {
-    @apply relative overflow-hidden inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-bold text-white shadow-or transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
-    background-image: linear-gradient(135deg, #5b78ff, #9b6cf0);
+    @apply relative overflow-hidden inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-bold text-white shadow-or transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#5468f0] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+    background-color: #4a5ee8; /* bleu plein : texte blanc lisible (contraste AA) */
   }
   .btn-secondaire {
     @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-white/40 bg-white/10 px-6 py-3 font-bold text-white backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:border-white hover:bg-white hover:text-nuit;
@@ -66,17 +71,16 @@ h1, h2, h3, .serif {
     @apply hover:-translate-y-1 hover:shadow-conte;
   }
   .champ {
-    @apply w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-white outline-none transition placeholder:text-[#9eaadb] focus:border-magique-primaire focus:ring-2 focus:ring-magique-primaire/40;
+    @apply w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-white outline-none transition placeholder:text-[#c6cff3] focus:border-magique-primaire focus:ring-2 focus:ring-magique-primaire/40;
   }
 }
 
 @layer utilities {
   /* Titre en dégradé plume → or (réservé à la marque et aux grands titres). */
+  /* Ancien titre en dégradé : désormais une couleur pleine (le texte en
+     dégradé est une signature de page « générée »). Nom conservé. */
   .text-gradient {
-    background-image: linear-gradient(118deg, #b4c2ff 0%, #d2b6ff 50%, #ffa6d8 110%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: #ffc8ea;
   }
   .anim-flotte {
     animation: flotte 6s ease-in-out infinite;
@@ -135,7 +139,12 @@ h1, h2, h3, .serif {
     rgba(255, 255, 255, 0)
   );
   transform: skewX(-18deg);
-  animation: reflet 4.5s ease-in-out infinite;
+  opacity: 0;
+  transition: left 0.6s ease, opacity 0.2s;
+}
+.btn-primaire:hover::after {
+  left: 120%;
+  opacity: 1;
 }
 @keyframes reflet {
   0%, 18% { left: -60%; }

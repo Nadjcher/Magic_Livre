@@ -34,7 +34,7 @@ export default function CataloguePage() {
           className="relative overflow-hidden rounded-[2rem] px-6 py-8 text-white shadow-conte sm:px-10"
           style={{
             backgroundImage:
-              "radial-gradient(60% 70% at 15% 20%, rgba(91,155,255,.45), rgba(91,155,255,0) 60%), linear-gradient(160deg,#16245c,#0f1a44)",
+              "linear-gradient(160deg,#16245c,#0f1a44)",
           }}
         >
           <p className="font-serif italic text-[#cdd7f4]">De saison</p>

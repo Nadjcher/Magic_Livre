@@ -240,7 +240,7 @@ export default function CreateBookForm({
               }}
               className={`flex-none rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
                 mode === "theme" && categorie === c.id
-                  ? "border-magique-primaire bg-magique-primaire text-white"
+                  ? "border-magique-primaire bg-magique-primaire text-nuit"
                   : "border-magique-trait bg-white/[0.06] hover:border-magique-primaire"
               }`}
             >
@@ -252,7 +252,7 @@ export default function CreateBookForm({
             onClick={() => setMode("libre")}
             className={`flex-none rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
               mode === "libre"
-                ? "border-magique-primaire bg-magique-primaire text-white"
+                ? "border-magique-primaire bg-magique-primaire text-nuit"
                 : "border-magique-trait bg-white/[0.06] hover:border-magique-primaire"
             }`}
           >
@@ -285,7 +285,7 @@ export default function CreateBookForm({
                         <span className="rounded-full bg-or/15 px-2 py-0.5 text-xs font-bold text-or">👑 Club</span>
                       )}
                       {t.saison && (
-                        <span className="rounded-full bg-magique-rose/15 px-2 py-0.5 text-xs font-bold text-magique-rose">
+                        <span className="rounded-full bg-magique-rose/15 px-2 py-0.5 text-xs font-bold text-or-clair">
                           De saison
                         </span>
                       )}

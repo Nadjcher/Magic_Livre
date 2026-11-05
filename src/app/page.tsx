@@ -260,7 +260,7 @@ export default async function AccueilPage() {
           {ETAPES.map((e, i) => (
             <li key={e.titre} className="carte-relief flex flex-col items-center p-7 text-center">
               <Illu nom={e.illu} alt="" className="mb-4 h-32 w-full object-contain" />
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-magique-primaire font-serif text-sm font-bold text-white">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-magique-primaire font-serif text-sm font-bold text-nuit">
                 {i + 1}
               </span>
               <h3 className="mt-3 text-xl">{e.titre}</h3>
@@ -362,7 +362,7 @@ export default async function AccueilPage() {
                 <span aria-hidden="true">{t.emoji}</span>
                 {t.titre}
                 {t.saison && (
-                  <span className="rounded-full bg-magique-rose/15 px-2 py-0.5 text-xs text-magique-rose">De saison</span>
+                  <span className="rounded-full bg-magique-rose/15 px-2 py-0.5 text-xs text-or-clair">De saison</span>
                 )}
               </Link>
             );
@@ -384,7 +384,6 @@ export default async function AccueilPage() {
             ["🎬", "Le livre en dessin animé", "Chaque page s'anime et une voix raconte l'histoire, en musique. Une vraie vidéo.", euros(DELUXE_PRODUCTS.find((d) => d.sku === "video")?.priceCents ?? 999)],
             ["🎈", "Le pack fête et l'affiche A3", "Invitations, banderole et étiquettes à son image, et le héros en grand format.", `Dès ${euros(Math.min(...DELUXE_PRODUCTS.filter((d) => d.sku !== "video").map((d) => d.priceCents)))}`],
             ["⭐", "Le Club des histoires", "Un nouveau livre chaque semaine et les grands classiques revisités, sans engagement.", `Dès ${euros(PLANS_CLUB.club.priceCents)} / mois`],
-            ["👑", "La formule Tout compris", "Le livre, le kit, le pack fête, l'affiche et le dessin animé, au meilleur prix.", euros(PACK_TOUT.priceCents)],
           ].map(([icone, titre, texte, tarif]) => (
             <div key={titre} className="carte flex flex-col">
               <p className="text-3xl" aria-hidden="true">{icone}</p>
@@ -435,7 +434,7 @@ export default async function AccueilPage() {
 
       {/* ─── Prix ─── */}
       <section id="prix" className="scroll-mt-24">
-        <h2 className="text-center text-3xl sm:text-4xl">Des prix simples, sans abonnement</h2>
+        <h2 className="text-center text-3xl sm:text-4xl">Des prix simples, payés une fois</h2>
         <p className="mx-auto mt-3 max-w-[48ch] text-center text-magique-texteClair">
           Vous lisez d'abord. Vous payez seulement pour garder le livre, en une fois.
         </p>
@@ -463,7 +462,7 @@ export default async function AccueilPage() {
           </div>
 
           <div className="relative flex flex-col rounded-3xl border-2 border-magique-primaire bg-white/[0.1] p-6 shadow-or">
-            <span className="absolute -top-3 left-6 rounded-full bg-magique-primaire px-3 py-1 text-xs font-bold text-white">
+            <span className="absolute -top-3 left-6 rounded-full bg-magique-primaire px-3 py-1 text-xs font-bold text-nuit">
               Idéal à offrir
             </span>
             <h3 className="text-xl">Premium</h3>
@@ -529,14 +528,14 @@ export default async function AccueilPage() {
         className="relative overflow-hidden rounded-[2.5rem] px-6 py-12 shadow-conte sm:px-12 sm:py-14"
         style={{
           backgroundImage:
-            "radial-gradient(60% 70% at 15% 20%, rgba(91,155,255,.4), rgba(91,155,255,0) 60%), linear-gradient(180deg,#16245c,#0f1a44)",
+            "linear-gradient(180deg,#16245c,#0f1a44)",
         }}
       >
         <div className="grid items-center gap-8 md:grid-cols-[1fr_.8fr]">
           <div>
             <h2 className="text-3xl text-white sm:text-4xl">Ce soir, l'histoire parle de lui.</h2>
             <p className="mt-4 max-w-[42ch] text-[#cdd7f4]">
-              Deux minutes pour la créer, toute une vie pour s'en souvenir. Lecture gratuite, sans
+              Quelques minutes pour la créer, toute une vie pour s'en souvenir. Lecture gratuite, sans
               engagement.
             </p>
             <Link href={cta} className="btn-primaire mt-8 text-lg">

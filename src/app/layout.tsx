@@ -116,7 +116,7 @@ export default function RootLayout({
             <Link href="/confidentialite" className="hover:text-white">
               Confidentialité
             </Link>
-            <span className="text-[#6f7bb0]">© {new Date().getFullYear()} Encore une histoire</span>
+            <span className="text-[#9aa6d6]">© {new Date().getFullYear()} Encore une histoire</span>
           </div>
         </footer>
       </body>
