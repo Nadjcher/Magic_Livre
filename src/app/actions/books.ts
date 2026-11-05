@@ -16,7 +16,8 @@ import sharp from "sharp";
 import { waitUntil } from "@vercel/functions";
 import { getCurrentUser, hasParentalConsent } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { createBookSchema, checkUserText, extraSchema } from "@/lib/validation";
+import { childSchema, createBookSchema, checkUserText, extraSchema } from "@/lib/validation";
+import { env } from "@/lib/env";
 import { findFormat, formatsPourAge } from "@/lib/bookFormats";
 import { checkDailyBookLimit, estAdmin } from "@/lib/rateLimit";
 import { generateStory } from "@/lib/storyGenerator";
@@ -66,13 +67,37 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
   const user = await getCurrentUser();
   if (!user) return { ok: false, message: "Vous devez être connecté." };
 
-  // Règle non négociable : pas de création sans consentement parental.
+  // Règle non négociable : pas de création sans consentement parental. Il peut
+  // être donné dans le formulaire lui-même (case cochée), enregistré avec sa date
+  // et la version des CGU.
   if (!hasParentalConsent(user)) {
-    return {
-      ok: false,
-      message:
-        "Vous devez d'abord enregistrer votre consentement parental avant de créer un livre.",
-    };
+    if (formData.get("consent") !== "on") {
+      return {
+        ok: false,
+        message: "Cochez la case de consentement parental pour créer le livre.",
+      };
+    }
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { parentalConsentAt: new Date(), termsVersion: env.termsVersion() },
+    });
+  }
+
+  // Nouvel enfant saisi directement dans le formulaire (prénom + âge).
+  if (String(formData.get("childId") ?? "") === "nouveau") {
+    const nouveau = childSchema.safeParse({
+      firstName: String(formData.get("newChildName") ?? ""),
+      age: Number(formData.get("newChildAge")),
+    });
+    if (!nouveau.success) return { ok: false, message: nouveau.error.issues[0]?.message ?? "Prénom ou âge invalide." };
+    const verif = checkUserText(nouveau.data.firstName);
+    if (!verif.ok) return { ok: false, message: verif.message };
+    const deja = await prisma.child.findFirst({
+      where: { userId: user.id, firstName: nouveau.data.firstName, age: nouveau.data.age },
+      select: { id: true },
+    });
+    const enfant = deja ?? (await prisma.child.create({ data: { userId: user.id, firstName: nouveau.data.firstName, age: nouveau.data.age }, select: { id: true } }));
+    formData.set("childId", enfant.id);
   }
 
   const parsed = createBookSchema.safeParse({

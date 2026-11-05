@@ -19,6 +19,8 @@ import { env } from "@/lib/env";
 import { getAppUrl } from "@/lib/appUrl";
 import { findThemeById } from "@/lib/themes";
 import Picto from "@/components/Picto";
+import BoutonCollant from "@/components/BoutonCollant";
+import { FONDATEUR } from "@/lib/fondateur";
 import { ILLUSTRATION_STYLES, ILLUSTRATION_STYLE_KEYS } from "@/lib/style_config";
 
 export const metadata: Metadata = {
@@ -60,7 +62,6 @@ const COMPARATIF: [string, string, string][] = [
                 ["L'âge", "Un livre « 3-8 ans »", "Écrit pour son âge exact, de 1 à 12 ans"],
                 ["La famille", "Rarement", "Frère, sœur, parents, doudou, animal"],
                 ["Avant d'acheter", "Un aperçu de quelques pages", "Le livre entier, gratuitement"],
-                ["Délai", "Plusieurs jours", "Environ 3 minutes"],
                 ["Prix", "25 à 40 €, imprimé seulement", "Livre imprimé 34,90 €, PDF dès 6,99 €"],
 ];
 
@@ -263,53 +264,38 @@ export default async function AccueilPage() {
         </div>
       </section>
 
-      {/* ─── Comment ça marche (vraie séquence) ─── */}
-      <section id="comment" className="scroll-mt-24">
-        <h2 className="text-center text-3xl sm:text-4xl">Trois étapes, et c'est prêt</h2>
-        <ol className="relative mt-10 grid gap-10 sm:grid-cols-3 sm:gap-8">
-          <li aria-hidden="true" className="pointer-events-none absolute left-[18%] right-[18%] top-20 hidden border-t-2 border-dashed border-white/20 sm:block" />
+      {/* ─── De la photo au livre, en trois étapes ─── */}
+      <section id="exemple" className="scroll-mt-24">
+        <h2 className="text-center text-3xl sm:text-4xl">De sa photo à son livre</h2>
+        <ol className="mx-auto mt-8 grid max-w-4xl gap-6 sm:grid-cols-3">
           {ETAPES.map((e, i) => (
-            <li key={e.titre} className="relative flex flex-col items-center text-center">
-              <Illu nom={e.illu} alt="" className="h-40 w-40 object-contain drop-shadow-[0_18px_24px_rgba(5,10,40,.45)]" />
-              <h3 className="mt-4 text-xl">
-                <span className="mr-1.5 font-serif text-or">{i + 1}.</span>
-                {e.titre}
-              </h3>
-              <p className="mt-2 max-w-[30ch] text-[15px] leading-relaxed text-magique-texteClair">{e.texte}</p>
+            <li key={e.titre} className="flex items-start gap-3">
+              <Illu nom={e.illu} alt="" className="h-16 w-16 flex-none object-contain" />
+              <div>
+                <h3 className="text-lg">
+                  <span className="mr-1 font-serif text-or">{i + 1}.</span>
+                  {e.titre}
+                </h3>
+                <p className="mt-1 text-sm leading-relaxed text-magique-texteClair">{e.texte}</p>
+              </div>
             </li>
           ))}
         </ol>
-      </section>
-
-      {/* ─── De la photo au livre ─── */}
-      <section id="exemple" className="scroll-mt-24">
-        <h2 className="text-center text-3xl sm:text-4xl">De sa photo à son livre</h2>
-        <p className="mx-auto mt-3 max-w-[52ch] text-center text-magique-texteClair">
-          Vous ajoutez une photo, on dessine un héros qui lui ressemble vraiment, le même à
-          chaque page, dans une histoire inventée pour lui.
-        </p>
-        <div className="mt-10 grid items-center gap-5 md:grid-cols-[.6fr_auto_1.4fr]">
-          <figure className="mx-auto w-full max-w-[260px] rotate-[-3deg] rounded-md bg-white p-2 pb-8 shadow-conte">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/exemple/photo.webp" alt="Photo d'exemple d'un enfant" loading="lazy" className="aspect-[3/4] w-full rounded-sm object-cover" />
-            <figcaption className="mt-2 text-center font-serif text-sm italic text-nuit">La photo envoyée</figcaption>
-          </figure>
-          <p className="text-center text-3xl text-or" aria-hidden="true">→</p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {[
-              { src: "/exemple/page-pont.webp", txt: "« Le petit renard tendit la patte : “Par ici, Léo, le pont des lucioles !” »" },
-              { src: "/exemple/page-lanternes.webp", txt: "« Du haut de la colline, Léo libéra toutes les lanternes du ciel. »" },
-            ].map((p) => (
-              <figure key={p.src} className="overflow-hidden rounded-2xl border border-white/15 bg-white/[0.07] shadow-conte">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.src} alt="Page illustrée du livre d'exemple" loading="lazy" className="aspect-[16/9] w-full object-cover" />
-                <figcaption className="p-3 text-sm italic text-magique-texteClair">{p.txt}</figcaption>
-              </figure>
-            ))}
-          </div>
+        <div className="mt-10 grid gap-4 sm:grid-cols-2">
+          {[
+            { src: "/exemple/page-pont.webp", txt: "« Le petit renard tendit la patte : “Par ici, Léo, le pont des lucioles !” »" },
+            { src: "/exemple/page-lanternes.webp", txt: "« Du haut de la colline, Léo libéra toutes les lanternes du ciel. »" },
+          ].map((p) => (
+            <figure key={p.src} className="overflow-hidden rounded-2xl bg-white/[0.06] shadow-conte">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.src} alt="Page illustrée du livre d'exemple de Léo" width={1376} height={768} loading="lazy" className="aspect-[16/9] h-auto w-full object-cover" />
+              <figcaption className="p-3 text-sm italic text-magique-texteClair">{p.txt}</figcaption>
+            </figure>
+          ))}
         </div>
         <p className="mt-4 text-center text-[13px] text-magique-texteClair">
-          Exemple réalisé avec un enfant fictif. Votre photo n'est jamais conservée.
+          Deux pages du livre de Léo, créé à partir de la photo ci-dessus (enfant fictif).{" "}
+          <Link href="/demo" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">Lire un livre en entier</Link>
         </p>
       </section>
 
@@ -329,22 +315,30 @@ export default async function AccueilPage() {
         <p className="mx-auto mt-3 max-w-[50ch] text-center text-magique-texteClair">
           La même scène, dessinée de douze façons. Choisissez celle que votre enfant préférera.
         </p>
-        <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {ILLUSTRATION_STYLE_KEYS.map((k) => (
-            <li key={k} className="overflow-hidden rounded-2xl border border-white/15 bg-white/[0.07]">
+        {(() => {
+          const vitrine = ["feerique", "aquarelle", "manga", "anim3d"] as const;
+          const vignette = (k: (typeof ILLUSTRATION_STYLE_KEYS)[number]) => (
+            <li key={k} className="overflow-hidden rounded-2xl bg-white/[0.06]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`/styles/${k}.webp`}
-                alt={`Exemple du style ${ILLUSTRATION_STYLES[k].label}`}
-                loading="lazy"
-                className="aspect-[4/3] w-full object-cover"
-              />
-              <p className="px-3 py-2 text-sm font-semibold text-magique-texte">
-                {ILLUSTRATION_STYLES[k].label}
-              </p>
+              <img src={`/styles/${k}.webp`} alt={`Exemple du style ${ILLUSTRATION_STYLES[k].label}`} loading="lazy" className="aspect-[4/3] w-full object-cover" />
+              <p className="px-3 py-2 text-sm font-semibold text-magique-texte">{ILLUSTRATION_STYLES[k].label}</p>
             </li>
-          ))}
-        </ul>
+          );
+          return (
+            <>
+              <ul className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">{vitrine.map(vignette)}</ul>
+              <details className="group mt-4">
+                <summary className="mx-auto flex min-h-11 w-fit cursor-pointer list-none items-center font-semibold text-magique-primaire underline-offset-4 hover:underline">
+                  <span className="group-open:hidden">Voir les {ILLUSTRATION_STYLE_KEYS.length} styles</span>
+                  <span className="hidden group-open:inline">Masquer</span>
+                </summary>
+                <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+                  {ILLUSTRATION_STYLE_KEYS.filter((k) => !(vitrine as readonly string[]).includes(k)).map(vignette)}
+                </ul>
+              </details>
+            </>
+          );
+        })()}
       </section>
 
       {/* ─── Catalogue ─── */}
@@ -381,73 +375,21 @@ export default async function AccueilPage() {
         </div>
       </section>
 
-      {/* ─── Ce que vous recevez ─── */}
-      <section id="offres" className="scroll-mt-24">
-        <h2 className="text-center text-3xl sm:text-4xl">Ce que vous recevez</h2>
-        <p className="mx-auto mt-3 max-w-[52ch] text-center text-magique-texteClair">
-          Vous lisez d'abord le livre en entier, gratuitement. Ensuite, gardez-le sous la forme qui vous plaît.
-        </p>
-        <ul className="mx-auto mt-8 grid max-w-5xl gap-x-12 sm:grid-cols-2">
-          {[
-            ["offres/ecran", "La lecture à l'écran", "Le livre complet, sur ordinateur, tablette ou téléphone, avec lecture à voix haute.", "Gratuit"],
-            ["offres/pdf", "Le livre PDF + son kit", "À imprimer chez vous, avec coloriage, affiche, invitation, autocollants et marque-pages.", `Dès ${prix}`],
-            ["offres/imprime", "Le livre imprimé", "Relié, couverture rigide, 28 × 21 cm, 30 pages. Imprimé et livré chez vous.", euros(LIVRE_IMPRIME.priceCents)],
-            ["offres/video", "Le livre en dessin animé", "Chaque page s'anime et une voix raconte l'histoire, en musique. Une vraie vidéo.", euros(DELUXE_PRODUCTS.find((d) => d.sku === "video")?.priceCents ?? 999)],
-            ["offres/fete", "Le pack fête et l'affiche A3", "Invitations, banderole et étiquettes à son image, et le héros en grand format.", `Dès ${euros(Math.min(...DELUXE_PRODUCTS.filter((d) => d.sku !== "video").map((d) => d.priceCents)))}`],
-            ["offres/club", "Le Club des histoires", "Un nouveau livre chaque semaine et les grands classiques revisités, sans engagement.", `Dès ${euros(PLANS_CLUB.club.priceCents)} / mois`],
-          ].map(([icone, titre, texte, tarif]) => (
-            <li key={titre} className="flex items-start gap-4 border-t border-white/10 py-5">
-              <Picto cle={icone ?? ""} taille={64} />
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between sm:gap-x-3">
-                  <h3 className="text-lg">{titre}</h3>
-                  <p className="font-serif text-lg text-or-clair">{tarif}</p>
-                </div>
-                <p className="mt-1 text-sm text-magique-texteClair">{texte}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* ─── Notre valeur, face au livre personnalisé classique ─── */}
-      <section>
-        <h2 className="text-center text-3xl sm:text-4xl">Pas un modèle où l'on change le prénom</h2>
-        <p className="mx-auto mt-3 max-w-[54ch] text-center text-magique-texteClair">
-          La plupart des livres personnalisés sont la même histoire pour tous les enfants, avec un prénom
-          inséré. Ici, chaque livre est écrit et dessiné pour un seul enfant.
-        </p>
-        {/* Mobile : une fiche par critère (pas de tableau qui défile de côté). */}
-        <ul className="mt-8 space-y-3 sm:hidden">
-          {COMPARATIF.map(([critere, eux, nous]) => (
-            <li key={critere} className="rounded-2xl bg-white/[0.05] p-4">
-              <p className="font-semibold">{critere}</p>
-              <p className="mt-2 text-[15px]"><span className="mr-1.5 text-or">✦</span>{nous}</p>
-              <p className="mt-1 text-sm text-magique-texteClair">Ailleurs : {eux}</p>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-8 hidden sm:block">
-          <table className="w-full min-w-[560px] border-separate border-spacing-0 overflow-hidden rounded-3xl border border-white/15 text-sm">
-            <thead>
-              <tr className="bg-white/[0.06]">
-                <th className="p-4 text-left font-semibold"> </th>
-                <th className="p-4 text-left font-semibold text-magique-texteClair">Livre personnalisé classique</th>
-                <th className="p-4 text-left font-semibold">✦ Encore une histoire</th>
-              </tr>
-            </thead>
-            <tbody>
-              {COMPARATIF.map(([critere, eux, nous]) => (
-                <tr key={critere} className="border-t border-white/10">
-                  <td className="border-t border-white/10 p-4 font-semibold">{critere}</td>
-                  <td className="border-t border-white/10 p-4 text-magique-texteClair">{eux}</td>
-                  <td className="border-t border-white/10 p-4">{nous}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      {/* ─── Qui fait Encore une histoire (affiché quand le texte est renseigné) ─── */}
+      {FONDATEUR.prenom && FONDATEUR.phrase && (
+        <section className="mx-auto flex max-w-3xl flex-col items-center gap-6 text-center sm:flex-row sm:text-left">
+          {FONDATEUR.photo && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={FONDATEUR.photo} alt={FONDATEUR.prenom} width={160} height={160} loading="lazy" className="h-32 w-32 flex-none rounded-full object-cover shadow-conte" />
+          )}
+          <figure>
+            <blockquote className="font-serif text-xl italic leading-relaxed">« {FONDATEUR.phrase} »</blockquote>
+            <figcaption className="mt-3 text-sm text-magique-texteClair">
+              {FONDATEUR.prenom}{FONDATEUR.role ? `, ${FONDATEUR.role}` : ""} · créateur d'Encore une histoire, en France
+            </figcaption>
+          </figure>
+        </section>
+      )}
 
       {/* ─── Prix ─── */}
       <section id="prix" className="scroll-mt-24">
@@ -517,6 +459,51 @@ export default async function AccueilPage() {
             Ou à l'unité : {DELUXE_PRODUCTS.map((d) => `${d.label} ${euros(d.priceCents)}`).join(" · ")}
           </span>
         </div>
+        <p className="mt-4 flex items-center justify-center gap-3 text-center text-[15px] text-magique-texteClair">
+          <Picto cle="offres/club" taille={36} />
+          <span>
+            Plusieurs histoires par mois ? <Link href="/club" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">Le Club</Link>, dès {euros(PLANS_CLUB.club.priceCents)} / mois, sans engagement.
+          </span>
+        </p>
+      </section>
+
+      {/* ─── Notre valeur, face au livre personnalisé classique ─── */}
+      <section>
+        <h2 className="text-center text-3xl sm:text-4xl">Pas un modèle où l'on change le prénom</h2>
+        <p className="mx-auto mt-3 max-w-[54ch] text-center text-magique-texteClair">
+          La plupart des livres personnalisés sont la même histoire pour tous les enfants, avec un prénom
+          inséré. Ici, chaque livre est écrit et dessiné pour un seul enfant.
+        </p>
+        {/* Mobile : une fiche par critère (pas de tableau qui défile de côté). */}
+        <ul className="mt-8 space-y-3 sm:hidden">
+          {COMPARATIF.map(([critere, eux, nous]) => (
+            <li key={critere} className="rounded-2xl bg-white/[0.05] p-4">
+              <p className="font-semibold">{critere}</p>
+              <p className="mt-2 text-[15px]"><span className="mr-1.5 text-or">✦</span>{nous}</p>
+              <p className="mt-1 text-sm text-magique-texteClair">Ailleurs : {eux}</p>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-8 hidden sm:block">
+          <table className="w-full min-w-[560px] border-separate border-spacing-0 overflow-hidden rounded-3xl border border-white/15 text-sm">
+            <thead>
+              <tr className="bg-white/[0.06]">
+                <th className="p-4 text-left font-semibold"> </th>
+                <th className="p-4 text-left font-semibold text-magique-texteClair">Livre personnalisé classique</th>
+                <th className="p-4 text-left font-semibold">✦ Encore une histoire</th>
+              </tr>
+            </thead>
+            <tbody>
+              {COMPARATIF.map(([critere, eux, nous]) => (
+                <tr key={critere} className="border-t border-white/10">
+                  <td className="border-t border-white/10 p-4 font-semibold">{critere}</td>
+                  <td className="border-t border-white/10 p-4 text-magique-texteClair">{eux}</td>
+                  <td className="border-t border-white/10 p-4">{nous}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       {/* ─── Avis des parents (seulement quand il y en a de vrais) ─── */}
@@ -554,6 +541,7 @@ export default async function AccueilPage() {
 
       {/* ─── Appel final ─── */}
       <section
+        id="appel-final"
         className="relative overflow-hidden rounded-[2.5rem] px-6 py-12 shadow-conte sm:px-12 sm:py-14"
         style={{
           backgroundImage:
@@ -587,6 +575,7 @@ export default async function AccueilPage() {
       </section>
       {/* Données structurées (placées en fin : un élément invisible en tête
           décalait le haut de page à cause de l'espacement vertical). */}
+      <BoutonCollant href={cta} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
     </div>
   );

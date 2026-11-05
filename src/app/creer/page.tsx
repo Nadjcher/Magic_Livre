@@ -11,7 +11,6 @@ import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import CreateBookForm from "@/components/CreateBookForm";
 import { getAbonnement } from "@/lib/subscription";
-import ConsentForm from "@/components/ConsentForm";
 import EnTetePage from "@/components/EnTetePage";
 
 export const metadata: Metadata = {
@@ -43,19 +42,6 @@ export default async function CreerPage({
     redirect(`/connexion?suite=${encodeURIComponent(suite)}`);
   }
 
-  // Consentement parental obligatoire avant la première création.
-  if (!hasParentalConsent(user)) {
-    return (
-      <div className="mx-auto max-w-2xl space-y-6">
-        <EnTetePage surtitre="Une dernière étape" titre="Consentement parental">
-          Avant de créer un livre, nous avons besoin de votre consentement
-          explicite.
-        </EnTetePage>
-        <ConsentForm termsVersion={env.termsVersion()} />
-      </div>
-    );
-  }
-
   const ab = await getAbonnement(user.id);
   const children = await prisma.child.findMany({
     where: { userId: user.id },
@@ -67,8 +53,7 @@ export default async function CreerPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-6">
         <EnTetePage surtitre="Le studio de création" titre="Créer un livre">
-          En quelques étapes, composez une histoire unique à l'image de votre
-          enfant.
+          Trois petites étapes : le héros, l'histoire, les finitions. Tout est déjà réglé pour son âge.
         </EnTetePage>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -83,6 +68,8 @@ export default async function CreerPage({
         prixStandard={euros(env.bookPriceCents())}
         prixPremium={euros(env.bookPricePremiumCents())}
         abonnement={{ actif: ab.actif, label: ab.label, restants: ab.restants, quota: ab.quota, premium: ab.premium }}
+        consentRequis={!hasParentalConsent(user)}
+        termsVersion={env.termsVersion()}
       />
     </div>
   );
