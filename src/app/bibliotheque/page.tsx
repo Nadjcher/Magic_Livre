@@ -104,9 +104,9 @@ export default async function BibliothequePage({ searchParams }: { searchParams:
             alt="Une étagère douillette qui attend ses contes"
             className="h-44 w-44 object-contain"
           />
-          <h2 className="text-2xl">Votre étagère est encore vide</h2>
+          <h2 className="text-2xl">Une étagère qui rêve de son premier conte</h2>
           <p className="max-w-sm text-magique-texteClair">
-            Le premier conte de votre enfant n'attend que vous.
+            Ici viendront se ranger toutes les aventures dont votre enfant est le héros.
           </p>
           <Link href="/creer" className="btn-primaire">
             Créer notre première histoire

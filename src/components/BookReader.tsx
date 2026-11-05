@@ -9,6 +9,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { Story } from "@/lib/storySchema";
 import { redrawPage } from "@/app/actions/illustrations";
 
@@ -44,7 +45,8 @@ export default function BookReader({
   const router = useRouter();
   const [redessin, setRedessin] = useState<{ enCours: boolean; message?: string }>({ enCours: false });
   const [restantes, setRestantes] = useState(retouche?.restantes ?? 0);
-  const totalEcrans = story.pages.length + 1;
+  // Couverture + pages + une vraie page « Fin ».
+  const totalEcrans = story.pages.length + 2;
   const [index, setIndex] = useState(0);
 
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -130,6 +132,7 @@ export default function BookReader({
   const imageCourante =
     index === 0 ? story.couvertureUrl : story.pages[index - 1]?.imageUrl;
   const pageCourante = index === 0 ? null : story.pages[index - 1];
+  const estFin = index === totalEcrans - 1;
 
   return (
     <div className="space-y-5">
@@ -139,7 +142,24 @@ export default function BookReader({
           key={index}
           className="anim-page flex min-h-[360px] flex-col items-center justify-center px-6 py-10 text-center sm:px-12"
         >
-          {index === 0 ? (
+          {estFin ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/illustrations/feerique/nuit.webp" alt="" className="mb-4 h-40 w-40 object-contain" />
+              <p className="font-serif text-5xl italic text-or-clair">Fin</p>
+              <p className="mt-3 max-w-[40ch] text-lg text-magique-texteClair">
+                Et l'histoire se referme doucement… jusqu'à la prochaine.
+              </p>
+              <div className="mt-7 flex flex-wrap justify-center gap-3">
+                <button type="button" onClick={() => setIndex(0)} className="btn-secondaire">
+                  Relire depuis le début
+                </button>
+                <Link href="/creer" className="btn-primaire">
+                  Encore une histoire ?
+                </Link>
+              </div>
+            </>
+          ) : index === 0 ? (
             <>
               {story.couvertureUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -175,7 +195,7 @@ export default function BookReader({
           )}
         </div>
         <span className="pointer-events-none absolute inset-x-0 bottom-3 text-center font-serif text-sm italic text-magique-texteClair">
-          {index === 0 ? "✦" : `— ${index} —`}
+          {index === 0 || estFin ? "✦" : `— ${index} —`}
         </span>
       </div>
 
@@ -194,7 +214,7 @@ export default function BookReader({
               if (r.ok) router.refresh();
             }}
           >
-            {redessin.enCours ? "Nouveau dessin en cours… (≈ 30 s)" : "🔄 Redessiner cette illustration"}
+            {redessin.enCours ? "Nouveau dessin en cours… (≈ 30 s)" : "Redessiner cette illustration"}
           </button>
           <span className="text-magique-texteClair">
             {redessin.message ?? `${restantes} retouche${restantes > 1 ? "s" : ""} gratuite${restantes > 1 ? "s" : ""}`}
@@ -232,7 +252,7 @@ export default function BookReader({
         </button>
       </div>
       <p className="text-center text-sm text-magique-texteClair">
-        {index === 0 ? "Couverture" : `Page ${index} sur ${story.pages.length}`}
+        {index === 0 ? "Couverture" : estFin ? "Fin" : `Page ${index} sur ${story.pages.length}`}
       </p>
 
       {/* ─── Lecture à voix haute ─── */}

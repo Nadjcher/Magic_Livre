@@ -9,7 +9,7 @@ import Link from "next/link";
 const STATUT: Record<string, { label: string; classe: string }> = {
   draft: { label: "Brouillon", classe: "bg-white/85 text-nuit" },
   generating: { label: "En cours…", classe: "bg-or-clair text-nuit" },
-  failed: { label: "Échec", classe: "bg-rose-200 text-nuit" },
+  failed: { label: "À reprendre", classe: "bg-rose-200 text-nuit" },
 };
 
 export default function LivreCouverture({

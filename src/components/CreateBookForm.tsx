@@ -519,7 +519,12 @@ export default function CreateBookForm({
         {pending ? "Création de l'histoire en cours…" : "✦ Créer le livre"}
       </button>
 
-      {pending && <GenerationOverlay />}
+      {pending && (
+        <GenerationOverlay
+          prenom={enfants.find((e) => e.id === childId)?.firstName}
+          themeId={mode === "theme" ? themeId : undefined}
+        />
+      )}
     </form>
   );
 }

@@ -14,6 +14,7 @@ import DeleteBookButton from "@/components/DeleteBookButton";
 import AutoRefresh from "@/components/AutoRefresh";
 import Notice from "@/components/Notice";
 import GenerationOverlay from "@/components/GenerationOverlay";
+import { THEMES } from "@/lib/themes";
 import CompleteIllustrationsButton from "@/components/CompleteIllustrationsButton";
 import { EN_COURS } from "@/lib/illustrationStatus";
 
@@ -92,7 +93,7 @@ export default async function LivrePage({
       {book.status === "generating" && (
         <>
           <AutoRefresh seconds={5} />
-          <GenerationOverlay inline />
+          <GenerationOverlay inline prenom={book.child.firstName} themeId={THEMES.find((t) => t.titre === book.theme)?.id} />
         </>
       )}
 
