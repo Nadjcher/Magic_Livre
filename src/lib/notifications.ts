@@ -3,6 +3,7 @@
  * téléchargement), et alertes pour l'administrateur (crédit IA épuisé…).
  */
 
+import { liberer, reserver } from "./idempotence";
 import "server-only";
 import { prisma } from "./prisma";
 import { getAppUrl } from "./appUrl";
@@ -34,13 +35,22 @@ export async function notifierLivrePret(bookId: string): Promise<void> {
  * email avec les liens de téléchargement.
  */
 export async function apresPaiement(orderId: string): Promise<void> {
-  const order = await prisma.order.findUnique({ where: { id: orderId }, select: { sku: true } });
-  if (order?.sku === "imprime") {
-    const { lancerImpression } = await import("./print");
-    await lancerImpression(orderId);
-    return;
+  // Idempotence : une commande n'est traitée qu'UNE fois (pas de double impression
+  // ni de double email), même si le webhook et le retour client arrivent ensemble.
+  const cle = `apres-paiement:${orderId}`;
+  if (!(await reserver(cle))) return;
+  try {
+    const order = await prisma.order.findUnique({ where: { id: orderId }, select: { sku: true } });
+    if (order?.sku === "imprime") {
+      const { lancerImpression } = await import("./print");
+      await lancerImpression(orderId);
+      return;
+    }
+    await notifierAchat(orderId);
+  } catch (e) {
+    await liberer(cle); // un prochain essai pourra refaire le traitement
+    throw e;
   }
-  await notifierAchat(orderId);
 }
 
 /** Confirmation d'achat avec le lien vers les téléchargements. */

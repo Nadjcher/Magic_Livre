@@ -129,7 +129,7 @@ export default async function BibliothequePage({ searchParams }: { searchParams:
                   href={`/bibliotheque/${book.id}`}
                   titre={book.title}
                   enfant={filtre ? undefined : book.child.firstName}
-                  couverture={avecCouverture.has(book.id) ? bookImageUrl(book.id, "cover") : null}
+                  couverture={avecCouverture.has(book.id) ? bookImageUrl(book.id, "cover", undefined, 480) : null}
                   statut={book.status}
                   priorite={i < 5}
                 />

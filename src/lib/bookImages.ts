@@ -20,8 +20,8 @@ const isDataUrl = (u: string | null | undefined): u is string =>
   typeof u === "string" && u.startsWith("data:");
 
 /** Adresse servant une image du livre (`cover` ou index de page). */
-export function bookImageUrl(bookId: string, which: "cover" | number, version?: string): string {
-  return `/api/books/${bookId}/image?i=${which}${version ? `&v=${version}` : ""}`;
+export function bookImageUrl(bookId: string, which: "cover" | number, version?: string, largeur?: 320 | 480 | 640 | 960): string {
+  return `/api/books/${bookId}/image?i=${which}${version ? `&v=${version}` : ""}${largeur ? `&w=${largeur}` : ""}`;
 }
 
 /** Empreinte courte d'une référence d'image (change quand l'image est refaite). */
@@ -45,11 +45,11 @@ export function lightenStory(story: Story, bookId: string): Story {
   return {
     ...story,
     couvertureUrl: viaRoute(story.couvertureUrl)
-      ? bookImageUrl(bookId, "cover", versionDe(story.couvertureUrl as string))
+      ? bookImageUrl(bookId, "cover", versionDe(story.couvertureUrl as string), 960)
       : story.couvertureUrl,
     pages: story.pages.map((p, i) => ({
       ...p,
-      imageUrl: viaRoute(p.imageUrl) ? bookImageUrl(bookId, i, versionDe(p.imageUrl as string)) : p.imageUrl,
+      imageUrl: viaRoute(p.imageUrl) ? bookImageUrl(bookId, i, versionDe(p.imageUrl as string), 960) : p.imageUrl,
     })),
   };
 }

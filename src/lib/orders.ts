@@ -13,6 +13,7 @@ export async function marquerPayee(
   orderId: string,
   opts: { sessionId?: string; userId?: string; bookId?: string } = {},
 ): Promise<boolean> {
+  let erreurAvant = false;
   for (let essai = 0; essai < 3; essai++) {
     try {
       const n = await prisma.$executeRaw`
@@ -23,8 +24,17 @@ export async function marquerPayee(
           AND status <> 'paid'::"OrderStatus"
           AND (${opts.userId ?? null}::text IS NULL OR "userId" = ${opts.userId ?? null})
           AND (${opts.bookId ?? null}::text IS NULL OR "bookId" = ${opts.bookId ?? null})`;
-      return n > 0;
+      if (n > 0) return true;
+      // Après une coupure, la première écriture a pu réussir sans qu'on le sache :
+      // si la commande est bien payée, on la considère comme « à traiter ». Le
+      // traitement lui-même est protégé contre les doublons (idempotence.ts).
+      if (erreurAvant) {
+        const r = await prisma.$queryRaw<{ status: string }[]>`SELECT status::text AS status FROM "Order" WHERE id = ${orderId}`;
+        return r[0]?.status === "paid";
+      }
+      return false;
     } catch (e) {
+      erreurAvant = true;
       console.error("[commande] marquage payé, essai", essai + 1, String(e).slice(0, 160));
       await new Promise((ok) => setTimeout(ok, 500 * (essai + 1)));
     }

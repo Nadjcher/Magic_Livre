@@ -40,28 +40,48 @@ export async function GET(
   const url = rows[0]?.url;
   if (!url) return new NextResponse("Image introuvable.", { status: 404 });
 
-  // Image déjà stockée ailleurs (Vercel Blob public) : simple redirection.
-  if (/^https?:\/\//.test(url)) return NextResponse.redirect(url, 302);
+  // Vignette demandée (?w=480) : on réduit l'image côté serveur. Une couverture
+  // pleine taille (faite pour l'impression) pèse ~10× plus qu'une vignette.
+  const w = Number(new URL(req.url).searchParams.get("w"));
+  const largeur = [320, 480, 640, 960].includes(w) ? w : 0;
 
-  // Store Blob privé : le serveur lit le fichier et le sert au propriétaire.
-  if (isPrivateBlobRef(url)) {
+  // Image déjà stockée ailleurs (Vercel Blob public, fal) : redirection, sauf vignette.
+  if (/^https?:\/\//.test(url) && !largeur) return NextResponse.redirect(url, 302);
+
+  let bytes: Buffer | null = null;
+  let mime = "image/jpeg";
+  if (/^https?:\/\//.test(url)) {
+    const r = await fetch(url, { signal: AbortSignal.timeout(20_000) }).catch(() => null);
+    if (!r?.ok) return NextResponse.redirect(url, 302);
+    bytes = Buffer.from(await r.arrayBuffer());
+    mime = r.headers.get("content-type") ?? mime;
+  } else if (isPrivateBlobRef(url)) {
+    // Store Blob privé : le serveur lit le fichier et le sert au propriétaire.
     const r = await readPrivateBlob(url);
     if (!r) return new NextResponse("Image introuvable.", { status: 404 });
-    return new NextResponse(new Uint8Array(r.bytes), {
-      status: 200,
-      headers: {
-        "Content-Type": r.mime,
-        "Cache-Control": "private, max-age=31536000, immutable",
-      },
-    });
+    bytes = r.bytes;
+    mime = r.mime;
+  } else {
+    const m = /^data:([^;]+);base64,(.+)$/.exec(url);
+    if (!m) return new NextResponse("Image illisible.", { status: 404 });
+    bytes = Buffer.from(m[2] as string, "base64");
+    mime = m[1] as string;
   }
 
-  const m = /^data:([^;]+);base64,(.+)$/.exec(url);
-  if (!m) return new NextResponse("Image illisible.", { status: 404 });
-  return new NextResponse(new Uint8Array(Buffer.from(m[2] as string, "base64")), {
+  if (largeur) {
+    try {
+      const sharp = (await import("sharp")).default;
+      bytes = await sharp(bytes).resize({ width: largeur, withoutEnlargement: true }).webp({ quality: 78 }).toBuffer();
+      mime = "image/webp";
+    } catch {
+      /* image servie telle quelle */
+    }
+  }
+
+  return new NextResponse(new Uint8Array(bytes), {
     status: 200,
     headers: {
-      "Content-Type": m[1] as string,
+      "Content-Type": mime,
       // Image propre à un utilisateur : cache navigateur uniquement.
       "Cache-Control": "private, max-age=31536000, immutable",
     },

@@ -146,9 +146,19 @@ export async function synchroniser(subscriptionId: string): Promise<void> {
 export async function inclureLivre(userId: string, bookId: string, ab: Abonnement): Promise<boolean> {
   if (!ab.actif || ab.restants <= 0) return false;
   try {
-    await prisma.order.create({
+    const o = await prisma.order.create({
       data: { userId, bookId, sku: "book", status: "paid", amount: 0, currency: "eur" },
+      select: { id: true },
     });
+    // Deux créations simultanées (double clic, deux onglets) ne doivent pas
+    // dépasser le quota : on recompte après coup et on annule le surplus.
+    const utilises = await prisma.order.count({
+      where: { userId, sku: "book", amount: 0, status: "paid", createdAt: { gte: ab.periodStart ?? new Date(Date.now() - 30 * 86400_000) }, book: { status: { not: "failed" } } },
+    });
+    if (utilises > ab.quota) {
+      await prisma.order.delete({ where: { id: o.id } }).catch(() => undefined);
+      return false;
+    }
     return true;
   } catch (e) {
     console.error("[club] inclusion du livre impossible :", String(e).slice(0, 160));

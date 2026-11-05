@@ -75,7 +75,7 @@ export default async function EspaceClub({ userId, ab }: { userId: string; ab: A
                 href={`/bibliotheque/${l.id}`}
                 titre={l.title}
                 enfant={l.child.firstName}
-                couverture={avecCouverture.has(l.id) ? bookImageUrl(l.id, "cover") : null}
+                couverture={avecCouverture.has(l.id) ? bookImageUrl(l.id, "cover", undefined, 480) : null}
                 statut={l.status}
                 priorite={i < 4}
               />
