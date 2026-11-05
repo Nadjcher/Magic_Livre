@@ -203,7 +203,7 @@ export default function CreateBookForm({
                 }}
                 className={`flex items-start gap-3 rounded-xl border-2 p-3 text-left transition ${
                   actif
-                    ? "border-magique-primaire bg-magique-primaire/10 shadow-or"
+                    ? "border-magique-primaire bg-magique-primaire/10 shadow-douce"
                     : "border-magique-trait hover:border-magique-primaire"
                 }`}
               >
@@ -273,7 +273,7 @@ export default function CreateBookForm({
                   onClick={() => choisirTheme(t.id)}
                   className={`flex items-start gap-3 rounded-xl border-2 p-3 text-left transition ${
                     actif
-                      ? "border-magique-primaire bg-magique-primaire/5 shadow-or"
+                      ? "border-magique-primaire bg-magique-primaire/5 shadow-douce"
                       : "border-magique-trait hover:border-magique-primaire"
                   }`}
                 >
@@ -337,7 +337,7 @@ export default function CreateBookForm({
                 onClick={() => setStyle(s)}
                 className={`overflow-hidden rounded-xl border-2 text-left transition ${
                   actif
-                    ? "border-magique-primaire bg-magique-primaire/5 shadow-or"
+                    ? "border-magique-primaire bg-magique-primaire/5 shadow-douce"
                     : "border-magique-trait hover:border-magique-primaire"
                 }`}
               >

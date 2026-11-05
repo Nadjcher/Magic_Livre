@@ -133,7 +133,7 @@ export default function ChildrenManager({ initial }: { initial: ChildView[] }) {
               <div className="flex items-center justify-between gap-4">
                 <span className="flex items-center gap-3">
                   <span
-                    className="relief-avant flex h-11 w-11 flex-none items-center justify-center rounded-full font-serif text-lg text-white shadow-or"
+                    className="relief-avant flex h-11 w-11 flex-none items-center justify-center rounded-full font-serif text-lg text-white shadow-douce"
                     style={{ backgroundImage: "linear-gradient(160deg,#5b9bff,#4f5fe0)" }}
                     aria-hidden="true"
                   >

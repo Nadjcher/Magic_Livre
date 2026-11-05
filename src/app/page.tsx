@@ -461,7 +461,7 @@ export default async function AccueilPage() {
             <Link href={cta} className="btn-secondaire mt-6">Créer son histoire</Link>
           </div>
 
-          <div className="relative flex flex-col rounded-3xl border-2 border-magique-primaire bg-white/[0.1] p-6 shadow-or">
+          <div className="relative flex flex-col rounded-3xl border-2 border-magique-primaire bg-white/[0.1] p-6 shadow-douce">
             <span className="absolute -top-3 left-6 rounded-full bg-magique-primaire px-3 py-1 text-xs font-bold text-nuit">
               Idéal à offrir
             </span>

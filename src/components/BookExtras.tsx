@@ -72,7 +72,7 @@ export default function BookExtras({
           <a
             key={p.cle}
             href={`/api/books/${bookId}/${p.href}`}
-            className="group flex items-start gap-3 rounded-2xl border border-magique-trait bg-white/[0.06] p-4 transition hover:-translate-y-0.5 hover:border-magique-primaire hover:shadow-or"
+            className="group flex items-start gap-3 rounded-2xl border border-magique-trait bg-white/[0.06] p-4 transition hover:-translate-y-0.5 hover:border-magique-primaire hover:shadow-douce"
           >
             <span className="text-2xl" aria-hidden="true">{p.emoji}</span>
             <span>
@@ -91,7 +91,7 @@ export default function BookExtras({
         <button
           onClick={telechargerAudio}
           disabled={pending}
-          className="group flex items-start gap-3 rounded-2xl border border-magique-trait bg-white/[0.06] p-4 text-left transition hover:-translate-y-0.5 hover:border-magique-primaire hover:shadow-or disabled:opacity-60"
+          className="group flex items-start gap-3 rounded-2xl border border-magique-trait bg-white/[0.06] p-4 text-left transition hover:-translate-y-0.5 hover:border-magique-primaire hover:shadow-douce disabled:opacity-60"
         >
           <span className="text-2xl" aria-hidden="true">🎧</span>
           <span>

@@ -57,7 +57,7 @@ p, li, figcaption, blockquote { text-wrap: pretty; }
 @layer components {
   /* Bouton principal : or en relief, léger soulèvement au survol. */
   .btn-primaire {
-    @apply relative overflow-hidden inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-bold text-white shadow-or transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#5468f0] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+    @apply relative overflow-hidden inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-bold text-white shadow-douce transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#5468f0] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
     background-color: #4a5ee8; /* bleu plein : texte blanc lisible (contraste AA) */
   }
   .btn-secondaire {

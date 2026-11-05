@@ -38,7 +38,7 @@ const config: Config = {
       boxShadow: {
         conte: "0 30px 60px -28px rgba(5,10,40,.75)",
         // Ombre neutre (plus de halo coloré : signature typique des pages « faites par IA »).
-        or: "0 12px 26px -12px rgba(5,10,40,.7)",
+        douce: "0 12px 26px -12px rgba(5,10,40,.7)",
       },
     },
   },
