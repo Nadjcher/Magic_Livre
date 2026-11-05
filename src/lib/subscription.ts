@@ -52,6 +52,7 @@ export interface Abonnement {
   plan: PlanClub | null;
   label: string;
   status: string | null;
+  periodStart: Date | null;
   periodEnd: Date | null;
   cancelAtPeriodEnd: boolean;
   quota: number;
@@ -63,7 +64,7 @@ export interface Abonnement {
 }
 
 const AUCUN: Abonnement = {
-  actif: false, plan: null, label: "", status: null, periodEnd: null, cancelAtPeriodEnd: false,
+  actif: false, plan: null, label: "", status: null, periodStart: null, periodEnd: null, cancelAtPeriodEnd: false,
   quota: 0, utilises: 0, restants: 0, premium: false, stripeCustomerId: null, stripeSubscriptionId: null,
 };
 
@@ -90,6 +91,7 @@ export async function getAbonnement(userId: string): Promise<Abonnement> {
       plan,
       label: def.label,
       status: r.status,
+      periodStart: debut,
       periodEnd: r.periodEnd,
       cancelAtPeriodEnd: r.cancelAtPeriodEnd,
       quota: def.livres,

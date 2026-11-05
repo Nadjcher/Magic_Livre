@@ -12,7 +12,6 @@ import { prisma } from "@/lib/prisma";
 import { formatEuros, getDeluxeProduct, PACK_TOUT } from "@/lib/products";
 import { libelleStatut, suiviGelato } from "@/lib/print";
 import { getAbonnement } from "@/lib/subscription";
-import ClubManager from "@/components/ClubManager";
 import Notice from "@/components/Notice";
 import EnTetePage from "@/components/EnTetePage";
 import {
@@ -129,7 +128,7 @@ export default async function ComptePage({ searchParams }: { searchParams: { clu
       </section>
 
       {searchParams.club === "bienvenue" && ab.actif && (
-        <Notice kind="succes">Bienvenue dans le {ab.label} ! Vos {ab.quota} livres du mois vous attendent.</Notice>
+        <Notice kind="succes">Bienvenue dans {ab.label} ! Vos {ab.quota} livres du mois vous attendent.</Notice>
       )}
 
       {/* Abonnement */}
@@ -148,7 +147,9 @@ export default async function ComptePage({ searchParams }: { searchParams: { clu
                 ? `Résilié : actif jusqu'au ${ab.periodEnd?.toLocaleDateString("fr-FR")}.`
                 : `Prochain renouvellement le ${ab.periodEnd?.toLocaleDateString("fr-FR")} (le compteur repart à zéro).`}
             </p>
-            <ClubManager resilie={ab.cancelAtPeriodEnd} />
+            <Link href="/club" className="btn-primaire w-fit px-5 py-2 text-sm">
+              Ouvrir mon espace Club
+            </Link>
           </>
         ) : (
           <p className="text-sm text-magique-texteClair">

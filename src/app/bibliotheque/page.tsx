@@ -10,6 +10,7 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { failStaleBooks } from "@/lib/bookMaintenance";
 import DeleteBookButton from "@/components/DeleteBookButton";
+import LivreCouverture from "@/components/LivreCouverture";
 import { bookImageUrl, migrateBookImagesToBlob } from "@/lib/bookImages";
 import { storySchema } from "@/lib/storySchema";
 import { waitUntil } from "@vercel/functions";
@@ -42,14 +43,7 @@ async function allegerAnciensLivres(userId: string): Promise<void> {
   }
 }
 
-const STATUT: Record<string, { label: string; classe: string }> = {
-  draft: { label: "Brouillon", classe: "bg-white/10 text-magique-texteClair" },
-  generating: { label: "En cours…", classe: "bg-or/15 text-or-fonce" },
-  ready: { label: "Prêt à lire", classe: "bg-magique-accent/15 text-emerald-200" },
-  failed: { label: "Échec", classe: "bg-magique-rose/15 text-rose-200" },
-};
-
-export default async function BibliothequePage() {
+export default async function BibliothequePage({ searchParams }: { searchParams: { enfant?: string } }) {
   const user = await getCurrentUser();
   if (!user) redirect("/connexion");
 
@@ -66,9 +60,13 @@ export default async function BibliothequePage() {
       id: true,
       title: true,
       status: true,
-      child: { select: { firstName: true } },
+      child: { select: { id: true, firstName: true } },
     },
   });
+  // Filtre par enfant (les livres de Hugo, de Lina…) pour garder l'étagère courte.
+  const enfants = Array.from(new Map(books.map((b) => [b.child.id, b.child.firstName])).entries());
+  const filtre = enfants.some(([id]) => id === searchParams.enfant) ? searchParams.enfant : null;
+  const visibles = filtre ? books.filter((b) => b.child.id === filtre) : books;
   const avecCouverture = new Set(
     (
       await prisma.$queryRaw<{ id: string }[]>`
@@ -107,61 +105,41 @@ export default async function BibliothequePage() {
           </Link>
         </div>
       ) : (
-        <ul className="grid gap-5 sm:grid-cols-2">
-          {books.map((book, i) => {
-            const st = STATUT[book.status] ?? {
-              label: book.status,
-              classe: "bg-white/10 text-magique-texteClair",
-            };
-            const thumb = avecCouverture.has(book.id) ? bookImageUrl(book.id, "cover") : null;
-            return (
-              <li
-                key={book.id}
-                data-tilt
-                className="carte anim-fade flex gap-4"
-                style={{ animationDelay: `${i * 0.06}s` }}
-              >
-                {/* Couverture ou médaillon */}
-                {thumb ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={thumb}
-                    alt=""
-                    className="h-24 w-20 flex-none rounded-xl object-cover shadow-sm"
-                  />
-                ) : (
-                  <div
-                    className="flex h-24 w-20 flex-none items-center justify-center rounded-xl font-serif text-3xl text-white shadow-sm"
-                    style={{ backgroundImage: "linear-gradient(160deg,#5b9bff,#4f5fe0)" }}
-                    aria-hidden="true"
-                  >
-                    {book.title.trim().charAt(0).toUpperCase() || "✦"}
-                  </div>
-                )}
-
-                <div className="flex min-w-0 flex-1 flex-col">
-                  <Link
-                    href={`/bibliotheque/${book.id}`}
-                    className="font-serif text-lg leading-snug text-magique-primaire hover:underline"
-                  >
-                    {book.title}
-                  </Link>
-                  <p className="mt-0.5 text-sm text-magique-texteClair">
-                    Pour {book.child.firstName}
-                  </p>
-                  <span
-                    className={`mt-2 inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${st.classe}`}
-                  >
-                    {st.label}
-                  </span>
-                  <div className="mt-auto pt-3">
-                    <DeleteBookButton bookId={book.id} title={book.title} />
-                  </div>
+        <>
+          {enfants.length > 1 && (
+            <nav className="sans-barre -mx-4 flex gap-2 overflow-x-auto px-4" aria-label="Filtrer par enfant">
+              {[[null, `Tous (${books.length})`] as const, ...enfants.map(([id, prenom]) => [id, `${prenom} (${books.filter((b) => b.child.id === id).length})`] as const)].map(([id, label]) => (
+                <Link
+                  key={id ?? "tous"}
+                  href={id ? `/bibliotheque?enfant=${id}` : "/bibliotheque"}
+                  aria-current={filtre === id ? "page" : undefined}
+                  className={`flex-none rounded-full border px-4 py-1.5 text-sm font-semibold transition ${
+                    filtre === id ? "border-magique-primaire bg-magique-primaire text-nuit" : "border-white/20 hover:border-white"
+                  }`}
+                >
+                  {label}
+                </Link>
+              ))}
+            </nav>
+          )}
+          <ul className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-5">
+            {visibles.map((book, i) => (
+              <li key={book.id} className="group/livre anim-fade relative" style={{ animationDelay: `${Math.min(i, 10) * 0.04}s` }}>
+                <LivreCouverture
+                  href={`/bibliotheque/${book.id}`}
+                  titre={book.title}
+                  enfant={filtre ? undefined : book.child.firstName}
+                  couverture={avecCouverture.has(book.id) ? bookImageUrl(book.id, "cover") : null}
+                  statut={book.status}
+                  priorite={i < 5}
+                />
+                <div className="absolute right-2 top-2 sm:opacity-0 sm:transition sm:focus-within:opacity-100 sm:group-hover/livre:opacity-100">
+                  <DeleteBookButton bookId={book.id} title={book.title} icone />
                 </div>
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
+        </>
       )}
     </div>
   );

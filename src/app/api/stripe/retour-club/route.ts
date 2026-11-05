@@ -24,5 +24,5 @@ export async function GET(req: Request): Promise<Response> {
       console.error("[club] retour :", String(e).slice(0, 160));
     }
   }
-  return NextResponse.redirect(`${getAppUrl()}/compte?club=bienvenue`, 303);
+  return NextResponse.redirect(`${getAppUrl()}/club?bienvenue=1`, 303);
 }

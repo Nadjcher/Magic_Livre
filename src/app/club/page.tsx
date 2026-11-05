@@ -10,6 +10,8 @@ import BandeauLancement from "@/components/BandeauLancement";
 import { ventesOuvertes } from "@/lib/lancement";
 import { estAdmin } from "@/lib/rateLimit";
 import Notice from "@/components/Notice";
+import EspaceClub from "@/components/EspaceClub";
+import Picto from "@/components/Picto";
 
 export const metadata: Metadata = {
   title: "Le Club : un nouveau livre personnalisé chaque semaine",
@@ -18,9 +20,21 @@ export const metadata: Metadata = {
   alternates: { canonical: "/club" },
 };
 
-export default async function ClubPage({ searchParams }: { searchParams: { annule?: string } }) {
+export default async function ClubPage({ searchParams }: { searchParams: { annule?: string; bienvenue?: string } }) {
   const user = await getCurrentUser();
   const ab = user ? await getAbonnement(user.id) : null;
+
+  // Membre : son espace « Mon Club » (livres du mois, classiques à créer).
+  if (user && ab?.actif) {
+    return (
+      <div className="mx-auto max-w-5xl space-y-6">
+        {searchParams.bienvenue && (
+          <Notice kind="succes">Bienvenue dans {ab.label} ! Vos {ab.quota} livres du mois vous attendent.</Notice>
+        )}
+        <EspaceClub userId={user.id} ab={ab} />
+      </div>
+    );
+  }
   const classiques = THEMES.filter((t) => t.categorie === "classiques");
 
   return (
@@ -48,9 +62,9 @@ export default async function ClubPage({ searchParams }: { searchParams: { annul
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {classiques.map((t) => (
             <li key={t.id}>
-              <Link href={`/catalogue/${t.id}`} className="carte carte-interactive block h-full p-4">
-                <span className="text-2xl" aria-hidden="true">{t.emoji}</span>
-                <p className="mt-1 font-semibold">{t.titre}</p>
+              <Link href={`/catalogue/${t.id}`} className="group flex h-full flex-col items-center rounded-2xl bg-white/[0.05] p-4 text-center transition hover:bg-white/[0.09]">
+                <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={72} className="transition duration-300 group-hover:-translate-y-1" />
+                <p className="mt-2 font-semibold">{t.titre}</p>
                 <p className="text-sm text-magique-texteClair">{t.accroche}</p>
               </Link>
             </li>
