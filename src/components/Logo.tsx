@@ -49,9 +49,9 @@ export function LogoMark({ className = "h-8 w-8" }: { className?: string }) {
 
 export default function Logo() {
   return (
-    <span className="flex items-center gap-2">
-      <LogoMark className="h-9 w-9 drop-shadow-sm" />
-      <span className="whitespace-nowrap font-serif text-lg font-bold text-gradient sm:text-xl">Encore une histoire</span>
+    <span className="flex items-center gap-1.5 sm:gap-2">
+      <LogoMark className="h-8 w-8 drop-shadow-sm sm:h-9 sm:w-9" />
+      <span className="whitespace-nowrap font-serif text-[15px] font-bold min-[360px]:text-base text-gradient min-[400px]:text-lg sm:text-xl">Encore une histoire</span>
     </span>
   );
 }

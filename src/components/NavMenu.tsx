@@ -37,7 +37,7 @@ export default function NavMenu({ children }: { children: React.ReactNode }) {
       {ouvert && (
         <div
           id="menu-mobile"
-          className="absolute inset-x-0 top-full border-b border-magique-trait bg-[#18245f]/95 px-4 py-4 shadow-lg backdrop-blur-md sm:hidden"
+          className="absolute inset-x-0 top-full border-b border-magique-trait bg-[#18245f] px-4 py-2 shadow-conte sm:hidden"
         >
           <div className="flex flex-col text-base [&>*]:py-3 [&>a]:block">{children}</div>
         </div>

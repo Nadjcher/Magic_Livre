@@ -358,7 +358,7 @@ export default async function AccueilPage() {
               Plus de 30 thèmes pour les fêtes, les grandes étapes et les petites émotions.
             </p>
           </div>
-          <Link href="/catalogue" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">
+          <Link href="/catalogue" className="inline-flex min-h-11 items-center font-semibold text-magique-primaire underline-offset-4 hover:underline">
             Voir tout le catalogue
           </Link>
         </div>
@@ -534,7 +534,7 @@ export default async function AccueilPage() {
         <div className="mt-8 divide-y divide-magique-trait rounded-3xl border border-magique-trait bg-white/[0.06]">
           {FAQ.map((f) => (
             <details key={f.q} className="group px-6 py-5">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-magique-texte">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 font-semibold text-magique-texte">
                 {f.q}
                 <span className="text-xl text-magique-primaire transition group-open:rotate-45" aria-hidden="true">+</span>
               </summary>

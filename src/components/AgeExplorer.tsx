@@ -81,7 +81,7 @@ export default function AgeExplorer() {
               </figure>
             ))}
           </div>
-          <Link href={`/livre-personnalise/${g.slug}`} className="inline-block text-sm font-semibold text-magique-primaire hover:underline">
+          <Link href={`/livre-personnalise/${g.slug}`} className="inline-flex min-h-11 items-center text-sm font-semibold text-magique-primaire hover:underline">
             Tout savoir sur les livres pour {g.label} →
           </Link>
         </div>
