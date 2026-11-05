@@ -11,6 +11,9 @@ import { prisma } from "@/lib/prisma";
 import { failStaleBooks } from "@/lib/bookMaintenance";
 import DeleteBookButton from "@/components/DeleteBookButton";
 import LivreCouverture from "@/components/LivreCouverture";
+import BoutonDemo from "@/components/BoutonDemo";
+import { livresDemo } from "@/lib/demo";
+import { estAdmin } from "@/lib/rateLimit";
 import { bookImageUrl, migrateBookImagesToBlob } from "@/lib/bookImages";
 import { storySchema } from "@/lib/storySchema";
 import { waitUntil } from "@vercel/functions";
@@ -63,10 +66,15 @@ export default async function BibliothequePage({ searchParams }: { searchParams:
       child: { select: { id: true, firstName: true } },
     },
   });
+  // Administrateur : les livres de démonstration (vidéos) sont rangés à part.
+  const admin = estAdmin(user.email);
+  const demo = admin ? await livresDemo(user.id) : new Set<string>();
+  const demos = books.filter((b) => demo.has(b.id));
+  const mesLivres = books.filter((b) => !demo.has(b.id));
   // Filtre par enfant (les livres de Hugo, de Lina…) pour garder l'étagère courte.
-  const enfants = Array.from(new Map(books.map((b) => [b.child.id, b.child.firstName])).entries());
+  const enfants = Array.from(new Map(mesLivres.map((b) => [b.child.id, b.child.firstName])).entries());
   const filtre = enfants.some(([id]) => id === searchParams.enfant) ? searchParams.enfant : null;
-  const visibles = filtre ? books.filter((b) => b.child.id === filtre) : books;
+  const visibles = filtre ? mesLivres.filter((b) => b.child.id === filtre) : mesLivres;
   const avecCouverture = new Set(
     (
       await prisma.$queryRaw<{ id: string }[]>`
@@ -108,7 +116,7 @@ export default async function BibliothequePage({ searchParams }: { searchParams:
         <>
           {enfants.length > 1 && (
             <nav className="sans-barre -mx-4 flex gap-2 overflow-x-auto px-4" aria-label="Filtrer par enfant">
-              {[[null, `Tous (${books.length})`] as const, ...enfants.map(([id, prenom]) => [id, `${prenom} (${books.filter((b) => b.child.id === id).length})`] as const)].map(([id, label]) => (
+              {[[null, `Tous (${mesLivres.length})`] as const, ...enfants.map(([id, prenom]) => [id, `${prenom} (${mesLivres.filter((b) => b.child.id === id).length})`] as const)].map(([id, label]) => (
                 <Link
                   key={id ?? "tous"}
                   href={id ? `/bibliotheque?enfant=${id}` : "/bibliotheque"}
@@ -133,12 +141,34 @@ export default async function BibliothequePage({ searchParams }: { searchParams:
                   statut={book.status}
                   priorite={i < 5}
                 />
-                <div className="absolute right-2 top-2 sm:opacity-0 sm:transition sm:focus-within:opacity-100 sm:group-hover/livre:opacity-100">
+                <div className="absolute right-2 top-2 flex gap-1.5 sm:opacity-0 sm:transition sm:focus-within:opacity-100 sm:group-hover/livre:opacity-100">
+                  {admin && <BoutonDemo bookId={book.id} estDemo={false} />}
                   <DeleteBookButton bookId={book.id} title={book.title} icone />
                 </div>
               </li>
             ))}
           </ul>
+          {demos.length > 0 && (
+            <details className="rounded-2xl bg-white/[0.04] p-5">
+              <summary className="flex min-h-11 cursor-pointer items-center font-semibold">
+                Livres de démonstration ({demos.length}) · visibles par vous seul
+              </summary>
+              <ul className="mt-5 grid grid-cols-3 gap-x-4 gap-y-6 sm:grid-cols-5 lg:grid-cols-6">
+                {demos.map((book) => (
+                  <li key={book.id} className="relative space-y-2">
+                    <LivreCouverture
+                      href={`/bibliotheque/${book.id}`}
+                      titre={book.title}
+                      enfant={book.child.firstName}
+                      couverture={avecCouverture.has(book.id) ? bookImageUrl(book.id, "cover", undefined, 320) : null}
+                      statut={book.status}
+                    />
+                    <BoutonDemo bookId={book.id} estDemo />
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
         </>
       )}
     </div>

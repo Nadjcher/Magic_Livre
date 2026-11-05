@@ -1,145 +1,205 @@
 /**
- * « Mon Club » : l'espace des membres. Les livres du mois (faits et à faire),
- * les grands classiques à créer, les idées du moment et la gestion de l'abonnement.
+ * « Mon Club » : l'espace des membres. Chaque mois, une SÉLECTION de livres est
+ * proposée pour chaque enfant (4 ou 8 selon la formule) : un clic sur
+ * « Recevoir » et le livre est écrit et illustré, avec le même héros.
  */
 
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import type { Abonnement } from "@/lib/subscription";
-import { THEMES } from "@/lib/themes";
+import { THEMES, type Theme } from "@/lib/themes";
 import { bookImageUrl } from "@/lib/bookImages";
+import { nomMois, selectionDuMois } from "@/lib/selectionMois";
 import LivreCouverture from "./LivreCouverture";
 import Picto from "./Picto";
 import ClubManager from "./ClubManager";
+import RecevoirLivre from "./RecevoirLivre";
+import { livresDemo } from "@/lib/demo";
 
 const date = (d: Date | null) => d?.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }) ?? "";
 
-export default async function EspaceClub({ userId, ab }: { userId: string; ab: Abonnement }) {
-  // Livres créés avec le Club sur la période en cours (commandes « book » à 0 €).
-  const commandes = await prisma.order.findMany({
-    where: {
-      userId,
-      sku: "book",
-      amount: 0,
-      status: "paid",
-      createdAt: { gte: ab.periodStart ?? new Date(Date.now() - 30 * 86400_000) },
-      book: { deletedAt: null, status: { not: "failed" } },
-    },
+/** Couleur de jaquette par famille de thèmes. */
+const JAQUETTE: Record<string, string> = {
+  classiques: "linear-gradient(165deg,#5a3f9e,#231a5c)",
+  fetes: "linear-gradient(165deg,#b0477e,#3a1d58)",
+  grandir: "linear-gradient(165deg,#2f8a7d,#173a5c)",
+  emotions: "linear-gradient(165deg,#c06a5a,#3d2252)",
+  aventures: "linear-gradient(165deg,#3a6fd1,#16245c)",
+  passions: "linear-gradient(165deg,#c38a2f,#3b2a55)",
+};
+
+/** Livre proposé, pas encore reçu : une jaquette dessinée. */
+export function Jaquette({ theme, prenom }: { theme: Theme; prenom: string }) {
+  return (
+    <div
+      className="relative flex aspect-[3/4] flex-col items-center overflow-hidden rounded-l-[4px] rounded-r-xl px-4 pb-4 pt-3 text-center shadow-conte"
+      style={{ backgroundImage: JAQUETTE[theme.categorie] ?? JAQUETTE.aventures }}
+    >
+      <div className="absolute inset-y-0 left-0 w-3" style={{ background: "linear-gradient(90deg,rgba(0,0,0,.4),rgba(255,255,255,.1) 70%,rgba(0,0,0,.1))" }} aria-hidden="true" />
+      <div className="absolute inset-3 rounded-r-lg border border-white/15" aria-hidden="true" />
+      <div className="flex flex-1 items-center">
+        <Picto cle={`themes/${theme.id}`} secours={theme.emoji} taille={120} className="drop-shadow-[0_10px_14px_rgba(0,0,0,.35)]" />
+      </div>
+      <p className="font-serif text-[15px] leading-snug text-white sm:text-base">{theme.titre}</p>
+      <p className="mt-1 text-xs text-white/75">avec {prenom} en héros</p>
+    </div>
+  );
+}
+
+export default async function EspaceClub({ userId, ab, enfantId }: { userId: string; ab: Abonnement; enfantId?: string }) {
+  const demo = await livresDemo(userId);
+  const tous = await prisma.child.findMany({
+    where: { userId },
     orderBy: { createdAt: "asc" },
-    select: { book: { select: { id: true, title: true, status: true, child: { select: { firstName: true } } } } },
+    select: { id: true, firstName: true, age: true, books: { where: { deletedAt: null }, select: { id: true } } },
   });
-  const livres = commandes.flatMap((c) => (c.book ? [c.book] : []));
-  const ids = livres.map((l) => l.id);
+  // Les enfants « de démonstration » (tous leurs livres sont des démos) ne sont pas proposés.
+  const enfants = tous.filter((e) => e.books.length === 0 || e.books.some((b) => !demo.has(b.id)));
+  const enfant = enfants.find((e) => e.id === enfantId) ?? enfants[0];
+  const debut = ab.periodStart ?? new Date(Date.now() - 30 * 86400_000);
+
+  // Livres du Club reçus sur la période (tous enfants), pour le compteur et l'affichage.
+  const commandes = await prisma.order.findMany({
+    where: { userId, sku: "book", amount: 0, status: "paid", createdAt: { gte: debut }, book: { deletedAt: null, status: { not: "failed" } } },
+    orderBy: { createdAt: "asc" },
+    select: { book: { select: { id: true, title: true, theme: true, status: true, childId: true, child: { select: { firstName: true } } } } },
+  });
+  const recus = commandes.flatMap((c) => (c.book && !demo.has(c.book.id) ? [c.book] : []));
+  const ids = recus.map((l) => l.id);
   const avecCouverture = new Set(
     ids.length
-      ? (
-          await prisma.$queryRaw<{ id: string }[]>`
-            SELECT id FROM "Book" WHERE id = ANY(${ids}) AND pages->>'couvertureUrl' IS NOT NULL`
-        ).map((r) => r.id)
+      ? (await prisma.$queryRaw<{ id: string }[]>`SELECT id FROM "Book" WHERE id = ANY(${ids}) AND pages->>'couvertureUrl' IS NOT NULL`).map((r) => r.id)
       : [],
   );
-  const restants = Math.max(0, ab.quota - livres.length);
-  const classiques = THEMES.filter((t) => t.categorie === "classiques");
-  const idees = [...THEMES.filter((t) => t.saison), ...THEMES.filter((t) => !t.saison && t.categorie !== "classiques")].slice(0, 6);
+  const restants = Math.max(0, ab.quota - recus.length);
+
+  if (!enfant) {
+    return (
+      <div className="space-y-4 text-center">
+        <h1 className="text-3xl sm:text-4xl">Bienvenue dans {ab.label}</h1>
+        <p className="text-magique-texteClair">Ajoutez d'abord votre enfant pour recevoir sa sélection de livres du mois.</p>
+        <Link href="/enfants" className="btn-primaire">Ajouter mon enfant</Link>
+      </div>
+    );
+  }
+
+  const selection = selectionDuMois(enfant.age, ab.quota);
+  const livreDe = (t: Theme) => recus.find((l) => l.childId === enfant.id && l.theme === t.titre);
+  const recusSelection = selection.filter((p) => livreDe(p.theme)).length;
+  const horsSelection = recus.filter((l) => !selection.some((p) => p.theme.titre === l.theme && l.childId === enfant.id));
+  const autresClassiques = THEMES.filter((t) => t.categorie === "classiques" && !selection.some((p) => p.theme.id === t.id));
 
   return (
     <div className="space-y-14">
-      {/* ─── Les livres du mois ─── */}
+      {/* ─── La sélection du mois ─── */}
       <section className="space-y-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="font-serif italic text-or-clair">{ab.label} · votre espace</p>
             <h1 className="mt-1 text-3xl sm:text-4xl">
-              {restants > 0
-                ? `Encore ${restants} livre${restants > 1 ? "s" : ""} à créer ce mois-ci`
-                : "Tous vos livres du mois sont créés"}
+              La sélection de {nomMois()} pour {enfant.firstName}
             </h1>
             <p className="mt-2 text-magique-texteClair">
-              {ab.cancelAtPeriodEnd
-                ? `Abonnement résilié : il reste actif jusqu'au ${date(ab.periodEnd)}.`
-                : `${ab.quota} livres par mois. Nouveaux livres le ${date(ab.periodEnd)}.`}
-              {ab.premium && " Illustrations haute qualité incluses."}
+              {ab.quota} livres choisis pour ses {enfant.age} ans · {recusSelection} reçu{recusSelection > 1 ? "s" : ""} ·{" "}
+              {ab.cancelAtPeriodEnd ? `abonnement actif jusqu'au ${date(ab.periodEnd)}` : `nouvelle sélection le ${date(ab.periodEnd)}`}
             </p>
           </div>
-          {restants > 0 && (
-            <Link href="/creer" className="btn-primaire">
-              Créer un livre
-            </Link>
-          )}
         </div>
 
-        <ul className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4 sm:gap-x-6">
-          {livres.map((l, i) => (
-            <li key={l.id}>
-              <LivreCouverture
-                href={`/bibliotheque/${l.id}`}
-                titre={l.title}
-                enfant={l.child.firstName}
-                couverture={avecCouverture.has(l.id) ? bookImageUrl(l.id, "cover", undefined, 480) : null}
-                statut={l.status}
-                priorite={i < 4}
-              />
-            </li>
-          ))}
-          {Array.from({ length: restants }).map((_, i) => (
-            <li key={`libre-${i}`}>
+        {enfants.length > 1 && (
+          <nav className="sans-barre -mx-4 flex gap-2 overflow-x-auto px-4" aria-label="Choisir l'enfant">
+            {enfants.map((e) => (
               <Link
-                href="/creer"
-                className="group flex aspect-[3/4] flex-col items-center justify-center gap-2 rounded-l-[4px] rounded-r-xl border-2 border-dashed border-white/25 text-center transition hover:border-magique-primaire hover:bg-white/[0.04]"
+                key={e.id}
+                href={`/club?enfant=${e.id}`}
+                aria-current={e.id === enfant.id ? "page" : undefined}
+                className={`flex min-h-11 flex-none items-center rounded-full border px-4 text-sm font-semibold transition ${
+                  e.id === enfant.id ? "border-magique-primaire bg-magique-primaire text-nuit" : "border-white/20 hover:border-white"
+                }`}
               >
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 font-serif text-2xl text-white transition group-hover:bg-magique-primaire group-hover:text-nuit" aria-hidden="true">
-                  +
-                </span>
-                <span className="px-3 text-sm font-semibold">Livre {livres.length + i + 1}</span>
-                <span className="px-3 text-xs text-magique-texteClair">à créer</span>
+                {e.firstName}, {e.age} ans
               </Link>
-            </li>
-          ))}
+            ))}
+          </nav>
+        )}
+
+        <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-4 sm:gap-x-6">
+          {selection.map(({ theme }, i) => {
+            const livre = livreDe(theme);
+            return (
+              <li key={theme.id} className="space-y-3">
+                {livre ? (
+                  <>
+                    <LivreCouverture
+                      href={`/bibliotheque/${livre.id}`}
+                      titre={livre.status === "generating" ? theme.titre : livre.title}
+                      enfant={livre.child.firstName}
+                      couverture={avecCouverture.has(livre.id) ? bookImageUrl(livre.id, "cover", undefined, 480) : null}
+                      statut={livre.status}
+                      priorite={i < 4}
+                    />
+                    <Link href={`/bibliotheque/${livre.id}`} className="btn-secondaire w-full px-3 py-2 text-sm">
+                      {livre.status === "generating" ? "En préparation…" : "Lire"}
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Jaquette theme={theme} prenom={enfant.firstName} />
+                    <RecevoirLivre childId={enfant.id} themeId={theme.id} desactive={restants <= 0} />
+                  </>
+                )}
+              </li>
+            );
+          })}
         </ul>
+        <p className="text-sm text-magique-texteClair">
+          {restants > 0
+            ? `Il vous reste ${restants} livre${restants > 1 ? "s" : ""} ce mois-ci. Chaque livre est écrit et illustré en 2 à 3 minutes, avec le même héros que ses livres précédents.`
+            : `Vous avez reçu tous vos livres du mois. La prochaine sélection arrive le ${date(ab.periodEnd)}.`}
+        </p>
       </section>
 
-      {/* ─── Les grands classiques ─── */}
-      <section className="space-y-5">
-        <div>
-          <h2 className="text-2xl sm:text-3xl">Les grands classiques, réservés au Club</h2>
-          <p className="mt-2 max-w-[60ch] text-magique-texteClair">
-            Les contes que vous connaissez par cœur, réécrits pour son âge, avec votre enfant en héros.
-            {restants === 0 && ` Vos prochains livres arrivent le ${date(ab.periodEnd)}.`}
-          </p>
-        </div>
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {classiques.map((t) => (
-            <li key={t.id}>
-              <Link
-                href={restants > 0 ? `/creer?theme=${t.id}` : `/catalogue/${t.id}`}
-                className="group flex h-full flex-col items-center rounded-2xl bg-white/[0.05] p-4 text-center transition hover:bg-white/[0.09]"
-              >
-                <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={80} className="transition duration-300 group-hover:-translate-y-1" />
-                <p className="mt-2 font-serif text-[17px] leading-snug">{t.titre}</p>
-                <p className="mt-1 text-xs leading-relaxed text-magique-texteClair">{t.accroche}</p>
-                {restants > 0 && <span className="mt-auto pt-3 text-sm font-semibold text-magique-primaire">Créer ce livre →</span>}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {/* ─── Livres créés librement ce mois-ci ─── */}
+      {horsSelection.length > 0 && (
+        <section className="space-y-5">
+          <h2 className="text-2xl sm:text-3xl">Vos autres livres du mois</h2>
+          <ul className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4 sm:gap-x-6">
+            {horsSelection.map((l) => (
+              <li key={l.id}>
+                <LivreCouverture
+                  href={`/bibliotheque/${l.id}`}
+                  titre={l.title}
+                  enfant={l.child.firstName}
+                  couverture={avecCouverture.has(l.id) ? bookImageUrl(l.id, "cover", undefined, 480) : null}
+                  statut={l.status}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
-      {/* ─── Idées du moment ─── */}
+      {/* ─── Envie d'autre chose ─── */}
       <section className="space-y-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 className="text-2xl sm:text-3xl">Et aussi, en ce moment</h2>
-          <Link href="/catalogue" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">
-            Tout le catalogue
+          <div>
+            <h2 className="text-2xl sm:text-3xl">Envie d'une autre histoire ?</h2>
+            <p className="mt-2 max-w-[60ch] text-magique-texteClair">
+              Vous pouvez aussi choisir vous-même : elle compte dans vos {ab.quota} livres du mois.
+            </p>
+          </div>
+          <Link href="/creer" className="inline-flex min-h-11 items-center font-semibold text-magique-primaire underline-offset-4 hover:underline">
+            Créer une histoire sur mesure
           </Link>
         </div>
         <ul className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-          {idees.map((t) => (
+          {autresClassiques.slice(0, 12).map((t) => (
             <li key={t.id}>
               <Link
-                href={restants > 0 ? `/creer?theme=${t.id}` : `/catalogue/${t.id}`}
+                href={`/creer?theme=${t.id}`}
                 className="group flex flex-col items-center gap-2 rounded-2xl px-2 py-3 text-center text-sm font-semibold transition hover:bg-white/[0.07]"
               >
-                <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={60} className="transition duration-300 group-hover:-translate-y-1" />
+                <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={56} className="transition duration-300 group-hover:-translate-y-1" />
                 <span className="leading-snug">{t.titre}</span>
               </Link>
             </li>
@@ -153,7 +213,7 @@ export default async function EspaceClub({ userId, ab }: { userId: string; ab: A
           <p>
             <strong className="text-magique-texte">{ab.label}</strong> · {ab.quota} livres par mois · sans engagement.
           </p>
-          <p className="mt-1">Les livres créés restent à vous, même si vous arrêtez.</p>
+          <p className="mt-1">Les livres reçus restent à vous, même si vous arrêtez.</p>
         </div>
         <ClubManager resilie={ab.cancelAtPeriodEnd} />
       </section>

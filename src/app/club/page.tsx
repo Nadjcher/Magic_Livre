@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/club" },
 };
 
-export default async function ClubPage({ searchParams }: { searchParams: { annule?: string; bienvenue?: string } }) {
+export default async function ClubPage({ searchParams }: { searchParams: { annule?: string; bienvenue?: string; enfant?: string } }) {
   const user = await getCurrentUser();
   const ab = user ? await getAbonnement(user.id) : null;
 
@@ -29,9 +29,9 @@ export default async function ClubPage({ searchParams }: { searchParams: { annul
     return (
       <div className="mx-auto max-w-5xl space-y-6">
         {searchParams.bienvenue && (
-          <Notice kind="succes">Bienvenue dans {ab.label} ! Vos {ab.quota} livres du mois vous attendent.</Notice>
+          <Notice kind="succes">Bienvenue dans {ab.label} ! Votre sélection de {ab.quota} livres du mois vous attend.</Notice>
         )}
-        <EspaceClub userId={user.id} ab={ab} />
+        <EspaceClub userId={user.id} ab={ab} enfantId={searchParams.enfant} />
       </div>
     );
   }

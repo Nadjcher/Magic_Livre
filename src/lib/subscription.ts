@@ -12,6 +12,7 @@ import type Stripe from "stripe";
 import { prisma } from "./prisma";
 import { getStripe } from "./stripe";
 import { PLANS_CLUB, type PlanClub } from "./products";
+import { livresDemo } from "./demo";
 
 let tablePrete: Promise<void> | null = null;
 export function assurerTable(): Promise<void> {
@@ -81,9 +82,11 @@ export async function getAbonnement(userId: string): Promise<Abonnement> {
     const def = PLANS_CLUB[plan];
     const actif = ["active", "trialing"].includes(r.status) && (!r.periodEnd || r.periodEnd.getTime() > Date.now());
     const debut = r.periodStart ?? new Date(Date.now() - 30 * 86400_000);
+    // Les livres de démonstration (rangés à part par l'administrateur) ne comptent pas.
+    const demo = actif ? [...(await livresDemo(userId))] : [];
     const utilises = actif
       ? await prisma.order.count({
-          where: { userId, sku: "book", amount: 0, status: "paid", createdAt: { gte: debut }, book: { status: { not: "failed" } } },
+          where: { userId, sku: "book", amount: 0, status: "paid", createdAt: { gte: debut }, bookId: { notIn: demo }, book: { status: { not: "failed" } } },
         })
       : 0;
     return {
@@ -152,8 +155,9 @@ export async function inclureLivre(userId: string, bookId: string, ab: Abonnemen
     });
     // Deux créations simultanées (double clic, deux onglets) ne doivent pas
     // dépasser le quota : on recompte après coup et on annule le surplus.
+    const demo = [...(await livresDemo(userId))];
     const utilises = await prisma.order.count({
-      where: { userId, sku: "book", amount: 0, status: "paid", createdAt: { gte: ab.periodStart ?? new Date(Date.now() - 30 * 86400_000) }, book: { status: { not: "failed" } } },
+      where: { userId, sku: "book", amount: 0, status: "paid", createdAt: { gte: ab.periodStart ?? new Date(Date.now() - 30 * 86400_000) }, bookId: { notIn: demo }, book: { status: { not: "failed" } } },
     });
     if (utilises > ab.quota) {
       await prisma.order.delete({ where: { id: o.id } }).catch(() => undefined);

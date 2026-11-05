@@ -162,12 +162,15 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
     }
   }
 
-  // Limite quotidienne pour contrôler les coûts.
-  const limit = await checkDailyBookLimit(user.id, user.email);
-  if (!limit.allowed) return { ok: false, message: limit.message };
-
   // Abonnement Club : grands classiques réservés, livres inclus, premium (Club+).
   const abonnement = await getAbonnement(user.id);
+
+  // Limite quotidienne pour contrôler les coûts (sauf livres inclus dans le Club,
+  // déjà plafonnés par le quota mensuel : un membre peut recevoir sa sélection d'un coup).
+  if (!(abonnement.actif && abonnement.restants > 0)) {
+    const limit = await checkDailyBookLimit(user.id, user.email);
+    if (!limit.allowed) return { ok: false, message: limit.message };
+  }
   if (input.mode === "theme" && estClassique(findThemeById(input.themeId)) && !abonnement.actif) {
     return { ok: false, message: "Les grands classiques revisités sont réservés aux membres du Club." };
   }
