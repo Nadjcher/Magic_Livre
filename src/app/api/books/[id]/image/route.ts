@@ -48,7 +48,7 @@ export async function GET(
   // Image déjà stockée ailleurs (Vercel Blob public, fal) : redirection, sauf vignette.
   if (/^https?:\/\//.test(url) && !largeur) return NextResponse.redirect(url, 302);
 
-  let bytes: Buffer | null = null;
+  let bytes: Buffer;
   let mime = "image/jpeg";
   if (/^https?:\/\//.test(url)) {
     const r = await fetch(url, { signal: AbortSignal.timeout(20_000) }).catch(() => null);
@@ -71,7 +71,7 @@ export async function GET(
   if (largeur) {
     try {
       const sharp = (await import("sharp")).default;
-      bytes = await sharp(bytes).resize({ width: largeur, withoutEnlargement: true }).webp({ quality: 78 }).toBuffer();
+      bytes = await sharp(bytes!).resize({ width: largeur, withoutEnlargement: true }).webp({ quality: 78 }).toBuffer();
       mime = "image/webp";
     } catch {
       /* image servie telle quelle */

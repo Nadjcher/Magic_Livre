@@ -576,7 +576,7 @@ export default async function AccueilPage() {
       {/* Données structurées (placées en fin : un élément invisible en tête
           décalait le haut de page à cause de l'espacement vertical). */}
       <BoutonCollant href={cta} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
     </div>
   );
 }

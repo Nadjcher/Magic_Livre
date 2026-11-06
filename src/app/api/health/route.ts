@@ -12,6 +12,8 @@ import { getAppUrl } from "@/lib/appUrl";
 import { env } from "@/lib/env";
 import { illustrationsEnabled } from "@/lib/illustration";
 import { requestPortrait } from "@/lib/faceIdentity";
+import { getCurrentUser } from "@/lib/session";
+import { estAdmin } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,6 +24,20 @@ function present(name: string): boolean {
 }
 
 export async function GET(req: Request): Promise<Response> {
+  // Public (surveillance type UptimeRobot) : seulement « en ligne » + base joignable.
+  // Tout le détail (configuration, commandes, sondes payantes des IA, écriture dans
+  // le stockage) est réservé à un administrateur connecté.
+  const user = await getCurrentUser().catch(() => null);
+  if (!user || !estAdmin(user.email)) {
+    let base = true;
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+    } catch {
+      base = false;
+    }
+    return NextResponse.json({ ok: base, db: base }, { status: base ? 200 : 503, headers: { "Cache-Control": "no-store" } });
+  }
+
   const out: {
     ok: boolean;
     appUrl: string;

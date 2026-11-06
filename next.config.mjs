@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Le site n'utilise pas next/image : on coupe l'optimiseur d'images (surface
+  // d'attaque inutile, plusieurs failles connues sur Next 14).
+  images: { unoptimized: true },
   reactStrictMode: true,
   // @react-pdf/renderer doit être traité comme un paquet externe côté serveur
   // afin d'éviter des erreurs de regroupement (bundling) dans les routes API.
