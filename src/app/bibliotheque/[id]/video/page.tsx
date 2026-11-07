@@ -18,7 +18,8 @@ export const dynamic = "force-dynamic";
 // Lancement de la bande-annonce (écriture + envoi des animations) en arrière-plan.
 export const maxDuration = 300;
 
-export default async function VideoPage({ params }: { params: { id: string } }) {
+export default async function VideoPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) redirect(`/connexion?suite=/bibliotheque/${params.id}/video`);
 

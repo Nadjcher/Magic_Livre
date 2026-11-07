@@ -20,7 +20,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/club" },
 };
 
-export default async function ClubPage({ searchParams }: { searchParams: { annule?: string; bienvenue?: string; enfant?: string } }) {
+export default async function ClubPage(
+  props: { searchParams: Promise<{ annule?: string; bienvenue?: string; enfant?: string }> }
+) {
+  const searchParams = await props.searchParams;
   const user = await getCurrentUser();
   const ab = user ? await getAbonnement(user.id) : null;
 

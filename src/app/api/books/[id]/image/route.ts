@@ -14,10 +14,8 @@ import { isPrivateBlobRef, readPrivateBlob } from "@/lib/blobStore";
 
 export const runtime = "nodejs";
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return new NextResponse("Non connecté.", { status: 401 });
 

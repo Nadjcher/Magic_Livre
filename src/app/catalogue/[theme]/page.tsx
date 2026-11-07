@@ -15,7 +15,8 @@ export function generateStaticParams() {
   return THEMES.map((t) => ({ theme: t.id }));
 }
 
-export function generateMetadata({ params }: { params: { theme: string } }): Metadata {
+export async function generateMetadata(props: { params: Promise<{ theme: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const t = findThemeById(params.theme);
   if (!t) return {};
   return {
@@ -39,7 +40,8 @@ const APPORTS: Record<string, string[]> = {
   classiques: ["Un conte que toute la famille connaît", "Votre enfant à la place du héros", "Une version douce, adaptée à son âge"],
 };
 
-export default function ThemePage({ params }: { params: { theme: string } }) {
+export default async function ThemePage(props: { params: Promise<{ theme: string }> }) {
+  const params = await props.params;
   const t = findThemeById(params.theme);
   if (!t) notFound();
   const categorie = THEME_CATEGORIES.find((c) => c.id === t.categorie);

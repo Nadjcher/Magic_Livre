@@ -13,6 +13,7 @@
  * aux 30 pages, puis « Fin ».
  */
 
+import type { JSX } from "react";
 import "server-only";
 import path from "node:path";
 import { Document, Page, Text, View, Image, renderToBuffer } from "@react-pdf/renderer";

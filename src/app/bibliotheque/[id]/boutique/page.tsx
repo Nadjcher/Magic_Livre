@@ -35,13 +35,14 @@ const KIT = [
 // Après paiement d'un livre imprimé, la fabrication du fichier peut démarrer ici.
 export const maxDuration = 300;
 
-export default async function BoutiquePage({
-  params,
-  searchParams,
-}: {
-  params: { id: string };
-  searchParams: { paiement?: string; session_id?: string };
-}) {
+export default async function BoutiquePage(
+  props: {
+    params: Promise<{ id: string }>;
+    searchParams: Promise<{ paiement?: string; session_id?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) redirect("/connexion");
 

@@ -15,7 +15,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 export async function rejoindreListe(formData: FormData): Promise<{ ok: boolean; message: string }> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   if (!EMAIL_RE.test(email) || email.length > 200) return { ok: false, message: "Adresse email invalide." };
-  const ip = (headers().get("x-forwarded-for") ?? "").split(",")[0]?.trim() || "inconnue";
+  const ip = ((await headers()).get("x-forwarded-for") ?? "").split(",")[0]?.trim() || "inconnue";
   const { allowed } = await checkLoginRate(`attente:${email}`, `attente:${ip}`);
   if (!allowed) return { ok: false, message: "Trop d'essais. Réessayez dans quelques minutes." };
   const nouveau = await inscrireAttente(email, String(formData.get("source") ?? "site").slice(0, 40));

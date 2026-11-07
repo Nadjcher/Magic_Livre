@@ -35,7 +35,8 @@ function libelleProduit(sku: string): string {
   return getDeluxeProduct(sku)?.label ?? sku;
 }
 
-export default async function ComptePage({ searchParams }: { searchParams: { club?: string } }) {
+export default async function ComptePage(props: { searchParams: Promise<{ club?: string }> }) {
+  const searchParams = await props.searchParams;
   const user = await getCurrentUser();
   if (!user) redirect("/connexion?suite=/compte");
 

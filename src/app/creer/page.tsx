@@ -29,11 +29,12 @@ function euros(cents: number): string {
 // maximum du plan Vercel gratuit avec Fluid compute.
 export const maxDuration = 300;
 
-export default async function CreerPage({
-  searchParams,
-}: {
-  searchParams: { theme?: string };
-}) {
+export default async function CreerPage(
+  props: {
+    searchParams: Promise<{ theme?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const user = await getCurrentUser();
   if (!user) {
     const suite = searchParams.theme

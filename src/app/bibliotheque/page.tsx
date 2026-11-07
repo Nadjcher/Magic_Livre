@@ -46,7 +46,8 @@ async function allegerAnciensLivres(userId: string): Promise<void> {
   }
 }
 
-export default async function BibliothequePage({ searchParams }: { searchParams: { enfant?: string } }) {
+export default async function BibliothequePage(props: { searchParams: Promise<{ enfant?: string }> }) {
+  const searchParams = await props.searchParams;
   const user = await getCurrentUser();
   if (!user) redirect("/connexion");
 

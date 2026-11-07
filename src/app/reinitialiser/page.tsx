@@ -8,11 +8,12 @@ import ResetPasswordForm from "@/components/ResetPasswordForm";
 
 export const dynamic = "force-dynamic";
 
-export default function ReinitialiserPage({
-  searchParams,
-}: {
-  searchParams: { token?: string; email?: string };
-}) {
+export default async function ReinitialiserPage(
+  props: {
+    searchParams: Promise<{ token?: string; email?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const email = (searchParams.email ?? "").toLowerCase().trim();
   const token = searchParams.token ?? "";
 

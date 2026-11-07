@@ -32,7 +32,7 @@ export const childSchema = z.object({
       "Le prénom contient des caractères non autorisés.",
     ),
   age: z
-    .number({ invalid_type_error: "L'âge doit être un nombre." })
+    .number({ error: "L'âge doit être un nombre." })
     .int("L'âge doit être un nombre entier.")
     .min(1, "L'âge doit être d'au moins 1 an.")
     .max(12, "Cette application est conçue pour les enfants jusqu'à 10-12 ans."),
@@ -115,9 +115,7 @@ export type CreateBookInput = z.infer<typeof createBookSchema>;
 /** Schéma du consentement parental. */
 export const consentSchema = z.object({
   consent: z.literal(true, {
-    errorMap: () => ({
-      message: "Vous devez confirmer être le parent ou le représentant légal.",
-    }),
+    error: "Vous devez confirmer être le parent ou le représentant légal.",
   }),
 });
 

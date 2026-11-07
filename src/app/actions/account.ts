@@ -24,8 +24,8 @@ export interface AccountResult {
   message: string;
 }
 
-function clientIp(): string {
-  return (headers().get("x-forwarded-for") ?? "").split(",")[0]?.trim() || "unknown";
+async function clientIp(): Promise<string> {
+  return ((await headers()).get("x-forwarded-for") ?? "").split(",")[0]?.trim() || "unknown";
 }
 
 /** Vérifie le mot de passe actuel (avec limitation des tentatives). */
@@ -33,7 +33,7 @@ async function verifierMotDePasse(
   user: { email: string; passwordHash: string | null },
   password: string,
 ): Promise<AccountResult | null> {
-  const { allowed } = await checkLoginRate(user.email, clientIp());
+  const { allowed } = await checkLoginRate(user.email, await clientIp());
   if (!allowed) {
     return { ok: false, message: "Trop de tentatives. Réessayez dans quelques minutes." };
   }

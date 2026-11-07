@@ -19,7 +19,7 @@ function countPages(node: unknown): number {
   let total = 0;
   Children.forEach(node as never, (child) => {
     if (isValidElement(child)) {
-      const el = child as ReactElement;
+      const el = child as ReactElement<{ children?: unknown }>;
       if (el.type === Page) total += 1;
       if (el.props && "children" in el.props) {
         total += countPages((el.props as { children: unknown }).children);
