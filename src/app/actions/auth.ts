@@ -27,7 +27,7 @@ export async function register(formData: FormData): Promise<RegisterResult> {
     return { ok: false, message: "Adresse email invalide." };
   }
   // Anti-abus : création de comptes en série depuis la même adresse IP.
-  const ip = (headers().get("x-forwarded-for") ?? "").split(",")[0]?.trim() || "inconnue";
+  const ip = ((await headers()).get("x-forwarded-for") ?? "").split(",")[0]?.trim() || "inconnue";
   const { allowed } = await checkLoginRate(`inscription:${email}`, `inscription:${ip}`);
   if (!allowed) return { ok: false, message: "Trop d'essais. Réessayez dans quelques minutes." };
   if (password.length < 8) {

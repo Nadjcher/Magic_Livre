@@ -15,7 +15,8 @@ import { renderPrintPdf } from "@/lib/printBook";
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-export async function GET(_req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Non connecté." }, { status: 401 });
   const book = await prisma.book.findFirst({

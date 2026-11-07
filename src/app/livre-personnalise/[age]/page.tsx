@@ -15,7 +15,8 @@ export function generateStaticParams() {
   return AGE_GROUPS.map((g) => ({ age: g.slug }));
 }
 
-export function generateMetadata({ params }: { params: { age: string } }): Metadata {
+export async function generateMetadata(props: { params: Promise<{ age: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const g = findAgeGroup(params.age);
   if (!g) return {};
   return {
@@ -25,7 +26,8 @@ export function generateMetadata({ params }: { params: { age: string } }): Metad
   };
 }
 
-export default function AgePage({ params }: { params: { age: string } }) {
+export default async function AgePage(props: { params: Promise<{ age: string }> }) {
+  const params = await props.params;
   const g = findAgeGroup(params.age);
   if (!g) notFound();
   const formats = BOOK_FORMATS.filter((f) => f.ageMax >= g.ageType && f.ageMin <= g.ageMax);

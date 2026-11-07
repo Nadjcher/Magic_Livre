@@ -7,7 +7,8 @@ import { desinscrire, jetonValide } from "@/lib/campagnes";
 export const metadata: Metadata = { title: "Désinscription", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-export default async function DesinscriptionPage({ searchParams }: { searchParams: { e?: string; t?: string; ok?: string } }) {
+export default async function DesinscriptionPage(props: { searchParams: Promise<{ e?: string; t?: string; ok?: string }> }) {
+  const searchParams = await props.searchParams;
   const email = (searchParams.e ?? "").toLowerCase();
   const jeton = searchParams.t ?? "";
   const valide = Boolean(email) && jetonValide(email, jeton);

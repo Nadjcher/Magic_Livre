@@ -14,7 +14,8 @@ import Notice from "@/components/Notice";
 export const metadata: Metadata = { title: "Donner mon avis", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-export default async function DonnerAvisPage({ params }: { params: { bookId: string } }) {
+export default async function DonnerAvisPage(props: { params: Promise<{ bookId: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) redirect(`/connexion?suite=/avis/${params.bookId}`);
   const book = await prisma.book.findFirst({

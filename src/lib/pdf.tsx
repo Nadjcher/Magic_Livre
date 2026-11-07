@@ -6,6 +6,7 @@
  * paiement validé.
  */
 
+import type { JSX } from "react";
 import "server-only";
 import path from "node:path";
 import {

@@ -21,13 +21,14 @@ import { EN_COURS } from "@/lib/illustrationStatus";
 // La complétion des illustrations tourne en arrière-plan depuis cette page.
 export const maxDuration = 300;
 
-export default async function LivrePage({
-  params,
-  searchParams,
-}: {
-  params: { id: string };
-  searchParams: { paiement?: string };
-}) {
+export default async function LivrePage(
+  props: {
+    params: Promise<{ id: string }>;
+    searchParams: Promise<{ paiement?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) redirect("/connexion");
 

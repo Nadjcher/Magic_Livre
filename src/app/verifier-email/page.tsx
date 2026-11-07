@@ -9,11 +9,12 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export default async function VerifierEmailPage({
-  searchParams,
-}: {
-  searchParams: { token?: string; email?: string };
-}) {
+export default async function VerifierEmailPage(
+  props: {
+    searchParams: Promise<{ token?: string; email?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const email = (searchParams.email ?? "").toLowerCase().trim();
   const token = searchParams.token ?? "";
   let ok = false;

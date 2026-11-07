@@ -11,10 +11,8 @@ import { renderStickersPdf } from "@/lib/pdf";
 
 export const runtime = "nodejs";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params;
   const acc = await getPaidBookStory(params.id);
   if (!acc.ok) return NextResponse.json({ error: acc.error }, { status: acc.status });
 

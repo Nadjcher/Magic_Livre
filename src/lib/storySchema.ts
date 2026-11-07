@@ -67,7 +67,8 @@ export const storySchema = z.object({
       (v) => (v == null ? undefined : typeof v === "string" ? v : JSON.stringify(v)),
       z.string().optional(),
     )
-    .transform((v) => v?.slice(0, 1500)),
+    .transform((v) => v?.slice(0, 1500))
+    .optional(),
   // Distribution : personnages secondaires récurrents (fiches dessinées).
   cast: z
     .preprocess((v) => (Array.isArray(v) ? v.slice(0, 5) : undefined), z.array(castSchema).optional())
@@ -79,7 +80,7 @@ export const storySchema = z.object({
   // Fiches de référence dessinées (héros + personnages secondaires), gardées pour
   // pouvoir redessiner une page avec exactement les mêmes personnages.
   fiches: z
-    .object({ heros: z.string().url().nullable().optional(), cast: z.record(z.string().url()).optional() })
+    .object({ heros: z.string().url().nullable().optional(), cast: z.record(z.string(), z.string().url()).optional() })
     .optional()
     .catch(undefined),
   // Commandes de livre imprimé (imprimeur Gelato).
