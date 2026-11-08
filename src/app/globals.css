@@ -4,6 +4,9 @@
 
 :root {
   color-scheme: dark;
+  /* Courbes d'animation : ease-out franc pour l'interface (jamais ease-in). */
+  --ease-out-fort: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-fort: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 /* Les ancres (#prix, #faq…) ne passent pas sous l'en-tête collant. */
@@ -63,15 +66,17 @@ p, li, figcaption, blockquote { text-wrap: pretty; }
 @layer components {
   /* Bouton principal : or en relief, léger soulèvement au survol. */
   .btn-primaire {
-    @apply relative overflow-hidden inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-6 py-3 font-bold text-white shadow-douce transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#5468f0] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+    @apply relative inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-6 py-3 font-bold text-white shadow-douce hover:bg-[#5468f0] disabled:cursor-not-allowed disabled:opacity-50;
     background-color: #4a5ee8; /* bleu plein : texte blanc lisible (contraste AA) */
+    transition: transform 160ms var(--ease-out-fort), background-color 160ms var(--ease-out-fort);
   }
   .btn-secondaire {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-white/40 bg-white/10 px-6 py-3 font-bold text-white backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:border-white hover:bg-white hover:text-nuit;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-white/40 bg-white/10 px-6 py-3 font-bold text-white backdrop-blur hover:border-white hover:bg-white hover:text-nuit;
+    transition: transform 160ms var(--ease-out-fort), background-color 160ms var(--ease-out-fort), color 160ms var(--ease-out-fort), border-color 160ms var(--ease-out-fort);
   }
   /* Carte en verre bleuté (lumineuse sur le fond bleu nuit). */
   .carte {
-    @apply rounded-3xl border border-white/15 bg-white/[0.07] p-6 shadow-conte backdrop-blur-md transition-all duration-200;
+    @apply rounded-3xl border border-white/15 bg-white/[0.07] p-6 shadow-conte backdrop-blur-md;
   }
   .carte-interactive {
     @apply hover:-translate-y-1 hover:shadow-conte;
@@ -130,47 +135,8 @@ p, li, figcaption, blockquote { text-wrap: pretty; }
   to { opacity: 1; transform: none; }
 }
 
-/* Reflet doré qui balaie le bouton principal. */
-.btn-primaire::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -60%;
-  width: 40%;
-  height: 100%;
-  background: linear-gradient(
-    100deg,
-    rgba(255, 255, 255, 0),
-    rgba(255, 255, 255, 0.7),
-    rgba(255, 255, 255, 0)
-  );
-  transform: skewX(-18deg);
-  opacity: 0;
-  transition: left 0.6s ease, opacity 0.2s;
-}
-.btn-primaire:hover::after {
-  left: 120%;
-  opacity: 1;
-}
-@keyframes reflet {
-  0%, 18% { left: -60%; }
-  45%, 100% { left: 130%; }
-}
 
-/* Halo qui respire derrière l'illustration du héros. */
-.halo-pulse { animation: halo 6s ease-in-out infinite; }
-@keyframes halo {
-  0%, 100% { opacity: 0.55; transform: scale(1); }
-  50% { opacity: 0.95; transform: scale(1.08); }
-}
 
-/* Poussière d'étoiles qui s'élève lentement puis disparaît. */
-.anim-derive { animation: derive 9s ease-in-out infinite; }
-@keyframes derive {
-  0% { opacity: 0; transform: translateY(10px) scale(0.7); }
-  25% { opacity: 1; }
-  100% { opacity: 0; transform: translateY(-46px) scale(1.1); }
-}
 
 /* Profondeur 3D légère (inclinaison au pointeur). */
 .tilt3d { perspective: 1000px; }
@@ -223,78 +189,39 @@ p, li, figcaption, blockquote { text-wrap: pretty; }
 .relief-milieu { transform: translateZ(18px); }
 
 /* Apparition en douceur, sans transform (compatible avec l'inclinaison). */
-.anim-fade { opacity: 0; animation: apparition 0.5s ease forwards; }
+.anim-fade { opacity: 0; animation: apparition 300ms var(--ease-out-fort) forwards; }
 @keyframes apparition { to { opacity: 1; } }
 
-/* Apparition en douceur (listes, cartes qui arrivent). */
-.anim-apparait { opacity: 0; animation: monter 0.6s ease forwards; }
 
-/* Pulsation bleue d'un élément sélectionné. */
-.anim-pulse-or { animation: pulse-or 2.4s ease-in-out infinite; }
-@keyframes pulse-or {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(79, 95, 224, 0); }
-  50% { box-shadow: 0 0 0 7px rgba(79, 95, 224, 0.2); }
-}
 
 /* Tourne-page du lecteur (rejoué à chaque changement de page). */
-.anim-page { animation: tourne-page 0.5s ease; transform-origin: left center; }
+.anim-page { animation: tourne-page 240ms var(--ease-out-fort); transform-origin: left center; }
 @keyframes tourne-page {
-  0% { opacity: 0.25; transform: perspective(1400px) rotateY(-16deg) translateX(-14px); }
+  0% { opacity: 0.4; transform: perspective(1400px) rotateY(-8deg) translateX(-8px); }
   100% { opacity: 1; transform: none; }
 }
 
-/* Orbite (étoiles tournant autour du livre de génération). */
-.anim-orbite { animation: orbite 7s linear infinite; transform-origin: center; }
-@keyframes orbite { to { transform: rotate(360deg); } }
 
-/* Barre de progression chatoyante (écran de génération). */
-.anim-balaie {
-  background-size: 200% 100%;
-  animation: balaie 1.6s ease-in-out infinite;
-}
-@keyframes balaie {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
 
-/* Étincelle au survol du bouton principal. */
-.btn-primaire::before {
-  content: "";
-  position: absolute;
-  top: 16%;
-  right: 12%;
-  width: 9px;
-  height: 9px;
-  background: radial-gradient(circle, #fff 0 35%, rgba(255, 255, 255, 0) 62%);
-  opacity: 0;
-  transform: scale(0);
-  transition: opacity 0.25s, transform 0.25s;
-  pointer-events: none;
-}
-.btn-primaire:hover::before {
-  opacity: 1;
-  transform: scale(1);
-  animation: scintille 1.1s ease-in-out infinite;
+
+/* Retour immédiat à l'appui sur un bouton. */
+.btn-primaire:active:not(:disabled),
+.btn-secondaire:active:not(:disabled) { transform: scale(0.97); }
+/* Léger soulèvement au survol, seulement avec une souris. */
+@media (hover: hover) and (pointer: fine) {
+  .btn-primaire:hover:not(:disabled):not(:active),
+  .btn-secondaire:hover:not(:active) { transform: translateY(-2px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .anim-flotte,
   .anim-scintille,
-  .anim-derive,
-  .halo-pulse,
-  .anim-apparait,
-  .anim-pulse-or,
-  .anim-page,
-  .anim-orbite,
-  .anim-balaie,
-  .btn-primaire::after,
-  .btn-primaire:hover::before {
+  .anim-page {
     animation: none;
   }
-  .anim-apparait { opacity: 1; }
-  .anim-fade { opacity: 1; }
-  .btn-primaire::after,
-  .btn-primaire::before { display: none; }
+  .anim-fade { opacity: 1; animation: none; }
+  .btn-primaire,
+  .btn-secondaire { transform: none !important; }
   .tilt3d > .tilt3d-inner { transform: none !important; transition: none; }
   [data-tilt] { transform: none !important; transition: none; }
   .relief-avant,

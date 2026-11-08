@@ -42,6 +42,9 @@ const config: Config = {
       },
     },
   },
+  // Les effets de survol ne s'appliquent qu'aux appareils avec une vraie souris
+  // (sur téléphone, un toucher ne doit pas laisser un état « survolé » collé).
+  future: { hoverOnlyWhenSupported: true },
   plugins: [],
 };
 

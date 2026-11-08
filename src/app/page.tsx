@@ -488,7 +488,7 @@ export default async function AccueilPage() {
           <table className="w-full min-w-[560px] border-separate border-spacing-0 overflow-hidden rounded-3xl border border-white/15 text-sm">
             <thead>
               <tr className="bg-white/[0.06]">
-                <th className="p-4 text-left font-semibold"> </th>
+                <th className="p-4 text-left font-semibold"><span className="sr-only">Critère</span></th>
                 <th className="p-4 text-left font-semibold text-magique-texteClair">Livre personnalisé classique</th>
                 <th className="p-4 text-left font-semibold">✦ Encore une histoire</th>
               </tr>

@@ -32,7 +32,7 @@ export default function LivreCouverture({
   const titreAffiche = titre.replace(/ ([!?:;»])/g, "\u00a0$1").replace(/« /g, "«\u00a0");
   return (
     <Link href={href} className="group block [perspective:1200px]" aria-label={`${titre}${enfant ? `, pour ${enfant}` : ""}`}>
-      <div className="relative aspect-[3/4] overflow-hidden rounded-l-[4px] rounded-r-xl shadow-conte transition duration-300 group-hover:-translate-y-1.5 group-hover:[transform:rotateY(-8deg)] group-focus-visible:-translate-y-1.5">
+      <div className="relative aspect-[3/4] overflow-hidden rounded-l-[4px] rounded-r-xl shadow-conte transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-translate-y-1.5 group-hover:[transform:rotateY(-8deg)] group-focus-visible:-translate-y-1.5">
         {couverture ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -40,7 +40,7 @@ export default function LivreCouverture({
             alt=""
             loading={priorite ? "eager" : "lazy"}
             decoding="async"
-            className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.04]"
           />
         ) : (
           <div

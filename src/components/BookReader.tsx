@@ -236,7 +236,7 @@ export default function BookReader({
           {Array.from({ length: totalEcrans }).map((_, k) => (
             <span
               key={k}
-              className={`h-2 rounded-full transition-all ${
+              className={`h-2 rounded-full transition-[width,background-color] duration-200 ${
                 k === index ? "w-6 bg-or" : "w-2 bg-magique-trait"
               }`}
             />

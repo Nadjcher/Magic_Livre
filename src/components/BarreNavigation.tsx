@@ -36,7 +36,7 @@ export default function BarreNavigation() {
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none fixed inset-x-0 top-0 z-[60] h-[3px] origin-left bg-gradient-to-r from-[#8ea2ff] via-[#d2b6ff] to-[#ff9fd6] transition-all ${
+      className={`pointer-events-none fixed inset-x-0 top-0 z-[60] h-[3px] origin-left bg-gradient-to-r from-[#8ea2ff] via-[#d2b6ff] to-[#ff9fd6] transition-[transform,opacity] ${
         actif ? "scale-x-[.85] opacity-100 duration-[2500ms] ease-out" : "scale-x-0 opacity-0 duration-200"
       }`}
     />
