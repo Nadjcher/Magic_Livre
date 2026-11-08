@@ -27,7 +27,7 @@ export default function PurchaseDownload({
   if (paid) {
     return (
       <a href={`/api/books/${bookId}/pdf`} className="btn-primaire">
-        📄 Télécharger le PDF
+        Télécharger le PDF
       </a>
     );
   }

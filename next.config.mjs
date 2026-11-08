@@ -12,6 +12,8 @@ const nextConfig = {
     "/api/books/[id]/pdf": ["./src/pdf-assets/**"],
   },
   experimental: {
+    // Revenir sur une page déjà vue dans les 30 dernières secondes est instantané.
+    staleTimes: { dynamic: 30 },
     // La création de livre peut recevoir une photo (redimensionnée) en data URL.
     serverActions: { bodySizeLimit: "4mb" },
   },

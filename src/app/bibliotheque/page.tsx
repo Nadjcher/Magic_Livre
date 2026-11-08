@@ -14,9 +14,7 @@ import LivreCouverture from "@/components/LivreCouverture";
 import BoutonDemo from "@/components/BoutonDemo";
 import { livresDemo } from "@/lib/demo";
 import { estAdmin } from "@/lib/rateLimit";
-import { bookImageUrl, migrateBookImagesToBlob } from "@/lib/bookImages";
-import { storySchema } from "@/lib/storySchema";
-import { waitUntil } from "@vercel/functions";
+import { bookImageUrl } from "@/lib/bookImages";
 
 export const metadata: Metadata = {
   title: "Ma bibliothèque",
@@ -25,27 +23,6 @@ export const metadata: Metadata = {
 };
 
 
-/**
- * Allège en arrière-plan quelques anciens livres dont les images sont encore
- * dans la base (déplacées vers Blob, ou recompressées). Sans effet visible.
- */
-async function allegerAnciensLivres(userId: string): Promise<void> {
-  try {
-    const ids = await prisma.$queryRaw<{ id: string }[]>`
-      SELECT id FROM "Book"
-      WHERE "userId" = ${userId} AND "deletedAt" IS NULL
-        AND pages->>'couvertureUrl' LIKE 'data:image/png%'
-      LIMIT 2`;
-    for (const { id } of ids) {
-      const b = await prisma.book.findUnique({ where: { id }, select: { pages: true } });
-      const parsed = storySchema.safeParse(b?.pages);
-      if (parsed.success) await migrateBookImagesToBlob(id, parsed.data);
-    }
-  } catch {
-    /* best-effort */
-  }
-}
-
 export default async function BibliothequePage(props: { searchParams: Promise<{ enfant?: string }> }) {
   const searchParams = await props.searchParams;
   const user = await getCurrentUser();
@@ -53,7 +30,6 @@ export default async function BibliothequePage(props: { searchParams: Promise<{ 
 
   // Libère les livres bloqués en génération avant d'afficher la liste.
   await failStaleBooks(user.id);
-  waitUntil(allegerAnciensLivres(user.id));
 
   // On ne charge JAMAIS le contenu des livres ici (il peut peser des dizaines de
   // Mo) : seulement les infos d'affichage, et si une couverture existe.

@@ -11,6 +11,7 @@
  *    session, cf. lib/session.ts).
  */
 
+import { supprimerCompte } from "@/lib/conservation";
 import bcrypt from "bcryptjs";
 import { headers } from "next/headers";
 import { getCurrentUser } from "@/lib/session";
@@ -104,7 +105,7 @@ export async function deleteAccount(formData: FormData): Promise<AccountResult> 
   const refus = await verifierMotDePasse(user, String(formData.get("password") ?? ""));
   if (refus) return refus;
 
-  await prisma.user.delete({ where: { id: user.id } });
+  await supprimerCompte(user.id); // compte, enfants, livres, commandes et illustrations
   await signOut({ redirect: false });
   return { ok: true, message: "Votre compte et toutes vos données ont été supprimés." };
 }

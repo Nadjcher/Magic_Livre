@@ -6,6 +6,7 @@
  */
 
 import { headers } from "next/headers";
+import { waitUntil } from "@vercel/functions";
 import { checkLoginRate } from "@/lib/rateLimitAuth";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
@@ -51,11 +52,8 @@ export async function register(formData: FormData): Promise<RegisterResult> {
   }
 
   // Email de confirmation (non bloquant : l'inscription réussit même si l'envoi échoue).
-  try {
-    await sendVerificationEmail(email);
-  } catch {
-    /* ignore */
-  }
+  // Envoyé en arrière-plan : la création du compte n'attend plus le serveur d'emails.
+  waitUntil(sendVerificationEmail(email).catch(() => undefined));
   return { ok: true, message: "" };
 }
 

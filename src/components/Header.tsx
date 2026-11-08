@@ -20,19 +20,19 @@ export default async function Header() {
         </Link>
         {connecte ? (
           <NavMenu>
-            <Link href="/creer" className="hover:text-magique-primaire">
+            <Link href="/creer" prefetch className="hover:text-magique-primaire">
               Créer un livre
             </Link>
-            <Link href="/bibliotheque" className="hover:text-magique-primaire">
+            <Link href="/bibliotheque" prefetch className="hover:text-magique-primaire">
               Ma bibliothèque
             </Link>
-            <Link href="/enfants" className="hover:text-magique-primaire">
+            <Link href="/enfants" prefetch className="hover:text-magique-primaire">
               Mes enfants
             </Link>
-            <Link href="/club" className="hover:text-magique-primaire">
+            <Link href="/club" prefetch className="hover:text-magique-primaire">
               Le Club
             </Link>
-            <Link href="/compte" className="hover:text-magique-primaire">
+            <Link href="/compte" prefetch className="hover:text-magique-primaire">
               Mon compte
             </Link>
             <form

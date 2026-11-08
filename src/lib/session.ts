@@ -3,6 +3,8 @@
  * consentement parental.
  */
 
+import { waitUntil } from "@vercel/functions";
+import { noterActivite } from "./conservation";
 import "server-only";
 import { cache } from "react";
 import { auth } from "./auth";
@@ -31,6 +33,8 @@ export const getCurrentUser = cache(async function getCurrentUser() {
   // Session ouverte avant un changement de mot de passe → refusée.
   const pv = (session as { pv?: string }).pv;
   if (pv && pv !== passwordFingerprint(user.passwordHash)) return null;
+  // Dernière activité (durée de conservation des comptes inactifs), en arrière-plan.
+  waitUntil(noterActivite(user.id));
   return user;
 });
 

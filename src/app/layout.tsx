@@ -6,10 +6,12 @@ import BarreNavigation from "@/components/BarreNavigation";
 import { AGE_GROUPS } from "@/lib/ageGroups";
 import "./globals.css";
 import Header from "@/components/Header";
+import PreparationFichier from "@/components/PreparationFichier";
 import MagicParticles from "@/components/MagicParticles";
 import TiltProvider from "@/components/TiltProvider";
 import { getAppUrl } from "@/lib/appUrl";
 import { avisPublics } from "@/lib/reviews";
+import { unstable_cache } from "next/cache";
 
 // Fraunces : serif de conte, caractérielle (titres). Nunito : ronde et
 // chaleureuse (texte/UI). Chargées sans FOUT via next/font.
@@ -77,9 +79,12 @@ export const viewport = {
   themeColor: "#16245c",
 };
 
+/** Nombre d'avis publiés, mis en cache 10 minutes (évite une requête à chaque page). */
+const nombreAvis = unstable_cache(async () => avisPublics(1).catch(() => ({ total: 0 })), ["nombre-avis"], { revalidate: 600 });
+
 /** Lien « Avis des parents » : affiché seulement quand il y a de vrais avis publiés. */
 async function LienAvis() {
-  const { total } = await avisPublics(1).catch(() => ({ total: 0 }));
+  const { total } = await nombreAvis();
   if (total === 0) return null;
   return (
     <Link href="/avis" className="hover:text-white">
@@ -102,6 +107,7 @@ export default function RootLayout({
           <BarreNavigation />
         </Suspense>
         <Header />
+        <PreparationFichier />
         <main className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
         <footer className="relative z-10 mt-8 bg-nuit px-4 py-8 text-sm text-magique-texteClair">
           <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-5 gap-y-1 sm:gap-y-3 [&>a]:py-3 sm:[&>a]:py-0">

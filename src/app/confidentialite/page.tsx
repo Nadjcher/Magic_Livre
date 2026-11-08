@@ -4,6 +4,8 @@
  * ⚠️ Modèle à faire relire par un juriste avant l'ouverture des paiements.
  */
 
+import { DUREES_CONSERVATION } from "@/lib/conservation";
+import { identiteLegale } from "@/lib/legal";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -44,15 +46,33 @@ export default function ConfidentialitePage() {
 
       <h2 className="text-xl font-semibold">Conservation et suppression</h2>
       <p className="text-magique-texteClair">
-        Vous pouvez supprimer votre compte à tout moment depuis la page « Mon
-        compte ». La suppression efface vos enfants, livres et commandes. Seul un
-        journal légal minimal lié aux obligations comptables peut être conservé.
+        Nous gardons vos données le moins longtemps possible. Une suppression automatique a lieu chaque nuit.
+        Vous pouvez aussi supprimer votre compte à tout moment depuis « Mon compte » : vos enfants, livres et
+        illustrations sont alors effacés immédiatement.
       </p>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-white/15">
+              <th className="py-2 pr-4 font-semibold">Donnée</th>
+              <th className="py-2 font-semibold">Durée de conservation</th>
+            </tr>
+          </thead>
+          <tbody>
+            {DUREES_CONSERVATION.map((d) => (
+              <tr key={d.donnee} className="border-b border-white/10 align-top">
+                <td className="py-2 pr-4 font-semibold">{d.donnee}</td>
+                <td className="py-2 text-magique-texteClair">{d.duree}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <h2 className="text-xl font-semibold">Vos droits</h2>
       <p className="text-magique-texteClair">
         Conformément au RGPD, vous disposez d'un droit d'accès, de rectification,
-        d'effacement et de portabilité. Pour toute demande : [email de contact].
+        d'effacement et de portabilité. Pour toute demande : {identiteLegale().email}.
       </p>
 
       <h2 className="text-xl font-semibold">Sous-traitants</h2>
