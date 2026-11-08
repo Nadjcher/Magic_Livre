@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Fraunces"; src: url("assets/fonts/Fraunces-SemiBold.ttf"); font-weight: 600; }
+      @font-face { font-family: "Fraunces"; src: url("assets/fonts/Fraunces-Italic.ttf"); font-style: italic; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #0b1236; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0b1236; font-family: "Nunito", sans-serif; color: #fff; }
+      .plan { position: absolute; inset: 0; overflow: hidden; }
+      .plan img.fond { position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; }
+      .ombre { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,18,54,.55) 0%, rgba(11,18,54,0) 22%, rgba(11,18,54,0) 58%, rgba(11,18,54,.85) 100%); }
+      .gros { position: absolute; left: 70px; right: 70px; text-align: center; font-family: "Fraunces", serif; font-weight: 600; line-height: 1.05; text-shadow: 0 8px 40px rgba(5,10,40,.7); }
+      .sous-titre { position: absolute; left: 70px; right: 70px; top: 1150px; text-align: center; font-size: 54px; font-weight: 700; line-height: 1.25; text-shadow: 0 4px 18px rgba(5,10,40,.9); }
+      .sous-titre span { background: rgba(11,18,54,.62); padding: 10px 22px; border-radius: 20px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="34.4" data-width="1080" data-height="1920">
+
+      <!-- Son : musique (boîte à musique) et voix de la maman -->
+      <audio id="musique" class="clip" src="assets/musique.mp3" data-start="0" data-duration="32.7" data-track-index="10" data-volume="0.42" data-fade-in="0.4" data-fade-out="2.5"></audio>
+      <audio id="v1" class="clip" src="assets/v1.mp3" data-start="0.3" data-duration="4.1" data-track-index="11" data-volume="1"></audio>
+      <audio id="v2" class="clip" src="assets/v2.mp3" data-start="4.9" data-duration="3" data-track-index="11" data-volume="1"></audio>
+      <audio id="v3" class="clip" src="assets/v3.mp3" data-start="8.8" data-duration="2.9" data-track-index="11" data-volume="1"></audio>
+      <audio id="v4" class="clip" src="assets/v4.mp3" data-start="12.8" data-duration="4.05" data-track-index="11" data-volume="1"></audio>
+      <audio id="v5" class="clip" src="assets/v5.mp3" data-start="18.2" data-duration="2.55" data-track-index="11" data-volume="1"></audio>
+      <audio id="v6" class="clip" src="assets/v6.mp3" data-start="25" data-duration="3.2" data-track-index="11" data-volume="1"></audio>
+      <audio id="v7" class="clip" src="assets/v7.mp3" data-start="29.3" data-duration="4.15" data-track-index="11" data-volume="1"></audio>
+
+      <!-- 1. 20 h 47 : Léo réclame encore une histoire -->
+      <div id="pa" class="clip plan" data-start="0" data-duration="5.1" data-track-index="1">
+        <img id="pa-img" class="fond" src="assets/a_supplie.jpg" />
+        <div class="ombre"></div>
+        <p id="pa-heure" class="gros" style="top: 200px; font-size: 150px;">20h47</p>
+        <p id="pa-cri" class="sous-titre"><span>« Encore une histoire, Maman ! »</span></p>
+      </div>
+
+      <!-- 2. Les mêmes livres, lus cent fois -->
+      <div id="pb" class="clip plan" data-start="4.6" data-duration="4.4" data-track-index="2">
+        <img id="pb-img" class="fond" src="assets/b_pile.jpg" />
+        <div class="ombre"></div>
+        <p id="pb-txt" class="sous-titre"><span>Je les connaissais toutes par cœur.<br/>Lui aussi.</span></p>
+      </div>
+
+      <!-- 3. Un soir, autre chose : la photo envoyée -->
+      <div id="pc" class="clip plan" data-start="8.6" data-duration="4.5" data-track-index="3" style="background: radial-gradient(70% 45% at 50% 42%, #2b3c93 0%, #0b1236 70%);">
+        <div id="pc-tel" style="position:absolute; left:250px; top:300px; width:580px; height:1060px; border-radius:70px; background:#0e1430; border:10px solid #2a2f45; box-shadow:0 50px 90px rgba(0,0,0,.6); overflow:hidden;">
+          <img id="pc-photo" src="assets/photo.webp" style="position:absolute; left:30px; top:120px; width:500px; height:640px; object-fit:cover; border-radius:30px;" />
+          <p style="position:absolute; left:0; right:0; top:50px; text-align:center; font-size:34px; font-weight:700; color:#c9d1ff;">Le héros de l'histoire</p>
+          <div id="pc-bouton" style="position:absolute; left:50px; right:50px; top:820px; height:120px; border-radius:60px; background:#4a5ee8; display:flex; align-items:center; justify-content:center; font-size:42px; font-weight:800;">Créer son histoire</div>
+        </div>
+        <p id="pc-txt" class="sous-titre" style="top: 1430px;"><span>Alors un soir, j'ai essayé autre chose.</span></p>
+      </div>
+
+      <!-- 4. La photo devient un livre -->
+      <div id="pd" class="clip plan" data-start="12.6" data-duration="5.8" data-track-index="4" style="background:#0b1236;">
+        <img id="pd-photo" src="assets/photo.webp" style="position:absolute; left:290px; top:440px; width:500px; height:640px; object-fit:cover; border-radius:20px;" />
+        <div id="pd-couv" style="position:absolute; left:140px; top:330px; width:800px; height:1000px; border-radius:12px 30px 30px 12px; overflow:hidden; box-shadow:0 40px 90px rgba(0,0,0,.7);">
+          <img src="assets/couverture.webp" style="position:absolute; left:50%; top:0; height:100%; transform:translateX(-50%);" />
+          <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(11,18,54,0) 55%, rgba(11,18,54,.85) 100%);"></div>
+          <p style="position:absolute; left:40px; right:40px; bottom:50px; font-family:'Fraunces',serif; font-size:64px; line-height:1.05;">Le hoquet doré de la nuit de Noël</p>
+        </div>
+        <img id="pd-p1" src="assets/01.webp" style="position:absolute; inset:0; width:1080px; height:1920px; object-fit:cover; object-position:42% 50%;" />
+        <img id="pd-p2" src="assets/07.webp" style="position:absolute; inset:0; width:1080px; height:1920px; object-fit:cover; object-position:50% 50%;" />
+        <div class="ombre"></div>
+        <p id="pd-txt" class="sous-titre" style="top: 1420px;"><span>Une photo. Et une histoire écrite…<br/>rien que pour lui.</span></p>
+      </div>
+
+      <!-- 5. Le lendemain soir : « c'est MOI ? » -->
+      <div id="pe" class="clip plan" data-start="18" data-duration="7.3" data-track-index="5">
+        <img id="pe-img" class="fond" src="assets/c_cestmoi.jpg" />
+        <div class="ombre"></div>
+        <p id="pe-txt" class="sous-titre"><span>Le lendemain soir, il l'a ouvert.</span></p>
+        <p id="pe-moi" class="gros" style="top: 1120px; font-size: 104px; font-style: italic; font-weight: 400;">« Maman…<br/>c'est MOI ? »</p>
+      </div>
+
+      <!-- 6. Il s'endort en serrant son livre -->
+      <div id="pf" class="clip plan" data-start="24.8" data-duration="4.9" data-track-index="6">
+        <img id="pf-img" class="fond" src="assets/d_dort.jpg" />
+        <div class="ombre"></div>
+        <p id="pf-txt" class="sous-titre"><span>Ce soir-là, il s'est endormi<br/>en le serrant contre lui.</span></p>
+      </div>
+
+      <!-- 7. Fin -->
+      <div id="pg" class="clip plan" data-start="29.2" data-duration="5.2" data-track-index="7" style="background: radial-gradient(80% 50% at 50% 38%, #24358c 0%, #0b1236 75%);">
+        <p id="pg-titre" class="gros" style="top: 420px; font-size: 104px;">Ce soir,<br/>l'histoire,<br/>c'est la sienne.</p>
+        <p id="pg-sous" style="position:absolute; left:70px; right:70px; top:940px; text-align:center; font-size:50px; font-weight:700; color:#ffc8ea;">Le livre dont votre enfant est le héros</p>
+        <p id="pg-url" style="position:absolute; left:150px; right:150px; top:1080px; text-align:center; font-size:52px; font-weight:800; padding:26px; border-radius:999px; background:#4a5ee8;">encoreunehistoire.fr</p>
+        <p id="pg-gratuit" style="position:absolute; left:70px; right:70px; top:1230px; text-align:center; font-size:40px; color:#c9d1ff;">Lu gratuitement avant d'acheter</p>
+      </div>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const E = "power2.out";
+
+      // 1. Image 0 = miniature : « 20h47 » déjà lisible ; lente poussée vers Léo.
+      tl.fromTo("#pa-img", { scale: 1.0 }, { scale: 1.1, duration: 5.1, ease: "none" }, 0);
+      tl.fromTo("#pa-heure", { opacity: 1, y: 0 }, { opacity: 0.0, y: -30, duration: 0.6, ease: E }, 4.0);
+      tl.fromTo("#pa-cri", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: E }, 2.0);
+      // fondu vers le plan 2
+      tl.fromTo("#pb", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "none" }, 4.6);
+      tl.fromTo("#pb-img", { scale: 1.08 }, { scale: 1.0, duration: 4.4, ease: "none" }, 4.6);
+      tl.fromTo("#pb-txt", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: E }, 5.0);
+
+      // 3. Le téléphone monte, la photo s'allume, le doigt « appuie ».
+      tl.fromTo("#pc", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "none" }, 8.6);
+      tl.fromTo("#pc-tel", { y: 140, rotation: 4 }, { y: 0, rotation: 0, duration: 0.8, ease: "power3.out" }, 8.6);
+      tl.fromTo("#pc-txt", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: E }, 8.9);
+      tl.fromTo("#pc-bouton", { scale: 1 }, { scale: 0.94, duration: 0.12, ease: "power1.out" }, 11.3);
+      tl.to("#pc-bouton", { scale: 1, duration: 0.25, ease: "power2.out" }, 11.42);
+      tl.to("#pc-tel", { scale: 1.6, opacity: 0, duration: 0.6, ease: "power2.in" }, 12.3);
+
+      // 4. La photo se transforme en couverture, puis les pages défilent.
+      tl.fromTo("#pd-photo", { opacity: 1, scale: 1 }, { opacity: 0, scale: 1.25, duration: 0.9, ease: "power2.inOut" }, 13.1);
+      tl.fromTo("#pd-couv", { opacity: 0, scale: 0.8, rotationY: -25 }, { opacity: 1, scale: 1, rotationY: 0, duration: 0.9, ease: "power3.out" }, 13.3);
+      tl.fromTo("#pd-p1", { opacity: 0, scale: 1.12 }, { opacity: 1, scale: 1.0, duration: 0.6, ease: E }, 15.0);
+      tl.fromTo("#pd-p2", { opacity: 0, scale: 1.12 }, { opacity: 1, scale: 1.02, duration: 0.6, ease: E }, 16.6);
+      tl.fromTo("#pd-txt", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: E }, 12.9);
+
+      // 5. « C'est MOI ? » : la musique respire, le texte arrive sur le visage.
+      tl.fromTo("#pe", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "none" }, 18.0);
+      tl.fromTo("#pe-img", { scale: 1.0, y: 0 }, { scale: 1.14, y: 60, duration: 7.3, ease: "none" }, 18.0);
+      tl.fromTo("#pe-txt", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: E }, 18.3);
+      tl.to("#pe-txt", { opacity: 0, duration: 0.4, ease: E }, 20.7);
+      tl.fromTo("#pe-moi", { opacity: 0, y: 30, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "power3.out" }, 21.1);
+
+      // 6. Il dort : lent recul, tout s'apaise.
+      tl.fromTo("#pf", { opacity: 0 }, { opacity: 1, duration: 0.8, ease: "none" }, 24.8);
+      tl.fromTo("#pf-img", { scale: 1.12 }, { scale: 1.0, duration: 4.9, ease: "none" }, 24.8);
+      tl.fromTo("#pf-txt", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: E }, 25.1);
+
+      // 7. Fin : le titre, la marque, l'adresse.
+      tl.fromTo("#pg", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "none" }, 29.2);
+      tl.fromTo("#pg-titre", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 29.4);
+      tl.fromTo("#pg-sous", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: E }, 30.6);
+      tl.fromTo("#pg-url", { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out" }, 31.3);
+      tl.fromTo("#pg-gratuit", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: E }, 31.8);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
