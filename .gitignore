@@ -40,3 +40,8 @@ yarn-error.log*
 
 # TypeScript
 *.tsbuildinfo
+
+# Vidéos HyperFrames : fichiers de travail et rendus
+marketing/**/.hyperframes/
+marketing/**/renders/
+marketing/**/*.mp4
