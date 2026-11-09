@@ -55,7 +55,7 @@ export default function CataloguePage() {
             {t.titre}
           </h2>
           <p className="mt-3 max-w-[48ch] text-magique-texteClair">{t.accroche}</p>
-          <Link href={`/creer?theme=${t.id}`} className="btn-primaire mt-6">
+          <Link href={`/creer?theme=${t.id}`} rel="nofollow" className="btn-primaire mt-6">
             Créer ce livre
           </Link>
         </section>
@@ -85,7 +85,7 @@ export default function CataloguePage() {
                     {t.accroche}
                   </p>
                   <Link
-                    href={c.id === "classiques" ? "/club" : `/creer?theme=${t.id}`}
+                    href={c.id === "classiques" ? "/club" : `/creer?theme=${t.id}`} rel={c.id === "classiques" ? undefined : "nofollow"}
                     className="relative z-10 mt-2 inline-flex min-h-11 w-fit items-center text-sm font-semibold text-magique-primaire hover:underline"
                   >
                     {c.id === "classiques" ? "Avec le Club →" : "Créer ce livre →"}

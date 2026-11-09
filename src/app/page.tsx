@@ -361,7 +361,7 @@ export default async function AccueilPage() {
             return (
               <Link
                 key={t.id}
-                href={`/creer?theme=${t.id}`}
+                href={`/creer?theme=${t.id}`} rel="nofollow"
                 className="group flex flex-col items-center gap-2 rounded-2xl px-3 py-4 text-center text-[15px] font-semibold text-magique-texte transition hover:bg-white/[0.07]"
               >
                 <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={72} className="transition duration-300 group-hover:-translate-y-1 group-hover:rotate-[-3deg]" />

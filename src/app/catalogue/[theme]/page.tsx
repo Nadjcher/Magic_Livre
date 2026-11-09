@@ -80,7 +80,7 @@ export default async function ThemePage(props: { params: Promise<{ theme: string
         <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={128} className="mx-auto" />
         <h1 className="text-3xl sm:text-5xl">{t.titre}</h1>
         <p className="mx-auto max-w-[48ch] text-lg text-magique-texteClair">{t.accroche}</p>
-        <Link href={`/creer?theme=${t.id}`} className="btn-primaire text-lg">
+        <Link href={`/creer?theme=${t.id}`} rel="nofollow" className="btn-primaire text-lg">
           Créer ce livre pour mon enfant
         </Link>
         {estClassique(t) && (

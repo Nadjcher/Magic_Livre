@@ -5,11 +5,16 @@ import Link from "next/link";
 import { avisPublics } from "@/lib/reviews";
 import AvisListe, { Etoiles } from "@/components/AvisListe";
 
-export const metadata: Metadata = {
-  title: "Avis des parents",
-  description: "Les avis vérifiés des parents qui ont offert un livre personnalisé Encore une histoire à leur enfant.",
-  alternates: { canonical: "/avis" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { total } = await avisPublics(1);
+  return {
+    title: "Avis des parents",
+    description: "Les avis vérifiés des parents qui ont offert un livre personnalisé Encore une histoire à leur enfant.",
+    alternates: { canonical: "/avis" },
+    // Page vide (pas encore d'avis) : pas d'indexation, pour ne pas montrer une page creuse à Google.
+    robots: total > 0 ? { index: true, follow: true } : { index: false, follow: true },
+  };
+}
 export const revalidate = 300;
 
 export default async function AvisPage() {
