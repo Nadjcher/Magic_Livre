@@ -73,8 +73,14 @@ export async function illustrerLivre({ bookId, req, portrait }: EtapeIllustratio
 
     const total = story.pages.length + 1;
     const manquantes = (story.couvertureUrl ? 0 : 1) + story.pages.filter((p) => !p.imageUrl).length;
-    if (manquantes === total) {
-      await alerterAdmin("aucune illustration générée", imageReport ?? "raison inconnue (crédit fal épuisé ?)");
+    if (manquantes > 0 && /TOP_UP|locked|balance|crédit|credit/i.test(imageReport ?? "")) {
+      // Compte fal bloqué : tous les livres suivants seraient sans images.
+      await alerterAdmin(
+        "crédit fal épuisé — les livres n'ont plus d'illustrations",
+        `Rechargez le compte sur fal.ai (Billing). Livre ${bookId} : ${imageReport}`,
+      );
+    } else if (manquantes === total || manquantes >= total / 2) {
+      await alerterAdmin("illustrations manquantes", imageReport ?? "raison inconnue (crédit fal épuisé ?)");
     }
     await notifierLivrePret(bookId);
   } catch (e) {

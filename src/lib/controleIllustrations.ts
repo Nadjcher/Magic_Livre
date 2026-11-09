@@ -75,7 +75,10 @@ async function verifier(
     });
     const j = (await r.json().catch(() => ({}))) as { output?: string };
     const json = /\{[\s\S]*\}/.exec(j.output ?? "")?.[0];
-    if (!r.ok || !json) return { ok: true, fix: "" };
+    if (!r.ok || !json) {
+      console.error("[contrôle] vision indisponible :", r.status, JSON.stringify(j).slice(0, 160));
+      return { ok: true, fix: "" };
+    }
     const v = JSON.parse(json) as { ok?: unknown; fix?: unknown };
     return { ok: v.ok !== false, fix: typeof v.fix === "string" ? v.fix.slice(0, 300) : "" };
   } catch {
