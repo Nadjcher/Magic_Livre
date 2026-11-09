@@ -12,7 +12,7 @@ export default function AuthVisuel({ titre, texte }: { titre: string; texte: str
           style={{ transform: "rotateY(-12deg) rotateX(3deg)" }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/exemple/couverture.webp" alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <img src="/exemple/noel/couverture.webp" alt="" className="absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0f1a44]/90 via-transparent to-transparent" aria-hidden="true" />
           <div className="absolute inset-y-0 left-0 w-3" style={{ background: "linear-gradient(90deg,rgba(0,0,0,.4),rgba(255,255,255,.1))" }} aria-hidden="true" />
           <figcaption className="absolute inset-x-6 bottom-6">

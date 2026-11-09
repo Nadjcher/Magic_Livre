@@ -13,7 +13,8 @@ import { nomMois, selectionDuMois } from "@/lib/selectionMois";
 import LivreCouverture from "./LivreCouverture";
 import Picto from "./Picto";
 import ClubManager from "./ClubManager";
-import RecevoirLivre from "./RecevoirLivre";
+import LivrePropose from "./LivrePropose";
+import { couvertureTheme } from "@/lib/couverturesThemes";
 import { livresDemo } from "@/lib/demo";
 
 const date = (d: Date | null) => d?.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }) ?? "";
@@ -30,6 +31,21 @@ const JAQUETTE: Record<string, string> = {
 
 /** Livre proposé, pas encore reçu : une jaquette dessinée. */
 export function Jaquette({ theme, prenom }: { theme: Theme; prenom: string }) {
+  const couv = couvertureTheme(theme.id);
+  if (couv) {
+    return (
+      <div className="relative aspect-[3/4] overflow-hidden rounded-l-[4px] rounded-r-xl shadow-conte">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={couv} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0b1236]/95 via-[#0b1236]/10 to-transparent" aria-hidden="true" />
+        <div className="absolute inset-y-0 left-0 w-3" style={{ background: "linear-gradient(90deg,rgba(0,0,0,.45),rgba(255,255,255,.12) 70%,rgba(0,0,0,.1))" }} aria-hidden="true" />
+        <div className="absolute inset-x-4 bottom-3.5 pl-1">
+          <p className="font-serif text-[15px] leading-snug text-white sm:text-base">{theme.titre}</p>
+          <p className="mt-0.5 text-xs text-[#d4dbff]">avec {prenom} en héros</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div
       className="relative flex aspect-[3/4] flex-col items-center overflow-hidden rounded-l-[4px] rounded-r-xl px-4 pb-4 pt-3 text-center shadow-conte"
@@ -134,7 +150,7 @@ export default async function EspaceClub({ userId, ab, enfantId }: { userId: str
                       href={`/bibliotheque/${livre.id}`}
                       titre={livre.status === "generating" ? theme.titre : livre.title}
                       enfant={livre.child.firstName}
-                      couverture={avecCouverture.has(livre.id) ? bookImageUrl(livre.id, "cover", undefined, 480) : null}
+                      couverture={avecCouverture.has(livre.id) ? bookImageUrl(livre.id, "cover", undefined, 480) : couvertureTheme(theme.id)}
                       statut={livre.status}
                       priorite={i < 4}
                     />
@@ -143,10 +159,17 @@ export default async function EspaceClub({ userId, ab, enfantId }: { userId: str
                     </Link>
                   </>
                 ) : (
-                  <>
+                  <LivrePropose
+                    titre={theme.titre}
+                    accroche={theme.accroche}
+                    prenom={enfant.firstName}
+                    couverture={couvertureTheme(theme.id)}
+                    childId={enfant.id}
+                    themeId={theme.id}
+                    desactive={restants <= 0}
+                  >
                     <Jaquette theme={theme} prenom={enfant.firstName} />
-                    <RecevoirLivre childId={enfant.id} themeId={theme.id} desactive={restants <= 0} />
-                  </>
+                  </LivrePropose>
                 )}
               </li>
             );
