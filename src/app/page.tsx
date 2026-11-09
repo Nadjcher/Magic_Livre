@@ -6,6 +6,7 @@
  * Un seul élément fort (le livre en relief du héros), le reste sobre.
  */
 
+import { couvertureTheme } from "@/lib/couverturesThemes";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PLANS_CLUB } from "@/lib/products";
@@ -372,7 +373,7 @@ export default async function AccueilPage() {
             Voir tout le catalogue
           </Link>
         </div>
-        <div className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-5">
           {THEMES_VITRINE.map((id) => {
             const t = findThemeById(id);
             if (!t) return null;
@@ -380,12 +381,13 @@ export default async function AccueilPage() {
               <Link
                 key={t.id}
                 href={`/creer?theme=${t.id}`} rel="nofollow"
-                className="group flex flex-col items-center gap-2 rounded-2xl px-3 py-4 text-center text-[15px] font-semibold text-magique-texte transition hover:bg-white/[0.07]"
+                className="group flex flex-col gap-2 text-[15px] font-semibold text-magique-texte"
               >
-                <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={72} className="transition duration-300 group-hover:-translate-y-1 group-hover:rotate-[-3deg]" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={couvertureTheme(t.id) ?? ""} alt="" loading="lazy" className="aspect-[3/4] w-full rounded-l-[4px] rounded-r-xl object-cover shadow-conte transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-translate-y-1.5" />
                 <span className="leading-snug">{t.titre}</span>
                 {t.saison && (
-                  <span className="rounded-full bg-magique-rose/15 px-2 py-0.5 text-xs text-or-clair">De saison</span>
+                  <span className="w-fit rounded-full bg-magique-rose/15 px-2 py-0.5 text-xs text-or-clair">De saison</span>
                 )}
               </Link>
             );

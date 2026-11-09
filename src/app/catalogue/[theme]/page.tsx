@@ -4,6 +4,7 @@
  * direct pour créer le livre.
  */
 
+import { couvertureTheme } from "@/lib/couverturesThemes";
 import Picto from "@/components/Picto";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -77,7 +78,12 @@ export default async function ThemePage(props: { params: Promise<{ theme: string
       </nav>
 
       <header className="space-y-4 text-center">
-        <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={128} className="mx-auto" />
+        {couvertureTheme(t.id) ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={couvertureTheme(t.id)!} alt={`Couverture illustrée : ${t.titre}`} width={720} height={960} className="mx-auto aspect-[3/4] w-56 rounded-l-[4px] rounded-r-xl object-cover shadow-conte sm:w-64" />
+        ) : (
+          <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={128} className="mx-auto" />
+        )}
         <h1 className="text-3xl sm:text-5xl">{t.titre}</h1>
         <p className="mx-auto max-w-[48ch] text-lg text-magique-texteClair">{t.accroche}</p>
         <Link href={`/creer?theme=${t.id}`} rel="nofollow" className="btn-primaire text-lg">
@@ -108,7 +114,7 @@ export default async function ThemePage(props: { params: Promise<{ theme: string
 
       <section className="grid items-center gap-6 sm:grid-cols-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/exemple/page-pont.webp" alt="Exemple de page illustrée d'un livre Encore une histoire" loading="lazy" width={1200} height={675} className="h-auto w-full rounded-2xl shadow-conte" />
+        <img src="/exemple/noel/01.webp" alt="Exemple de page illustrée d'un livre Encore une histoire" loading="lazy" width={1024} height={576} className="h-auto w-full rounded-2xl shadow-conte" />
         <div className="space-y-2">
           <h2 className="text-2xl">À son image, à chaque page</h2>
           <p className="text-magique-texteClair">
@@ -134,7 +140,12 @@ export default async function ThemePage(props: { params: Promise<{ theme: string
           <div className="grid gap-3 sm:grid-cols-3">
             {voisins.map((v) => (
               <Link key={v.id} href={`/catalogue/${v.id}`} className="flex items-center gap-3 rounded-2xl bg-white/[0.05] p-3 transition hover:bg-white/[0.09]">
-                <Picto cle={`themes/${v.id}`} secours={v.emoji} taille={48} />
+                {couvertureTheme(v.id) ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={couvertureTheme(v.id)!} alt="" loading="lazy" className="aspect-[3/4] w-14 flex-none rounded-md object-cover" />
+                ) : (
+                  <Picto cle={`themes/${v.id}`} secours={v.emoji} taille={48} />
+                )}
                 <span className="font-semibold">{v.titre}</span>
               </Link>
             ))}

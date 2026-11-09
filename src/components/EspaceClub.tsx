@@ -215,14 +215,15 @@ export default async function EspaceClub({ userId, ab, enfantId }: { userId: str
             Créer une histoire sur mesure
           </Link>
         </div>
-        <ul className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+        <ul className="grid grid-cols-3 gap-x-3 gap-y-5 sm:grid-cols-6">
           {autresClassiques.slice(0, 12).map((t) => (
             <li key={t.id}>
               <Link
                 href={`/creer?theme=${t.id}`}
-                className="group flex flex-col items-center gap-2 rounded-2xl px-2 py-3 text-center text-sm font-semibold transition hover:bg-white/[0.07]"
+                className="group flex flex-col gap-2 text-sm font-semibold"
               >
-                <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={56} className="transition duration-300 group-hover:-translate-y-1" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={couvertureTheme(t.id) ?? ""} alt="" loading="lazy" className="aspect-[3/4] w-full rounded-l-[3px] rounded-r-lg object-cover shadow-conte transition-transform duration-200 group-hover:-translate-y-1" />
                 <span className="leading-snug">{t.titre}</span>
               </Link>
             </li>

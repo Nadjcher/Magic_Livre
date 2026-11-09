@@ -3,6 +3,7 @@
  * direct pour créer le livre. Page publique (prospects, référencement).
  */
 
+import { couvertureTheme } from "@/lib/couverturesThemes";
 import Picto from "@/components/Picto";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -50,10 +51,11 @@ export default function CataloguePage() {
           }}
         >
           <p className="font-serif italic text-magique-texteClair">De saison</p>
-          <h2 className="mt-1 text-3xl text-white sm:text-4xl">
-            <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={56} className="mr-2 inline-block align-middle" />
-            {t.titre}
-          </h2>
+          {couvertureTheme(t.id) && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={couvertureTheme(t.id)!} alt="" className="float-right ml-6 hidden aspect-[3/4] w-48 rounded-l-[4px] rounded-r-xl object-cover shadow-conte sm:block" />
+          )}
+          <h2 className="mt-1 text-3xl text-white sm:text-4xl">{t.titre}</h2>
           <p className="mt-3 max-w-[48ch] text-magique-texteClair">{t.accroche}</p>
           <Link href={`/creer?theme=${t.id}`} rel="nofollow" className="btn-primaire mt-6">
             Créer ce livre
@@ -74,14 +76,19 @@ export default function CataloguePage() {
                 Réservés aux membres du <Link href="/club" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">Club</Link> : les contes que vous connaissez par cœur, réécrits avec votre enfant en héros.
               </p>
             )}
-            <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
               {themes.map((t) => (
-                <article key={t.id} className="relative flex flex-col rounded-2xl bg-white/[0.05] p-5 pl-24 transition hover:bg-white/[0.08]">
-                  <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={64} className="absolute left-5 top-5" />
-                  <h3 className="text-lg">
-                    <Link href={`/catalogue/${t.id}`} className="after:absolute after:inset-0 after:rounded-2xl hover:underline">{t.titre}</Link>
-                  </h3>
-                  <p className="mt-1 flex-1 text-sm leading-relaxed text-magique-texteClair">
+                <article key={t.id} className="group relative flex flex-col">
+                  <div className="relative aspect-[3/4] overflow-hidden rounded-l-[4px] rounded-r-xl shadow-conte transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-translate-y-1.5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={couvertureTheme(t.id) ?? ""} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0b1236]/95 via-[#0b1236]/10 to-transparent" aria-hidden="true" />
+                    <div className="absolute inset-y-0 left-0 w-3" style={{ background: "linear-gradient(90deg,rgba(0,0,0,.45),rgba(255,255,255,.12) 70%,rgba(0,0,0,.1))" }} aria-hidden="true" />
+                    <h3 className="absolute inset-x-4 bottom-3.5 pl-1 text-[15px] leading-snug text-white sm:text-base">
+                      <Link href={`/catalogue/${t.id}`} className="after:absolute after:inset-0 hover:underline">{t.titre}</Link>
+                    </h3>
+                  </div>
+                  <p className="mt-3 flex-1 text-sm leading-relaxed text-magique-texteClair">
                     {t.accroche}
                   </p>
                   <Link
