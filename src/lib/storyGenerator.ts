@@ -23,6 +23,7 @@ import { faceIdentityEnabled, generateCharacterPortrait } from "./faceIdentity";
 import { ILLUSTRATION_STYLES } from "./style_config";
 import { findFormat } from "./bookFormats";
 import { fetchAsDataUrl } from "./imageFetch";
+import { controleActif, controlerIllustrations } from "./controleIllustrations";
 
 export type GenerateResult =
   | {
@@ -467,6 +468,13 @@ export async function illustrateStory(
     (illustre.couvertureUrl ? 0 : 1) + illustre.pages.filter((p) => !p.imageUrl).length;
   if (manquantes() > 0 && Date.now() - debut < 180_000 && illustrationsEnabled()) {
     illustre = await reparer(illustre, req, errors);
+  }
+  // Contrôle « directeur artistique » : héros en double, personnage qui change
+  // d'espèce ou de couleurs… les pages fautives sont redessinées.
+  if (illustrationsEnabled() && controleActif() && Date.now() - debut < 210_000) {
+    const { story: controle, bilan } = await controlerIllustrations(illustre, req, debut + 268_000);
+    console.log("[livre]", bilan);
+    illustre = controle;
   }
   return { story: illustre, imageReport: imageReportOf(illustre, errors) };
 }

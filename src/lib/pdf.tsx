@@ -7,6 +7,7 @@
  */
 
 import type { JSX } from "react";
+import { separerChapitre } from "./chapitre";
 import "server-only";
 import path from "node:path";
 import {
@@ -233,6 +234,11 @@ export function buildStoryDocument(story: Story, childName?: string): JSX.Elemen
               />
             ) : null}
             <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 30 }}>
+              {separerChapitre(p.texte).chapitre ? (
+                <Text style={{ fontFamily: f.titre, fontSize: 14, color: "#5B6598", marginBottom: 8, textAlign: "center" }}>
+                  {separerChapitre(p.texte).chapitre}
+                </Text>
+              ) : null}
               <Text
                 style={{
                   fontFamily: f.texte,
@@ -243,7 +249,7 @@ export function buildStoryDocument(story: Story, childName?: string): JSX.Elemen
                   textAlign: "center",
                 }}
               >
-                {p.texte}
+                {separerChapitre(p.texte).corps}
               </Text>
               {!p.imageUrl ? (
                 <Text style={{ marginTop: 20, fontFamily: f.italique, fontSize: 10, color: "#8A90B4", textAlign: "center" }}>

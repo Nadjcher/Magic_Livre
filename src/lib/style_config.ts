@@ -235,7 +235,7 @@ export function buildCharacterSheet(heroName?: string, appearance?: string): str
   if (!name && !look) return "";
   const who = name ? `the main character ${name}` : "the main character";
   const desc = look ? ` (${look})` : "";
-  return `${who}${desc}, same consistent character design and outfit in every image, appealing and expressive`;
+  return `${who}${desc}, same consistent character design and outfit in every image, appealing and expressive, ${name ?? "the hero"} appears only ONCE in the image (never duplicated)`;
 }
 
 /**

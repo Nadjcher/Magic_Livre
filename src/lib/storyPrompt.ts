@@ -36,6 +36,8 @@ Règles impératives :
 - Le prénom fourni est le héros ; il apparaît dans chaque page et agit.
 - N'utilise JAMAIS de personnage ou marque sous droits (Disney, Pixar, Marvel, DC, Nintendo, Pokémon, films, séries...). Invente des personnages originaux.
 - Titre évocateur et poétique (pas générique).
+- Cohérence : chaque personnage garde le même nom, le même genre grammatical (il/elle) et la même apparence du début à la fin. Aucun personnage ne porte la tenue du héros.
+- Dans chaque "scene_illustration", le héros n'apparaît qu'UNE seule fois (jamais en double), et seuls les personnages listés dans "presents" sont visibles.
 
 LANGUE : le titre et le "texte" de TOUTES les pages sont écrits EN FRANÇAIS, sans exception. Seuls "scene_illustration", "personnages" et "cast.visuel" sont en anglais (pour le dessinateur).
 
@@ -101,7 +103,9 @@ export function ageGuidance(age: number): string {
       "- Mots du quotidien, ultra-simples et concrets (doudou, câlin, dodo, maman, papa, animaux, couleurs).",
       "- Une TRÈS courte phrase-refrain douce peut revenir 2 à 3 fois dans tout le livre (comme une comptine), JAMAIS la même phrase recollée à la fin de chaque page.",
       "- Des sons rigolos (« Plouf ! », « Coucou ! », « Hop ! »).",
-      "- Pas d'intrigue compliquée : juste de petits moments tendres et rassurants, qui finissent par un câlin ou un dodo.",
+      "- Pas d'intrigue compliquée, mais UN FIL SIMPLE qui relie toutes les pages : une petite situation (ex. le doudou a disparu, la lune joue à cache-cache), une petite recherche, une fin douce (câlin ou dodo). Chaque page découle de la précédente.",
+      "- Le héros AGIT sur chaque page (il cherche, appelle, montre, câline) : jamais une simple liste d'objets (« Voici le pyjama… »).",
+      "- Peu de personnages (1 ou 2 compagnons au plus), présentés dès leur arrivée et toujours les mêmes.",
     ].join("\n");
   }
   if (age <= 4) {
@@ -127,6 +131,14 @@ export function ageGuidance(age: number): string {
       "- 3 à 4 phrases par page, vocabulaire plus riche.",
       "- Une aventure construite avec un petit rebondissement et une morale douce.",
       "- Dialogues vivants, personnages avec du caractère.",
+    ].join("\n");
+  }
+  if (age >= 11) {
+    return [
+      `ÂGE ${age} ANS (préado, lecteur autonome) :`,
+      "- 5 à 8 phrases par page, langue riche, nuancée et vivante ; dialogues naturels.",
+      "- Une vraie intrigue (mystère, défi, choix), des personnages secondaires avec du caractère, de l'humour et un peu de suspense.",
+      "- Le héros réfléchit et résout le problème par son intelligence ou son courage ; jamais un ton bébé.",
     ].join("\n");
   }
   return [

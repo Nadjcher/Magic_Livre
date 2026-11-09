@@ -14,6 +14,7 @@
  */
 
 import type { JSX } from "react";
+import { separerChapitre } from "./chapitre";
 import "server-only";
 import path from "node:path";
 import { Document, Page, Text, View, Image, renderToBuffer } from "@react-pdf/renderer";
@@ -120,10 +121,14 @@ export function buildPrintDocument(story: Story, prenom: string, images: ImagesI
   // Histoire : texte à gauche (pages paires), illustration à droite (impaires).
   story.pages.forEach((p, i) => {
     const kTexte = 4 + 2 * i;
-    const texte = sur(p.texte);
+    const { chapitre, corps } = separerChapitre(p.texte);
+    const texte = sur(corps);
     interieures.push(
       <Page key={`t${i}`} size={[PAGE_L, PAGE_H]} style={{ backgroundColor: PAPIER, paddingHorizontal: MARGE * 1.6, paddingVertical: MARGE, justifyContent: "center" }}>
         <Ornement />
+        {chapitre ? (
+          <Text style={{ fontFamily: f.titre, fontSize: 18, color: "#5B6598", marginBottom: 12, textAlign: "center" }}>{sur(chapitre)}</Text>
+        ) : null}
         <Text style={{ fontFamily: f.texte, fontWeight: 500, fontSize: Math.min(tailleTexte(texte) + 8, 34), lineHeight: 1.5, color: ENCRE, textAlign: "center" }}>
           {texte}
         </Text>

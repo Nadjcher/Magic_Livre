@@ -8,6 +8,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { separerChapitre } from "@/lib/chapitre";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Story } from "@/lib/storySchema";
@@ -183,9 +184,17 @@ export default function BookReader({
                   className="mb-6 max-h-80 w-full max-w-2xl rounded-2xl object-cover shadow-conte"
                 />
               )}
-              <p className="max-w-[46ch] text-2xl leading-relaxed text-magique-texte">
-                {texteCourant}
-              </p>
+              {(() => {
+                const { chapitre, corps } = separerChapitre(texteCourant);
+                return (
+                  <>
+                    {chapitre && <p className="mb-3 font-serif text-lg font-semibold text-magique-primaire">{chapitre}</p>}
+                    <p className={`max-w-[46ch] leading-relaxed text-magique-texte ${corps.length > 450 ? "text-lg" : corps.length > 250 ? "text-xl" : "text-2xl"}`}>
+                      {corps}
+                    </p>
+                  </>
+                );
+              })()}
               {!pageCourante?.imageUrl && (
                 <p className="mt-6 text-xs italic text-magique-texteClair">
                   ✦ {pageCourante?.scene_illustration}
