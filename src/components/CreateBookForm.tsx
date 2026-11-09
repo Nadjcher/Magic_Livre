@@ -11,6 +11,7 @@
  */
 
 import Picto from "@/components/Picto";
+import { couvertureTheme } from "@/lib/couverturesThemes";
 import { useState, useTransition } from "react";
 import { findFormat, formatParDefaut, formatsPourAge } from "@/lib/bookFormats";
 import { ROLES_EXTRAS } from "@/lib/validation";
@@ -337,7 +338,12 @@ export default function CreateBookForm({
                   const verrou = estClassique(t) && !abonnement.actif;
                   return (
                     <button key={t.id} type="button" role="radio" aria-checked={actif} onClick={() => choisirTheme(t.id)} className={`${tuile(actif)} flex items-start gap-3 p-3 ${verrou ? "opacity-70" : ""}`}>
-                      <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={48} />
+                      {couvertureTheme(t.id) ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={couvertureTheme(t.id)!} alt="" width={64} height={85} loading="lazy" decoding="async" className="h-[85px] w-16 shrink-0 rounded-md object-cover shadow-md ring-1 ring-black/5" />
+                      ) : (
+                        <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={48} />
+                      )}
                       <span>
                         <span className="flex flex-wrap items-center gap-2 font-semibold">
                           {t.titre}
