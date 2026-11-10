@@ -88,6 +88,16 @@ export const storySchema = z.object({
     .array(z.object({ orderId: z.string(), gelatoId: z.string(), creeLe: z.number() }))
     .optional()
     .catch(undefined),
+  // Fiche de la demande (pour la bibliothèque d'exemples et les séries).
+  meta: z
+    .object({ age: z.number(), format: z.string().optional(), themeId: z.string().optional(), mode: z.string().optional() })
+    .optional()
+    .catch(undefined),
+  // Relecture notée par la directrice littéraire (IA).
+  qualite: z
+    .object({ note: z.number(), notes: z.record(z.string(), z.number()).optional(), problemes: z.array(z.string()), reecrit: z.boolean() })
+    .optional()
+    .catch(undefined),
   // Aperçu gratuit : seules la couverture et les premières pages sont illustrées ;
   // le reste est dessiné à l'achat ou pour les membres du Club.
   apercu: z.boolean().optional(),

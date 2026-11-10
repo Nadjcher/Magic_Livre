@@ -21,6 +21,9 @@ export default async function AdminLancementPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <h1 className="text-3xl">Lancement</h1>
+      <p className="text-sm">
+        <a href="/admin/histoires" className="font-semibold text-magique-primaire underline">Atelier d'écriture →</a> relire les histoires et gérer la bibliothèque de modèles.
+      </p>
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="carte"><p className="text-sm text-magique-texteClair">Ventes</p><p className="font-serif text-2xl">{ouvert ? "Ouvertes" : "Fermées"}</p></div>
         <div className="carte"><p className="text-sm text-magique-texteClair">Liste d'attente</p><p className="font-serif text-2xl">{liste}</p></div>

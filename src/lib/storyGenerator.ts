@@ -24,6 +24,7 @@ import { ILLUSTRATION_STYLES } from "./style_config";
 import { findFormat } from "./bookFormats";
 import { fetchAsDataUrl } from "./imageFetch";
 import { controleActif, controlerIllustrations } from "./controleIllustrations";
+import { blocModeles, exemplesPour } from "./bibliotheque";
 
 export type GenerateResult =
   | {
@@ -96,15 +97,18 @@ async function callModel(
   temperature = 0.9,
   premium = false,
   info?: { viaFal?: boolean },
+  opts: { modele?: string; delaiMs?: number } = {},
 ): Promise<string> {
   // Écriture par un grand modèle (Claude via fal) : bien meilleur en français
   // et en cohérence. PAS de repli sur un modèle plus faible : mieux vaut
   // « réessayez dans quelques minutes » qu'une histoire mal écrite.
   // (Groq seulement si STORY_LLM=groq est choisi explicitement.)
   if (env.falApiKey() && process.env.STORY_LLM !== "groq") {
-    const modele = premium
-      ? process.env.STORY_MODEL_PREMIUM || "anthropic/claude-opus-5.5"
-      : process.env.STORY_MODEL || "anthropic/claude-opus-5.5";
+    const modele =
+      opts.modele ??
+      (premium
+        ? process.env.STORY_MODEL_PREMIUM || "anthropic/claude-opus-5.5"
+        : process.env.STORY_MODEL || "anthropic/claude-opus-5.5");
     let derniere = "";
     for (let essai = 0; essai < 2; essai++) {
       if (essai > 0) await new Promise((r) => setTimeout(r, 3000));
@@ -120,7 +124,7 @@ async function callModel(
             reasoning: true,
             max_tokens: 16000,
           }),
-          signal: AbortSignal.timeout(temperature < 0.6 ? 70_000 : 140_000),
+          signal: AbortSignal.timeout(opts.delaiMs ?? (temperature < 0.6 ? 70_000 : 140_000)),
         });
         const j = (await r.json().catch(() => ({}))) as { output?: string; error?: unknown; detail?: unknown };
         if (r.ok && j.output && j.output.includes("{")) {
@@ -157,6 +161,77 @@ async function callModel(
   );
 
   return response.choices[0]?.message?.content?.trim() ?? "";
+}
+
+/** Grille de la relecture notée (directrice littéraire). */
+const GRILLE_SYSTEM = `Tu es la directrice littéraire d'une maison d'édition d'albums jeunesse française, très exigeante. On te donne une histoire au format JSON, écrite pour un enfant dont l'âge est indiqué. Tu la notes sans complaisance, de 0 à 10, sur 7 critères :
+- voix_haute : le texte se lit bien à voix haute (rythme, sonorités, phrases variées) ;
+- langue : français naturel et juste, sans calques de l'anglais, typographie française, temps cohérents ;
+- age : vocabulaire et longueur de phrases adaptés à l'âge exact ;
+- coherence : personnages présentés, même genre (il/elle) et même apparence partout, logique d'une page à l'autre ;
+- originalite : une idée forte et inattendue, pas une trame plate ;
+- fin : une chute tendre ou drôle, sans morale expliquée ;
+- clichés : absence de tics d'IA (« soudain » répété, « magique », « scintillant », « ses yeux brillaient », « il avait compris que… »).
+Réponds UNIQUEMENT avec ce JSON : {"notes": {"voix_haute": n, "langue": n, "age": n, "coherence": n, "originalite": n, "fin": n, "cliches": n}, "problemes": ["problème précis avec le numéro de page et la correction attendue", …]} (6 problèmes au plus, les plus importants d'abord).`;
+
+/** Consignes de la réécriture ciblée. */
+const REECRITURE_SYSTEM = `Tu es l'auteur de cette histoire pour enfants. Ta directrice littéraire a relevé des problèmes. Réécris l'histoire pour les corriger TOUS, et améliore la langue partout où elle peut être plus vivante, plus juste, plus agréable à lire à voix haute. Garde le même héros, la même intrigue, les mêmes personnages et le même nombre de pages. Garde "scene_illustration" en anglais (corrige-la seulement si elle contredit le texte), "cast" et "presents" identiques. Réponds UNIQUEMENT avec le JSON complet, même structure que celui reçu.`;
+
+/**
+ * Relecture notée : une IA note l'histoire sur une grille ; si la note est
+ * basse, l'auteur la réécrit en corrigeant les problèmes relevés. Bornée dans
+ * le temps et jamais bloquante : en cas de souci, on garde l'histoire d'origine.
+ */
+async function relireEtAmeliorer(client: OpenAI, model: string, story: Story, req: StoryRequest, debut: number): Promise<Story> {
+  if (Date.now() - debut > 150_000) return story;
+  const json = JSON.stringify({ titre: story.titre, personnages: story.personnages, cast: story.cast, pages: story.pages });
+  let grille: { notes?: Record<string, number>; problemes?: string[] } = {};
+  try {
+    const raw = await callModel(client, model, GRILLE_SYSTEM, `Âge de l'enfant : ${req.childAge} ans.\n\n${json}`, 0.3, false, undefined, {
+      modele: process.env.STORY_CRITIC_MODEL || "anthropic/claude-sonnet-5.5",
+      delaiMs: 60_000,
+    });
+    grille = JSON.parse(/\{[\s\S]*\}/.exec(raw)?.[0] ?? "{}");
+  } catch (e) {
+    console.error("[relecture] indisponible :", String(e).slice(0, 160));
+    return story;
+  }
+  const notes = Object.values(grille.notes ?? {}).filter((n): n is number => typeof n === "number");
+  if (!notes.length) return story;
+  const moyenne = notes.reduce((a, b) => a + b, 0) / notes.length;
+  const problemes = (grille.problemes ?? []).filter((p) => typeof p === "string").slice(0, 6);
+  const qualite = { note: Math.round(moyenne * 10) / 10, notes: grille.notes, problemes, reecrit: false };
+  console.log("[relecture] note", qualite.note, problemes.length, "problèmes");
+  if ((moyenne >= 7.5 && Math.min(...notes) >= 6) || !problemes.length || Date.now() - debut > 170_000) {
+    return { ...story, qualite };
+  }
+  try {
+    const raw = await callModel(
+      client,
+      model,
+      REECRITURE_SYSTEM,
+      `Âge de l'enfant : ${req.childAge} ans.\nConsignes d'âge :\n${ageGuidance(req.childAge)}\n\nProblèmes relevés :\n- ${problemes.join("\n- ")}\n\nHistoire :\n${json}`,
+      0.5,
+      req.premium,
+      undefined,
+      { delaiMs: Math.max(30_000, 270_000 - (Date.now() - debut)) },
+    );
+    const parsed = parseStory(raw);
+    if (!parsed.ok || texteEnAnglais(parsed.story) || parsed.story.pages.length !== story.pages.length) return { ...story, qualite };
+    if (!filterStory(parsed.story).ok) return { ...story, qualite };
+    const texte = [parsed.story.titre, ...parsed.story.pages.map((p) => `${p.texte} ${p.scene_illustration}`)].join(" ");
+    if (findProtectedNames(texte).length > 0) return { ...story, qualite };
+    return {
+      ...story,
+      titre: parsed.story.titre || story.titre,
+      personnages: parsed.story.personnages || story.personnages,
+      pages: parsed.story.pages.map((p, i) => ({ ...p, presents: p.presents ?? story.pages[i]?.presents })),
+      qualite: { ...qualite, reecrit: true },
+    };
+  } catch (e) {
+    console.error("[réécriture] impossible :", String(e).slice(0, 160));
+    return { ...story, qualite };
+  }
 }
 
 /** Prompt « éditeur » : réécrit une histoire pour la clarifier et l'adapter à l'âge. */
@@ -231,7 +306,10 @@ export async function generateStory(
   req: StoryRequest,
   { illustrer = true }: { illustrer?: boolean } = {},
 ): Promise<GenerateResult> {
-  let userMessage = buildUserMessage(req);
+  const debut = Date.now();
+  // RAG : extraits modèles (ton) + trame (structure) les plus proches de la demande.
+  const modeles = await exemplesPour({ age: req.childAge, format: req.format, themeId: req.mode === "theme" ? req.themeId : undefined });
+  let userMessage = buildUserMessage(req, blocModeles(modeles));
   const client = createClient();
   // Édition premium : modèle de texte haut de gamme (configurable).
   const model = req.premium ? env.groqModelPremium() : env.groqModel();
@@ -304,7 +382,13 @@ export async function generateStory(
     // Claude (plan + réflexion) écrit déjà une histoire cohérente : la relecture
     // n'est utile qu'avec le modèle de repli (et économise du temps).
     const polished = info.viaFal ? null : await polishStory(client, model, parsed.story, req);
-    const base = polished ?? parsed.story;
+    let base: Story = polished ?? parsed.story;
+    // Relecture notée par une deuxième IA ; réécriture si la note est basse.
+    if (info.viaFal) base = await relireEtAmeliorer(client, model, base, req, debut);
+    base = {
+      ...base,
+      meta: { age: req.childAge, format: req.format, themeId: req.mode === "theme" ? req.themeId : undefined, mode: req.mode },
+    };
 
     // Étape « texte seul » : les illustrations seront faites par une seconde
     // exécution (son propre budget de temps), cf. illustrateStory.

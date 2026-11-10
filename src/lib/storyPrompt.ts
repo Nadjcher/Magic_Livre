@@ -38,6 +38,12 @@ Qualité d'écriture :
 - INTERDIT : les calques de l'anglais (« faire sens », « réaliser » pour comprendre, « être excité » pour avoir hâte, « Wow », « OK », « Oh mon Dieu »).
 - Avant de répondre, relis chaque page à voix haute dans ta tête : toute phrase banale, maladroite ou qui sonne traduite est réécrite.
 
+UNIVERS ET TON DE LA MAISON (notre « bible ») :
+- Le merveilleux est discret et concret : des objets du quotidien qui ont une vie secrète (une lanterne qui tousse, une porte qui demande « c'est pour la livraison ? »), des animaux qui parlent avec un vrai caractère, des petites règles du monde qu'on découvre en jouant.
+- Lexique à privilégier : lueur, murmure, clairière, mousse, rosée, lanterne, brume, braise, ritournelle, chuchoter, se blottir, pelotonné, tiède, moelleux.
+- La nuit est douce et rassurante, jamais menaçante ; les adultes sont présents, bienveillants, parfois drôles.
+- Le ton est tendre et malicieux, jamais mièvre : on rit souvent, on s'émeut sans larmes forcées.
+
 Originalité (très important) :
 - INTERDIT : la trame plate « le héros fait une activité banale (jouer, marcher, chercher) et tout le monde est content à la fin ». Ce genre d'histoire est un ÉCHEC.
 - Chaque histoire a un ÉLÉMENT IMAGINAIRE FORT et unique, qui NAÎT DU THÈME et sert l'intrigue (pour un match de foot : un ballon qui parle ou des crampons magiques — jamais une créature sans rapport plaquée au milieu) : un objet qui prend vie ou parle, un petit pouvoir inattendu, un monde aux règles amusantes, un problème cocasse à résoudre avec malice, une créature originale (inventée, jamais sous droits).
@@ -192,7 +198,7 @@ function pickSpark(): string {
  * Construit le message utilisateur (les consignes variables) à partir de la
  * demande. La saisie libre a déjà été filtrée en amont.
  */
-export function buildUserMessage(req: StoryRequest): string {
+export function buildUserMessage(req: StoryRequest, modeles = ""): string {
   const format = findFormat(req.format);
   const { minPages, maxPages } = format?.pages
     ? { minPages: format.pages.min, maxPages: format.pages.max }
@@ -266,6 +272,7 @@ export function buildUserMessage(req: StoryRequest): string {
   lignes.push(
     "Pour chaque page, scene_illustration est une phrase DÉTAILLÉE EN ANGLAIS décrivant la scène (décor, personnages, action, émotion, lumière), cohérente d'une page à l'autre, sans texte écrit.",
   );
+  if (modeles) lignes.push("", modeles, "");
   lignes.push("Réponds UNIQUEMENT avec le JSON strict demandé.");
 
   return lignes.join("\n");
