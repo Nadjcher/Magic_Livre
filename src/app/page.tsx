@@ -121,7 +121,7 @@ const FAQ = [
   },
   {
     q: "C'est vraiment gratuit ?",
-    r: "Oui. Créer le livre et le lire en entier à l'écran ne coûte rien. Vous payez seulement si vous voulez télécharger le PDF et le kit, en une fois, sans abonnement.",
+    r: "Oui. Créer le livre et lire toute l'histoire à l'écran ne coûte rien : la couverture et les 3 premières pages sont illustrées. Vous payez seulement pour garder le livre entièrement illustré (PDF et kit), en une fois, sans abonnement.",
   },
   {
     q: "Combien de temps faut-il ?",
@@ -201,8 +201,8 @@ export default async function AccueilPage() {
             « Encore une histoire ! » Ce soir, ce sera la sienne.
           </p>
           <p className="mt-4 max-w-[44ch] text-lg leading-relaxed text-magique-texteClair">
-            Une histoire inventée pour lui, avec son prénom, son visage et ceux qu'il aime. Vous la
-            lisez en entier avant de décider de la garder.
+            Une histoire inventée pour lui, avec son prénom, son visage et ceux qu'il aime. Vous lisez
+            toute l'histoire avant de décider de la garder.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-5">
             <Link href={cta} className="btn-primaire text-lg">

@@ -9,6 +9,8 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { storySchema } from "@/lib/storySchema";
+import AutoRefresh from "@/components/AutoRefresh";
+import { EN_COURS } from "@/lib/illustrationStatus";
 import { lightenStory } from "@/lib/bookImages";
 import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PRIX_IMPRIME_ABONNE, formatEuros, skusPossedes } from "@/lib/products";
 import { getAbonnement } from "@/lib/subscription";
@@ -100,6 +102,19 @@ export default async function BoutiquePage(
       </div>
 
       {!ventesOuvertes() && !estAdmin(user.email) && <BandeauLancement source="boutique" />}
+
+      {parsed.success && parsed.data.apercu && (
+        <Notice kind="info">
+          🎨 Avec l'achat, toutes les pages du livre sont illustrées (1 à 2 minutes), avec le même
+          héros que sur l'aperçu. Vos téléchargements sont prêts juste après.
+        </Notice>
+      )}
+      {book.errorMessage?.startsWith(EN_COURS) && (
+        <>
+          <AutoRefresh seconds={8} />
+          <Notice kind="info">🎨 Les dernières illustrations sont en train d'être dessinées. Cette page se met à jour toute seule.</Notice>
+        </>
+      )}
 
       {searchParams.paiement === "succes" && (
         <Notice kind="succes">

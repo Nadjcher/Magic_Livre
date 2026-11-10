@@ -88,6 +88,9 @@ export const storySchema = z.object({
     .array(z.object({ orderId: z.string(), gelatoId: z.string(), creeLe: z.number() }))
     .optional()
     .catch(undefined),
+  // Aperçu gratuit : seules la couverture et les premières pages sont illustrées ;
+  // le reste est dessiné à l'achat ou pour les membres du Club.
+  apercu: z.boolean().optional(),
   // Nombre de pages redessinées à la demande (plafonné).
   retouches: z.number().int().min(0).optional(),
   // Bande-annonce vidéo (produit payant) : scènes animées + voix off.

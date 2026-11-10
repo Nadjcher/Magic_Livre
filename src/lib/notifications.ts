@@ -40,7 +40,12 @@ export async function apresPaiement(orderId: string): Promise<void> {
   const cle = `apres-paiement:${orderId}`;
   if (!(await reserver(cle))) return;
   try {
-    const order = await prisma.order.findUnique({ where: { id: orderId }, select: { sku: true } });
+    const order = await prisma.order.findUnique({ where: { id: orderId }, select: { sku: true, bookId: true } });
+    // Livre gratuit (aperçu) : on dessine d'abord toutes les pages restantes.
+    if (order?.bookId) {
+      const { debloquerLivre } = await import("./apercu");
+      await debloquerLivre(order.bookId);
+    }
     if (order?.sku === "imprime") {
       const { lancerImpression } = await import("./print");
       await lancerImpression(orderId);

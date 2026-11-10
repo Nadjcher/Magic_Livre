@@ -79,6 +79,8 @@ export interface StoryRequest {
    * Utilisée seulement pendant la génération des images ; jamais stockée.
    */
   photo?: { base64: string; mime: string };
+  /** Aperçu gratuit : couverture + premières pages illustrées seulement. */
+  apercu?: boolean;
   /** Édition premium : illustrations générées avec le modèle haut de gamme. */
   premium?: boolean;
   /** Type de livre (imagier, comptine, album, enquête…). */

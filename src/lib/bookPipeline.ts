@@ -15,7 +15,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { prisma } from "./prisma";
 import { getAppUrl } from "./appUrl";
 import { storySchema } from "./storySchema";
-import { illustrateStory } from "./storyGenerator";
+import { PAGES_APERCU, illustrateStory } from "./storyGenerator";
 import type { StoryRequest } from "./storyPrompt";
 import { alerterAdmin, notifierLivrePret } from "./notifications";
 
@@ -71,8 +71,9 @@ export async function illustrerLivre({ bookId, req, portrait }: EtapeIllustratio
       data: { status: "ready", title: story.titre, pages: story, errorMessage: imageReport ?? null },
     });
 
-    const total = story.pages.length + 1;
-    const manquantes = (story.couvertureUrl ? 0 : 1) + story.pages.filter((p) => !p.imageUrl).length;
+    const visibles = story.apercu ? story.pages.slice(0, PAGES_APERCU) : story.pages;
+    const total = visibles.length + 1;
+    const manquantes = (story.couvertureUrl ? 0 : 1) + visibles.filter((p) => !p.imageUrl).length;
     if (manquantes > 0 && /TOP_UP|locked|balance|crédit|credit/i.test(imageReport ?? "")) {
       // Compte fal bloqué : tous les livres suivants seraient sans images.
       await alerterAdmin(

@@ -102,7 +102,7 @@ export default async function ThemePage(props: { params: Promise<{ theme: string
           {[
             "Votre enfant est le héros : son prénom, son visage, ceux qu'il aime",
             "Une histoire écrite pour son âge, jamais deux fois la même",
-            "Lu en entier gratuitement, avant de décider de le garder",
+            "Toute l'histoire à lire gratuitement, couverture et premières pages illustrées",
             "Prêt en 3 minutes environ, à lire à l'écran ou à voix haute",
           ].map((x) => (
             <li key={x} className="flex gap-3">

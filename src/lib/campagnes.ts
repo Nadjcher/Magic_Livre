@@ -139,7 +139,7 @@ function message(campagne: Campagne, c: Contact): Message | null {
             titre: "Plus que 3 jours ✨",
             paragraphes: [
               "Le 15 novembre, les commandes ouvrent. Mais vous pouvez déjà créer son livre aujourd'hui : son prénom, son visage, une histoire écrite pour son âge, prête en quelques minutes.",
-              "Vous le lisez en entier, gratuitement. Le jour de l'ouverture, il sera prêt à être gardé ou imprimé pour Noël.",
+              "Vous lisez toute l'histoire gratuitement. Le jour de l'ouverture, il sera prêt à être gardé ou imprimé pour Noël.",
             ],
             url: `${base}/creer`,
             libelle: "Créer son histoire maintenant",
@@ -161,7 +161,7 @@ function message(campagne: Campagne, c: Contact): Message | null {
             sujet: "C'est ouvert : offrez-lui le livre dont il est le héros ✨",
             titre: "Encore une histoire est ouvert !",
             paragraphes: [
-              "Son prénom, son visage, une histoire écrite pour son âge, de 1 à 12 ans. Vous lisez le livre en entier gratuitement, et vous ne payez que si vous voulez le garder.",
+              "Son prénom, son visage, une histoire écrite pour son âge, de 1 à 12 ans. Vous lisez toute son histoire gratuitement, et vous ne payez que si vous voulez garder le livre illustré.",
               "PDF à imprimer dès 6,99 €, ou vrai livre relié livré chez vous avant Noël.",
             ],
             url: `${base}/creer`,
@@ -174,7 +174,7 @@ function message(campagne: Campagne, c: Contact): Message | null {
         titre: "Vos questions, nos réponses",
         paragraphes: [
           "<strong>« Il va vraiment lui ressembler ? »</strong> Oui : le héros est dessiné d'après sa photo, le même à chaque page. Et la photo n'est jamais conservée.",
-          "<strong>« Et si l'histoire ne me plaît pas ? »</strong> Vous la lisez en entier avant de payer quoi que ce soit, et vous pouvez en créer une autre.",
+          "<strong>« Et si l'histoire ne me plaît pas ? »</strong> Vous lisez toute l'histoire avant de payer quoi que ce soit, et vous pouvez en créer une autre.",
           `<strong>« Ce sera là pour Noël ? »</strong> Le PDF est immédiat. Le livre relié est livré en 7 à 10 jours : commandez avant le ${NOEL_LIMITE}.`,
         ],
         url: c.bookId ? `${base}/bibliotheque/${c.bookId}/boutique` : `${base}/creer`,
@@ -228,7 +228,7 @@ export async function bienvenueListe(email: string): Promise<void> {
     "Bienvenue sur la liste",
     [
       "Merci ! Vous serez parmi les premiers prévenus à l'ouverture des commandes, le 15 novembre.",
-      "Bonne nouvelle : vous n'avez pas besoin d'attendre pour essayer. Créez son livre dès maintenant, avec son prénom et sa photo, et lisez-le en entier gratuitement.",
+      "Bonne nouvelle : vous n'avez pas besoin d'attendre pour essayer. Créez son livre dès maintenant, avec son prénom et sa photo, et lisez toute son histoire gratuitement.",
     ],
     `${getAppUrl()}/creer`,
     "Créer son histoire gratuitement",

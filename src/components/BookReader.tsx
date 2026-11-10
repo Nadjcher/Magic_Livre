@@ -207,11 +207,16 @@ export default function BookReader({
                   </>
                 );
               })()}
-              {!pageCourante?.imageUrl && (
-                <p className="mt-6 text-xs italic text-magique-texteClair">
-                  ✦ {pageCourante?.scene_illustration}
-                </p>
-              )}
+              {!pageCourante?.imageUrl &&
+                (story.apercu ? (
+                  <p className="mt-6 rounded-full border border-magique-trait bg-white/[0.05] px-4 py-1.5 text-xs text-magique-texteClair">
+                    🎨 Cette page sera illustrée avec le livre complet
+                  </p>
+                ) : (
+                  <p className="mt-6 text-xs italic text-magique-texteClair">
+                    ✦ {pageCourante?.scene_illustration}
+                  </p>
+                ))}
             </>
           )}
         </div>

@@ -15,6 +15,7 @@ import { generateIllustration } from "@/lib/illustration";
 import { fetchAsDataUrl } from "@/lib/imageFetch";
 import { fichesPresentes, imageReportOf } from "@/lib/storyGenerator";
 import { EN_COURS } from "@/lib/illustrationStatus";
+import { debloquerLivre, peutDebloquer } from "@/lib/apercu";
 
 
 function manquantes(story: Story): number {
@@ -37,6 +38,15 @@ export async function completeIllustrations(
   }
   const parsed = storySchema.safeParse(book.pages);
   if (!parsed.success) return { ok: false, message: "Le contenu de ce livre est illisible." };
+  // Aperçu gratuit : tout le livre est illustré à l'achat ou avec le Club.
+  if (parsed.data.apercu) {
+    if (!(await peutDebloquer(user.id, book.id))) {
+      return { ok: false, message: "Le livre entièrement illustré arrive avec l'achat du livre ou le Club." };
+    }
+    waitUntil(debloquerLivre(book.id));
+    revalidatePath(`/bibliotheque/${book.id}`);
+    return { ok: true, message: "C'est parti ! Toutes les illustrations arrivent dans 1 à 2 minutes." };
+  }
   if (manquantes(parsed.data) === 0) return { ok: true, message: "Toutes les illustrations sont là." };
 
   await prisma.book.update({
@@ -159,6 +169,9 @@ export async function redrawPage(
   }
   const page = index >= 0 ? story.pages[index] : undefined;
   if (index >= 0 && !page) return { ok: false, message: "Page introuvable." };
+  if (page && !page.imageUrl && story.apercu) {
+    return { ok: false, message: "Cette page sera illustrée avec le livre complet." };
+  }
 
   // Fiches de référence (héros + personnages secondaires présents).
   const versRef = async (u: string | null | undefined) => {

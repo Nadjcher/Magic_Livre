@@ -66,9 +66,9 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (x: T, i: number) =
 
 /** Résume les échecs d'illustration (« 3/13 images manquantes : HTTP 429 … »). */
 export function imageReportOf(story: Story, errors: string[]): string | undefined {
-  const total = story.pages.length + 1;
-  const manquantes =
-    (story.couvertureUrl ? 0 : 1) + story.pages.filter((p) => !p.imageUrl).length;
+  const visibles = story.apercu ? story.pages.slice(0, PAGES_APERCU) : story.pages;
+  const total = visibles.length + 1;
+  const manquantes = (story.couvertureUrl ? 0 : 1) + visibles.filter((p) => !p.imageUrl).length;
   if (manquantes === 0) return undefined;
   const raisons = Array.from(new Set(errors.filter(Boolean))).slice(0, 2).join(" | ");
   return `Illustrations manquantes : ${manquantes}/${total}. ${raisons}`.slice(0, 480);
@@ -309,6 +309,9 @@ export async function generateStory(
   return { ok: false, message: lastMessage };
 }
 
+/** Aperçu gratuit : nombre de pages illustrées (en plus de la couverture). */
+export const PAGES_APERCU = 3;
+
 /** Petit hachage stable pour dériver une graine d'image reproductible. */
 function hashSeed(text: string): number {
   let h = 2166136261;
@@ -423,6 +426,8 @@ async function addIllustrations(
       seed: base,
     }),
     mapLimit(story.pages, 4, async (p, i) => {
+      // Aperçu gratuit : les pages suivantes seront dessinées au déblocage.
+      if (req.apercu && i >= PAGES_APERCU) return { ...p, imageUrl: null };
       const { imageUrl, error } = await generateIllustration({
         ...commun,
         scene: indiceFormat ? `${p.scene_illustration}. ${indiceFormat}` : p.scene_illustration,
@@ -447,6 +452,7 @@ async function addIllustrations(
     couvertureUrl: cover.imageUrl,
     style,
     fiches: { heros: ficheHeros.imageUrl ?? null, cast: fichesUrls },
+    ...(req.apercu ? { apercu: true } : {}),
   };
 }
 
@@ -465,7 +471,8 @@ export async function illustrateStory(
   let illustre = await addIllustrations(story, req, portrait, errors);
 
   const manquantes = () =>
-    (illustre.couvertureUrl ? 0 : 1) + illustre.pages.filter((p) => !p.imageUrl).length;
+    (illustre.couvertureUrl ? 0 : 1) +
+    illustre.pages.filter((p, i) => !p.imageUrl && !(illustre.apercu && i >= PAGES_APERCU)).length;
   if (manquantes() > 0 && Date.now() - debut < 180_000 && illustrationsEnabled()) {
     illustre = await reparer(illustre, req, errors);
   }
@@ -477,6 +484,22 @@ export async function illustrateStory(
     illustre = controle;
   }
   return { story: illustre, imageReport: imageReportOf(illustre, errors) };
+}
+
+/**
+ * Livre gratuit débloqué (achat ou Club) : dessine toutes les pages restantes
+ * avec les mêmes fiches de personnages, puis contrôle les nouvelles images.
+ */
+export async function illustrerLivreComplet(story: Story, req: StoryRequest): Promise<{ story: Story; imageReport?: string }> {
+  const debut = Date.now();
+  const errors: string[] = [];
+  let complet = await reparer({ ...story, apercu: false }, req, errors);
+  if (controleActif() && Date.now() - debut < 150_000) {
+    const { story: controle, bilan } = await controlerIllustrations(complet, req, debut + 260_000);
+    console.log("[livre] déblocage,", bilan);
+    complet = controle;
+  }
+  return { story: complet, imageReport: imageReportOf(complet, errors) };
 }
 
 /** Redessine les images absentes avec les fiches conservées (héros + personnages). */
@@ -512,7 +535,7 @@ async function reparer(story: Story, req: StoryRequest, errors: string[]): Promi
           seed: graine,
         }),
     mapLimit(story.pages, 4, async (p, i) => {
-      if (p.imageUrl) return p;
+      if (p.imageUrl || (story.apercu && i >= PAGES_APERCU)) return p;
       const r = await generateIllustration({ ...commun, scene: p.scene_illustration, castRefs: fichesPresentes(p, fiches), seed: graine + i + 1 });
       if (r.error) errors.push(r.error);
       return { ...p, imageUrl: r.imageUrl };

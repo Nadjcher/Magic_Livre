@@ -13,6 +13,7 @@
 
 import { revalidatePath } from "next/cache";
 import sharp from "sharp";
+import { plafondGratuitAtteint, noterLivreGratuit } from "@/lib/apercu";
 import { waitUntil } from "@vercel/functions";
 import { getCurrentUser, hasParentalConsent } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
@@ -192,9 +193,18 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
 
   // Limite quotidienne pour contrôler les coûts (sauf livres inclus dans le Club,
   // déjà plafonnés par le quota mensuel : un membre peut recevoir sa sélection d'un coup).
+  // Livre gratuit (ni Club, ni admin) : un aperçu, dans la limite du plafond du jour.
+  const gratuit = !(abonnement.actif && abonnement.restants > 0) && !estAdmin(user.email);
   if (!(abonnement.actif && abonnement.restants > 0)) {
     const limit = await checkDailyBookLimit(user.id, user.email);
     if (!limit.allowed) return { ok: false, message: limit.message };
+  }
+  if (gratuit && (await plafondGratuitAtteint())) {
+    return {
+      ok: false,
+      message:
+        "Victimes de notre succès : tous les livres gratuits du jour sont partis ! Revenez demain matin, ou rejoignez le Club pour créer vos livres tout de suite.",
+    };
   }
   if (input.mode === "theme" && estClassique(findThemeById(input.themeId)) && !abonnement.actif) {
     return { ok: false, message: "Les grands classiques revisités sont réservés aux membres du Club." };
@@ -222,6 +232,8 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
     },
   });
   const inclus = await inclureLivre(user.id, book.id, abonnement);
+  const apercu = !inclus && !estAdmin(user.email);
+  if (apercu) await noterLivreGratuit(book.id);
 
   // La génération (1 à 3 minutes) tourne EN ARRIÈRE-PLAN sur le serveur : on
   // répond tout de suite avec l'identifiant du livre. Fermer l'onglet, changer
@@ -239,6 +251,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
       appearance,
       photo: photoRef,
       premium,
+      apercu,
       format: input.format,
       extras,
     }),

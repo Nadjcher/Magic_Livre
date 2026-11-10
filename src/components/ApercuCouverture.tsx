@@ -65,7 +65,7 @@ export default function ApercuCouverture({
             {reserveClub ? "Le lire avec le Club" : nom.trim() ? `Créer le livre de ${nom.trim()}` : "Créer son livre gratuitement"}
           </Link>
           <p className="text-center text-sm text-magique-texteClair">
-            Gratuit à lire en entier · prêt en 3 minutes environ · sans carte bancaire
+            Toute l'histoire à lire gratuitement · prête en 3 minutes · sans carte bancaire
           </p>
         </div>
       </div>

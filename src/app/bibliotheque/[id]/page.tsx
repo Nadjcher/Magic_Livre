@@ -17,6 +17,8 @@ import GenerationOverlay from "@/components/GenerationOverlay";
 import { THEMES } from "@/lib/themes";
 import CompleteIllustrationsButton from "@/components/CompleteIllustrationsButton";
 import { EN_COURS } from "@/lib/illustrationStatus";
+import { peutDebloquer } from "@/lib/apercu";
+import { PAGES_APERCU } from "@/lib/storyGenerator";
 
 // La complétion des illustrations tourne en arrière-plan depuis cette page.
 export const maxDuration = 300;
@@ -52,10 +54,14 @@ export default async function LivrePage(
       ? lightenStory(await migrateBookImagesToBlob(book.id, parsed.data), book.id)
       : null;
 
-  // Illustrations absentes (Gemini indisponible au moment de la création) ?
+  // Illustrations absentes (service de dessin indisponible au moment de la création) ?
+  // Les pages d'un aperçu gratuit ne comptent pas : elles attendent le déblocage.
   const imagesManquantes = story
-    ? (story.couvertureUrl ? 0 : 1) + story.pages.filter((p) => !p.imageUrl).length
+    ? (story.couvertureUrl ? 0 : 1) +
+      story.pages.filter((p, i) => !p.imageUrl && !(story.apercu && i >= PAGES_APERCU)).length
     : 0;
+  const pagesVerrouillees = story?.apercu ? story.pages.filter((p) => !p.imageUrl).length : 0;
+  const deblocable = pagesVerrouillees > 0 && (await peutDebloquer(user.id, book.id));
   const depart = book.errorMessage?.startsWith(EN_COURS)
     ? Number(book.errorMessage.slice(EN_COURS.length))
     : 0;
@@ -120,6 +126,29 @@ export default async function LivrePage(
             Cette page se met à jour toute seule.
           </Notice>
         </>
+      )}
+      {story && pagesVerrouillees > 0 && !completionEnCours && (
+        <div className="carte space-y-3">
+          <h2 className="font-serif text-xl">Votre aperçu gratuit</h2>
+          <p className="text-sm text-magique-texteClair">
+            Toute l'histoire se lit gratuitement, avec la couverture et les {PAGES_APERCU} premières
+            pages illustrées. {deblocable
+              ? `Les ${pagesVerrouillees} autres pages sont incluses : on les dessine maintenant, avec le même héros.`
+              : `Les ${pagesVerrouillees} autres pages sont dessinées dès que vous gardez le livre (PDF, livre relié) ou avec le Club.`}
+          </p>
+          {deblocable ? (
+            <CompleteIllustrationsButton bookId={book.id} />
+          ) : (
+            <div className="flex flex-wrap gap-3">
+              <Link href={`/bibliotheque/${book.id}/boutique`} className="btn-primaire">
+                Garder le livre illustré
+              </Link>
+              <Link href="/club" className="btn-secondaire">
+                Découvrir le Club
+              </Link>
+            </div>
+          )}
+        </div>
       )}
       {story && imagesManquantes > 0 && !completionEnCours && (
         <div className="carte space-y-3">
