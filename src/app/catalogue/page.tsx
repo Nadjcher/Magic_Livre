@@ -4,6 +4,7 @@
  */
 
 import { couvertureTheme } from "@/lib/couverturesThemes";
+import { titreCouvertureTheme } from "@/lib/titrePrenom";
 import CouvertureLivre, { prenomExemple } from "@/components/CouvertureLivre";
 import Picto from "@/components/Picto";
 import Link from "next/link";
@@ -80,7 +81,7 @@ export default function CataloguePage() {
             <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
               {themes.map((t) => (
                 <article key={t.id} className="group relative flex flex-col">
-                  <CouvertureLivre src={couvertureTheme(t.id)} prenom={prenomExemple(t.id)} className="transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-translate-y-1.5" />
+                  <CouvertureLivre src={couvertureTheme(t.id)} prenom={prenomExemple(t.id)} titre={titreCouvertureTheme(t.id, t.titre)} className="transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-translate-y-1.5" />
                   <h3 className="mt-3 text-[15px] font-semibold leading-snug sm:text-base">
                     <Link href={`/catalogue/${t.id}`} className="after:absolute after:inset-0 hover:underline">{t.titre}</Link>
                   </h3>

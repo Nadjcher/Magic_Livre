@@ -162,8 +162,6 @@ export function buildStoryDocument(story: Story, childName?: string): JSX.Elemen
       <Page size="A4" orientation="landscape" style={{ backgroundColor: NUIT }}>
         {story.couvertureUrl ? <Image src={story.couvertureUrl} style={plein} /> : null}
         <Voile hauteur={300} />
-        {prenom ? <Voile hauteur={200} enHaut /> : null}
-        <PrenomCouverture prenom={prenom} police={f.titre} largeur={842} />
         <View style={{ position: "absolute", left: 60, right: 60, bottom: 46, alignItems: "center" }}>
           <Text style={{ fontFamily: f.titre, fontSize: story.titre.length > 45 ? 32 : 40, color: "#FFFFFF", textAlign: "center", lineHeight: 1.15 }}>
             {story.titre}

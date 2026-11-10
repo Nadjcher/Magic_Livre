@@ -5,6 +5,7 @@
  */
 
 import { couvertureTheme } from "@/lib/couverturesThemes";
+import { titreCouvertureTheme } from "@/lib/titrePrenom";
 import Picto from "@/components/Picto";
 import ApercuCouverture from "@/components/ApercuCouverture";
 import CouvertureLivre, { prenomExemple } from "@/components/CouvertureLivre";
@@ -85,6 +86,7 @@ export default async function ThemePage(props: { params: Promise<{ theme: string
         themeId={t.id}
         couverture={couvertureTheme(t.id)}
         titre={t.titre}
+        titreCouverture={titreCouvertureTheme(t.id, t.titre)}
         prenomParDefaut={prenomExemple(t.id)}
         reserveClub={estClassique(t)}
       >
@@ -171,7 +173,7 @@ export default async function ThemePage(props: { params: Promise<{ theme: string
             {voisins.map((v) => (
               <Link key={v.id} href={`/catalogue/${v.id}`} className="flex items-center gap-3 rounded-2xl bg-white/[0.05] p-3 transition hover:bg-white/[0.09]">
                 {couvertureTheme(v.id) ? (
-                  <CouvertureLivre src={couvertureTheme(v.id)} prenom={prenomExemple(v.id)} className="w-16 flex-none" />
+                  <CouvertureLivre src={couvertureTheme(v.id)} prenom={prenomExemple(v.id)} compact className="w-16 flex-none" />
                 ) : (
                   <Picto cle={`themes/${v.id}`} secours={v.emoji} taille={48} />
                 )}

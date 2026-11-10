@@ -5,6 +5,7 @@
  */
 
 import Link from "next/link";
+import { separerTitre } from "@/lib/titrePrenom";
 import CouvertureLivre from "./CouvertureLivre";
 
 const STATUT: Record<string, { label: string; classe: string }> = {
@@ -34,7 +35,7 @@ export default function LivreCouverture({
   return (
     <Link href={href} className="group block [perspective:1200px]" aria-label={`${titre}${enfant ? `, pour ${enfant}` : ""}`}>
       <div className="transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-translate-y-1.5 group-hover:[transform:rotateY(-8deg)] group-focus-visible:-translate-y-1.5">
-        <CouvertureLivre src={couverture} prenom={enfant} titre={titreAffiche} priorite={priorite}>
+        <CouvertureLivre src={couverture} prenom={enfant} titre={titreAffiche} pourPrenom={!separerTitre(titre, enfant)} priorite={priorite}>
           {badge && (
             <span className={`absolute right-3 top-[22%] rounded-full px-2.5 py-0.5 text-xs font-bold ${badge.classe}`}>{badge.label}</span>
           )}

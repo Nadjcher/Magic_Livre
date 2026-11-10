@@ -7,6 +7,7 @@
  */
 
 import { couvertureTheme } from "@/lib/couverturesThemes";
+import { titreCouvertureTheme } from "@/lib/titrePrenom";
 import CouvertureLivre, { prenomExemple } from "@/components/CouvertureLivre";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -385,7 +386,7 @@ export default async function AccueilPage() {
                 className="group flex flex-col gap-2 text-[15px] font-semibold text-magique-texte"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <CouvertureLivre src={couvertureTheme(t.id)} prenom={prenomExemple(t.id)} className="transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-translate-y-1.5" />
+                <CouvertureLivre src={couvertureTheme(t.id)} prenom={prenomExemple(t.id)} titre={titreCouvertureTheme(t.id, t.titre)} className="transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-translate-y-1.5" />
                 <span className="leading-snug">{t.titre}</span>
                 {t.saison && (
                   <span className="w-fit rounded-full bg-magique-rose/15 px-2 py-0.5 text-xs text-or-clair">De saison</span>

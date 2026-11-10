@@ -30,7 +30,6 @@ import {
   polices,
   tailleTexte,
   texteLivre,
-  PrenomCouverture,
 } from "./pdf";
 
 const MM = 72 / 25.4;
@@ -226,11 +225,6 @@ export function buildPrintDocument(story: Story, prenom: string, images: ImagesI
         src={path.join(DOSSIER_POLICES, "voile.png")}
         style={{ position: "absolute", left: face.x, bottom: 0, width: face.l, height: COUV_H * 0.48 }}
       />
-      <Image
-        src={path.join(DOSSIER_POLICES, "voile.png")}
-        style={{ position: "absolute", left: face.x, top: 0, width: face.l, height: COUV_H * 0.32, transform: "rotate(180deg)" }}
-      />
-      <PrenomCouverture prenom={nom} police={f.titre} largeur={face.l - 44 * MM} gauche={face.x + 22 * MM} haut={RABAT + 14 * MM} />
       <View style={{ position: "absolute", left: face.x + 22 * MM, width: 250 * MM, bottom: RABAT + 16 * MM, alignItems: "center" }}>
         <Text style={{ fontFamily: f.titre, fontSize: titre.length > 45 ? 30 : 38, color: "#FFFFFF", textAlign: "center", lineHeight: 1.15 }}>
           {titre}

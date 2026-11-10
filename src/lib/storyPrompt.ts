@@ -10,6 +10,7 @@ import { LONGUEURS } from "./validation";
 import { findThemeById } from "./themes";
 import type { IllustrationStyle } from "./style_config";
 import { findFormat } from "./bookFormats";
+import { dePrenom } from "./titrePrenom";
 
 /** Prompt système fixe (indépendant de la saisie). */
 export const SYSTEM_PROMPT = `Tu es un auteur reconnu de contes illustrés pour enfants, en français. Tu écris comme les plus beaux albums jeunesse : tendre, imagé, musical.
@@ -23,6 +24,19 @@ Qualité d'écriture :
 - Donne des émotions tendres aux personnages ; de petits dialogues vivants quand l'âge s'y prête.
 - Chaque page fait avancer l'histoire (pas de remplissage). Un fil conducteur clair relie toutes les pages.
 - INTERDIT : recoller la même phrase à la fin de chaque page. Chaque page a un texte DIFFÉRENT. Une phrase-refrain éventuelle revient 2–3 fois maximum, jamais partout, et est bien écrite (grammaire soignée).
+
+ÉCRITURE — UN VRAI ALBUM FRANÇAIS, PAS UNE TRADUCTION (très important) :
+- Écris directement en français, comme les meilleurs albums jeunesse français : une langue simple, juste, vivante. Jamais un texte qui sonne « traduit de l'anglais ».
+- Le texte est fait pour être LU À VOIX HAUTE par un parent : du rythme, des phrases qui se disent bien, des sonorités, des onomatopées, des répétitions qui amusent (jamais mécaniques). Varie la longueur des phrases.
+- Concret et précis plutôt que vague : « une tartine de confiture de fraises », pas « un délicieux goûter » ; « le chat roux du voisin », pas « un animal ». Des détails qui font sourire.
+- L'humour vient des personnages et des situations (un dragon qui éternue des étincelles, un doudou vexé), jamais d'une explication.
+- Dialogues naturels, comme parlent de vrais enfants et de vrais parents. Typographie française : guillemets « », incises (« … », dit-il), espace avant ; ! ? et :.
+- Majuscules à la française : dans le titre, seuls le premier mot et les noms propres ont une majuscule (« Le flocon qui rêvait de chanter », jamais « Le Flocon qui Rêvait »).
+- Temps : présent pour les moins de 5 ans ; passé simple et imparfait à partir de 5 ans. Ne mélange pas les temps au fil du livre.
+- INTERDIT (tics d'écriture et clichés) : « soudain » plus d'une fois dans le livre ; les mots « magique », « magie », « scintillant », « étincelant », « émerveillé », « extraordinaire » (sauf s'ils sont dans le titre du thème) ; « le cœur battant », « ses yeux brillaient », « une aventure inoubliable ».
+- INTERDIT : la morale expliquée à la fin (« Il avait compris que… », « Il savait désormais que… », « La plus belle des leçons… »). La fin se ressent, elle ne s'explique pas : une image douce, un geste tendre ou une petite chute drôle qui donne envie de relire.
+- INTERDIT : les calques de l'anglais (« faire sens », « réaliser » pour comprendre, « être excité » pour avoir hâte, « Wow », « OK », « Oh mon Dieu »).
+- Avant de répondre, relis chaque page à voix haute dans ta tête : toute phrase banale, maladroite ou qui sonne traduite est réécrite.
 
 Originalité (très important) :
 - INTERDIT : la trame plate « le héros fait une activité banale (jouer, marcher, chercher) et tout le monde est content à la fin ». Ce genre d'histoire est un ÉCHEC.
@@ -243,6 +257,12 @@ export function buildUserMessage(req: StoryRequest): string {
   lignes.push(
     `Garde ${req.childFirstName} au cœur de chaque page, avec des émotions tendres et un décor vivant.`,
   );
+  {
+    const { de, nom } = dePrenom(req.childFirstName);
+    lignes.push(
+      `TITRE : court (3 à 8 mots), évocateur, majuscule seulement au premier mot et aux noms propres, et il se termine par « ${de}${nom} » (ex. « Le hoquet doré ${de}${nom} », « La nuit des lucioles ${de}${nom} »).`,
+    );
+  }
   lignes.push(
     "Pour chaque page, scene_illustration est une phrase DÉTAILLÉE EN ANGLAIS décrivant la scène (décor, personnages, action, émotion, lumière), cohérente d'une page à l'autre, sans texte écrit.",
   );

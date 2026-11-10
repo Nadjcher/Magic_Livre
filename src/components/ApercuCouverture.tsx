@@ -8,11 +8,13 @@
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import CouvertureLivre from "./CouvertureLivre";
+import { dePrenom } from "@/lib/titrePrenom";
 
 export default function ApercuCouverture({
   themeId,
   couverture,
   titre,
+  titreCouverture,
   prenomParDefaut,
   reserveClub,
   children,
@@ -20,6 +22,8 @@ export default function ApercuCouverture({
   themeId: string;
   couverture: string | null;
   titre: string;
+  /** Titre tourné pour accueillir « de Prénom ». */
+  titreCouverture: string;
   prenomParDefaut: string;
   reserveClub: boolean;
   /** Colonne de droite (titre, bénéfices, prix), placée entre l'aperçu et le bouton. */
@@ -36,13 +40,14 @@ export default function ApercuCouverture({
           <CouvertureLivre
             src={couverture}
             prenom={nom.trim() || prenomParDefaut}
+            titre={titreCouverture}
             alt={`Couverture du livre « ${titre} » avec le prénom de l'enfant`}
             priorite
             className="[transform:rotateY(-6deg)] shadow-[0_30px_60px_-20px_rgba(0,0,0,.6)]"
           />
         </div>
         <p className="mt-3 text-center text-sm text-magique-texteClair" aria-live="polite">
-          {nom.trim() ? `Le livre de ${nom.trim()}` : "Tapez le prénom de votre enfant : il apparaît sur la couverture."}
+          {nom.trim() ? `Le livre ${dePrenom(nom).de}${nom.trim()}` : "Tapez le prénom de votre enfant : il apparaît sur la couverture."}
         </p>
       </div>
 
@@ -62,7 +67,7 @@ export default function ApercuCouverture({
             className="champ"
           />
           <Link href={lien} rel="nofollow" className="btn-primaire w-full text-lg">
-            {reserveClub ? "Le lire avec le Club" : nom.trim() ? `Créer le livre de ${nom.trim()}` : "Créer son livre gratuitement"}
+            {reserveClub ? "Le lire avec le Club" : nom.trim() ? `Créer le livre ${dePrenom(nom).de}${nom.trim()}` : "Créer son livre gratuitement"}
           </Link>
           <p className="text-center text-sm text-magique-texteClair">
             Toute l'histoire à lire gratuitement · prête en 3 minutes · sans carte bancaire

@@ -5,6 +5,7 @@
  */
 
 import Link from "next/link";
+import { titreCouvertureTheme } from "@/lib/titrePrenom";
 import CouvertureLivre from "./CouvertureLivre";
 import { prisma } from "@/lib/prisma";
 import type { Abonnement } from "@/lib/subscription";
@@ -35,7 +36,7 @@ export function Jaquette({ theme, prenom }: { theme: Theme; prenom: string }) {
   const couv = couvertureTheme(theme.id);
   if (couv) {
     return (
-      <CouvertureLivre src={couv} prenom={prenom} titre={theme.titre} />
+      <CouvertureLivre src={couv} prenom={prenom} titre={titreCouvertureTheme(theme.id, theme.titre)} />
     );
   }
   return (

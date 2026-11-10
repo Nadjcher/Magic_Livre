@@ -344,7 +344,7 @@ export default function CreateBookForm({
                   return (
                     <button key={t.id} type="button" role="radio" aria-checked={actif} onClick={() => choisirTheme(t.id)} className={`${tuile(actif)} flex items-start gap-3 p-3 ${verrou ? "opacity-70" : ""}`}>
                       {couvertureTheme(t.id) ? (
-                        <CouvertureLivre src={couvertureTheme(t.id)} prenom={prenom} className="w-16 shrink-0" />
+                        <CouvertureLivre src={couvertureTheme(t.id)} prenom={prenom} compact className="w-16 shrink-0" />
                       ) : (
                         <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={48} />
                       )}

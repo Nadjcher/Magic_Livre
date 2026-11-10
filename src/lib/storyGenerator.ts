@@ -98,38 +98,48 @@ async function callModel(
   info?: { viaFal?: boolean },
 ): Promise<string> {
   // Écriture par un grand modèle (Claude via fal) : bien meilleur en français
-  // et en cohérence. Repli automatique sur Groq en cas d'échec.
+  // et en cohérence. PAS de repli sur un modèle plus faible : mieux vaut
+  // « réessayez dans quelques minutes » qu'une histoire mal écrite.
+  // (Groq seulement si STORY_LLM=groq est choisi explicitement.)
   if (env.falApiKey() && process.env.STORY_LLM !== "groq") {
     const modele = premium
       ? process.env.STORY_MODEL_PREMIUM || "anthropic/claude-opus-5.5"
       : process.env.STORY_MODEL || "anthropic/claude-opus-5.5";
-    try {
-      const r = await fetch("https://fal.run/openrouter/router", {
-        method: "POST",
-        headers: { Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: modele,
-          system_prompt: system,
-          prompt: `${userMessage}\n\nRéponds UNIQUEMENT avec l'objet JSON demandé, sans texte autour.`,
-          // (pas de « temperature » : imposée par le mode réflexion)
-          // Les modèles Claude récents réfléchissent avant d'écrire (obligatoire
-          // sur ce point d'accès) : marge de jetons pour la réflexion + le JSON.
-          reasoning: true,
-          max_tokens: 16000,
-        }),
-        // Écriture ≤ 100 s, relecture ≤ 70 s : le tout reste sous la limite de 5 min.
-        signal: AbortSignal.timeout(temperature < 0.6 ? 70_000 : 150_000),
-      });
-      const j = (await r.json()) as { output?: string; error?: unknown };
-      if (r.ok && j.output && j.output.includes("{")) {
-        if (info) info.viaFal = true;
-        console.log("[texte] écrit par", modele);
-        return j.output.trim();
+    let derniere = "";
+    for (let essai = 0; essai < 2; essai++) {
+      if (essai > 0) await new Promise((r) => setTimeout(r, 3000));
+      try {
+        const r = await fetch("https://fal.run/openrouter/router", {
+          method: "POST",
+          headers: { Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: modele,
+            system_prompt: system,
+            prompt: `${userMessage}\n\nRéponds UNIQUEMENT avec l'objet JSON demandé, sans texte autour.`,
+            // (pas de « temperature » : imposée par le mode réflexion)
+            reasoning: true,
+            max_tokens: 16000,
+          }),
+          signal: AbortSignal.timeout(temperature < 0.6 ? 70_000 : 140_000),
+        });
+        const j = (await r.json().catch(() => ({}))) as { output?: string; error?: unknown; detail?: unknown };
+        if (r.ok && j.output && j.output.includes("{")) {
+          if (info) info.viaFal = true;
+          console.log("[texte] écrit par", modele);
+          return j.output.trim();
+        }
+        derniere = `${r.status} ${JSON.stringify(j.error ?? j.detail ?? j).slice(0, 200)}`;
+        if (/TOP_UP|locked|balance/i.test(derniere)) break; // inutile de réessayer
+      } catch (e) {
+        derniere = String(e).slice(0, 200);
       }
-      console.error("[texte] fal/openrouter :", r.status, JSON.stringify(j.error ?? j).slice(0, 200));
-    } catch (e) {
-      console.error("[texte] fal/openrouter :", String(e).slice(0, 200));
     }
+    console.error("[texte] écriture impossible :", derniere);
+    if (/TOP_UP|locked|balance/i.test(derniere)) {
+      const { alerterAdmin } = await import("./notifications");
+      await alerterAdmin("crédit fal épuisé — plus aucune histoire ne peut être écrite", `Rechargez le compte sur fal.ai (Billing). ${derniere}`);
+    }
+    throw new Error(`écriture indisponible : ${derniere}`);
   }
 
   const response = await client.chat.completions.create(
