@@ -306,7 +306,16 @@ async function falImage(
   const key = env.falApiKey();
   if (!key) return { error: "FAL_API_KEY absente", retry: false };
 
-  const refs: Ref[] = [reference, anchor, ...cast].filter((r): r is Ref => Boolean(r));
+  // Références réduites à ~0,4 Mpx : fal facture aussi les mégapixels des
+  // images d'entrée ; l'identité des personnages reste parfaitement lisible.
+  const refs: Ref[] = await Promise.all(
+    [reference, anchor, ...cast]
+      .filter((r): r is Ref => Boolean(r))
+      .map(async (r) => {
+        const c = await compressImage(Buffer.from(r.base64, "base64"), r.mime, { maxPx: 704, quality: 85 });
+        return { base64: c.bytes.toString("base64"), mime: c.mime };
+      }),
+  );
   const consignes: string[] = [];
   if (reference) {
     consignes.push(

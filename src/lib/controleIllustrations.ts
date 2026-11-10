@@ -26,7 +26,9 @@ const SYSTEME =
   "character reference sheets and report only clear, visible errors. Answer ONLY with JSON.";
 
 function modele(): string {
-  return process.env.QA_VISION_MODEL || "anthropic/claude-sonnet-4.5";
+  // Gemini Flash : ~0,05 centime par contrôle (15× moins cher que Sonnet) ;
+  // il a repéré les mêmes erreurs sur notre jeu de test.
+  return process.env.QA_VISION_MODEL || "google/gemini-2.5-flash";
 }
 
 export function controleActif(): boolean {

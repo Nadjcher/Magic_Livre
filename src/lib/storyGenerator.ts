@@ -368,7 +368,7 @@ async function addIllustrations(
   };
 
   // 1. Fiches de référence (en parallèle, non stockées).
-  const cast = (story.cast ?? []).filter((c) => c.nom.toLowerCase() !== heroName.toLowerCase()).slice(0, 4);
+  const cast = (story.cast ?? []).filter((c) => c.nom.toLowerCase() !== heroName.toLowerCase()).slice(0, 3);
   const [ficheHeros, ...fichesCast] = await Promise.all([
     generateIllustration({
       ...commun,
