@@ -6,6 +6,10 @@
 
 import { couvertureTheme } from "@/lib/couverturesThemes";
 import Picto from "@/components/Picto";
+import ApercuCouverture from "@/components/ApercuCouverture";
+import CouvertureLivre, { prenomExemple } from "@/components/CouvertureLivre";
+import { LIVRE_IMPRIME, formatEuros } from "@/lib/products";
+import { env } from "@/lib/env";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -71,31 +75,57 @@ export default async function ThemePage(props: { params: Promise<{ theme: string
   ];
 
   return (
-    <article className="mx-auto max-w-3xl space-y-10">
+    <article className="mx-auto max-w-5xl space-y-12">
       <nav className="text-sm text-magique-texteClair" aria-label="Fil d'Ariane">
         <Link href="/catalogue" className="hover:underline">Catalogue</Link>
         {categorie && <span> › {categorie.label}</span>}
       </nav>
 
-      <header className="space-y-4 text-center">
-        {couvertureTheme(t.id) ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={couvertureTheme(t.id)!} alt={`Couverture illustrée : ${t.titre}`} width={720} height={960} className="mx-auto aspect-[3/4] w-56 rounded-l-[4px] rounded-r-xl object-cover shadow-conte sm:w-64" />
-        ) : (
-          <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={128} className="mx-auto" />
-        )}
-        <h1 className="text-3xl sm:text-5xl">{t.titre}</h1>
-        <p className="mx-auto max-w-[48ch] text-lg text-magique-texteClair">{t.accroche}</p>
-        <Link href={`/creer?theme=${t.id}`} rel="nofollow" className="btn-primaire text-lg">
-          Créer ce livre pour mon enfant
-        </Link>
-        {estClassique(t) && (
-          <p className="text-sm text-or">
-            👑 Grand classique revisité, réservé aux membres du <Link href="/club" className="underline">Club</Link>.
-          </p>
-        )}
-        <p className="text-sm text-magique-texteClair">Lecture gratuite, prêt en quelques minutes, sans abonnement</p>
-      </header>
+      <ApercuCouverture
+        themeId={t.id}
+        couverture={couvertureTheme(t.id)}
+        titre={t.titre}
+        prenomParDefaut={prenomExemple(t.id)}
+        reserveClub={estClassique(t)}
+      >
+        <header className="space-y-3">
+          <div className="flex flex-wrap gap-2 text-xs font-bold">
+            {categorie && <span className="rounded-full bg-white/[0.08] px-3 py-1">{categorie.label}</span>}
+            <span className="rounded-full bg-white/[0.08] px-3 py-1">De 1 à 12 ans</span>
+            {t.saison && <span className="rounded-full bg-magique-rose/15 px-3 py-1 text-or-clair">De saison</span>}
+            {estClassique(t) && <span className="rounded-full bg-or/15 px-3 py-1 text-or">Réservé au Club</span>}
+          </div>
+          <h1 className="text-4xl sm:text-5xl">{t.titre}</h1>
+          <p className="text-lg text-magique-texteClair">{t.accroche}</p>
+        </header>
+        <ul className="space-y-2.5">
+          {[
+            "Votre enfant est le héros : son prénom, son visage, ceux qu'il aime",
+            "Une histoire écrite pour son âge, jamais deux fois la même",
+            "Lu en entier gratuitement, avant de décider de le garder",
+            "Prêt en 3 minutes environ, à lire à l'écran ou à voix haute",
+          ].map((x) => (
+            <li key={x} className="flex gap-3">
+              <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-magique-primaire/20 text-xs text-magique-primaire" aria-hidden="true">✓</span>
+              <span>{x}</span>
+            </li>
+          ))}
+        </ul>
+        <dl className="grid grid-cols-3 overflow-hidden rounded-2xl border border-magique-trait text-center text-sm">
+          <div className="p-3">
+            <dt className="text-magique-texteClair">À l'écran</dt>
+            <dd className="mt-1 font-serif text-lg font-semibold">Gratuit</dd>
+          </div>
+          <div className="border-x border-magique-trait p-3">
+            <dt className="text-magique-texteClair">PDF à imprimer</dt>
+            <dd className="mt-1 font-serif text-lg font-semibold">{formatEuros(env.bookPriceCents())}</dd>
+          </div>
+          <div className="p-3">
+            <dt className="text-magique-texteClair">Livre relié</dt>
+            <dd className="mt-1 font-serif text-lg font-semibold">{formatEuros(LIVRE_IMPRIME.priceCents)}</dd>
+          </div>
+        </dl>
+      </ApercuCouverture>
 
       <section className="carte space-y-3">
         <h2 className="text-2xl">L'histoire</h2>
@@ -141,8 +171,7 @@ export default async function ThemePage(props: { params: Promise<{ theme: string
             {voisins.map((v) => (
               <Link key={v.id} href={`/catalogue/${v.id}`} className="flex items-center gap-3 rounded-2xl bg-white/[0.05] p-3 transition hover:bg-white/[0.09]">
                 {couvertureTheme(v.id) ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={couvertureTheme(v.id)!} alt="" loading="lazy" className="aspect-[3/4] w-14 flex-none rounded-md object-cover" />
+                  <CouvertureLivre src={couvertureTheme(v.id)} prenom={prenomExemple(v.id)} className="w-16 flex-none" />
                 ) : (
                   <Picto cle={`themes/${v.id}`} secours={v.emoji} taille={48} />
                 )}

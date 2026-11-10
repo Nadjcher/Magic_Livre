@@ -38,8 +38,11 @@ function IStop() {
 export default function BookReader({
   story,
   retouche,
+  prenom,
 }: {
   story: Story;
+  /** Prénom du héros, imprimé en grand sur la couverture. */
+  prenom?: string;
   /** Livre du parent : permet de redessiner une illustration ratée. */
   retouche?: { bookId: string; restantes: number };
 }) {
@@ -163,12 +166,21 @@ export default function BookReader({
           ) : index === 0 ? (
             <>
               {story.couvertureUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={story.couvertureUrl}
-                  alt={`Couverture : ${story.titre}`}
-                  className="mb-6 max-h-80 w-full max-w-xl rounded-2xl object-cover shadow-conte"
-                />
+                <div className="relative mb-6 w-full max-w-xl overflow-hidden rounded-2xl shadow-conte [container-type:inline-size]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={story.couvertureUrl} alt={`Couverture : ${story.titre}`} className="max-h-80 w-full object-cover" />
+                  {prenom && (
+                    <>
+                      <div className="absolute inset-x-0 top-0 h-2/5 bg-gradient-to-b from-[#0b1236]/70 to-transparent" aria-hidden="true" />
+                      <p
+                        className="absolute inset-x-4 top-[7%] text-center font-serif font-bold uppercase leading-none tracking-[0.06em] text-white [text-shadow:0_2px_10px_rgba(8,14,48,.75)]"
+                        style={{ fontSize: `${Math.min(10, 80 / Math.max(prenom.length, 5))}cqw` }}
+                      >
+                        {prenom}
+                      </p>
+                    </>
+                  )}
+                </div>
               )}
               <p className="font-serif text-lg italic text-or-fonce">Il était une fois…</p>
               <h2 className="mt-1 text-gradient text-3xl sm:text-4xl">{story.titre}</h2>

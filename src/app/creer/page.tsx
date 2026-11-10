@@ -31,15 +31,18 @@ export const maxDuration = 300;
 
 export default async function CreerPage(
   props: {
-    searchParams: Promise<{ theme?: string }>;
+    searchParams: Promise<{ theme?: string; prenom?: string }>;
   }
 ) {
   const searchParams = await props.searchParams;
+  // Prénom tapé sur la page produit : lettres, espaces, tirets, apostrophes.
+  const prenom = (searchParams.prenom ?? "").replace(/[^\p{L}\s'’-]/gu, "").trim().slice(0, 30) || undefined;
   const user = await getCurrentUser();
   if (!user) {
-    const suite = searchParams.theme
-      ? `/creer?theme=${encodeURIComponent(searchParams.theme)}`
-      : "/creer";
+    const q = new URLSearchParams();
+    if (searchParams.theme) q.set("theme", searchParams.theme);
+    if (prenom) q.set("prenom", prenom);
+    const suite = q.size ? `/creer?${q}` : "/creer";
     redirect(`/connexion?suite=${encodeURIComponent(suite)}`);
   }
 
@@ -66,6 +69,7 @@ export default async function CreerPage(
       <CreateBookForm
         enfants={children}
         initialThemeId={searchParams.theme}
+        initialPrenom={prenom}
         prixStandard={euros(env.bookPriceCents())}
         prixPremium={euros(env.bookPricePremiumCents())}
         abonnement={{ actif: ab.actif, label: ab.label, restants: ab.restants, quota: ab.quota, premium: ab.premium }}

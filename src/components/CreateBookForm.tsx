@@ -12,6 +12,7 @@
 
 import Picto from "@/components/Picto";
 import { couvertureTheme } from "@/lib/couverturesThemes";
+import CouvertureLivre from "@/components/CouvertureLivre";
 import { useState, useTransition } from "react";
 import { findFormat, formatParDefaut, formatsPourAge } from "@/lib/bookFormats";
 import { ROLES_EXTRAS } from "@/lib/validation";
@@ -70,6 +71,7 @@ function tuile(actif: boolean): string {
 export default function CreateBookForm({
   enfants,
   initialThemeId,
+  initialPrenom,
   prixStandard,
   prixPremium,
   abonnement,
@@ -79,6 +81,8 @@ export default function CreateBookForm({
   enfants: ChildView[];
   /** Thème présélectionné (lien « Créer ce livre » du catalogue). */
   initialThemeId?: string;
+  /** Prénom tapé sur la page produit (aperçu de la couverture). */
+  initialPrenom?: string;
   prixStandard: string;
   prixPremium: string;
   /** Abonnement Club (livres inclus restants, accès aux classiques). */
@@ -91,8 +95,9 @@ export default function CreateBookForm({
   const [etape, setEtape] = useState(0);
 
   // ─── Étape 1 : le héros ───
-  const [childId, setChildId] = useState(enfants[0]?.id ?? "nouveau");
-  const [nouveauPrenom, setNouveauPrenom] = useState("");
+  const dejaConnu = initialPrenom ? enfants.find((c) => c.firstName.toLowerCase() === initialPrenom.toLowerCase()) : undefined;
+  const [childId, setChildId] = useState(initialPrenom ? (dejaConnu?.id ?? "nouveau") : (enfants[0]?.id ?? "nouveau"));
+  const [nouveauPrenom, setNouveauPrenom] = useState(dejaConnu ? "" : (initialPrenom ?? ""));
   const [nouvelAge, setNouvelAge] = useState(5);
   const [photo, setPhoto] = useState<string>("");
   const [appearance, setAppearance] = useState("");
@@ -339,8 +344,7 @@ export default function CreateBookForm({
                   return (
                     <button key={t.id} type="button" role="radio" aria-checked={actif} onClick={() => choisirTheme(t.id)} className={`${tuile(actif)} flex items-start gap-3 p-3 ${verrou ? "opacity-70" : ""}`}>
                       {couvertureTheme(t.id) ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={couvertureTheme(t.id)!} alt="" width={64} height={85} loading="lazy" decoding="async" className="h-[85px] w-16 shrink-0 rounded-md object-cover shadow-md ring-1 ring-black/5" />
+                        <CouvertureLivre src={couvertureTheme(t.id)} prenom={prenom} className="w-16 shrink-0" />
                       ) : (
                         <Picto cle={`themes/${t.id}`} secours={t.emoji} taille={48} />
                       )}

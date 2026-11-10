@@ -139,7 +139,7 @@ export default async function LivrePage(
         (() => {
           return (
             <>
-              <BookReader story={story} retouche={{ bookId: book.id, restantes: Math.max(0, 5 - (story.retouches ?? 0)) }} />
+              <BookReader story={story} prenom={book.child.firstName} retouche={{ bookId: book.id, restantes: Math.max(0, 5 - (story.retouches ?? 0)) }} />
               <div className="carte flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="font-serif text-xl">🎁 La boutique de ce livre</h2>

@@ -93,7 +93,7 @@ export default function DemoPage() {
         <p className="mt-3 text-xs text-magique-texteClair">Exemple réalisé avec un enfant fictif.</p>
       </header>
 
-      <BookReader story={DEMO} />
+      <BookReader story={DEMO} prenom="Léo" />
 
       {/* Appel à l'action : passer à son propre conte */}
       <section

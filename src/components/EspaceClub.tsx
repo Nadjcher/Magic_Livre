@@ -5,6 +5,7 @@
  */
 
 import Link from "next/link";
+import CouvertureLivre from "./CouvertureLivre";
 import { prisma } from "@/lib/prisma";
 import type { Abonnement } from "@/lib/subscription";
 import { THEMES, type Theme } from "@/lib/themes";
@@ -34,16 +35,7 @@ export function Jaquette({ theme, prenom }: { theme: Theme; prenom: string }) {
   const couv = couvertureTheme(theme.id);
   if (couv) {
     return (
-      <div className="relative aspect-[3/4] overflow-hidden rounded-l-[4px] rounded-r-xl shadow-conte">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={couv} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0b1236]/95 via-[#0b1236]/10 to-transparent" aria-hidden="true" />
-        <div className="absolute inset-y-0 left-0 w-3" style={{ background: "linear-gradient(90deg,rgba(0,0,0,.45),rgba(255,255,255,.12) 70%,rgba(0,0,0,.1))" }} aria-hidden="true" />
-        <div className="absolute inset-x-4 bottom-3.5 pl-1">
-          <p className="font-serif text-[15px] leading-snug text-white sm:text-base">{theme.titre}</p>
-          <p className="mt-0.5 text-xs text-[#d4dbff]">avec {prenom} en héros</p>
-        </div>
-      </div>
+      <CouvertureLivre src={couv} prenom={prenom} titre={theme.titre} />
     );
   }
   return (

@@ -121,12 +121,23 @@ export function Ornement({ couleur = ROSE }: { couleur?: string }) {
 }
 
 /** Voile dégradé (bas de l'image) pour rendre le titre lisible : image PNG transparente. */
-function Voile({ hauteur }: { hauteur: number }) {
+function Voile({ hauteur, enHaut = false }: { hauteur: number; enHaut?: boolean }) {
   return (
     <Image
       src={path.join(DOSSIER_POLICES, "voile.png")}
-      style={{ position: "absolute", left: 0, bottom: 0, width: 842, height: hauteur }}
+      style={{ position: "absolute", left: 0, width: 842, height: hauteur, ...(enHaut ? { top: 0, transform: "rotate(180deg)" } : { bottom: 0 }) }}
     />
+  );
+}
+
+/** Prénom du héros imprimé en grand en haut de la couverture. */
+export function PrenomCouverture({ prenom, police, largeur, gauche = 0, haut = 34 }: { prenom: string; police: string; largeur: number; gauche?: number; haut?: number }) {
+  if (!prenom) return null;
+  const taille = Math.min(64, (largeur * 0.8) / Math.max(prenom.length, 4) / 0.62);
+  return (
+    <Text style={{ position: "absolute", top: haut, left: gauche, width: largeur, textAlign: "center", fontFamily: police, fontSize: taille, letterSpacing: 2, color: "#FFFFFF" }}>
+      {prenom.toUpperCase()}
+    </Text>
   );
 }
 
@@ -151,6 +162,8 @@ export function buildStoryDocument(story: Story, childName?: string): JSX.Elemen
       <Page size="A4" orientation="landscape" style={{ backgroundColor: NUIT }}>
         {story.couvertureUrl ? <Image src={story.couvertureUrl} style={plein} /> : null}
         <Voile hauteur={300} />
+        {prenom ? <Voile hauteur={200} enHaut /> : null}
+        <PrenomCouverture prenom={prenom} police={f.titre} largeur={842} />
         <View style={{ position: "absolute", left: 60, right: 60, bottom: 46, alignItems: "center" }}>
           <Text style={{ fontFamily: f.titre, fontSize: story.titre.length > 45 ? 32 : 40, color: "#FFFFFF", textAlign: "center", lineHeight: 1.15 }}>
             {story.titre}
@@ -161,7 +174,7 @@ export function buildStoryDocument(story: Story, childName?: string): JSX.Elemen
             </Text>
           ) : null}
         </View>
-        <Text style={{ position: "absolute", top: 22, right: 28, fontFamily: f.texte, fontSize: 9, color: "#FFFFFF", opacity: 0.8 }}>
+        <Text style={{ position: "absolute", bottom: 18, right: 28, fontFamily: f.texte, fontSize: 9, color: "#FFFFFF", opacity: 0.8 }}>
           ENCORE UNE HISTOIRE
         </Text>
       </Page>
