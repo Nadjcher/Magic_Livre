@@ -15,7 +15,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { prisma } from "./prisma";
 import { getAppUrl } from "./appUrl";
 import { storySchema } from "./storySchema";
-import { PAGES_APERCU, illustrateStory } from "./storyGenerator";
+import { PAGES_APERCU, illustrateStory, illustrerEpisode } from "./storyGenerator";
 import type { StoryRequest } from "./storyPrompt";
 import { alerterAdmin, notifierLivrePret } from "./notifications";
 
@@ -65,12 +65,16 @@ export async function illustrerLivre({ bookId, req, portrait }: EtapeIllustratio
     const parsed = storySchema.safeParse(book?.pages);
     if (!book || !parsed.success || book.status !== "generating") return;
 
-    const { story, imageReport } = await illustrateStory(parsed.data, req, portrait);
+    const episode = Boolean(parsed.data.serie);
+    const { story, imageReport } = episode
+      ? await illustrerEpisode(parsed.data, req)
+      : await illustrateStory(parsed.data, req, portrait);
     await prisma.book.update({
       where: { id: bookId },
       data: { status: "ready", title: story.titre, pages: story, errorMessage: imageReport ?? null },
     });
 
+    if (episode) return; // un épisode se lit tout de suite dans l'application : pas d'email
     const visibles = story.apercu ? story.pages.slice(0, PAGES_APERCU) : story.pages;
     const total = visibles.length + 1;
     const manquantes = (story.couvertureUrl ? 0 : 1) + visibles.filter((p) => !p.imageUrl).length;

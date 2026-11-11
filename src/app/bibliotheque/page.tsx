@@ -39,6 +39,7 @@ export default async function BibliothequePage(props: { searchParams: Promise<{ 
     select: {
       id: true,
       title: true,
+      theme: true,
       status: true,
       child: { select: { id: true, firstName: true } },
     },
@@ -117,6 +118,7 @@ export default async function BibliothequePage(props: { searchParams: Promise<{ 
                   couverture={avecCouverture.has(book.id) ? bookImageUrl(book.id, "cover", undefined, 480) : null}
                   statut={book.status}
                   priorite={i < 5}
+                  episode={Number(/épisode (\d+)/.exec(book.theme)?.[1]) || undefined}
                 />
                 <div className="absolute right-2 top-2 flex gap-1.5 sm:opacity-0 sm:transition sm:focus-within:opacity-100 sm:group-hover/livre:opacity-100">
                   {admin && <BoutonDemo bookId={book.id} estDemo={false} />}

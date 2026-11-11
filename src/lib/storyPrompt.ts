@@ -69,7 +69,10 @@ Format de sortie OBLIGATOIRE : réponds UNIQUEMENT avec un objet JSON strict, sa
   "cast": [ { "nom": "string", "visuel": "string" } ],
   "pages": [
     { "texte": "string", "scene_illustration": "string", "presents": ["string"] }
-  ]
+  ],
+  "resume": "string",
+  "fils": "string",
+  "suites": ["string", "string", "string"]
 }
 
 Le champ "plan" (écrit EN PREMIER, 5 à 8 lignes) fixe l'histoire AVANT de l'écrire : le désir du héros, le problème, chaque personnage secondaire (qui il est, comment il entre dans l'histoire), les 2–3 étapes, le moment fort, la résolution logique. Ensuite, les pages suivent CE plan, sans ajout gratuit.
@@ -79,8 +82,26 @@ Le champ "personnages" COMMENCE TOUJOURS par la TENUE UNIQUE du héros, choisie 
 Le champ "cast" liste les personnages SECONDAIRES récurrents (2 à 4 maximum, PAS le héros) : "nom" exactement comme dans le texte, "visuel" = description visuelle précise EN ANGLAIS qui COMMENCE PAR L'ESPÈCE EN MAJUSCULES (ex. "CRAB: a small crab with a sky-blue shell, two claws, eye stalks… — not a cat, not a mammal"), puis taille, couleurs, signes distinctifs, accessoires. Précise ce qu'il n'est PAS dès qu'une confusion est possible (un crabe avec des sourcils n'est pas un chat). Évite les accessoires qui brouillent l'espèce. Garde peu de personnages : chaque nouveau personnage doit être utile à l'histoire.
 Le champ "presents" de chaque page liste les noms (tels que dans "cast") des personnages secondaires VISIBLES sur l'illustration de cette page ([] si aucun). Aucun autre personnage ne doit figurer dans la scène.
 
+Les champs "resume", "fils" et "suites" servent à la SUITE de l'histoire (une série) :
+- "resume" : ce qui s'est passé, en 2 ou 3 phrases simples (personnages, lieux, ce qui a changé).
+- "fils" : ce qui reste ouvert ou pourrait revenir (une promesse, un indice, un nouvel ami), en une phrase.
+- "suites" : 3 idées de suite, chacune en une phrase courte qu'on lit à l'enfant pour qu'il choisisse (ex. « Pompon veut retrouver la maison de la lune »), toutes différentes (une drôle, une aventure, une tendre).
+
 Le champ "texte" contient le texte de la page, dont la longueur et la complexité suivent STRICTEMENT les consignes d'âge de la demande (d'une seule phrase très courte pour un tout-petit, jusqu'à plusieurs phrases riches pour un grand).
 Le champ "scene_illustration" décrit précisément la scène à dessiner EN ANGLAIS (décor, personnages, action, émotion, lumière), en une phrase détaillée, sans aucun texte écrit ni personnage protégé.`;
+
+/** Mémoire d'une série, donnée à l'IA pour écrire l'épisode suivant. */
+export interface MemoireSerie {
+  numero: number;
+  /** Fiche visuelle des personnages (anglais) et distribution de la série. */
+  personnages?: string;
+  cast?: { nom: string; visuel: string }[];
+  /** Résumés des épisodes précédents, dans l'ordre. */
+  resumes: string[];
+  fils?: string;
+  /** La suite choisie par l'enfant. */
+  choix: string;
+}
 
 export interface StoryRequest {
   childFirstName: string;
@@ -99,6 +120,8 @@ export interface StoryRequest {
    * Utilisée seulement pendant la génération des images ; jamais stockée.
    */
   photo?: { base64: string; mime: string };
+  /** Épisode d'une série (sinon, livre seul). */
+  serie?: MemoireSerie;
   /** Aperçu gratuit : couverture + premières pages illustrées seulement. */
   apercu?: boolean;
   /** Édition premium : illustrations générées avec le modèle haut de gamme. */
@@ -198,11 +221,20 @@ function pickSpark(): string {
  * Construit le message utilisateur (les consignes variables) à partir de la
  * demande. La saisie libre a déjà été filtrée en amont.
  */
+/** Longueur d'un épisode de série selon l'âge (plus court qu'un livre). */
+export function pagesEpisode(age: number): { minPages: number; maxPages: number } {
+  if (age <= 3) return { minPages: 4, maxPages: 5 };
+  if (age <= 7) return { minPages: 5, maxPages: 6 };
+  return { minPages: 4, maxPages: 5 };
+}
+
 export function buildUserMessage(req: StoryRequest, modeles = ""): string {
   const format = findFormat(req.format);
-  const { minPages, maxPages } = format?.pages
-    ? { minPages: format.pages.min, maxPages: format.pages.max }
-    : LONGUEURS[req.longueur];
+  const { minPages, maxPages } = req.serie
+    ? pagesEpisode(req.childAge)
+    : format?.pages
+      ? { minPages: format.pages.min, maxPages: format.pages.max }
+      : LONGUEURS[req.longueur];
 
   const lignes: string[] = [
     `Prénom de l'enfant (personnage principal) : ${req.childFirstName}`,
@@ -235,8 +267,20 @@ export function buildUserMessage(req: StoryRequest, modeles = ""): string {
     );
   }
 
-  const theme = req.mode === "theme" ? findThemeById(req.themeId) : undefined;
-  if (theme) {
+  const theme = req.mode === "theme" && !req.serie ? findThemeById(req.themeId) : undefined;
+  if (req.serie) {
+    const m = req.serie;
+    lignes.push(
+      `ÉPISODE ${m.numero} D'UNE SÉRIE dont ${req.childFirstName} est le héros. C'est la suite directe des épisodes précédents :`,
+      ...m.resumes.map((r, i) => `- Épisode ${i + 1} : ${r}`),
+      ...(m.fils ? [`Ce qui était resté ouvert : ${m.fils}`] : []),
+      `La suite choisie par l'enfant : « ${m.choix} ».`,
+      "Règles de l'épisode : commence par une phrase qui rappelle doucement l'épisode précédent ; garde EXACTEMENT les mêmes compagnons (mêmes noms, même caractère, même apparence) et les mêmes lieux quand ils reviennent ; fais référence à un souvenir commun ; l'épisode a sa propre petite aventure, résolue à la fin, puis se termine sur une ouverture qui donne envie de lire la suite (sans cliffhanger angoissant).",
+      ...(m.personnages ? [`Fiche des personnages de la série (à reprendre telle quelle dans "personnages") : ${m.personnages}`] : []),
+      ...(m.cast?.length ? [`Distribution de la série (à reprendre dans "cast", avec les mêmes "visuel") : ${JSON.stringify(m.cast)}`] : []),
+      "",
+    );
+  } else if (theme) {
     lignes.push(
       `THÈME CHOISI PAR LE PARENT : « ${theme.titre} ». Intention de l'histoire : ${theme.brief}`,
     );
@@ -254,7 +298,7 @@ export function buildUserMessage(req: StoryRequest, modeles = ""): string {
     );
   }
 
-  if (!theme) lignes.push(
+  if (!theme && !req.serie) lignes.push(
     `Étincelle d'originalité à intégrer avec finesse, AU SERVICE du thème/de l'idée ci-dessus (adapte-la à l'âge, garde une histoire cohérente et rassurante ; ignore-la si elle ne s'accorde pas) : ${pickSpark()}.`,
   );
   lignes.push(

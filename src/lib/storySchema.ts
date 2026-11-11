@@ -58,7 +58,7 @@ export const storySchema = z.object({
   titre: z.string().min(1, "Le titre est vide."),
   pages: z
     .array(storyPageSchema)
-    .min(8, "L'histoire doit contenir au moins 8 pages.")
+    .min(4, "L'histoire doit contenir au moins 4 pages.")
     .max(12, "L'histoire ne doit pas dépasser 12 pages."),
   // Fiche visuelle (en anglais) des personnages secondaires récurrents, reprise
   // à l'identique dans chaque illustration pour qu'ils ne changent pas.
@@ -88,6 +88,15 @@ export const storySchema = z.object({
     .array(z.object({ orderId: z.string(), gelatoId: z.string(), creeLe: z.number() }))
     .optional()
     .catch(undefined),
+  // Mémoire pour la série : résumé de l'épisode, fils laissés ouverts, et
+  // 3 suites possibles proposées à l'enfant (« Et demain ? »).
+  resume: z.preprocess((v) => (typeof v === "string" ? v.slice(0, 600) : undefined), z.string().optional()),
+  fils: z.preprocess((v) => (typeof v === "string" ? v.slice(0, 400) : undefined), z.string().optional()),
+  suites: z
+    .preprocess((v) => (Array.isArray(v) ? v.map(String).map((x) => x.slice(0, 140)).slice(0, 3) : undefined), z.array(z.string()).optional())
+    .catch(undefined),
+  // Épisode d'une série : identifiant de la série (= id du premier livre) et numéro.
+  serie: z.object({ id: z.string(), numero: z.number().int().min(1) }).optional().catch(undefined),
   // Fiche de la demande (pour la bibliothèque d'exemples et les séries).
   meta: z
     .object({ age: z.number(), format: z.string().optional(), themeId: z.string().optional(), mode: z.string().optional() })

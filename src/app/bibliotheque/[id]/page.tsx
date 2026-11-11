@@ -18,6 +18,8 @@ import { THEMES } from "@/lib/themes";
 import CompleteIllustrationsButton from "@/components/CompleteIllustrationsButton";
 import { EN_COURS } from "@/lib/illustrationStatus";
 import { peutDebloquer } from "@/lib/apercu";
+import { serieDe } from "@/lib/serie";
+import EtDemain from "@/components/EtDemain";
 import { PAGES_APERCU } from "@/lib/storyGenerator";
 
 // La complétion des illustrations tourne en arrière-plan depuis cette page.
@@ -58,10 +60,14 @@ export default async function LivrePage(
   // Les pages d'un aperçu gratuit ne comptent pas : elles attendent le déblocage.
   const imagesManquantes = story
     ? (story.couvertureUrl ? 0 : 1) +
-      story.pages.filter((p, i) => !p.imageUrl && !(story.apercu && i >= PAGES_APERCU)).length
+      (story.serie ? 0 : story.pages.filter((p, i) => !p.imageUrl && !(story.apercu && i >= PAGES_APERCU)).length)
     : 0;
   const pagesVerrouillees = story?.apercu ? story.pages.filter((p) => !p.imageUrl).length : 0;
   const deblocable = pagesVerrouillees > 0 && (await peutDebloquer(user.id, book.id));
+  // Série : numéro de cet épisode et épisode suivant déjà écrit, s'il existe.
+  const numero = story?.serie?.numero ?? 1;
+  const serie = story ? await serieDe(user.id, book.id) : null;
+  const suivant = serie?.episodes.find((e) => e.numero === numero + 1);
   const depart = book.errorMessage?.startsWith(EN_COURS)
     ? Number(book.errorMessage.slice(EN_COURS.length))
     : 0;
@@ -77,6 +83,9 @@ export default async function LivrePage(
           <h1 className="mt-1 text-3xl sm:text-4xl">{book.title}</h1>
           <p className="flex flex-wrap items-center gap-2 text-sm text-magique-texteClair">
             Pour {book.child.firstName}
+            {story?.serie && (
+              <span className="rounded-full bg-white/[0.08] px-2.5 py-0.5 text-xs font-semibold">Épisode {story.serie.numero}</span>
+            )}
             {premium && (
               <span className="inline-flex items-center gap-1 rounded-full bg-magique-primaire/10 px-2.5 py-0.5 text-xs font-semibold text-magique-primaire">
                 ✦ Édition premium
@@ -168,7 +177,19 @@ export default async function LivrePage(
         (() => {
           return (
             <>
-              <BookReader story={story} prenom={book.child.firstName} retouche={{ bookId: book.id, restantes: Math.max(0, 5 - (story.retouches ?? 0)) }} />
+              <BookReader
+                story={story}
+                prenom={book.child.firstName}
+                suite={
+                  <EtDemain
+                    bookId={book.id}
+                    prenom={book.child.firstName}
+                    suites={story.suites}
+                    numero={numero}
+                    autreEpisode={suivant ? `/bibliotheque/${suivant.id}` : undefined}
+                  />
+                }
+                retouche={{ bookId: book.id, restantes: Math.max(0, 5 - (story.retouches ?? 0)) }} />
               <div className="carte flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="font-serif text-xl">🎁 La boutique de ce livre</h2>

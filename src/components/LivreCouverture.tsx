@@ -21,6 +21,7 @@ export default function LivreCouverture({
   couverture,
   statut = "ready",
   priorite = false,
+  episode,
 }: {
   href: string;
   titre: string;
@@ -28,6 +29,8 @@ export default function LivreCouverture({
   couverture: string | null;
   statut?: string;
   priorite?: boolean;
+  /** Numéro d'épisode d'une série (2, 3…). */
+  episode?: number;
 }) {
   const badge = STATUT[statut];
   // Typographie française : pas de « ! » ou « ? » seul en début de ligne.
@@ -36,6 +39,9 @@ export default function LivreCouverture({
     <Link href={href} className="group block [perspective:1200px]" aria-label={`${titre}${enfant ? `, pour ${enfant}` : ""}`}>
       <div className="transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-translate-y-1.5 group-hover:[transform:rotateY(-8deg)] group-focus-visible:-translate-y-1.5">
         <CouvertureLivre src={couverture} prenom={enfant} titre={titreAffiche} pourPrenom={!separerTitre(titre, enfant)} priorite={priorite}>
+          {episode && (
+            <span className="absolute bottom-3 left-4 rounded-full bg-white/85 px-2.5 py-0.5 text-xs font-bold text-nuit">Épisode {episode}</span>
+          )}
           {badge && (
             <span className={`absolute right-3 top-[22%] rounded-full px-2.5 py-0.5 text-xs font-bold ${badge.classe}`}>{badge.label}</span>
           )}

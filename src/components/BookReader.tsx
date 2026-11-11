@@ -7,7 +7,7 @@
  * lecture à voix haute (Web Speech API) avec choix de la voix, pause et arrêt.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { separerChapitre } from "@/lib/chapitre";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -39,8 +39,11 @@ export default function BookReader({
   story,
   retouche,
   prenom,
+  suite,
 }: {
   story: Story;
+  /** Écran de fin : « Et demain ? » (le choix de la suite de la série). */
+  suite?: ReactNode;
   /** Prénom du héros, imprimé en grand sur la couverture. */
   prenom?: string;
   /** Livre du parent : permet de redessiner une illustration ratée. */
@@ -154,14 +157,16 @@ export default function BookReader({
               <p className="mt-3 max-w-[40ch] text-lg text-magique-texteClair">
                 Et l'histoire se referme doucement… jusqu'à la prochaine.
               </p>
-              <div className="mt-7 flex flex-wrap justify-center gap-3">
-                <button type="button" onClick={() => setIndex(0)} className="btn-secondaire">
-                  Relire depuis le début
-                </button>
-                <Link href="/creer" className="btn-primaire">
-                  Encore une histoire ?
-                </Link>
-              </div>
+              {suite ?? (
+                <div className="mt-7 flex flex-wrap justify-center gap-3">
+                  <button type="button" onClick={() => setIndex(0)} className="btn-secondaire">
+                    Relire depuis le début
+                  </button>
+                  <Link href="/creer" className="btn-primaire">
+                    Encore une histoire ?
+                  </Link>
+                </div>
+              )}
             </>
           ) : index === 0 ? (
             <>
@@ -201,7 +206,7 @@ export default function BookReader({
                   <p className="mt-6 rounded-full border border-magique-trait bg-white/[0.05] px-4 py-1.5 text-xs text-magique-texteClair">
                     🎨 Cette page sera illustrée avec le livre complet
                   </p>
-                ) : (
+                ) : story.serie ? null : (
                   <p className="mt-6 text-xs italic text-magique-texteClair">
                     ✦ {pageCourante?.scene_illustration}
                   </p>

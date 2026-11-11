@@ -596,6 +596,41 @@ export async function illustrerLivreComplet(story: Story, req: StoryRequest): Pr
   return { story: complet, imageReport: imageReportOf(complet, errors) };
 }
 
+/**
+ * Épisode de série : UNE grande illustration d'ouverture, dessinée avec les
+ * fiches de la série (même héros, mêmes compagnons). Les autres pages restent
+ * en texte ; elles seront illustrées dans le tome imprimé.
+ */
+export async function illustrerEpisode(story: Story, req: StoryRequest): Promise<{ story: Story; imageReport?: string }> {
+  const versRef = async (u: string | null | undefined) => {
+    const d = await fetchAsDataUrl(u, { maxPx: 1024, quality: 86 });
+    const m = d ? /^data:([^;]+);base64,(.+)$/.exec(d) : null;
+    return m ? { mime: m[1] as string, base64: m[2] as string } : undefined;
+  };
+  const ancre = await versRef(story.fiches?.heros);
+  const fiches = new Map<string, { base64: string; mime: string }>();
+  for (const [nom, url] of Object.entries(story.fiches?.cast ?? {})) {
+    const r = await versRef(url);
+    if (r) fiches.set(nom, r);
+  }
+  const page = story.pages[0]!;
+  const errors: string[] = [];
+  const r = await generateIllustration({
+    style: story.style ?? req.style ?? "feerique",
+    scene: `Opening illustration of this episode: ${page.scene_illustration}`,
+    heroName: req.childFirstName,
+    appearance: req.appearance,
+    premium: req.premium,
+    recurringCharacters: story.personnages,
+    anchorImage: ancre,
+    castRefs: fichesPresentes(page, fiches),
+    seed: hashSeed(story.titre + req.childFirstName),
+  });
+  if (r.error) errors.push(r.error);
+  const illustre: Story = { ...story, couvertureUrl: r.imageUrl ?? null };
+  return { story: illustre, imageReport: r.imageUrl ? undefined : `Illustration manquante : 1/1. ${errors[0] ?? ""}`.slice(0, 300) };
+}
+
 /** Redessine les images absentes avec les fiches conservées (héros + personnages). */
 async function reparer(story: Story, req: StoryRequest, errors: string[]): Promise<Story> {
   const versRef = async (u: string | null | undefined) => {

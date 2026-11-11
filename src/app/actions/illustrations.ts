@@ -13,7 +13,7 @@ import { prisma } from "@/lib/prisma";
 import { storySchema, type Story } from "@/lib/storySchema";
 import { generateIllustration } from "@/lib/illustration";
 import { fetchAsDataUrl } from "@/lib/imageFetch";
-import { fichesPresentes, imageReportOf } from "@/lib/storyGenerator";
+import { fichesPresentes, illustrerEpisode, imageReportOf } from "@/lib/storyGenerator";
 import { EN_COURS } from "@/lib/illustrationStatus";
 import { debloquerLivre, peutDebloquer } from "@/lib/apercu";
 
@@ -46,6 +46,21 @@ export async function completeIllustrations(
     waitUntil(debloquerLivre(book.id));
     revalidatePath(`/bibliotheque/${book.id}`);
     return { ok: true, message: "C'est parti ! Toutes les illustrations arrivent dans 1 à 2 minutes." };
+  }
+  // Épisode de série : une seule image (l'ouverture) ; les pages restent en texte.
+  if (parsed.data.serie) {
+    if (parsed.data.couvertureUrl) return { ok: true, message: "L'illustration de l'épisode est là." };
+    await prisma.book.update({ where: { id: book.id }, data: { errorMessage: `${EN_COURS}${Date.now()}` } });
+    const story = parsed.data;
+    waitUntil(
+      illustrerEpisode(story, { childFirstName: book.child.firstName, childAge: 6, mode: "libre", longueur: "courte", premium: book.tier === "premium" })
+        .then(({ story: s2, imageReport }) =>
+          prisma.book.update({ where: { id: book.id }, data: { pages: { ...story, couvertureUrl: s2.couvertureUrl ?? null }, errorMessage: imageReport ?? null } }),
+        )
+        .catch(() => prisma.book.update({ where: { id: book.id }, data: { errorMessage: null } })),
+    );
+    revalidatePath(`/bibliotheque/${book.id}`);
+    return { ok: true, message: "C'est parti ! L'illustration arrive dans une minute." };
   }
   if (manquantes(parsed.data) === 0) return { ok: true, message: "Toutes les illustrations sont là." };
 
