@@ -11,6 +11,8 @@ import OpenAI from "openai";
 import { env } from "./env";
 import {
   SYSTEM_PROMPT,
+  AGE_CONSIGNE_LONGUE,
+  systemPrompt,
   buildUserMessage,
   ageGuidance,
   blocMemoire,
@@ -334,6 +336,7 @@ async function relireEtAmeliorer(
  * exécution : la relectrice reçoit les mêmes extraits que l'autrice.
  */
 export async function relireHistoire(story: Story, req: StoryRequest): Promise<Story> {
+  if (req.childAge >= AGE_CONSIGNE_LONGUE) return story; // relecture suspendue pour les histoires longues
   const client = createClient();
   const model = req.premium ? env.groqModelPremium() : env.groqModel();
   const ids = story.meta?.modeles ?? [];
@@ -416,7 +419,9 @@ export async function generateStory(
 ): Promise<GenerateResult> {
   const debut = Date.now();
   // RAG : extraits modèles (ton) + trame (structure) les plus proches de la demande.
-  const modeles = await exemplesPour({
+  // 7 ans et plus : consigne du 9 novembre, sans modèles du RAG ni relecture (cf. SYSTEM_PROMPT_LONG).
+  const longue = req.childAge >= AGE_CONSIGNE_LONGUE;
+  const modeles = longue ? { extraits: [], trame: null } : await exemplesPour({
     age: req.childAge,
     format: req.format,
     themeId: req.mode === "theme" ? req.themeId : undefined,
@@ -449,7 +454,7 @@ export async function generateStory(
     let raw: string;
     try {
       // Température élevée à l'écriture (créativité).
-      raw = await callModel(client, model, SYSTEM_PROMPT, userMessage, 0.9, req.premium, info);
+      raw = await callModel(client, model, systemPrompt(req.childAge), userMessage, 0.9, req.premium, info);
     } catch {
       lastMessage =
         "Le service de génération est momentanément indisponible. Réessayez dans quelques instants.";
