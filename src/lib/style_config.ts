@@ -41,6 +41,7 @@ export type StyleConfig = typeof STYLE_CONFIG;
  * devant la description de la scène. On garde un seul endroit pour les définir.
  */
 export type IllustrationStyle =
+  | "maison"
   | "feerique"
   | "aventure"
   | "manga"
@@ -70,6 +71,19 @@ export const ILLUSTRATION_STYLES: Record<
     ageMin: number;
   }
 > = {
+  // Le style de la maison (choisi le 11 novembre) : par défaut, et imposé pour
+  // « Les contes de papa et maman ». La bible visuelle le précisera.
+  maison: {
+    label: "L'album d'Encore une histoire",
+    ageMin: 1,
+    description: "Peint, chaud et doux, comme un album classique",
+    prompt:
+      "classic French children's picture book illustration, hand-painted in warm watercolor and gouache, " +
+      "soft painterly textures with visible paper grain and gentle brush strokes, NO ink outlines, NO flat cartoon shading, " +
+      "warm palette of moss green, warm brown, deep night blue and golden light, a single clear light source per image, " +
+      "soft glowing light on faces, cosy and tender atmosphere, rich detailed natural settings, " +
+      "characters with natural proportions and natural-sized expressive eyes, never 3D, never anime",
+  },
   feerique: {
     label: "Féerique",
     ageMin: 1,
