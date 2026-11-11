@@ -26,6 +26,7 @@ import { findFormat } from "./bookFormats";
 import { fetchAsDataUrl } from "./imageFetch";
 import { controleActif, controlerIllustrations } from "./controleIllustrations";
 import { blocModeles, exemplesPour } from "./bibliotheque";
+import { PRIX_ESTIMES, noterDepense } from "./budget";
 import { BIBLE, GRILLE, SEUIL_ACCEPTATION, reglesAge } from "./bible";
 
 export type GenerateResult =
@@ -128,7 +129,8 @@ async function callModel(
           }),
           signal: AbortSignal.timeout(opts.delaiMs ?? (temperature < 0.6 ? 70_000 : 140_000)),
         });
-        const j = (await r.json().catch(() => ({}))) as { output?: string; error?: unknown; detail?: unknown };
+        const j = (await r.json().catch(() => ({}))) as { output?: string; error?: unknown; detail?: unknown; usage?: { cost?: number } };
+        if (r.ok) await noterDepense(j.usage?.cost ?? (opts.modele ? PRIX_ESTIMES.relecture : PRIX_ESTIMES.texte));
         if (r.ok && j.output && j.output.includes("{")) {
           if (info) info.viaFal = true;
           console.log("[texte] écrit par", modele);
@@ -187,8 +189,9 @@ const REECRITURE_SYSTEM = `Tu es auteur jeunesse pour Encore une histoire. Ton �
 
 ${BIBLE}
 
-Corrige l'histoire selon les corrections reçues, en NE MODIFIANT QUE LES PAGES CITÉES (et le titre seulement si une correction le demande). Garde le même héros, la même intrigue, les mêmes personnages, le même nombre de pages, la même ritournelle mot pour mot. Garde "scene_illustration" en anglais (corrige-la seulement si elle contredit le nouveau texte), "cast" et "presents" identiques.
-Réponds UNIQUEMENT avec le JSON complet, même structure que celui reçu.`;
+Corrige l'histoire selon les corrections reçues, en NE MODIFIANT QUE LES PAGES CITÉES (et le titre seulement si une correction le demande). Garde le même héros, la même intrigue, les mêmes personnages, la même ritournelle mot pour mot.
+Réponds UNIQUEMENT avec ce JSON, qui ne contient QUE les pages réécrites :
+{"titre": "seulement si tu le changes, sinon omets ce champ", "pages": [{"page": 3, "texte": "nouveau texte de la page 3", "scene_illustration": "en anglais, seulement si la scène change, sinon omets ce champ"}]}`;
 
 type Verdict = {
   eliminatoire?: string | null;
@@ -265,22 +268,33 @@ async function relireEtAmeliorer(
         client,
         model,
         REECRITURE_SYSTEM,
-        `Âge de l'enfant : ${req.childAge} ans.\nRègles de longueur : ${reglesAge(req.childAge)}\n\nCORRECTIONS\n- ${b.problemes.join("\n- ")}\n\nHISTOIRE\n${JSON.stringify({ plan: actuelle.plan, titre: actuelle.titre, personnages: actuelle.personnages, cast: actuelle.cast, pages: actuelle.pages, resume: actuelle.resume, fils: actuelle.fils, faits: actuelle.faits, suites: actuelle.suites })}`,
+        `Âge de l'enfant : ${req.childAge} ans.\nRègles de longueur : ${reglesAge(req.childAge)}\n\nCORRECTIONS\n- ${b.problemes.join("\n- ")}\n\nPLAN\n${JSON.stringify(actuelle.plan ?? {})}\n\nHISTOIRE\n${JSON.stringify({ titre: actuelle.titre, pages: actuelle.pages.map((p, i) => ({ page: i + 1, texte: p.texte, scene_illustration: p.scene_illustration })) })}`,
         0.5,
         req.premium,
         undefined,
         { delaiMs: Math.max(30_000, 265_000 - (Date.now() - debut)) },
       );
-      const parsed = parseStory(raw);
-      if (!parsed.ok || texteEnAnglais(parsed.story) || parsed.story.pages.length !== actuelle.pages.length) break;
-      if (!filterStory(parsed.story).ok) break;
-      const texte = [parsed.story.titre, ...parsed.story.pages.map((p) => `${p.texte} ${p.scene_illustration}`)].join(" ");
-      if (findProtectedNames(texte).length > 0) break;
-      actuelle = {
+      // Seules les pages corrigées reviennent : on les remet à leur place.
+      const json = JSON.parse(/\{[\s\S]*\}/.exec(raw)?.[0] ?? "null") as {
+        titre?: string;
+        pages?: { page?: number; texte?: string; scene_illustration?: string }[];
+      } | null;
+      const corrigees = (json?.pages ?? []).filter(
+        (p) => typeof p.page === "number" && p.page >= 1 && p.page <= actuelle.pages.length && typeof p.texte === "string" && p.texte.trim().length > 0,
+      );
+      if (!corrigees.length) break;
+      const candidate: Story = {
         ...actuelle,
-        titre: parsed.story.titre || actuelle.titre,
-        pages: parsed.story.pages.map((p, i) => ({ ...p, presents: p.presents ?? actuelle.pages[i]?.presents })),
+        titre: json?.titre?.trim() || actuelle.titre,
+        pages: actuelle.pages.map((p, i) => {
+          const c = corrigees.find((x) => x.page === i + 1);
+          return c ? { ...p, texte: c.texte!.trim(), scene_illustration: c.scene_illustration?.trim() || p.scene_illustration } : p;
+        }),
       };
+      if (texteEnAnglais(candidate) || !filterStory(candidate).ok) break;
+      const texte = [candidate.titre, ...candidate.pages.map((p) => `${p.texte} ${p.scene_illustration}`)].join(" ");
+      if (findProtectedNames(texte).length > 0) break;
+      actuelle = candidate;
     } catch (e) {
       console.error("[réécriture] impossible :", String(e).slice(0, 160));
       break;
@@ -474,6 +488,7 @@ export async function generateStory(
         themeId: req.mode === "theme" ? req.themeId : undefined,
         mode: req.mode,
         trame: modeles.trame?.id,
+        prompt: req.prompt?.slice(0, 400),
         modeles: [...modeles.extraits.map((e) => e.id), ...(modeles.trame ? [modeles.trame.id] : [])],
       },
     };

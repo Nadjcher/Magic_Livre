@@ -38,8 +38,9 @@ export default function ConfidentialitePage() {
         et à assurer le fonctionnement du service. Le prénom de l'enfant est
         transmis au modèle de génération de texte uniquement pour écrire
         l'histoire. Pour la qualité des histoires, une histoire jugée insuffisante
-        par notre relecture automatique peut être relue par notre équipe, le prénom
-        de l'enfant masqué et sans lien avec votre compte.
+        par notre relecture automatique peut être relue par notre équipe, les prénoms
+        de l'enfant et de ses proches masqués et sans lien avec votre compte, pendant
+        30 jours au plus.
       </p>
 
       <h2 className="text-xl font-semibold">Consentement parental</h2>

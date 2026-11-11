@@ -11,6 +11,7 @@
 
 import "server-only";
 import { env } from "./env";
+import { PRIX_ESTIMES, noterDepense } from "./budget";
 import { fetchAllWithTimeout, fetchAsDataUrl } from "./imageFetch";
 
 /** Un modèle FLUX-PuLID met souvent 20 à 50 s (démarrage à froid compris). */
@@ -73,6 +74,7 @@ export async function requestPortrait(opts: {
     );
     const ms = Date.now() - started;
     const body = res.bytes ? res.bytes.toString("utf8") : "";
+    if (res.ok) await noterDepense(PRIX_ESTIMES.portrait);
 
     if (!res.ok) {
       const error = `HTTP ${res.status} : ${body.replaceAll(key, "***").slice(0, 300)}`;

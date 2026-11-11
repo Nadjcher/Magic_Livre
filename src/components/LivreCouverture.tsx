@@ -12,6 +12,7 @@ const STATUT: Record<string, { label: string; classe: string }> = {
   draft: { label: "Brouillon", classe: "bg-white/85 text-nuit" },
   generating: { label: "En cours…", classe: "bg-or-clair text-nuit" },
   failed: { label: "À reprendre", classe: "bg-rose-200 text-nuit" },
+  relecture: { label: "En relecture", classe: "bg-or-clair text-nuit" },
 };
 
 export default function LivreCouverture({

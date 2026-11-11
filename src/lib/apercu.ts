@@ -7,6 +7,7 @@
 
 import "server-only";
 import { prisma } from "./prisma";
+import { budgetDepasse } from "./budget";
 import { reserver, liberer } from "./idempotence";
 import { storySchema } from "./storySchema";
 import { illustrerLivreComplet } from "./storyGenerator";
@@ -25,8 +26,9 @@ function jourParis(): string {
   return new Date().toLocaleDateString("fr-CA", { timeZone: "Europe/Paris" }); // AAAA-MM-JJ
 }
 
-/** Vrai si le plafond de livres gratuits du jour est atteint. */
+/** Vrai si le plafond de livres gratuits du jour, ou le budget fal du jour, est atteint. */
 export async function plafondGratuitAtteint(): Promise<boolean> {
+  if (await budgetDepasse()) return true;
   try {
     const [r] = await prisma.$queryRaw<{ n: bigint }[]>`
       SELECT COUNT(*)::bigint AS n FROM "Traitement" WHERE cle LIKE ${`gratuit:${jourParis()}:%`}`;

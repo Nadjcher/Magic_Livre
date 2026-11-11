@@ -74,7 +74,13 @@ export async function illustrerLivre({ bookId, req, portrait }: EtapeIllustratio
       data: { status: "ready", title: story.titre, pages: story, errorMessage: imageReport ?? null },
     });
 
-    if (episode) return; // un épisode se lit tout de suite dans l'application : pas d'email
+    if (episode) {
+      // Un épisode se lit tout de suite dans l'application : pas d'email, sauf
+      // s'il sort de relecture humaine (le parent attend d'être prévenu).
+      const { aEteEnRelecture } = await import("./livraison");
+      if (await aEteEnRelecture(bookId)) await notifierLivrePret(bookId);
+      return;
+    }
     const visibles = story.apercu ? story.pages.slice(0, PAGES_APERCU) : story.pages;
     const total = visibles.length + 1;
     const manquantes = (story.couvertureUrl ? 0 : 1) + visibles.filter((p) => !p.imageUrl).length;

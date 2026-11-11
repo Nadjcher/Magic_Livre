@@ -9,6 +9,15 @@ import { prisma } from "@/lib/prisma";
 import { storySchema } from "@/lib/storySchema";
 import { findThemeById } from "@/lib/themes";
 import { ajouterExemple, basculerExemple, supprimerExemple } from "@/lib/bibliotheque";
+import { waitUntil } from "@vercel/functions";
+import { EN_RELECTURE } from "@/lib/illustrationStatus";
+import { peutDebloquer } from "@/lib/apercu";
+import { lireFiche } from "@/lib/ficheEnfant";
+import { memoire, serieDe } from "@/lib/serie";
+import { secondeGeneration } from "@/lib/livraison";
+import { lancerIllustrations } from "@/lib/bookPipeline";
+import type { StoryRequest } from "@/lib/storyPrompt";
+import type { IllustrationStyle } from "@/lib/style_config";
 
 const TONS = ["tendre", "drole", "feerique", "aventure", "mystere", "comptine"];
 
@@ -89,5 +98,64 @@ export async function basculerExempleAction(formData: FormData): Promise<void> {
 export async function supprimerExempleAction(formData: FormData): Promise<void> {
   if (!(await admin())) return;
   await supprimerExemple(String(formData.get("id") ?? ""));
+  revalidatePath("/admin/histoires");
+}
+
+/* ─── Histoires en relecture humaine (motif éliminatoire après deux générations) ─── */
+
+async function requeteDepuisLivre(bookId: string) {
+  const book = await prisma.book.findUnique({
+    where: { id: bookId },
+    select: { userId: true, tier: true, pages: true, errorMessage: true, childId: true, child: { select: { firstName: true, age: true } } },
+  });
+  const st = storySchema.safeParse(book?.pages);
+  if (!book || !st.success || book.errorMessage !== EN_RELECTURE) return null;
+  const story = st.data;
+  const req: StoryRequest = {
+    childFirstName: book.child.firstName,
+    childAge: book.child.age,
+    mode: story.meta?.mode === "libre" || story.serie ? "libre" : "theme",
+    themeId: story.meta?.themeId,
+    prompt: story.meta?.prompt,
+    longueur: "moyenne",
+    style: (story.style ?? "feerique") as IllustrationStyle,
+    format: story.meta?.format,
+    premium: book.tier === "premium",
+    apercu: !(await peutDebloquer(book.userId, bookId)),
+    childId: book.childId,
+    fiche: await lireFiche(book.childId),
+  };
+  if (story.serie) {
+    const serie = await serieDe(book.userId, story.serie.id);
+    if (serie) {
+      // La mémoire ne doit pas contenir l'épisode refusé lui-même.
+      const sansCelui = { ...serie, episodes: serie.episodes.filter((e) => e.id !== bookId && e.numero < story.serie!.numero) };
+      req.serie = { ...memoire(sansCelui, story.meta?.prompt ?? "la suite de l'aventure"), numero: story.serie.numero };
+    }
+  }
+  return { req, story };
+}
+
+/** Relance une génération complète (le résultat repasse par la relecture). */
+export async function relancerHistoireAction(formData: FormData): Promise<void> {
+  if (!(await admin())) return;
+  const bookId = String(formData.get("bookId") ?? "");
+  const r = await requeteDepuisLivre(bookId);
+  if (!r) return;
+  await prisma.book.update({ where: { id: bookId }, data: { status: "generating", errorMessage: null } });
+  const complement = r.story.serie ? { serie: r.story.serie, style: r.story.style, fiches: r.story.fiches } : undefined;
+  waitUntil(secondeGeneration({ bookId, req: r.req, portrait: null, complement, tentative: 2 }));
+  revalidatePath("/admin/histoires");
+}
+
+/** Vous avez relu la version actuelle et la jugez bonne : elle est illustrée et livrée. */
+export async function livrerVersionAction(formData: FormData): Promise<void> {
+  if (!(await admin())) return;
+  const bookId = String(formData.get("bookId") ?? "");
+  const r = await requeteDepuisLivre(bookId);
+  if (!r) return;
+  const pages = { ...r.story, qualite: r.story.qualite ? { ...r.story.qualite, aRevoir: false } : undefined };
+  await prisma.book.update({ where: { id: bookId }, data: { status: "generating", errorMessage: null, pages } });
+  waitUntil(lancerIllustrations({ bookId, req: r.req, portrait: null }));
   revalidatePath("/admin/histoires");
 }

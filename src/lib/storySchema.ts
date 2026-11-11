@@ -121,6 +121,8 @@ export const storySchema = z.object({
       mode: z.string().optional(),
       trame: z.string().optional(),
       modeles: z.array(z.string()).optional(),
+      // Idée du parent ou suite choisie par l'enfant (pour relancer l'écriture).
+      prompt: z.string().max(400).optional(),
     })
     .optional()
     .catch(undefined),

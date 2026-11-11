@@ -15,6 +15,8 @@ import { getAppUrl } from "./appUrl";
 import { fetchAsDataUrl } from "./imageFetch";
 import type { Story, Trailer } from "./storySchema";
 
+import { noterDepense } from "./budget";
+
 const MODELE_VIDEO = () => process.env.TRAILER_VIDEO_MODEL || "fal-ai/kling-video/v2.5-turbo/standard/image-to-video";
 const MODELE_VOIX = "fal-ai/elevenlabs/tts/multilingual-v2";
 const MODELE_MONTAGE = "fal-ai/ffmpeg-api/compose";
@@ -49,6 +51,7 @@ export async function voixOff(texte: string): Promise<{ url: string; sec: number
         signal: AbortSignal.timeout(90_000),
       });
       const j = (await r.json()) as { audio?: { url?: string; file_size?: number } };
+      if (r.ok) await noterDepense(Math.max(0.01, texte.length * 0.0001));
       if (r.ok && j.audio?.url) {
         const sec = j.audio.file_size ? (j.audio.file_size * 8) / 128_000 : texte.split(/\s+/).length / 2.4;
         return { url: j.audio.url, sec: Math.round(sec * 10) / 10 };
@@ -89,6 +92,7 @@ export async function soumettreClip(
     }),
   });
   const j = (await r.json().catch(() => ({}))) as { status_url?: string; response_url?: string; detail?: unknown };
+  if (r.ok) await noterDepense(0.042 * Number(secondes)); // vidéo animée : ~0,04 $ la seconde
   if (!r.ok || !j.status_url || !j.response_url) {
     return { erreur: `Vidéo refusée (${r.status}) ${JSON.stringify(j.detail ?? j).slice(0, 160)}` };
   }

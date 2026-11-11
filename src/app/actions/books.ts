@@ -23,7 +23,7 @@ import { env } from "@/lib/env";
 import { findFormat, formatsPourAge } from "@/lib/bookFormats";
 import { checkDailyBookLimit, estAdmin } from "@/lib/rateLimit";
 import { generateStory } from "@/lib/storyGenerator";
-import { lancerIllustrations } from "@/lib/bookPipeline";
+import { livrer } from "@/lib/livraison";
 import { describeChildFromPhoto } from "@/lib/illustration";
 import { estClassique, findThemeById } from "@/lib/themes";
 import { getAbonnement, inclureLivre } from "@/lib/subscription";
@@ -323,17 +323,12 @@ async function genererEtEnregistrer(bookId: string, req: GenerationInput): Promi
       return;
     }
 
-    await prisma.book.update({
-      where: { id: bookId },
-      data: { title: result.story.titre, pages: result.story },
-    });
-
-    // Étape 2 : les illustrations, dans une nouvelle exécution (5 min à elle).
-    await lancerIllustrations({
-      bookId,
-      req: { ...reqGeneration, extras: reqGeneration.extras },
-      portrait: result.portrait ?? null,
-    });
+    // Étape 2 : livraison (illustrations dans une nouvelle exécution), ou nouvelle
+    // génération / relecture humaine si la relecture a trouvé un motif éliminatoire.
+    await livrer(
+      { bookId, req: { ...reqGeneration, extras: reqGeneration.extras }, portrait: result.portrait ?? null, tentative: 1 },
+      result.story,
+    );
   } catch (e) {
     console.error("[livre] génération interrompue", bookId, String(e).slice(0, 300));
     await prisma.book

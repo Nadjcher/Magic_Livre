@@ -13,7 +13,7 @@ import { reserver, liberer } from "@/lib/idempotence";
 import { plafondGratuitAtteint, noterLivreGratuit } from "@/lib/apercu";
 import { generateStory } from "@/lib/storyGenerator";
 import { lireFiche } from "@/lib/ficheEnfant";
-import { lancerIllustrations } from "@/lib/bookPipeline";
+import { livrer } from "@/lib/livraison";
 import { EPISODES_PAR_MOIS, episodesDuMois, memoire, moisParis, serieDe } from "@/lib/serie";
 import type { StoryRequest } from "@/lib/storyPrompt";
 import type { IllustrationStyle } from "@/lib/style_config";
@@ -102,14 +102,12 @@ async function genererEpisode(bookId: string, req: StoryRequest, serieId: string
     const racine = await prisma.book.findUnique({ where: { id: serieId }, select: { pages: true } });
     const { storySchema } = await import("@/lib/storySchema");
     const r = storySchema.safeParse(racine?.pages);
-    const story = {
-      ...result.story,
+    const complement = {
       serie: { id: serieId, numero: req.serie!.numero },
       style: r.success ? r.data.style ?? result.story.style : result.story.style,
       fiches: r.success ? r.data.fiches : undefined,
     };
-    await prisma.book.update({ where: { id: bookId }, data: { title: story.titre, pages: story } });
-    await lancerIllustrations({ bookId, req, portrait: null });
+    await livrer({ bookId, req, portrait: null, complement, tentative: 1 }, result.story);
   } catch (e) {
     console.error("[série] épisode interrompu", bookId, String(e).slice(0, 300));
     if (cleDecouverte) await liberer(cleDecouverte).catch(() => undefined);

@@ -12,6 +12,7 @@ import "server-only";
 import sharp from "sharp";
 import { prisma } from "./prisma";
 import { env } from "./env";
+import { noterDepense } from "./budget";
 import { getStripe } from "./stripe";
 import { fetchAsDataUrl } from "./imageFetch";
 import { storySchema, type Story } from "./storySchema";
@@ -41,6 +42,7 @@ export async function agrandir(dataUrl: string | null): Promise<string | null> {
       signal: AbortSignal.timeout(90_000),
     });
     const j = (await r.json()) as { image?: { url?: string } };
+    if (r.ok) await noterDepense(0.01);
     if (!r.ok || !j.image?.url) return dataUrl;
     const grand = await fetchAsDataUrl(j.image.url);
     if (!grand) return dataUrl;

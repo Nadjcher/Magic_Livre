@@ -14,6 +14,7 @@
 import "server-only";
 import { blobEnabled, compressImage, putBlob } from "./blobStore";
 import { env } from "./env";
+import { PRIX_ESTIMES, noterDepense } from "./budget";
 import { fetchAllWithTimeout } from "./imageFetch";
 import {
   buildIllustrationPrompt,
@@ -363,6 +364,7 @@ async function falImage(
     return { error: `HTTP ${res.status} ${detail}`, retry: res.status === 429 || res.status >= 500 || /concurrent/i.test(detail) };
   }
   const url = j.images?.[0]?.url;
+  await noterDepense(/nano-banana|gemini/.test(endpoint) ? PRIX_ESTIMES.imagePremium : PRIX_ESTIMES.image);
   if (!url) return { error: "pas d'image renvoyée", retry: true };
   const dl = await fetchAllWithTimeout(url, {}, { timeoutMs: 30_000, maxBytes: 20_000_000 }).catch(() => null);
   if (!dl?.ok || !dl.bytes) return { error: "téléchargement de l'image impossible", retry: true };

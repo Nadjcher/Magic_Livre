@@ -11,6 +11,7 @@ import { prisma } from "@/lib/prisma";
 import { failStaleBooks } from "@/lib/bookMaintenance";
 import DeleteBookButton from "@/components/DeleteBookButton";
 import LivreCouverture from "@/components/LivreCouverture";
+import { EN_RELECTURE } from "@/lib/illustrationStatus";
 import BoutonDemo from "@/components/BoutonDemo";
 import { livresDemo } from "@/lib/demo";
 import { estAdmin } from "@/lib/rateLimit";
@@ -41,6 +42,7 @@ export default async function BibliothequePage(props: { searchParams: Promise<{ 
       title: true,
       theme: true,
       status: true,
+      errorMessage: true,
       child: { select: { id: true, firstName: true } },
     },
   });
@@ -116,7 +118,7 @@ export default async function BibliothequePage(props: { searchParams: Promise<{ 
                   titre={book.title}
                   enfant={filtre ? undefined : book.child.firstName}
                   couverture={avecCouverture.has(book.id) ? bookImageUrl(book.id, "cover", undefined, 480) : null}
-                  statut={book.status}
+                  statut={book.errorMessage === EN_RELECTURE ? "relecture" : book.status}
                   priorite={i < 5}
                   episode={Number(/épisode (\d+)/.exec(book.theme)?.[1]) || undefined}
                 />

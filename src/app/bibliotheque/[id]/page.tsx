@@ -16,7 +16,7 @@ import Notice from "@/components/Notice";
 import GenerationOverlay from "@/components/GenerationOverlay";
 import { THEMES } from "@/lib/themes";
 import CompleteIllustrationsButton from "@/components/CompleteIllustrationsButton";
-import { EN_COURS } from "@/lib/illustrationStatus";
+import { EN_COURS, EN_RELECTURE } from "@/lib/illustrationStatus";
 import { peutDebloquer } from "@/lib/apercu";
 import { serieDe } from "@/lib/serie";
 import EtDemain from "@/components/EtDemain";
@@ -111,6 +111,13 @@ export default async function LivrePage(
           <AutoRefresh seconds={5} />
           <GenerationOverlay inline prenom={book.child.firstName} themeId={THEMES.find((t) => t.titre === book.theme)?.id} />
         </>
+      )}
+
+      {book.errorMessage === EN_RELECTURE && (
+        <Notice kind="info">
+          Nous relisons chaque histoire avant de vous la confier. Celle de {book.child.firstName} est entre les mains de
+          notre équipe : elle sera ici sous 24 heures, et nous vous préviendrons par email.
+        </Notice>
       )}
 
       {book.status === "failed" && (

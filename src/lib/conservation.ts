@@ -20,6 +20,7 @@ export const DUREES_CONSERVATION: { donnee: string; duree: string }[] = [
   { donnee: "Photo de l'enfant", duree: "Jamais conservée : utilisée le temps de dessiner le héros, puis oubliée." },
   { donnee: "Compte, enfants (prénom, âge) et livres", duree: "Tant que le compte est utilisé. Après 2 ans sans connexion, le compte est supprimé (un email vous prévient 30 jours avant)." },
   { donnee: "Fiche de l'enfant pour les histoires (doudou, goûts, proches)", duree: "Tant que l'enfant est dans votre compte ; effacée avec lui, avec le compte, ou dès que vous videz la fiche." },
+  { donnee: "Histoire relue par notre équipe (prénoms masqués)", duree: "30 jours dans la file de relecture, puis elle n'y apparaît plus." },
   { donnee: "Livre que vous supprimez", duree: "Effacé définitivement sous 30 jours, avec ses illustrations." },
   { donnee: "Livre dont la création a échoué", duree: "Effacé sous 30 jours." },
   { donnee: "Commandes et factures", duree: "10 ans, obligation comptable (article L123-22 du Code de commerce). Le contenu du livre n'y est pas conservé." },
@@ -154,6 +155,13 @@ export async function purger(): Promise<Record<string, number>> {
   await compter("historiqueEmails", async () => prisma.$executeRaw`DELETE FROM "EnvoiCampagne" WHERE "envoyeLe" < NOW() - INTERVAL '12 months'`.catch(() => 0));
   await compter("desinscriptions", async () => prisma.$executeRaw`DELETE FROM "Desinscrit" WHERE "le" < NOW() - INTERVAL '3 years'`.catch(() => 0));
   await compter("jetonsTraitement", async () => prisma.$executeRaw`DELETE FROM "Traitement" WHERE "creeLe" < NOW() - INTERVAL '90 days'`.catch(() => 0));
+  // File de relecture (qualité) : une histoire livrée la quitte après 30 jours.
+  await compter("fileRelecture", async () =>
+    prisma.$executeRaw`
+      UPDATE "Book" SET pages = jsonb_set(pages::jsonb, '{qualite,aRevoir}', 'false'::jsonb)
+      WHERE pages->'qualite'->>'aRevoir' = 'true' AND "errorMessage" IS DISTINCT FROM '__en_relecture__'
+        AND "createdAt" < NOW() - INTERVAL '30 days'`.catch(() => 0),
+  );
   await compter("demandesAvis", async () => prisma.$executeRaw`DELETE FROM "ReviewRequest" WHERE "sentAt" < NOW() - INTERVAL '12 months'`.catch(() => 0));
 
   // Comptes inactifs : préavis à 23 mois, suppression 30 jours après le préavis.

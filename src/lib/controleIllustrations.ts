@@ -14,6 +14,7 @@
 
 import "server-only";
 import { env } from "./env";
+import { PRIX_ESTIMES, noterDepense } from "./budget";
 import { fetchAsDataUrl } from "./imageFetch";
 import { generateIllustration } from "./illustration";
 import type { Story } from "./storySchema";
@@ -75,7 +76,8 @@ async function verifier(
       }),
       signal: AbortSignal.timeout(40_000),
     });
-    const j = (await r.json().catch(() => ({}))) as { output?: string };
+    const j = (await r.json().catch(() => ({}))) as { output?: string; usage?: { cost?: number } };
+    if (r.ok) await noterDepense(j.usage?.cost ?? PRIX_ESTIMES.vision);
     const json = /\{[\s\S]*\}/.exec(j.output ?? "")?.[0];
     if (!r.ok || !json) {
       console.error("[contrôle] vision indisponible :", r.status, JSON.stringify(j).slice(0, 160));

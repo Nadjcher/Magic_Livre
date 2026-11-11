@@ -17,7 +17,12 @@ import {
   basculerExempleAction,
   supprimerExempleAction,
   validerHistoireAction,
+  livrerVersionAction,
+  relancerHistoireAction,
 } from "@/app/actions/bibliotheque";
+import { EN_RELECTURE } from "@/lib/illustrationStatus";
+import { lireFiches } from "@/lib/ficheEnfant";
+import { budgetJour, depensesRecentes } from "@/lib/budget";
 
 export const metadata: Metadata = { title: "Atelier d'écriture", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -42,10 +47,22 @@ const CRITERES: Record<string, string> = {
   fin: "Fin",
 };
 
-/** Le prénom de l'enfant est masqué dans la file de relecture (données d'un mineur). */
-function anonymiser(texte: string, prenom: string): string {
-  const p = prenom.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return texte.replace(new RegExp(`(^|[^\\p{L}])${p}(?=[^\\p{L}]|$)`, "gu"), "$1[prénom]");
+/**
+ * Données d'un mineur : dans la file de relecture, le prénom de l'enfant et ceux
+ * de ses proches (fiche de l'enfant, et tout prénom après « mamie », « papa »,
+ * « sa sœur »…) sont masqués.
+ */
+function masqueur(prenom: string, proches?: string): (texte: string) => string {
+  const echapper = (x: string) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const noms = new Set<string>([prenom]);
+  for (const m of (proches ?? "").matchAll(/\p{Lu}[\p{L}'’-]+/gu)) noms.add(m[0]);
+  const parente =
+    /((?:mamie|mamy|papi|papy|grand-mère|grand-père|maman|papa|tonton|tata|tante|oncle|frère|sœur|soeur|cousin|cousine|parrain|marraine|nounou)\s+)\p{Lu}[\p{L}'’-]+/giu;
+  return (texte) => {
+    let t = texte.replace(parente, "$1[prénom]");
+    for (const n of noms) t = t.replace(new RegExp(`(^|[^\\p{L}])${echapper(n)}(?=[^\\p{L}]|$)`, "gu"), n === prenom ? "$1[enfant]" : "$1[prénom]");
+    return t;
+  };
 }
 
 function CasesTons() {
@@ -71,11 +88,14 @@ export default async function AtelierPage() {
     select: { id: true, title: true, pages: true, createdAt: true, child: { select: { firstName: true, age: true } } },
   });
   const exemples = await listerExemples();
+  const depenses = await depensesRecentes();
   // File de relecture humaine : histoires refusées deux fois par la relectrice (tous comptes, anonymisées).
-  const aRevoir = await prisma.$queryRaw<{ id: string; pages: unknown; prenom: string; age: number }[]>`
-    SELECT b.id, b.pages, c."firstName" AS prenom, c.age FROM "Book" b JOIN "Child" c ON c.id = b."childId"
-    WHERE b."deletedAt" IS NULL AND b.pages->'qualite'->>'aRevoir' = 'true'
-    ORDER BY b."createdAt" DESC LIMIT 20`.catch(() => []);
+  const aRevoir = await prisma.$queryRaw<{ id: string; pages: unknown; prenom: string; age: number; childId: string; statut: string; err: string | null }[]>`
+    SELECT b.id, b.pages, c."firstName" AS prenom, c.age, c.id AS "childId", b.status::text AS statut, b."errorMessage" AS err
+    FROM "Book" b JOIN "Child" c ON c.id = b."childId"
+    WHERE b."deletedAt" IS NULL AND (b.pages->'qualite'->>'aRevoir' = 'true' OR b."errorMessage" = ${EN_RELECTURE})
+    ORDER BY (b."errorMessage" = ${EN_RELECTURE}) DESC, b."createdAt" DESC LIMIT 30`.catch(() => []);
+  const fichesRevoir = await lireFiches(aRevoir.map((r) => r.childId));
   // Note moyenne par trame (sur 40) : une trame sous 30 est à réécrire à la main.
   const parTrame = await prisma.$queryRaw<{ trame: string | null; moyenne: number; n: bigint }[]>`
     SELECT b.pages->'meta'->>'trame' AS trame, AVG((b.pages->'qualite'->>'total')::float) AS moyenne, COUNT(*) AS n
@@ -91,6 +111,22 @@ export default async function AtelierPage() {
           l'âge, le type de livre et le thème. Plus vous y ajoutez de bons textes, plus les histoires prennent votre ton.
         </p>
       </header>
+
+      <section className="carte space-y-2">
+        <h2 className="text-2xl">Dépenses fal (estimation)</h2>
+        <p className="text-sm text-magique-texteClair">
+          Budget du jour : {budgetJour()} $. Au-delà, les créations gratuites s'arrêtent jusqu'au lendemain (achats et Club
+          continuent). Le chiffre exact reste celui de votre tableau de bord fal.
+        </p>
+        <ul className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm sm:grid-cols-3">
+          {depenses.length === 0 && <li>Aucune dépense enregistrée.</li>}
+          {depenses.map((d) => (
+            <li key={d.jour} className={d.dollars >= budgetJour() ? "text-rose-200" : ""}>
+              {d.jour} : <strong>{Number(d.dollars).toFixed(2)} $</strong> ({d.appels} appels)
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section className="space-y-4">
         <h2 className="text-2xl">Vos dernières histoires</h2>
@@ -162,30 +198,49 @@ export default async function AtelierPage() {
       <section className="space-y-3">
         <h2 className="text-2xl">File de relecture ({aRevoir.length})</h2>
         <p className="text-sm text-magique-texteClair">
-          Histoires refusées deux fois par la relectrice (sous 32/40 ou motif éliminatoire). Le prénom de l'enfant est masqué.
+          En haut, les histoires non livrées (motif éliminatoire deux fois) : le parent attend sous 24 h. Ensuite, celles livrées
+          juste sous le seuil après deux réécritures, pour améliorer la bible. Prénoms masqués ; une histoire quitte la file après 30 jours.
         </p>
         {aRevoir.map((r) => {
           const st = storySchema.safeParse(r.pages);
           if (!st.success) return null;
+          const masquer = masqueur(r.prenom, fichesRevoir.get(r.childId)?.proches);
+          const enAttente = r.err === EN_RELECTURE;
           return (
-            <details key={r.id} className="carte">
+            <details key={r.id} className={`carte ${enAttente ? "border-or-clair" : ""}`}>
               <summary className="cursor-pointer py-1">
-                <span className="font-serif">{anonymiser(st.data.titre, r.prenom)}</span>
-                <span className="ml-2 text-sm text-magique-texteClair">{r.age} ans · {st.data.qualite?.total ?? "?"}/40</span>
+                {enAttente && <span className="mr-2 rounded-full bg-or-clair px-2 py-0.5 text-xs font-bold text-nuit">À livrer sous 24 h</span>}
+                <span className="font-serif">{masquer(st.data.titre)}</span>
+                <span className="ml-2 text-sm text-magique-texteClair">
+                  {r.age} ans · {st.data.qualite?.total ?? "?"}/40{st.data.qualite?.eliminatoire ? " · éliminatoire" : ""}
+                  {enAttente ? "" : " · déjà livrée au client"}
+                </span>
               </summary>
               <ul className="mt-3 list-disc pl-5 text-sm text-magique-texteClair">
                 {(st.data.qualite?.problemes ?? []).map((p) => (
-                  <li key={p}>{anonymiser(p, r.prenom)}</li>
+                  <li key={p}>{masquer(p)}</li>
                 ))}
               </ul>
               <ol className="mt-3 space-y-2">
                 {st.data.pages.map((p, i) => (
                   <li key={i} className="whitespace-pre-line text-sm leading-relaxed">
                     <span className="mr-2 text-xs text-magique-texteClair">p. {i + 1}</span>
-                    {anonymiser(p.texte, r.prenom)}
+                    {masquer(p.texte)}
                   </li>
                 ))}
               </ol>
+              {enAttente && (
+                <div className="mt-4 flex flex-wrap gap-3 border-t border-magique-trait pt-4">
+                  <form action={livrerVersionAction}>
+                    <input type="hidden" name="bookId" value={r.id} />
+                    <button className="btn-primaire text-sm">Je l'ai relue : livrer cette version</button>
+                  </form>
+                  <form action={relancerHistoireAction}>
+                    <input type="hidden" name="bookId" value={r.id} />
+                    <button className="btn-secondaire text-sm">Relancer une nouvelle écriture</button>
+                  </form>
+                </div>
+              )}
             </details>
           );
         })}
