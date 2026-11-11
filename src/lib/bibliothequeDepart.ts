@@ -411,6 +411,27 @@ La carte menait ensuite au petit bassin. Tout au fond, sous la mousse, brillait 
 
 Maé s'assit au bord du bassin et regarda la carte de plus près. Puis elle éclata de rire. Elle la tenait à l'envers ! La croix n'était pas dans le jardin. Elle était dans sa chambre, juste sous son lit. « Tout ce chemin pour rien ? » soupira Caramel.`,
   },
+  {
+    cle: "trame-conte-petit-poucet",
+    type: "trame",
+    titre: "Les contes de papa et maman : le Petit Poucet",
+    ageMin: 4,
+    ageMax: 9,
+    tons: ["feerique", "aventure", "tendre"],
+    formats: [],
+    themes: ["petit-poucet", "classiques"],
+    texte: `Plan déjà rempli (d'après Perrault, domaine public ; jamais d'enfants abandonnés ni d'ogre qui mange : la peur reste à hauteur d'enfant). L'enfant ENTRE dans le conte que son parent aimait petit, et il AIDE le Petit Poucet ; il ne prend pas sa place.
+Ritournelle : « Petit caillou blanc, montre-nous le chemin. » Émotion de départ : curieux, un peu inquiet. Émotion d'arrivée : fier et apaisé.
+1. Le moment ordinaire : le soir, un parent lit à l'enfant le vieux livre de contes qu'il avait petit ; l'objet de l'enfant (son doudou ou sa lampe de poche) est sur l'oreiller.
+2. Le petit problème : à la page de la forêt, les cailloux blancs ont disparu du dessin ; le Petit Poucet et ses frères ne retrouveront jamais la maison.
+3. L'appel : un petit caillou blanc luit sous l'oreiller ; l'enfant le touche et se retrouve au bord de la forêt du livre.
+4. La rencontre : le Petit Poucet, pas plus haut qu'une botte, malin mais trop fier pour demander de l'aide (il veut tout faire seul) ; ses frères ont faim et froid.
+5. Premier essai : les miettes de pain semées sur le chemin ; les oiseaux les mangent toutes. La ritournelle revient.
+6. Deuxième essai : il ne reste que trois cailloux ; ils mènent jusqu'à une clairière… puis plus rien. La ritournelle revient.
+7. Troisième essai : l'idée vient de l'enfant et de son objet (la lampe de poche fait briller les cailloux restants, ou le doudou sert d'appât pour que les oiseaux rendent les miettes) ; Poucet accepte enfin l'aide.
+8. La résolution : la grande maison du géant est sur le chemin ; le géant ronfle, ses bottes de sept lieues sont au pied du lit ; l'enfant lui en demande poliment le prêt (un malentendu, pas un méchant : le géant grognon accepte, contre une berceuse) et les frères rentrent chez eux en sept pas.
+9. Le retour au lit : le livre se referme ; dans la poche du pyjama, un caillou blanc ; sur la page de garde, la dédicace du parent (« C'est l'histoire que Mamie me lisait »). Accroche : à la page suivante du livre, un chat en bottes semble faire un clin d'œil.`,
+  },
   // ─── Trames (structures) ───
   {
     cle: "trame-randonnee",
