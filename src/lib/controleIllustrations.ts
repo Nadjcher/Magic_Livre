@@ -15,6 +15,7 @@
 import "server-only";
 import { env } from "./env";
 import { PRIX_ESTIMES, noterDepense } from "./budget";
+import { GRILLE_IMAGES, estCarre } from "./bibleVisuelle";
 import { fetchAsDataUrl } from "./imageFetch";
 import { generateIllustration } from "./illustration";
 import type { Story } from "./storySchema";
@@ -29,7 +30,8 @@ const SYSTEME =
 function modele(): string {
   // Gemini Flash : ~0,05 centime par contrôle (15× moins cher que Sonnet) ;
   // il a repéré les mêmes erreurs sur notre jeu de test.
-  return process.env.QA_VISION_MODEL || "google/gemini-2.5-flash";
+  // Claude Sonnet : Gemini Flash validait des images fautives (test du 11 nov.).
+  return process.env.QA_VISION_MODEL || "anthropic/claude-sonnet-4.5";
 }
 
 export function controleActif(): boolean {
@@ -49,10 +51,19 @@ async function verifier(
   cast: { nom: string; description: string; image: Ref }[],
   page: Ref,
   scene: string,
+  grille = false,
 ): Promise<{ ok: boolean; fix: string }> {
   const lignes = [`Image 1 is the reference sheet of the hero ${heros.nom} (${heros.description}).`];
   cast.forEach((c, k) => lignes.push(`Image ${k + 2} is the reference sheet of ${c.nom} (${c.description}).`));
-  lignes.push(
+  if (grille) {
+    // Style de la maison : la grille de la bible visuelle, question par question.
+    lignes.push(
+      `The LAST image is the book page to check. Scene requested: ${scene}`,
+      "Answer EACH question with yes or no and one short sentence describing what you SEE. A single \"no\" means the image must be redone.",
+      ...GRILLE_IMAGES.map((q, i) => `${i + 1}. ${q}`),
+      'Reply with JSON only: {"answers": [{"n": 1, "yes": true, "seen": "…"}], "fix": "if any no: one short English instruction listing what to correct"}',
+    );
+  } else lignes.push(
     `The LAST image is the page illustration to check. Scene requested: ${scene}`,
     "Flag ONLY these serious identity errors: (a) the hero is drawn twice or more; (b) a character is clearly NOT " +
       "the same design as its reference sheet: different species or body type, or clearly different main colors; " +
@@ -83,7 +94,12 @@ async function verifier(
       console.error("[contrôle] vision indisponible :", r.status, JSON.stringify(j).slice(0, 160));
       return { ok: true, fix: "" };
     }
-    const v = JSON.parse(json) as { ok?: unknown; fix?: unknown };
+    const v = JSON.parse(json) as { ok?: unknown; fix?: unknown; answers?: { n?: number; yes?: boolean; seen?: string }[] };
+    if (grille && Array.isArray(v.answers)) {
+      const non = v.answers.filter((a) => a.yes === false);
+      const fix = typeof v.fix === "string" && v.fix ? v.fix : non.map((a) => `${GRILLE_IMAGES[(a.n ?? 1) - 1] ?? ""} (${a.seen ?? ""})`).join("; ");
+      return { ok: non.length === 0, fix: fix.slice(0, 400) };
+    }
     return { ok: v.ok !== false, fix: typeof v.fix === "string" ? v.fix.slice(0, 300) : "" };
   } catch {
     return { ok: true, fix: "" }; // contrôle indisponible : on ne bloque jamais le livre
@@ -137,9 +153,11 @@ export async function controlerIllustrations(
     if (p.imageUrl) cibles.push({ i, url: p.imageUrl, scene: p.scene_illustration, cast: presentsSur(p) });
   });
 
+  // Style de la maison : grille de la bible visuelle, une seule nouvelle tentative, puis relecture humaine.
+  const grille = estCarre(story.style);
   const controler = async (url: string, scene: string, cast: ReturnType<typeof presentsSur>) => {
     const img = enRef(await fetchAsDataUrl(url, petit));
-    return img ? verifier(heros, cast, img, scene) : { ok: true, fix: "" };
+    return img ? verifier(heros, cast, img, scene, grille) : { ok: true, fix: "" };
   };
 
   const verdicts = await avant(
@@ -163,7 +181,7 @@ export async function controlerIllustrations(
   const corrigees = await Promise.all(
     fautives.map(async (c, k) => {
       let fix = c.v.fix;
-      for (let essai = 0; essai < 2; essai++) {
+      for (let essai = 0; essai < (grille ? 1 : 2); essai++) {
         const scene =
           (c.i === -1
             ? `Book cover illustration for the story "${story.titre}": ${req.childFirstName} in an emblematic moment, NOT a plain portrait`
@@ -190,10 +208,13 @@ export async function controlerIllustrations(
 
   const remplacees = corrigees.filter((x): x is { i: number; url: string } => x !== null);
   const parIndex = new Map(remplacees.map((x) => [x.i, x.url]));
+  // Pages restées fautives après la nouvelle tentative : relecture humaine (style de la maison).
+  const aRevoir = grille ? fautives.filter((c) => !parIndex.has(c.i)).map((c) => c.i) : [];
   const nouvelle: Story = {
     ...story,
     couvertureUrl: parIndex.get(-1) ?? story.couvertureUrl,
     pages: story.pages.map((p, i) => (parIndex.has(i) ? { ...p, imageUrl: parIndex.get(i)! } : p)),
+    ...(aRevoir.length ? { imagesARevoir: aRevoir } : {}),
   };
   const detail = fautives.map((c) => `${c.i === -1 ? "couverture" : `p${c.i + 1}`}: ${c.v.fix}`).join(" | ");
   return {

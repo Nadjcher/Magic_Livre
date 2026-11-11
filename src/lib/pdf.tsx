@@ -197,7 +197,9 @@ export function buildStoryDocument(story: Story, childName?: string): JSX.Elemen
       {/* Pages de l'histoire, mises en page en alternance */}
       {story.pages.map((p, index) => {
         const taille = tailleTexte(p.texte);
-        const pleinePage = Boolean(p.imageUrl) && index % 2 === 0 && p.texte.length < 300;
+        // Pages carrées (style de la maison) : toujours la mise en page « album », image entière.
+        const carre = story.style === "maison";
+        const pleinePage = !carre && Boolean(p.imageUrl) && index % 2 === 0 && p.texte.length < 300;
         const numero = (
           <Text style={{ position: "absolute", bottom: 16, left: 0, right: 0, textAlign: "center", fontFamily: f.texte, fontSize: 9, color: "#8A90B4" }}>
             {index + 1}
@@ -241,7 +243,7 @@ export function buildStoryDocument(story: Story, childName?: string): JSX.Elemen
             {p.imageUrl ? (
               <Image
                 src={p.imageUrl}
-                style={{ height: hImage, width: Math.round((hImage * 16) / 9), objectFit: "cover", borderRadius: 16 }}
+                style={{ height: hImage, width: carre ? hImage : Math.round((hImage * 16) / 9), objectFit: "cover", borderRadius: 16 }}
               />
             ) : null}
             <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 30 }}>

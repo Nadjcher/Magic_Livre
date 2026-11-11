@@ -15,6 +15,7 @@ import "server-only";
 import { blobEnabled, compressImage, putBlob } from "./blobStore";
 import { env } from "./env";
 import { PRIX_ESTIMES, noterDepense } from "./budget";
+import { estCarre } from "./bibleVisuelle";
 import { fetchAllWithTimeout } from "./imageFetch";
 import {
   buildIllustrationPrompt,
@@ -127,7 +128,7 @@ export async function generateIllustration(
       let error = "";
       for (let essai = 0; essai < 3 && !img; essai++) {
         if (essai > 0) await new Promise((r) => setTimeout(r, essai * 3000));
-        const r = await falImage(texte, model, req.referenceImage, req.anchorImage, req.castRefs);
+        const r = await falImage(texte, model, req.referenceImage, req.anchorImage, req.castRefs, estCarre(req.style));
         if ("img" in r) img = r.img;
         else {
           error = r.error;
@@ -303,6 +304,7 @@ async function falImage(
   reference?: { base64: string; mime: string },
   anchor?: { base64: string; mime: string },
   cast: CastRef[] = [],
+  carre = false,
 ): Promise<{ img: { base64: string; mime: string } } | { error: string; retry: boolean }> {
   const key = env.falApiKey();
   if (!key) return { error: "FAL_API_KEY absente", retry: false };
@@ -342,7 +344,13 @@ async function falImage(
   const body: Record<string, unknown> = {
     prompt: texte,
     output_format: "jpeg",
-    ...(gemini ? { aspect_ratio: "16:9" } : { image_size: "landscape_16_9" }),
+    ...(carre
+      ? gemini
+        ? { aspect_ratio: "1:1" }
+        : { image_size: "square_hd" }
+      : gemini
+        ? { aspect_ratio: "16:9" }
+        : { image_size: "landscape_16_9" }),
     ...(refs.length ? { image_urls: refs.map((r) => `data:${r.mime};base64,${r.base64}`) } : {}),
   };
 

@@ -79,7 +79,7 @@ Les champs "resume", "fils" et "suites" servent à la SUITE de l'histoire (une s
 - "suites" : 3 idées de suite, chacune en une phrase courte qu'on lit à l'enfant pour qu'il choisisse (ex. « Pompon veut retrouver la maison de la lune »), toutes différentes (une drôle, une aventure, une tendre).
 
 Le champ "texte" contient le texte de la page, dont la longueur et la complexité suivent STRICTEMENT les consignes d'âge de la demande (d'une seule phrase très courte pour un tout-petit, jusqu'à plusieurs phrases riches pour un grand).
-Le champ "scene_illustration" décrit précisément la scène à dessiner EN ANGLAIS (décor, personnages, action, émotion, lumière), en une phrase détaillée, sans aucun texte écrit ni personnage protégé.`;
+Le champ "scene_illustration" décrit précisément la scène à dessiner EN ANGLAIS (décor, personnages, action, émotion, lumière), en une phrase détaillée, sans aucun texte écrit ni personnage protégé. Elle précise aussi, en anglais : le cadrage (« close-up », « medium shot » ou « wide shot »), la source de lumière unique (fenêtre, lampe, objet qui brille…) et la zone calme pour le texte (ciel, ombre, sol). Alterne les cadrages sur le livre : environ la moitié en plan rapproché (une émotion, un geste, le visage du héros), un tiers en plan moyen (deux personnages qui agissent), deux ou trois plans larges (arriver dans un lieu, un chemin), jamais plus de deux pages de suite au même plan. Un parent n'apparaît que par une main, une silhouette de dos ou un profil dans l'ombre ; un géant n'est jamais montré (une ombre, des bottes).`;
 
 /**
  * Consigne d'écriture du 9 novembre, rétablie pour les 7 ans et plus : avec la
@@ -138,7 +138,7 @@ Le champ "cast" liste les personnages SECONDAIRES récurrents (2 à 4 maximum, P
 Le champ "presents" de chaque page liste les noms (tels que dans "cast") des personnages secondaires VISIBLES sur l'illustration de cette page ([] si aucun). Aucun autre personnage ne doit figurer dans la scène.
 
 Le champ "texte" contient le texte de la page, dont la longueur et la complexité suivent STRICTEMENT les consignes d'âge de la demande (d'une seule phrase très courte pour un tout-petit, jusqu'à plusieurs phrases riches pour un grand).
-Le champ "scene_illustration" décrit précisément la scène à dessiner EN ANGLAIS (décor, personnages, action, émotion, lumière), en une phrase détaillée, sans aucun texte écrit ni personnage protégé.
+Le champ "scene_illustration" décrit précisément la scène à dessiner EN ANGLAIS (décor, personnages, action, émotion, lumière), en une phrase détaillée, sans aucun texte écrit ni personnage protégé. Elle précise aussi, en anglais : le cadrage (« close-up », « medium shot » ou « wide shot »), la source de lumière unique (fenêtre, lampe, objet qui brille…) et la zone calme pour le texte (ciel, ombre, sol). Alterne les cadrages sur le livre : environ la moitié en plan rapproché (une émotion, un geste, le visage du héros), un tiers en plan moyen (deux personnages qui agissent), deux ou trois plans larges (arriver dans un lieu, un chemin), jamais plus de deux pages de suite au même plan. Un parent n'apparaît que par une main, une silhouette de dos ou un profil dans l'ombre ; un géant n'est jamais montré (une ombre, des bottes).
 
 Les champs "resume", "fils" et "suites" servent à la suite de l'histoire : "resume" = ce qui s'est passé en 2 ou 3 phrases ; "fils" = ce qui reste ouvert, en une phrase ; "suites" = 3 idées de suite courtes et différentes, qu'on lit à l'enfant pour qu'il choisisse.`;
 

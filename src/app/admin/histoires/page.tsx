@@ -19,8 +19,10 @@ import {
   validerHistoireAction,
   livrerVersionAction,
   relancerHistoireAction,
+  livrerIllustrationsAction,
 } from "@/app/actions/bibliotheque";
-import { EN_RELECTURE } from "@/lib/illustrationStatus";
+import { bookImageUrl } from "@/lib/bookImages";
+import { EN_RELECTURE, EN_RELECTURE_IMAGES } from "@/lib/illustrationStatus";
 import { lireFiches } from "@/lib/ficheEnfant";
 import { budgetJour, depensesRecentes } from "@/lib/budget";
 
@@ -98,6 +100,13 @@ export default async function AtelierPage() {
     WHERE b."deletedAt" IS NULL AND (b.pages->'qualite'->>'aRevoir' = 'true' OR b."errorMessage" = ${EN_RELECTURE})
     ORDER BY (b."errorMessage" = ${EN_RELECTURE}) DESC, b."createdAt" DESC LIMIT 30`.catch(() => []);
   const fichesRevoir = await lireFiches(aRevoir.map((r) => r.childId));
+  // Illustrations en relecture (une image refusée deux fois par la relectrice d'images).
+  const imagesARelire = await prisma.book.findMany({
+    where: { deletedAt: null, errorMessage: EN_RELECTURE_IMAGES },
+    orderBy: { createdAt: "asc" },
+    take: 20,
+    select: { id: true, title: true, pages: true },
+  });
   // Note moyenne par trame (sur 40) : une trame sous 30 est à réécrire à la main.
   const parTrame = await prisma.$queryRaw<{ trame: string | null; moyenne: number; n: bigint }[]>`
     SELECT b.pages->'meta'->>'trame' AS trame, AVG((b.pages->'qualite'->>'total')::float) AS moyenne, COUNT(*) AS n
@@ -248,6 +257,39 @@ export default async function AtelierPage() {
           );
         })}
       </section>
+
+      {imagesARelire.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-2xl">Illustrations à relire ({imagesARelire.length})</h2>
+          <p className="text-sm text-magique-texteClair">
+            Une image a été refusée deux fois par la relectrice d'images : le livre attend votre regard (le parent a été prévenu, sous 24 h).
+          </p>
+          {imagesARelire.map((b) => {
+            const st = storySchema.safeParse(b.pages);
+            if (!st.success) return null;
+            const signalees = st.data.imagesARevoir ?? [];
+            return (
+              <details key={b.id} className="carte border-or-clair">
+                <summary className="cursor-pointer py-1">
+                  <span className="mr-2 rounded-full bg-or-clair px-2 py-0.5 text-xs font-bold text-nuit">Sous 24 h</span>
+                  {signalees.length} image(s) signalée(s) : {signalees.map((i) => (i === -1 ? "couverture" : `p. ${i + 1}`)).join(", ")}
+                </summary>
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  {signalees.map((i) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img key={i} src={bookImageUrl(b.id, i === -1 ? "cover" : i, undefined, 480)} alt="" className="w-full rounded-xl" />
+                  ))}
+                </div>
+                <form action={livrerIllustrationsAction} className="mt-4 flex flex-wrap items-center gap-3 border-t border-magique-trait pt-4">
+                  <input type="hidden" name="bookId" value={b.id} />
+                  <button className="btn-primaire text-sm">Je les ai regardées : livrer le livre</button>
+                  <span className="text-xs text-magique-texteClair">Pour en refaire une, ouvrez le livre et utilisez « Redessiner cette illustration ».</span>
+                </form>
+              </details>
+            );
+          })}
+        </section>
+      )}
 
       {parTrame.length > 0 && (
         <section className="carte space-y-2">

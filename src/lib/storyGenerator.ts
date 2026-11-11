@@ -30,6 +30,7 @@ import { controleActif, controlerIllustrations } from "./controleIllustrations";
 import { blocModeles, exemplesParIds, exemplesPour, type Exemple } from "./bibliotheque";
 import { PRIX_ESTIMES, noterDepense } from "./budget";
 import { BIBLE, GRILLE, SEUIL_ACCEPTATION, criteresPetits, reglesAge } from "./bible";
+import { CONSIGNE_COUVERTURE, estCarre } from "./bibleVisuelle";
 
 export type GenerateResult =
   | {
@@ -696,7 +697,8 @@ async function addIllustrations(
         `Book cover illustration for the story "${story.titre}": ${heroName} in an exciting, emblematic moment ` +
         `of this story (${pageCentrale?.scene_illustration ?? ""})` +
         (couvertureFiches.length ? `, together with ${couvertureFiches.map((c) => c.name).join(" and ")}` : "") +
-        ", rich setting, inviting composition, full body or medium shot, NOT a plain portrait",
+        ", rich setting, inviting composition, full body or medium shot, NOT a plain portrait" +
+        (estCarre(style) ? `. ${CONSIGNE_COUVERTURE}` : ""),
       // Sans fiche du héros (échec), la photo garde la ressemblance.
       referenceImage: ancre ? undefined : req.photo,
       anchorImage: ancre,

@@ -40,6 +40,15 @@ export type StyleConfig = typeof STYLE_CONFIG;
  * prompt (en anglais, pour une meilleure obéissance des modèles d'image) ajouté
  * devant la description de la scène. On garde un seul endroit pour les définir.
  */
+import {
+  CONSIGNE_STYLE,
+  DESSIN_ENFANT,
+  INTERDITS_IMAGE,
+  PERSONNAGES_FIXES,
+  ZONE_TEXTE,
+  consigneHeros,
+} from "./bibleVisuelle";
+
 export type IllustrationStyle =
   | "maison"
   | "feerique"
@@ -271,6 +280,24 @@ export function buildIllustrationPrompt(opts: {
   /** true : version dessin au trait pour le cahier de coloriage. */
   coloring?: boolean;
 }): string {
+  // Style de la maison : la « consigne type » de la bible visuelle.
+  if (opts.style === "maison" && !opts.coloring) {
+    return [
+      CONSIGNE_STYLE,
+      consigneHeros(opts.heroName, opts.appearance),
+      opts.recurringCharacters?.trim()
+        ? `CHARACTER SHEET (the hero always wears exactly this outfit; recurring characters drawn exactly as described, identical on every page): ${opts.recurringCharacters.trim()}`
+        : "",
+      PERSONNAGES_FIXES,
+      `SCENE: ${opts.scene}`,
+      ZONE_TEXTE,
+      DESSIN_ENFANT,
+      INTERDITS_IMAGE,
+      "Each character appears only once.",
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+  }
   const parts: string[] = [
     opts.coloring ? COLORING_PROMPT : ILLUSTRATION_STYLES[opts.style].prompt,
   ];

@@ -171,9 +171,9 @@ export default function BookReader({
           ) : index === 0 ? (
             <>
               {story.couvertureUrl && (
-                <div className="relative mb-6 w-full max-w-xl overflow-hidden rounded-2xl shadow-conte [container-type:inline-size]">
+                <div className={`relative mb-6 w-full overflow-hidden rounded-2xl shadow-conte [container-type:inline-size] ${story.style === "maison" ? "max-w-md" : "max-w-xl"}`}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={story.couvertureUrl} alt={`Couverture : ${story.titre}`} className="max-h-80 w-full object-cover" />
+                  <img src={story.couvertureUrl} alt={`Couverture : ${story.titre}`} className={story.style === "maison" ? "aspect-square w-full object-cover" : "max-h-80 w-full object-cover"} />
                 </div>
               )}
               <p className="font-serif text-lg italic text-or-fonce">Il était une fois…</p>
@@ -187,7 +187,9 @@ export default function BookReader({
                 <img
                   src={pageCourante.imageUrl}
                   alt={pageCourante.scene_illustration}
-                  className="mb-6 max-h-80 w-full max-w-2xl rounded-2xl object-cover shadow-conte"
+                  className={`mb-6 rounded-2xl shadow-conte ${
+                    story.style === "maison" ? "aspect-square w-full max-w-md object-cover" : "max-h-80 w-full max-w-2xl object-cover"
+                  }`}
                 />
               )}
               {(() => {

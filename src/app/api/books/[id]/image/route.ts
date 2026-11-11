@@ -12,6 +12,9 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { isPrivateBlobRef, readPrivateBlob } from "@/lib/blobStore";
 
+import { estAdmin } from "@/lib/rateLimit";
+import { EN_RELECTURE_IMAGES } from "@/lib/illustrationStatus";
+
 export const runtime = "nodejs";
 
 export async function GET(req: Request, props: { params: Promise<{ id: string }> }): Promise<Response> {
@@ -19,12 +22,14 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
   const user = await getCurrentUser();
   if (!user) return new NextResponse("Non connecté.", { status: 401 });
 
+  // L'administrateur voit les illustrations d'un livre en relecture d'images (atelier), rien d'autre.
+  const admin = estAdmin(user.email);
   const which = new URL(req.url).searchParams.get("i") ?? "";
   let rows: { url: string | null }[];
   if (which === "cover") {
     rows = await prisma.$queryRaw<{ url: string | null }[]>`
       SELECT pages->>'couvertureUrl' AS url FROM "Book"
-      WHERE id = ${params.id} AND "userId" = ${user.id} AND "deletedAt" IS NULL`;
+      WHERE id = ${params.id} AND ("userId" = ${user.id} OR (${admin} AND "errorMessage" = ${EN_RELECTURE_IMAGES})) AND "deletedAt" IS NULL`;
   } else {
     const index = Number.parseInt(which, 10);
     if (!Number.isInteger(index) || index < 0 || index > 50) {
@@ -32,7 +37,7 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
     }
     rows = await prisma.$queryRaw<{ url: string | null }[]>`
       SELECT pages->'pages'->(${index}::int)->>'imageUrl' AS url FROM "Book"
-      WHERE id = ${params.id} AND "userId" = ${user.id} AND "deletedAt" IS NULL`;
+      WHERE id = ${params.id} AND ("userId" = ${user.id} OR (${admin} AND "errorMessage" = ${EN_RELECTURE_IMAGES})) AND "deletedAt" IS NULL`;
   }
 
   const url = rows[0]?.url;

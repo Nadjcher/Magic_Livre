@@ -10,7 +10,7 @@ import { storySchema } from "@/lib/storySchema";
 import { findThemeById } from "@/lib/themes";
 import { ajouterExemple, basculerExemple, supprimerExemple } from "@/lib/bibliotheque";
 import { waitUntil } from "@vercel/functions";
-import { EN_RELECTURE } from "@/lib/illustrationStatus";
+import { EN_RELECTURE, EN_RELECTURE_IMAGES } from "@/lib/illustrationStatus";
 import { peutDebloquer } from "@/lib/apercu";
 import { lireFiche } from "@/lib/ficheEnfant";
 import { memoire, serieDe } from "@/lib/serie";
@@ -157,5 +157,19 @@ export async function livrerVersionAction(formData: FormData): Promise<void> {
   const pages = { ...r.story, qualite: r.story.qualite ? { ...r.story.qualite, aRevoir: false } : undefined };
   await prisma.book.update({ where: { id: bookId }, data: { status: "generating", errorMessage: null, pages } });
   waitUntil(lancerIllustrations({ bookId, req: r.req, portrait: null }));
+  revalidatePath("/admin/histoires");
+}
+
+/** Illustrations en relecture : vous avez regardé les pages signalées, le livre est livré tel quel. */
+export async function livrerIllustrationsAction(formData: FormData): Promise<void> {
+  if (!(await admin())) return;
+  const bookId = String(formData.get("bookId") ?? "");
+  const book = await prisma.book.findUnique({ where: { id: bookId }, select: { pages: true, errorMessage: true } });
+  const st = storySchema.safeParse(book?.pages);
+  if (!book || !st.success || book.errorMessage !== EN_RELECTURE_IMAGES) return;
+  const pages = { ...st.data, imagesARevoir: undefined };
+  await prisma.book.update({ where: { id: bookId }, data: { status: "ready", errorMessage: null, pages } });
+  const { notifierLivrePret } = await import("@/lib/notifications");
+  await notifierLivrePret(bookId).catch(() => undefined);
   revalidatePath("/admin/histoires");
 }

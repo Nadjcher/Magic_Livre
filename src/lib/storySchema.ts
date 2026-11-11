@@ -143,6 +143,8 @@ export const storySchema = z.object({
     })
     .optional()
     .catch(undefined),
+  // Illustrations restées fautives après une nouvelle tentative (-1 = couverture) : relecture humaine.
+  imagesARevoir: z.array(z.number().int()).optional().catch(undefined),
   // Aperçu gratuit : seules la couverture et les premières pages sont illustrées ;
   // le reste est dessiné à l'achat ou pour les membres du Club.
   apercu: z.boolean().optional(),

@@ -18,6 +18,7 @@ import { storySchema } from "./storySchema";
 import { PAGES_APERCU, illustrateStory, illustrerEpisode } from "./storyGenerator";
 import type { StoryRequest } from "./storyPrompt";
 import { alerterAdmin, notifierLivrePret } from "./notifications";
+import { EN_RELECTURE_IMAGES } from "./illustrationStatus";
 
 export interface EtapeIllustration {
   bookId: string;
@@ -69,6 +70,21 @@ export async function illustrerLivre({ bookId, req, portrait }: EtapeIllustratio
     const { story, imageReport } = episode
       ? await illustrerEpisode(parsed.data, req)
       : await illustrateStory(parsed.data, req, portrait);
+    // Une illustration fautive deux fois (bible visuelle) : le livre n'est pas livré incomplet, il attend la relecture.
+    if (story.imagesARevoir?.length) {
+      await prisma.book.update({
+        where: { id: bookId },
+        data: { status: "draft", title: story.titre, pages: story, errorMessage: EN_RELECTURE_IMAGES },
+      });
+      const { reserver } = await import("./idempotence");
+      const { notifierRelecture } = await import("./notifications");
+      if (await reserver(`relecture-email:${bookId}`)) await notifierRelecture(bookId).catch(() => undefined);
+      await alerterAdmin(
+        "des illustrations attendent votre relecture (sous 24 h)",
+        `Livre ${bookId} : ${story.imagesARevoir.length} image(s) refusée(s) deux fois par la relectrice d'images. Atelier : ${getAppUrl()}/admin/histoires`,
+      );
+      return;
+    }
     await prisma.book.update({
       where: { id: bookId },
       data: { status: "ready", title: story.titre, pages: story, errorMessage: imageReport ?? null },

@@ -138,7 +138,15 @@ export function buildPrintDocument(story: Story, prenom: string, images: ImagesI
     interieures.push(
       <Page key={`i${i}`} size={[PAGE_L, PAGE_H]} style={{ backgroundColor: NUIT }}>
         {images.pages[i] ? (
-          <Image src={images.pages[i] as string} style={plein} />
+          story.style === "maison" ? (
+            // Page carrée : image entière, sur toute la hauteur, au centre d'une page bleu nuit.
+            <Image
+              src={images.pages[i] as string}
+              style={{ position: "absolute", top: 0, left: (PAGE_L - PAGE_H) / 2, width: PAGE_H, height: PAGE_H, objectFit: "cover" }}
+            />
+          ) : (
+            <Image src={images.pages[i] as string} style={plein} />
+          )
         ) : (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: MARGE }}>
             <Text style={{ fontFamily: f.italique, fontSize: 14, color: "#C9D2F5", textAlign: "center" }}>✦ {pdfText(p.scene_illustration)}</Text>
