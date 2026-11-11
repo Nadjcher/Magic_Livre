@@ -13,6 +13,7 @@ export async function POST(req: Request): Promise<Response> {
   const b = (await req.json()) as { etape: "ecrire" | "relire"; req: StoryRequest; story?: Story };
   const t = Date.now();
   const avant = await depenseDuJour();
+  if (b.etape === "relire" && !b.story) return NextResponse.json({ erreur: "histoire manquante" }, { status: 400 });
   if (b.etape === "relire" && b.story) {
     const relue = await relireHistoire(b.story, b.req);
     const apres = await depenseDuJour();

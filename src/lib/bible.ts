@@ -44,8 +44,8 @@ Les clichés interdits :
 /** Règles de longueur par âge (bible). */
 export function reglesAge(age: number): string {
   if (age <= 3) return "1 à 3 ans : 80 à 150 mots pour TOUTE l'histoire, phrases de 4 à 8 mots ; rimes, répétitions, onomatopées ; aucun danger.";
-  if (age <= 7) return "4 à 7 ans : 40 à 60 mots par page (400 à 600 mots en tout), phrases de 8 à 12 mots ; ritournelle, dialogues, une petite peur résolue.";
-  return "8 à 12 ans : 80 à 140 mots par page (900 à 1 400 mots en tout ou par chapitre), longueurs de phrases variées ; humour, vrai enjeu, fin de chapitre ouverte.";
+  if (age <= 7) return "4 à 7 ans : 40 à 60 mots par page, jamais plus de 60 (soit 400 à 600 mots pour toute l'histoire), phrases de 8 à 12 mots ; ritournelle, dialogues, une petite peur résolue.";
+  return "8 à 12 ans : 80 à 140 mots par page, jamais plus de 140 (soit 900 à 1 400 mots pour TOUTE l'histoire, toutes pages confondues), longueurs de phrases variées ; humour, vrai enjeu, fin de chapitre ouverte.";
 }
 
 /** Le plan d'histoire en neuf cases (rempli par l'autrice avant d'écrire). */
