@@ -185,10 +185,11 @@ ${GRILLE}
 ÉTAPES
 1. Vérifie d'abord les motifs éliminatoires.
 2. Note chaque critère de 1 à 5 et justifie en une phrase qui cite le passage concerné.
-3. En cas de refus, donne au plus 5 corrections précises, par page.
+3. Donne au plus 5 corrections, par page : le PROBLÈME, précis, et une DIRECTION (« une image plus familière pour un enfant de 5 ans », « couper en deux phrases »). Ne propose JAMAIS de phrase réécrite : tu signales, l'autrice réécrit.
+Les longueurs (mots par page, mots en tout) sont comptées par le code et te sont données : utilise ces chiffres, ne recompte pas.
 
 Réponds uniquement en JSON :
-{"eliminatoire": null, "notes": {"voix_haute": 0, "ritournelle": 0, "structure": 0, "enfant_agit": 0, "personnalisation": 0, "feerique": 0, "age": 0, "fin": 0}, "justifications": {"voix_haute": "phrase qui cite le passage", "ritournelle": "…", "structure": "…", "enfant_agit": "…", "personnalisation": "…", "feerique": "…", "age": "…", "fin": "…"}, "total": 0, "verdict": "accepte | reecrire", "corrections": [{"page": 3, "probleme": "…", "piste": "…"}]}
+{"eliminatoire": null, "notes": {"voix_haute": 0, "ritournelle": 0, "structure": 0, "enfant_agit": 0, "personnalisation": 0, "feerique": 0, "age": 0, "fin": 0}, "justifications": {"voix_haute": "phrase qui cite le passage", "ritournelle": "…", "structure": "…", "enfant_agit": "…", "personnalisation": "…", "feerique": "…", "age": "…", "fin": "…"}, "total": 0, "verdict": "accepte | reecrire", "corrections": [{"page": 3, "probleme": "…", "piste": "direction, jamais une phrase toute faite"}]}
 (Pour les 1 à 3 ans et les comptines, ajoute "rimes" et "chute_comprise" dans "notes" ET dans "justifications".)
 ("eliminatoire" : null, ou le motif éliminatoire constaté, en une phrase.)`;
 
@@ -197,6 +198,7 @@ const REECRITURE_SYSTEM = `Tu es auteur jeunesse pour Encore une histoire. Ton �
 
 ${BIBLE}
 
+Les corrections de l'éditeur signalent des problèmes et donnent une direction : ne recopie jamais une formulation qu'il propose, trouve la tienne, plus vivante et plus juste.
 Corrige l'histoire selon les corrections reçues, en NE MODIFIANT QUE LES PAGES CITÉES (et le titre seulement si une correction le demande). Garde le même héros, la même intrigue, les mêmes personnages, la même ritournelle mot pour mot.
 Réponds UNIQUEMENT avec ce JSON, qui ne contient QUE les pages réécrites :
 {"titre": "seulement si tu le changes, sinon omets ce champ", "pages": [{"page": 3, "texte": "nouveau texte de la page 3", "scene_illustration": "en anglais, seulement si la scène change, sinon omets ce champ"}]}`;
@@ -227,9 +229,11 @@ async function relireEtAmeliorer(
   const juger = async (s: Story): Promise<Verdict | null> => {
     if (Date.now() - debut > 200_000) return null;
     const histoire = JSON.stringify({ titre: s.titre, pages: s.pages.map((p, i) => ({ page: i + 1, texte: p.texte })) });
+    const mots = s.pages.map((p) => p.texte.split(/\s+/).filter(Boolean).length);
     const message = [
       `Âge de l'enfant : ${req.childAge} ans. Prénom : ${req.childFirstName}.`,
       `Règles de longueur : ${reglesAge(req.childAge)}`,
+      `COMPTAGE (fait par le code, fiable) : ${mots.reduce((a, b) => a + b, 0)} mots en tout ; par page : ${mots.map((n, i) => `p. ${i + 1} : ${n}`).join(", ")}.`,
       "",
       `PLAN\n${JSON.stringify(s.plan ?? {})}`,
       "",
