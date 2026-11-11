@@ -214,6 +214,8 @@ export interface StoryRequest {
   photo?: { base64: string; mime: string };
   /** Trame imposée (collections : « Les contes de papa et maman »…), sinon choisie par le RAG. */
   trameId?: string;
+  /** Qui lit le conte (« Papa », « Maman », « Mamie »…) : collection des contes. */
+  parent?: string;
   /** Identifiant de l'enfant (rotation des extraits du RAG). */
   childId?: string;
   /** Fiche de l'enfant renseignée par le parent (mémoire). */

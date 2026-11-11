@@ -26,6 +26,9 @@ export interface ExempleDepart {
   texte: string;
 }
 
+/** Modèles de départ retirés (désactivés en base au démarrage). */
+export const DEPART_RETIRES = ["trame-conte-petit-poucet"];
+
 export const BIBLIOTHEQUE_DEPART: ExempleDepart[] = [
   // ─── 1 à 3 ans ───
   {
@@ -412,25 +415,48 @@ La carte menait ensuite au petit bassin. Tout au fond, sous la mousse, brillait 
 Maé s'assit au bord du bassin et regarda la carte de plus près. Puis elle éclata de rire. Elle la tenait à l'envers ! La croix n'était pas dans le jardin. Elle était dans sa chambre, juste sous son lit. « Tout ce chemin pour rien ? » soupira Caramel.`,
   },
   {
-    cle: "trame-conte-petit-poucet",
+    cle: "trame-conte-petit-poucet-v2",
     type: "trame",
-    titre: "Les contes de papa et maman : le Petit Poucet",
+    titre: "Le Petit Poucet · collection « Les contes de papa et maman »",
     ageMin: 4,
-    ageMax: 9,
-    tons: ["feerique", "aventure", "tendre"],
+    ageMax: 7,
+    tons: ["feerique", "tendre", "aventure"],
     formats: [],
     themes: ["petit-poucet", "classiques"],
-    texte: `Plan déjà rempli (d'après Perrault, domaine public ; jamais d'enfants abandonnés ni d'ogre qui mange : la peur reste à hauteur d'enfant). L'enfant ENTRE dans le conte que son parent aimait petit, et il AIDE le Petit Poucet ; il ne prend pas sa place.
-Ritournelle : « Petit caillou blanc, montre-nous le chemin. » Émotion de départ : curieux, un peu inquiet. Émotion d'arrivée : fier et apaisé.
-1. Le moment ordinaire : le soir, un parent lit à l'enfant le vieux livre de contes qu'il avait petit ; l'objet de l'enfant (son doudou ou sa lampe de poche) est sur l'oreiller.
-2. Le petit problème : à la page de la forêt, les cailloux blancs ont disparu du dessin ; le Petit Poucet et ses frères ne retrouveront jamais la maison.
-3. L'appel : un petit caillou blanc luit sous l'oreiller ; l'enfant le touche et se retrouve au bord de la forêt du livre.
-4. La rencontre : le Petit Poucet, pas plus haut qu'une botte, malin mais trop fier pour demander de l'aide (il veut tout faire seul) ; ses frères ont faim et froid.
-5. Premier essai : les miettes de pain semées sur le chemin ; les oiseaux les mangent toutes. La ritournelle revient.
-6. Deuxième essai : il ne reste que trois cailloux ; ils mènent jusqu'à une clairière… puis plus rien. La ritournelle revient.
-7. Troisième essai : l'idée vient de l'enfant et de son objet (la lampe de poche fait briller les cailloux restants, ou le doudou sert d'appât pour que les oiseaux rendent les miettes) ; Poucet accepte enfin l'aide.
-8. La résolution : la grande maison du géant est sur le chemin ; le géant ronfle, ses bottes de sept lieues sont au pied du lit ; l'enfant lui en demande poliment le prêt (un malentendu, pas un méchant : le géant grognon accepte, contre une berceuse) et les frères rentrent chez eux en sept pas.
-9. Le retour au lit : le livre se referme ; dans la poche du pyjama, un caillou blanc ; sur la page de garde, la dédicace du parent (« C'est l'histoire que Mamie me lisait »). Accroche : à la page suivante du livre, un chat en bottes semble faire un clin d'œil.`,
+    texte: `TRAME IMPOSÉE : suis-la case par case, sans ajouter d'autre péripétie. UNE seule idée : {prenom} répare le conte, et sa trace reste dans le livre de {parent}.
+
+Champs
+- Ritournelle : « Petit caillou blanc, montre-nous le chemin. »
+- Objet clé : {objet_enfant}, et un crayon blanc pris sur la table de nuit.
+- Compagnon : le Petit Poucet, malin mais trop fier pour demander de l'aide.
+- Émotion de départ : inquiet(e) pour Poucet. Émotion d'arrivée : fier(e).
+- Accroche de suite : à la page suivante du livre, une botte dépasse d'un buisson.
+
+Les neuf cases
+1. Le soir ordinaire. {parent} ouvre le vieux livre de contes de son enfance. {prenom} est au lit avec {objet_enfant}.
+2. Le petit problème. À la page de la forêt, les cailloux blancs ont disparu du dessin. Sans eux, Poucet et ses frères ne rentreront pas.
+3. L'appel. {parent} sort un instant. Un seul caillou blanc luit sur la page. {prenom} le touche, le crayon blanc à la main, et entre dans la forêt dessinée.
+4. La rencontre. Poucet, haut comme une botte, cherche ses cailloux partout. Ils se sont effacés, il ne sait pas pourquoi. Il refuse l'aide : « Je trouve toujours le chemin. » Au loin, un ronflement énorme : le géant dort. Le bord de la page s'assombrit.
+5. Premier essai, raté. Poucet sème des miettes de pain. Les oiseaux mangent tout. La ritournelle, dite par Poucet. La page s'assombrit encore.
+6. Deuxième essai, presque. {prenom} pose son unique caillou par terre. Il brille, mais un seul caillou ne fait pas un chemin. La ritournelle, dite par {prenom}. Le ronflement s'arrête un instant, puis reprend.
+7. Troisième essai, l'idée de l'enfant. {prenom} regarde son crayon blanc, puis le sol de papier. Il/elle dessine un caillou. Il devient vrai. Poucet demande enfin : « Tu m'en dessines un autre ? » {prenom} dessine, Poucet montre où aller. La ritournelle, dite à deux.
+8. La résolution. Le chemin de cailloux tordus mène à la maison de Poucet, fenêtre allumée. Les frères courent. Poucet garde un caillou dessiné dans sa poche. La page redevient claire.
+9. Le retour au lit. {prenom} est dans son lit. {parent} revient et regarde la page : les cailloux sont là, un peu tordus. « Ils sont encore plus beaux qu'avant. » Dernière image : la botte qui dépasse du buisson, page suivante.
+
+Consignes propres à cette trame
+- Le géant n'apparaît jamais. On entend seulement son ronflement.
+- Aucun abandon par les parents : les frères se sont perdus en ramassant du bois.
+- L'idée des cailloux reste celle de Poucet. {prenom} répare le chemin, il/elle n'invente pas le conte.
+- La magie a une seule règle : ce qu'on dessine au crayon blanc dans le livre devient vrai. Rien d'autre n'apparaît tout seul.
+- Aucune phrase de morale. Poucet ne dit pas ce qu'il a appris, il demande de l'aide, c'est tout.
+- {parent} ne dit pas qu'il comprend ce qui s'est passé.
+- 450 à 550 mots, 10 pages.
+
+Images (champ scene_illustration, pour les 4 illustrations)
+1. Couverture : l'enfant et Poucet de dos, un chemin de cailloux blancs dans une forêt au crayon.
+2. Case 3 : la main de l'enfant touche le caillou qui luit sur la page ouverte.
+3. Case 7 : l'enfant accroupi(e) dessine un caillou au sol, Poucet penché à côté.
+4. Case 9 : le livre ouvert sur le lit, les cailloux tordus sur la page, la main du parent.`,
   },
   // ─── Trames (structures) ───
   {

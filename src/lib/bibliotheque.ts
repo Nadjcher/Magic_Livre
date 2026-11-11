@@ -12,7 +12,7 @@
 import "server-only";
 import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
-import { BIBLIOTHEQUE_DEPART, type Ton, type TypeExemple } from "./bibliothequeDepart";
+import { BIBLIOTHEQUE_DEPART, DEPART_RETIRES, type Ton, type TypeExemple } from "./bibliothequeDepart";
 import { findThemeById } from "./themes";
 
 export interface Exemple {
@@ -54,6 +54,9 @@ function assurerTable(): Promise<void> {
         INSERT INTO "Exemple" (id, type, titre, "ageMin", "ageMax", tons, formats, themes, texte, source)
         VALUES (${`depart:${e.cle}`}, ${e.type}, ${e.titre}, ${e.ageMin}, ${e.ageMax}, ${e.tons}, ${e.formats}, ${e.themes}, ${e.texte}, 'depart')
         ON CONFLICT (id) DO NOTHING`;
+    }
+    for (const cle of DEPART_RETIRES) {
+      await prisma.$executeRaw`UPDATE "Exemple" SET actif = FALSE WHERE id = ${`depart:${cle}`}`;
     }
   })().catch((e) => {
     tablePrete = null;
@@ -127,14 +130,31 @@ export async function exemplesPour(demande: {
   }
 }
 
+/** Remplit les variables d'une trame écrite à la main ({prenom}, {parent}, {objet_enfant}). */
+export function remplirTrame(texte: string, v: { prenom?: string; parent?: string; objet?: string }): string {
+  return texte
+    .replaceAll("{prenom}", v.prenom ?? "l'enfant")
+    .replaceAll("{parent}", v.parent ?? "Papa")
+    .replaceAll("{objet_enfant}", v.objet ?? "son doudou");
+}
+
 /** Bloc de consignes à ajouter à la demande d'écriture. */
-export function blocModeles({ extraits, trame }: { extraits: Exemple[]; trame: Exemple | null }): string {
+export function blocModeles(
+  { extraits, trame }: { extraits: Exemple[]; trame: Exemple | null },
+  variables: { prenom?: string; parent?: string; objet?: string } = {},
+): string {
   if (!extraits.length && !trame) return "";
   const lignes = [
     "MODÈLES DE TON (extraits d'albums de notre maison d'édition). Inspire-toi de leur VOIX : rythme, phrases courtes et concrètes, humour, dialogues. NE COPIE NI leurs phrases, NI leurs personnages, NI leurs idées : ton histoire est entièrement nouvelle.",
   ];
   extraits.forEach((e, i) => lignes.push(`--- Modèle ${i + 1} : « ${e.titre} » ---\n${e.texte}`));
-  if (trame) lignes.push(`STRUCTURE CONSEILLÉE (adapte-la librement au thème) — ${trame.titre} : ${trame.texte}`);
+  if (trame) {
+    lignes.push(
+      trame.texte.startsWith("TRAME IMPOSÉE")
+        ? `${trame.titre}\n${remplirTrame(trame.texte, variables)}`
+        : `STRUCTURE CONSEILLÉE (adapte-la librement au thème) — ${trame.titre} : ${remplirTrame(trame.texte, variables)}`,
+    );
+  }
   return lignes.join("\n\n");
 }
 

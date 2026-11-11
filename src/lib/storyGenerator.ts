@@ -360,7 +360,10 @@ export async function relireHistoire(story: Story, req: StoryRequest): Promise<S
   const model = req.premium ? env.groqModelPremium() : env.groqModel();
   const ids = story.meta?.modeles ?? [];
   const tous = ids.length ? await exemplesParIds(ids) : [];
-  const extraits = blocModeles({ extraits: tous.filter((e) => e.type === "extrait"), trame: tous.find((e) => e.type === "trame") ?? null });
+  const extraits = blocModeles(
+    { extraits: tous.filter((e) => e.type === "extrait"), trame: tous.find((e) => e.type === "trame") ?? null },
+    { prenom: req.childFirstName, parent: req.parent, objet: req.fiche?.objet },
+  );
   return relireEtAmeliorer(client, model, story, req, Date.now(), extraits);
 }
 
@@ -450,7 +453,7 @@ export async function generateStory(
     const [imposee] = await exemplesParIds([req.trameId]);
     if (imposee) modeles.trame = imposee;
   }
-  let userMessage = buildUserMessage(req, blocModeles(modeles));
+  let userMessage = buildUserMessage(req, blocModeles(modeles, { prenom: req.childFirstName, parent: req.parent, objet: req.fiche?.objet }));
   const usees = await comparaisonsUsees(req.childId);
   if (usees.length) {
     userMessage += `\n\nComparaisons déjà utilisées dans les histoires précédentes de cet enfant (n'en reprends AUCUNE) : ${usees.map((c) => `« ${c} »`).join(", ")}.`;
