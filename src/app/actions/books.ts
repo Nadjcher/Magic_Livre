@@ -15,6 +15,8 @@ import { revalidatePath } from "next/cache";
 import sharp from "sharp";
 import { plafondGratuitAtteint, noterLivreGratuit } from "@/lib/apercu";
 import { lireFiche } from "@/lib/ficheEnfant";
+import { lirePhoto } from "@/lib/photo";
+import { herosValide, lireHeros, lireHerosParId, refHeros, validerHeros } from "@/lib/heros";
 import { waitUntil } from "@vercel/functions";
 import { getCurrentUser, hasParentalConsent } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
@@ -45,23 +47,6 @@ type Photo = { base64: string; mime: string };
  * 1 024 px et on supprime TOUTES ses métadonnées (EXIF : position GPS, date,
  * appareil). La photo n'est jamais enregistrée.
  */
-async function lirePhoto(v: FormDataEntryValue | null): Promise<Photo | undefined> {
-  if (typeof v !== "string") return undefined;
-  const m = /^data:(image\/(?:png|jpeg|jpg|webp));base64,(.+)$/i.exec(v);
-  if (!m) return undefined;
-  const data = m[2] ?? "";
-  if (data.length === 0 || data.length > 4_000_000) return undefined;
-  try {
-    const propre = await sharp(Buffer.from(data, "base64"), { limitInputPixels: 40_000_000 })
-      .rotate()
-      .resize({ width: 1024, height: 1024, fit: "inside", withoutEnlargement: true })
-      .jpeg({ quality: 88 })
-      .toBuffer();
-    return { base64: propre.toString("base64"), mime: "image/jpeg" };
-  } catch {
-    return undefined; // pas une image valide
-  }
-}
 
 type ExtraInput = { name: string; role: string; appearance?: string; photo?: Photo };
 
@@ -166,6 +151,27 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
   if (!stylesPourAge(child.age).includes(input.style as IllustrationStyle)) {
     return { ok: false, message: "Ce style de dessin n'est pas proposé pour cet âge. Choisissez-en un autre." };
   }
+  // Héros validé par le parent (« Est-ce bien votre enfant ? »), ou déjà validé
+  // pour cet enfant et ce style : les pages sont dessinées avec lui, sans photo.
+  let herosRetenu: { id: string; traits: string } | null = null;
+  const herosId = String(formData.get("herosId") ?? "");
+  if (herosId) {
+    const h = await lireHeros(herosId, user.id);
+    if (h && h.style === input.style) {
+      const traits = String(formData.get("herosTraits") ?? h.traits).replace(/\s+/g, " ").trim().slice(0, 240);
+      if (traits) {
+        const check = checkUserText(traits);
+        if (!check.ok) return { ok: false, message: check.message };
+      }
+      await validerHeros(h.id, user.id, child.id, traits);
+      herosRetenu = { id: h.id, traits };
+    }
+  }
+  if (!herosRetenu && !photoRef) {
+    const h = await herosValide(child.id, input.style);
+    if (h) herosRetenu = { id: h.id, traits: h.traits };
+  }
+
 
   // Le type de livre doit convenir à l'âge de l'enfant.
   if (!formatsPourAge(child.age).some((f) => f.id === input.format)) {
@@ -250,7 +256,8 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
       longueur: input.longueur as LongueurKey,
       style: input.style as IllustrationStyle,
       appearance,
-      photo: photoRef,
+      photo: herosRetenu ? undefined : photoRef,
+      herosId: herosRetenu?.id,
       premium,
       apercu,
       format: input.format,
@@ -290,7 +297,10 @@ function sujetPhoto(role: string): string {
  */
 async function genererEtEnregistrer(bookId: string, req: GenerationInput): Promise<void> {
   try {
-    let appearance = req.appearance;
+    // Héros validé : son portrait sert d'ancre à toutes les pages, ses traits sont imposés.
+    const heros = req.herosId ? await lireHerosParId(req.herosId) : null;
+    const portraitHeros = heros ? await refHeros(heros) : null;
+    let appearance = heros?.traits || req.appearance;
     // Photo sans description : on décrit le visage (vision) pour renforcer la
     // ressemblance. Best-effort. La photo n'est jamais stockée.
     if (req.photo && appearance.length === 0) {
@@ -326,7 +336,7 @@ async function genererEtEnregistrer(bookId: string, req: GenerationInput): Promi
     // Étape 2 : livraison (illustrations dans une nouvelle exécution), ou nouvelle
     // génération / relecture humaine si la relecture a trouvé un motif éliminatoire.
     await lancerRelecture(
-      { bookId, req: { ...reqGeneration, extras: reqGeneration.extras }, portrait: result.portrait ?? null, tentative: 1 },
+      { bookId, req: { ...reqGeneration, extras: reqGeneration.extras }, portrait: portraitHeros ?? result.portrait ?? null, tentative: 1 },
       result.story,
     );
   } catch (e) {

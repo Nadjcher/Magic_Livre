@@ -13,12 +13,14 @@
 import Picto from "@/components/Picto";
 import { couvertureTheme } from "@/lib/couverturesThemes";
 import CouvertureLivre from "@/components/CouvertureLivre";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import { flushSync } from "react-dom";
 import { findFormat, formatParDefaut, formatsPourAge } from "@/lib/bookFormats";
 import { ROLES_EXTRAS } from "@/lib/validation";
 import { groupePourAge } from "@/lib/ageGroups";
 import { useRouter } from "next/navigation";
 import { createBook } from "@/app/actions/books";
+import { preparerHeros, type PortraitResultat } from "@/app/actions/heros";
 import { THEMES, THEME_CATEGORIES, estClassique, findThemeById, type ThemeCategory } from "@/lib/themes";
 import type { ChildView } from "./ChildrenManager";
 import { ILLUSTRATION_STYLES, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
@@ -136,6 +138,37 @@ export default function CreateBookForm({
   const [erreur, setErreur] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  // ─── « Est-ce bien votre enfant ? » : le portrait du héros, validé avant les pages ───
+  const formRef = useRef<HTMLFormElement>(null);
+  const herosAccepte = useRef<{ cle: string; id: string; traits: string } | null>(null);
+  const [accepte, setAccepte] = useState<{ cle: string; id: string; traits: string } | null>(null);
+  const [heros, setHeros] = useState<(Extract<PortraitResultat, { ok: true }> & { cle: string }) | null>(null);
+  const [herosTraits, setHerosTraits] = useState("");
+  const [herosMessage, setHerosMessage] = useState<string | null>(null);
+  const [herosEnCours, demarrerHeros] = useTransition();
+  const cleHeros = `${photo.length}:${photo.slice(-24)}:${styleAffiche}:${childId}`;
+
+  function demanderPortrait(formData: FormData, precedent?: string) {
+    setHerosMessage(null);
+    demarrerHeros(async () => {
+      const fd = new FormData();
+      fd.set("photo", photo);
+      fd.set("style", String(formData.get("style") ?? styleAffiche));
+      fd.set("childId", childId);
+      if (precedent) {
+        fd.set("herosId", precedent);
+        fd.set("traits", herosTraits);
+      }
+      const r = await preparerHeros(fd);
+      if (r.ok) {
+        setHeros({ ...r, cle: cleHeros });
+        setHerosTraits(r.traits);
+      } else {
+        setHerosMessage(r.message);
+      }
+    });
+  }
+
   function choisirTheme(id: string) {
     setThemeId(id);
     const t = findThemeById(id);
@@ -158,8 +191,15 @@ export default function CreateBookForm({
 
   return (
     <form
+      ref={formRef}
       className="space-y-6 pb-24 sm:pb-0"
-      action={(formData) =>
+      action={(formData) => {
+        // Avec une photo : d'abord le portrait, validé par le parent, puis le livre.
+        if (photo && herosAccepte.current?.cle !== cleHeros) {
+          if (heros?.cle === cleHeros) return; // le portrait attend la réponse du parent
+          demanderPortrait(formData);
+          return;
+        }
         startTransition(async () => {
           setErreur(null);
           const res = await createBook(formData);
@@ -168,9 +208,86 @@ export default function CreateBookForm({
           } else {
             setErreur(res.message);
           }
-        })
-      }
+        });
+      }}
     >
+      {accepte?.cle === cleHeros && (
+        <>
+          <input type="hidden" name="herosId" value={accepte.id} />
+          <input type="hidden" name="herosTraits" value={accepte.traits} />
+        </>
+      )}
+      {(herosEnCours || herosMessage || (heros && heros.cle === cleHeros && accepte?.cle !== cleHeros)) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b1236]/80 p-4" role="dialog" aria-modal="true" aria-label="Le portrait du héros">
+          <div className="carte max-h-[92vh] w-full max-w-md space-y-4 overflow-y-auto">
+            {herosEnCours ? (
+              <p className="py-10 text-center">Nous dessinons le portrait de {prenom || "votre enfant"}… (environ 30 secondes)</p>
+            ) : herosMessage ? (
+              <>
+                <p>{herosMessage}</p>
+                <div className="flex flex-wrap gap-3">
+                  <button type="button" className="btn-secondaire" onClick={() => setHerosMessage(null)}>
+                    Changer de photo
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primaire"
+                    onClick={() => {
+                      setHerosMessage(null);
+                      setAppearance((a) => a || heros?.traits || "");
+                      flushSync(() => setPhoto(""));
+                      formRef.current?.requestSubmit();
+                    }}
+                  >
+                    Continuer avec une description
+                  </button>
+                </div>
+              </>
+            ) : heros ? (
+              <>
+                <h2 className="font-serif text-2xl">Est-ce bien {prenom || "votre enfant"} ?</h2>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={heros.image} alt={`Portrait dessiné de ${prenom || "votre enfant"}`} className="w-full rounded-2xl shadow-conte" />
+                {heros.lumiere === "chaude" && (
+                  <p className="rounded-xl bg-or/15 p-3 text-sm">
+                    La photo semble prise en lumière dorée (coucher de soleil, filtre) : les couleurs peuvent être faussées.
+                    Vérifiez surtout la couleur des cheveux ci-dessous, ou choisissez une photo en plein jour.
+                  </p>
+                )}
+                <label className="block text-sm">
+                  <span className="font-semibold">Ses traits (corrigez si besoin : ils seront respectés sur chaque page)</span>
+                  <textarea value={herosTraits} onChange={(e) => setHerosTraits(e.target.value)} rows={3} maxLength={240} className="champ mt-1" />
+                </label>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    className="btn-primaire"
+                    onClick={() => {
+                      const choix = { cle: cleHeros, id: heros.herosId, traits: herosTraits };
+                      herosAccepte.current = choix;
+                      flushSync(() => setAccepte(choix));
+                      formRef.current?.requestSubmit();
+                    }}
+                  >
+                    Oui, c'est {prenom || "lui / elle"} !
+                  </button>
+                  {heros.essais < 2 && (
+                    <button type="button" className="btn-secondaire" onClick={() => formRef.current && demanderPortrait(new FormData(formRef.current), heros.herosId)}>
+                      Refaire une fois
+                    </button>
+                  )}
+                  <button type="button" className="text-sm underline" onClick={() => setHeros(null)}>
+                    Annuler
+                  </button>
+                </div>
+                <p className="text-xs text-magique-texteClair">
+                  Ce portrait sera son héros dans tous ses livres de ce style. La photo n'est pas conservée.
+                </p>
+              </>
+            ) : null}
+          </div>
+        </div>
+      )}
       {/* Progression */}
       <ol className="flex items-center gap-2 text-sm" aria-label="Étapes">
         {ETAPES.map((nom, k) => (
@@ -255,7 +372,8 @@ export default function CreateBookForm({
           <div>
             <h2 className="font-serif text-2xl">Sa photo, pour qu'il lui ressemble</h2>
             <p className="mt-1 text-sm text-magique-texteClair">
-              Conseillé : un visage bien éclairé, de face. La photo sert seulement à dessiner le héros et n'est{" "}
+              Conseillé : de face, en lumière du jour, sans filtre (un coucher de soleil change la couleur des cheveux).
+              Vous validerez son portrait avant le livre. La photo sert seulement à dessiner le héros et n'est{" "}
               <strong>jamais conservée</strong>.
             </p>
           </div>

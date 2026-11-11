@@ -429,6 +429,7 @@ Champs
 - Ritournelle : « Petit caillou blanc, montre-nous le chemin. »
 - Objet clé : {objet_enfant}, et un crayon blanc pris sur la table de nuit.
 - Compagnon : le Petit Poucet, malin mais trop fier pour demander de l'aide.
+- Fiche visuelle FIXE de Poucet (à reprendre telle quelle dans "cast", identique dans tous les livres) : « POUCET: a tiny boy only 20 cm tall, the size of a toy figurine, straight BLACK hair, a red knitted bonnet, a brown wool jacket, patched trousers, little wooden clogs — never curly, never blond, never looking like the hero ».
 - Émotion de départ : inquiet(e) pour Poucet. Émotion d'arrivée : fier(e).
 - Accroche de suite : à la page suivante du livre, une botte dépasse d'un buisson.
 

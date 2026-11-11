@@ -19,6 +19,7 @@ import { migrateBookImagesToBlob } from "./bookImages";
 export const DUREES_CONSERVATION: { donnee: string; duree: string }[] = [
   { donnee: "Photo de l'enfant", duree: "Jamais conservée : utilisée le temps de dessiner le héros, puis oubliée." },
   { donnee: "Compte, enfants (prénom, âge) et livres", duree: "Tant que le compte est utilisé. Après 2 ans sans connexion, le compte est supprimé (un email vous prévient 30 jours avant)." },
+  { donnee: "Portrait dessiné du héros (d'après la photo) et ses traits", duree: "Tant que l'enfant est dans votre compte ; effacé avec lui ou avec le compte. La photo elle-même n'est jamais conservée." },
   { donnee: "Fiche de l'enfant pour les histoires (doudou, goûts, proches)", duree: "Tant que l'enfant est dans votre compte ; effacée avec lui, avec le compte, ou dès que vous videz la fiche." },
   { donnee: "Histoire relue par notre équipe (prénoms masqués)", duree: "30 jours dans la file de relecture, puis elle n'y apparaît plus." },
   { donnee: "Livre que vous supprimez", duree: "Effacé définitivement sous 30 jours, avec ses illustrations." },
@@ -93,8 +94,10 @@ export async function supprimerImages(livres: { pages: unknown }[]): Promise<num
 /** Supprime un compte et toutes ses données, images comprises. */
 export async function supprimerCompte(userId: string): Promise<void> {
   const livres = await prisma.book.findMany({ where: { userId }, select: { pages: true } });
+  // Portraits dessinés des héros (supprimés avec le compte, images comprises).
+  const heros = await prisma.$queryRaw<{ portrait: string }[]>`SELECT portrait FROM "Heros" WHERE "userId" = ${userId}`.catch(() => []);
   await prisma.user.delete({ where: { id: userId } });
-  await supprimerImages(livres);
+  await supprimerImages([...livres, ...heros.map((h) => ({ pages: h.portrait }))]);
 }
 
 /* ─── Purge quotidienne ─── */

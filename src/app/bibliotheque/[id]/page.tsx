@@ -173,8 +173,9 @@ export default async function LivrePage(
             {imagesManquantes > 1 ? "s" : ""}
           </h2>
           <p className="text-sm text-magique-texteClair">
-            Le service de dessin n'a pas répondu pendant la création. L'histoire est
-            conservée : seules les images absentes seront dessinées, dans le même style.
+            {/content_policy|flagged|checker/i.test(book.errorMessage ?? "")
+              ? "Le filtre de sécurité automatique du service de dessin a refusé une ou plusieurs scènes. L'histoire est conservée : en relançant, nous reformulons la scène avec des mots plus doux."
+              : "Le service de dessin n'a pas répondu pendant la création. L'histoire est conservée : seules les images absentes seront dessinées, dans le même style."}
           </p>
           <CompleteIllustrationsButton bookId={book.id} />
         </div>

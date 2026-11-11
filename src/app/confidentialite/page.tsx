@@ -29,7 +29,9 @@ export default function ConfidentialitePage() {
         historique des livres et des commandes. Si vous le souhaitez, la fiche de
         l'enfant pour les histoires (son doudou, ce qu'il aime, ce qui lui fait peur,
         les proches à citer), facultative et modifiable ou effaçable à tout moment.
-        La photo éventuelle sert seulement à dessiner le héros et n'est jamais conservée.
+        La photo éventuelle sert seulement à dessiner le portrait du héros, que vous
+        validez ; la photo n'est jamais conservée, seuls le portrait dessiné et la liste
+        de ses traits le sont, pour ses livres suivants.
       </p>
 
       <h2 className="text-xl font-semibold">Finalités</h2>
