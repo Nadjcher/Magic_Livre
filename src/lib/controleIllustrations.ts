@@ -166,7 +166,9 @@ export async function controlerIllustrations(
   );
   if (!verdicts) return { story, bilan: "contrôle interrompu (temps)" };
   const fautives = verdicts.filter((c) => !c.v.ok);
-  if (fautives.length === 0) return { story, bilan: `contrôle : ${cibles.length} images conformes` };
+  if (fautives.length === 0) {
+    return { story: { ...story, controleImages: { verifiees: cibles.length, refaites: 0 } }, bilan: `contrôle : ${cibles.length} images conformes` };
+  }
 
   // Redessin des fautives, en parallèle, 2 essais chacune.
   const commun = {
@@ -215,6 +217,8 @@ export async function controlerIllustrations(
     couvertureUrl: parIndex.get(-1) ?? story.couvertureUrl,
     pages: story.pages.map((p, i) => (parIndex.has(i) ? { ...p, imageUrl: parIndex.get(i)! } : p)),
     ...(aRevoir.length ? { imagesARevoir: aRevoir } : {}),
+    // Suivi du coût : combien d'images la relectrice a fait refaire.
+    controleImages: { verifiees: cibles.length, refaites: fautives.length },
   };
   const detail = fautives.map((c) => `${c.i === -1 ? "couverture" : `p${c.i + 1}`}: ${c.v.fix}`).join(" | ");
   return {

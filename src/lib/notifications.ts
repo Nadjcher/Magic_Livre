@@ -29,7 +29,7 @@ export async function notifierLivrePret(bookId: string): Promise<void> {
   );
 }
 
-/** L'histoire n'a pas passé la relecture : notre équipe la reprend, livraison sous 24 h. */
+/** L'histoire n'a pas passé la relecture : notre équipe la reprend, livraison sous 48 h. */
 export async function notifierRelecture(bookId: string): Promise<void> {
   const book = await prisma.book.findUnique({
     where: { id: bookId },
@@ -38,9 +38,9 @@ export async function notifierRelecture(bookId: string): Promise<void> {
   if (!book?.user.email) return;
   await emailAvecBouton(
     book.user.email,
-    `L'histoire de ${book.child.firstName} arrive sous 24 h`,
+    `L'histoire de ${book.child.firstName} arrive sous 48 h`,
     "Notre équipe la peaufine pour vous",
-    `Nous relisons chaque histoire avant de vous la confier. Celle de ${echapper(book.child.firstName)} ne nous a pas encore convaincus : notre équipe la reprend à la main. Elle sera dans votre bibliothèque sous 24 heures, et nous vous préviendrons par email.`,
+    `Nous relisons chaque histoire avant de vous la confier. Celle de ${echapper(book.child.firstName)} ne nous a pas encore convaincus : notre équipe la reprend à la main. Elle sera dans votre bibliothèque sous 48 heures, et nous vous préviendrons par email.`,
     `${getAppUrl()}/bibliotheque`,
     "Ma bibliothèque",
   );

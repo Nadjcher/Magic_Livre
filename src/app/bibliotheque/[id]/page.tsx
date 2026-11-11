@@ -116,7 +116,7 @@ export default async function LivrePage(
       {(book.errorMessage === EN_RELECTURE || book.errorMessage === EN_RELECTURE_IMAGES) && (
         <Notice kind="info">
           Nous relisons chaque histoire avant de vous la confier. Celle de {book.child.firstName} est entre les mains de
-          notre équipe : elle sera ici sous 24 heures, et nous vous préviendrons par email.
+          notre équipe : elle sera ici sous 48 heures, et nous vous préviendrons par email.
         </Notice>
       )}
 

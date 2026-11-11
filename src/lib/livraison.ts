@@ -4,7 +4,7 @@
  * - motif éliminatoire (peur non résolue, erreur sur le prénom…) → une
  *   génération complète de plus, dans une nouvelle exécution ;
  * - encore un motif éliminatoire → rien n'est livré : le livre passe en
- *   relecture humaine, le parent est prévenu (sous 24 h), l'admin aussi.
+ *   relecture humaine, le parent est prévenu (sous 48 h), l'admin aussi.
  */
 
 import "server-only";
@@ -118,7 +118,7 @@ export async function mettreEnRelecture(bookId: string, story: Story): Promise<v
   // Le parent n'est prévenu qu'une fois, même si l'histoire repasse en relecture.
   if (await reserver(`relecture-email:${bookId}`)) await notifierRelecture(bookId).catch(() => undefined);
   await alerterAdmin(
-    "une histoire attend votre relecture (sous 24 h)",
+    "une histoire attend votre relecture (sous 48 h)",
     `Motif éliminatoire après deux générations : ${story.qualite?.eliminatoire ?? "?"}. Ouvrez l'atelier : ${getAppUrl()}/admin/histoires`,
   );
 }

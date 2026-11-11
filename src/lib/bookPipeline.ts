@@ -80,7 +80,7 @@ export async function illustrerLivre({ bookId, req, portrait }: EtapeIllustratio
       const { notifierRelecture } = await import("./notifications");
       if (await reserver(`relecture-email:${bookId}`)) await notifierRelecture(bookId).catch(() => undefined);
       await alerterAdmin(
-        "des illustrations attendent votre relecture (sous 24 h)",
+        "des illustrations attendent votre relecture (sous 48 h)",
         `Livre ${bookId} : ${story.imagesARevoir.length} image(s) refusée(s) deux fois par la relectrice d'images. Atelier : ${getAppUrl()}/admin/histoires`,
       );
       return;

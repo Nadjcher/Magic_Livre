@@ -93,6 +93,11 @@ export default async function AtelierPage() {
   });
   const exemples = await listerExemples();
   const depenses = await depensesRecentes();
+  // Images refaites par la relectrice d'images (30 derniers jours) : au-delà d'une sur trois, revoir les consignes.
+  const [refaites] = await prisma.$queryRaw<{ livres: bigint; verifiees: number | null; refaites: number | null }[]>`
+    SELECT COUNT(*) AS livres, SUM((pages->'controleImages'->>'verifiees')::int) AS verifiees,
+           SUM((pages->'controleImages'->>'refaites')::int) AS refaites
+    FROM "Book" WHERE pages->'controleImages' IS NOT NULL AND "createdAt" > NOW() - INTERVAL '30 days'`.catch(() => []);
   // File de relecture humaine : histoires refusées deux fois par la relectrice (tous comptes, anonymisées).
   const aRevoir = await prisma.$queryRaw<{ id: string; pages: unknown; prenom: string; age: number; childId: string; statut: string; err: string | null }[]>`
     SELECT b.id, b.pages, c."firstName" AS prenom, c.age, c.id AS "childId", b.status::text AS statut, b."errorMessage" AS err
@@ -129,6 +134,17 @@ export default async function AtelierPage() {
           Budget du jour : {budgetJour()} $. Au-delà, les créations gratuites s'arrêtent jusqu'au lendemain (achats et Club
           continuent). Le chiffre exact reste celui de votre tableau de bord fal.
         </p>
+        {refaites && Number(refaites.livres) > 0 && (
+          <p className="text-sm">
+            Images refaites par la relectrice (30 jours) : <strong>{refaites.refaites ?? 0}</strong> sur {refaites.verifiees ?? 0} vérifiées, sur{" "}
+            {Number(refaites.livres)} livre(s)
+            {(refaites.verifiees ?? 0) > 0 && (refaites.refaites ?? 0) / (refaites.verifiees ?? 1) > 1 / 3 ? (
+              <span className="text-rose-200"> : plus d'une sur trois, il faut revoir les consignes d'image.</span>
+            ) : (
+              "."
+            )}
+          </p>
+        )}
         <ul className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm sm:grid-cols-3">
           {depenses.length === 0 && <li>Aucune dépense enregistrée.</li>}
           {depenses.map((d) => (
@@ -210,7 +226,7 @@ export default async function AtelierPage() {
       <section className="space-y-3">
         <h2 className="text-2xl">File de relecture ({aRevoir.length})</h2>
         <p className="text-sm text-magique-texteClair">
-          En haut, les histoires non livrées (motif éliminatoire deux fois) : le parent attend sous 24 h. Ensuite, celles livrées
+          En haut, les histoires non livrées (motif éliminatoire deux fois) : le parent attend sous 48 h. Ensuite, celles livrées
           juste sous le seuil après deux réécritures, pour améliorer la bible. Prénoms masqués ; une histoire quitte la file après 30 jours.
         </p>
         {aRevoir.map((r) => {
@@ -221,7 +237,7 @@ export default async function AtelierPage() {
           return (
             <details key={r.id} className={`carte ${enAttente ? "border-or-clair" : ""}`}>
               <summary className="cursor-pointer py-1">
-                {enAttente && <span className="mr-2 rounded-full bg-or-clair px-2 py-0.5 text-xs font-bold text-nuit">À livrer sous 24 h</span>}
+                {enAttente && <span className="mr-2 rounded-full bg-or-clair px-2 py-0.5 text-xs font-bold text-nuit">À livrer sous 48 h</span>}
                 <span className="font-serif">{masquer(st.data.titre)}</span>
                 <span className="ml-2 text-sm text-magique-texteClair">
                   {r.age} ans · {st.data.qualite?.total ?? "?"}/{st.data.qualite?.max ?? 40}{st.data.qualite?.eliminatoire ? " · éliminatoire" : ""}
@@ -262,7 +278,7 @@ export default async function AtelierPage() {
         <section className="space-y-3">
           <h2 className="text-2xl">Illustrations à relire ({imagesARelire.length})</h2>
           <p className="text-sm text-magique-texteClair">
-            Une image a été refusée deux fois par la relectrice d'images : le livre attend votre regard (le parent a été prévenu, sous 24 h).
+            Une image a été refusée deux fois par la relectrice d'images : le livre attend votre regard (le parent a été prévenu, sous 48 h).
           </p>
           {imagesARelire.map((b) => {
             const st = storySchema.safeParse(b.pages);
@@ -271,7 +287,7 @@ export default async function AtelierPage() {
             return (
               <details key={b.id} className="carte border-or-clair">
                 <summary className="cursor-pointer py-1">
-                  <span className="mr-2 rounded-full bg-or-clair px-2 py-0.5 text-xs font-bold text-nuit">Sous 24 h</span>
+                  <span className="mr-2 rounded-full bg-or-clair px-2 py-0.5 text-xs font-bold text-nuit">Sous 48 h</span>
                   {signalees.length} image(s) signalée(s) : {signalees.map((i) => (i === -1 ? "couverture" : `p. ${i + 1}`)).join(", ")}
                 </summary>
                 <div className="mt-3 grid grid-cols-2 gap-3">
