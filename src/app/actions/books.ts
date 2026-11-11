@@ -23,7 +23,7 @@ import { env } from "@/lib/env";
 import { findFormat, formatsPourAge } from "@/lib/bookFormats";
 import { checkDailyBookLimit, estAdmin } from "@/lib/rateLimit";
 import { generateStory } from "@/lib/storyGenerator";
-import { livrer } from "@/lib/livraison";
+import { lancerRelecture } from "@/lib/livraison";
 import { describeChildFromPhoto } from "@/lib/illustration";
 import { estClassique, findThemeById } from "@/lib/themes";
 import { getAbonnement, inclureLivre } from "@/lib/subscription";
@@ -313,7 +313,7 @@ async function genererEtEnregistrer(bookId: string, req: GenerationInput): Promi
       appearance: appearance.length > 0 ? appearance : undefined,
       extras: extras.map((e) => ({ ...e, appearance: e.appearance || undefined })),
     };
-    const result = await generateStory(reqGeneration, { illustrer: false });
+    const result = await generateStory(reqGeneration, { illustrer: false, relire: false });
 
     if (!result.ok) {
       await prisma.book.update({
@@ -325,7 +325,7 @@ async function genererEtEnregistrer(bookId: string, req: GenerationInput): Promi
 
     // Étape 2 : livraison (illustrations dans une nouvelle exécution), ou nouvelle
     // génération / relecture humaine si la relecture a trouvé un motif éliminatoire.
-    await livrer(
+    await lancerRelecture(
       { bookId, req: { ...reqGeneration, extras: reqGeneration.extras }, portrait: result.portrait ?? null, tentative: 1 },
       result.story,
     );

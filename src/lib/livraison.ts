@@ -11,7 +11,7 @@ import "server-only";
 import { prisma } from "./prisma";
 import { getAppUrl } from "./appUrl";
 import { signer, lancerIllustrations } from "./bookPipeline";
-import { generateStory } from "./storyGenerator";
+import { generateStory, relireHistoire } from "./storyGenerator";
 import { EN_RELECTURE } from "./illustrationStatus";
 import { reserver } from "./idempotence";
 import type { Story } from "./storySchema";
@@ -64,12 +64,43 @@ async function lancerSecondeGeneration(l: Livraison): Promise<void> {
 }
 
 export async function secondeGeneration(l: Livraison): Promise<void> {
-  const result = await generateStory(l.req, { illustrer: false });
+  const result = await generateStory(l.req, { illustrer: false, relire: false });
   if (!result.ok) {
     await prisma.book.update({ where: { id: l.bookId }, data: { status: "failed", errorMessage: result.message } });
     return;
   }
-  await livrer(l, result.story);
+  await lancerRelecture(l, result.story);
+}
+
+/**
+ * Étape 2 de la chaîne : la relecture notée (et jusqu'à deux réécritures), dans
+ * sa propre exécution, puis la livraison. L'écriture d'une longue histoire et sa
+ * relecture ne tiendraient pas ensemble dans les 5 minutes d'une exécution.
+ */
+export async function lancerRelecture(l: Livraison, story: Story): Promise<void> {
+  const corps = JSON.stringify({ l, story });
+  try {
+    const r = await fetch(`${getAppUrl()}/api/internal/relire`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-signature": signer(corps) },
+      body: corps,
+      signal: AbortSignal.timeout(20_000),
+    });
+    if (r.status === 202) return;
+  } catch {
+    /* repli ci-dessous */
+  }
+  await relireEtLivrer(l, story);
+}
+
+export async function relireEtLivrer(l: Livraison, story: Story): Promise<void> {
+  try {
+    const relue = await relireHistoire(story, l.req);
+    await livrer(l, relue);
+  } catch (e) {
+    console.error("[livraison] relecture interrompue", l.bookId, String(e).slice(0, 200));
+    await livrer(l, story); // jamais bloquant : l'histoire non relue part quand même
+  }
 }
 
 /** Rien n'est livré : relecture humaine, parent et admin prévenus. */

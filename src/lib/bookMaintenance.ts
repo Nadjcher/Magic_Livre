@@ -16,7 +16,9 @@ import { prisma } from "./prisma";
 
 // Deux étapes de 5 min au plus (texte, puis illustrations) : au-delà de 12 min,
 // la création est forcément interrompue.
-export const STALE_GENERATING_MS = 12 * 60 * 1000;
+// Écriture, relecture (avec réécritures, voire une seconde génération) et
+// illustrations ont chacune leur exécution : on laisse 25 minutes avant d'abandonner.
+export const STALE_GENERATING_MS = 25 * 60 * 1000;
 
 /** Libère les livres de l'utilisateur bloqués en génération depuis trop longtemps. */
 export async function failStaleBooks(userId: string): Promise<void> {

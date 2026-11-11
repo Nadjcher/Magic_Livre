@@ -138,6 +138,16 @@ export function blocModeles({ extraits, trame }: { extraits: Exemple[]; trame: E
   return lignes.join("\n\n");
 }
 
+/** Les exemples donnés à l'autrice (pour que la relectrice puisse repérer une copie). */
+export async function exemplesParIds(ids: string[]): Promise<Exemple[]> {
+  try {
+    await assurerTable();
+    return await prisma.$queryRaw<Exemple[]>`SELECT * FROM "Exemple" WHERE id = ANY(${ids})`;
+  } catch {
+    return [];
+  }
+}
+
 /* ─── Administration ─── */
 
 export async function listerExemples(): Promise<Exemple[]> {

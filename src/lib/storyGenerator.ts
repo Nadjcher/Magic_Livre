@@ -25,7 +25,7 @@ import { ILLUSTRATION_STYLES } from "./style_config";
 import { findFormat } from "./bookFormats";
 import { fetchAsDataUrl } from "./imageFetch";
 import { controleActif, controlerIllustrations } from "./controleIllustrations";
-import { blocModeles, exemplesPour } from "./bibliotheque";
+import { blocModeles, exemplesParIds, exemplesPour } from "./bibliotheque";
 import { PRIX_ESTIMES, noterDepense } from "./budget";
 import { BIBLE, GRILLE, SEUIL_ACCEPTATION, reglesAge } from "./bible";
 
@@ -127,7 +127,9 @@ async function callModel(
             reasoning: true,
             max_tokens: 16000,
           }),
-          signal: AbortSignal.timeout(opts.delaiMs ?? (temperature < 0.6 ? 70_000 : 140_000)),
+          // L'écriture d'une longue histoire (plan + 12 pages) peut dépasser 2 minutes :
+          // elle a sa propre exécution, on lui laisse jusqu'à ~4 min.
+          signal: AbortSignal.timeout(opts.delaiMs ?? (temperature < 0.6 ? 70_000 : 240_000)),
         });
         const j = (await r.json().catch(() => ({}))) as { output?: string; error?: unknown; detail?: unknown; usage?: { cost?: number } };
         if (r.ok) await noterDepense(j.usage?.cost ?? (opts.modele ? PRIX_ESTIMES.relecture : PRIX_ESTIMES.texte));
@@ -140,6 +142,9 @@ async function callModel(
         if (/TOP_UP|locked|balance/i.test(derniere)) break; // inutile de réessayer
       } catch (e) {
         derniere = String(e).slice(0, 200);
+        // Délai dépassé : un nouvel essai ne tiendrait pas dans le temps restant
+        // (et fal facture souvent l'appel abandonné).
+        if (/abort|timeout/i.test(derniere)) break;
       }
     }
     console.error("[texte] écriture impossible :", derniere);
@@ -324,6 +329,19 @@ async function relireEtAmeliorer(
   };
 }
 
+/**
+ * Relecture (et réécritures) d'une histoire déjà écrite, dans sa propre
+ * exécution : la relectrice reçoit les mêmes extraits que l'autrice.
+ */
+export async function relireHistoire(story: Story, req: StoryRequest): Promise<Story> {
+  const client = createClient();
+  const model = req.premium ? env.groqModelPremium() : env.groqModel();
+  const ids = story.meta?.modeles ?? [];
+  const tous = ids.length ? await exemplesParIds(ids) : [];
+  const extraits = blocModeles({ extraits: tous.filter((e) => e.type === "extrait"), trame: tous.find((e) => e.type === "trame") ?? null });
+  return relireEtAmeliorer(client, model, story, req, Date.now(), extraits);
+}
+
 /** Prompt « éditeur » : réécrit une histoire pour la clarifier et l'adapter à l'âge. */
 const EDITOR_SYSTEM = `Tu es un éditeur jeunesse exigeant. On te donne une histoire au format JSON. Tu la RÉÉCRIS pour l'améliorer, SANS changer la structure JSON ni le nombre de pages.
 CONTRÔLE DE COHÉRENCE (prioritaire) — corrige tout manquement :
@@ -394,7 +412,7 @@ async function polishStory(
  */
 export async function generateStory(
   req: StoryRequest,
-  { illustrer = true }: { illustrer?: boolean } = {},
+  { illustrer = true, relire = true }: { illustrer?: boolean; relire?: boolean } = {},
 ): Promise<GenerateResult> {
   const debut = Date.now();
   // RAG : extraits modèles (ton) + trame (structure) les plus proches de la demande.
@@ -479,7 +497,7 @@ export async function generateStory(
     const polished = info.viaFal ? null : await polishStory(client, model, parsed.story, req);
     let base: Story = polished ?? parsed.story;
     // Relecture notée par une deuxième IA ; réécriture si la note est basse.
-    if (info.viaFal) base = await relireEtAmeliorer(client, model, base, req, debut, blocModeles(modeles));
+    if (info.viaFal && relire) base = await relireEtAmeliorer(client, model, base, req, debut, blocModeles(modeles));
     base = {
       ...base,
       meta: {
