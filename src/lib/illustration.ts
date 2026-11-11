@@ -217,7 +217,7 @@ async function geminiImage(
   if (reference) {
     parts.push({ inlineData: { mimeType: reference.mime, data: reference.base64 } });
     consignes.push(
-      "PHOTO DE RÉFÉRENCE (image 1) : c'est le vrai enfant, héros du livre. Le personnage " +
+      "IMAGE DE RÉFÉRENCE (image 1) : le personnage de référence, héros du livre. Le personnage " +
         "DOIT lui ressembler de façon évidente — mêmes cheveux (couleur + coiffure), mêmes yeux, " +
         "même teint, même forme de visage, même âge. N'invente pas un enfant générique.",
     );
@@ -320,8 +320,8 @@ async function falImage(
   const consignes: string[] = [];
   if (reference) {
     consignes.push(
-      "Reference image 1 is the real child, hero of the book: the character MUST clearly look like this " +
-        "child (same hair color and style, eyes, skin tone, face shape, age), drawn in the requested style.",
+      "Reference image 1 shows the reference character, hero of the book: the drawn hero MUST clearly look like this reference " +
+        "character (same hair color and style, eyes, smile, skin tone, face shape, age), drawn in the requested style.",
     );
   }
   if (anchor) {

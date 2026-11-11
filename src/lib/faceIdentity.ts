@@ -48,7 +48,7 @@ export async function requestPortrait(opts: {
   }
 
   const prompt =
-    "Head-and-shoulders portrait of this exact child, friendly and smiling, looking at the viewer, " +
+    "Head-and-shoulders portrait of this reference character (a young child), friendly and smiling, looking at the viewer, " +
     "soft plain background. Keep the child's real facial identity faithfully. " +
     (opts.appearance ? `Appearance: ${opts.appearance}. ` : "") +
     "Children's picture-book illustration style: " +
