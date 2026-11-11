@@ -214,6 +214,8 @@ export const BASE_IMAGE_PROMPT =
   "ONLY the characters named in the scene appear — no extra people, no extra children, no random animals; " +
   "the hero appears only ONCE in the image (never duplicated); no speech bubbles, no captions; " +
   "secondary characters never look like the hero (different hair, face and clothes); " +
+  "faces with natural-sized eyes true to the character sheet, never oversized round cartoon eyes; " +
+  "no letters, no writing, no signs or symbols on objects (pebbles, books, walls); " +
   "full-bleed scenery to every edge; any calm area for text is a natural part of the scene (a night sky blending into the treetops, a soft wall), never a flat band, a frame or an empty box; " +
   "wholesome and child-safe, no scary, no violent, no sad or dark elements";
 
