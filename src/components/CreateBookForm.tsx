@@ -13,7 +13,7 @@
 import Picto from "@/components/Picto";
 import { couvertureTheme } from "@/lib/couverturesThemes";
 import CouvertureLivre from "@/components/CouvertureLivre";
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { flushSync } from "react-dom";
 import { findFormat, formatParDefaut, formatsPourAge } from "@/lib/bookFormats";
 import { ROLES_EXTRAS } from "@/lib/validation";
@@ -221,7 +221,7 @@ export default function CreateBookForm({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b1236]/80 p-4" role="dialog" aria-modal="true" aria-label="Le portrait du héros">
           <div className="carte max-h-[92vh] w-full max-w-md space-y-4 overflow-y-auto">
             {herosEnCours ? (
-              <p className="py-10 text-center">Nous dessinons le portrait de {prenom || "votre enfant"}… (environ 30 secondes)</p>
+              <AttentePortrait prenom={prenom || "votre enfant"} />
             ) : herosMessage ? (
               <>
                 <p>{herosMessage}</p>
@@ -276,6 +276,32 @@ export default function CreateBookForm({
                       Refaire une fois
                     </button>
                   )}
+                  {heros.essais === 2 && (
+                    <button
+                      type="button"
+                      className="btn-secondaire"
+                      disabled={herosTraits.trim() === heros.traits.trim()}
+                      title={herosTraits.trim() === heros.traits.trim() ? "Corrigez d'abord ses traits ci-dessus" : undefined}
+                      onClick={() => formRef.current && demanderPortrait(new FormData(formRef.current), heros.herosId)}
+                    >
+                      Un dernier portrait avec ces traits
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="btn-secondaire"
+                    onClick={() => {
+                      // Héros décrit, sans photo : les traits deviennent sa description.
+                      flushSync(() => {
+                        setAppearance(herosTraits.slice(0, 240));
+                        setPhoto("");
+                        setHeros(null);
+                      });
+                      formRef.current?.requestSubmit();
+                    }}
+                  >
+                    Continuer sans photo, avec ces traits
+                  </button>
                   <button type="button" className="text-sm underline" onClick={() => setHeros(null)}>
                     Annuler
                   </button>
@@ -401,7 +427,7 @@ export default function CreateBookForm({
               name="appearance"
               value={appearance}
               onChange={(e) => setAppearance(e.target.value)}
-              maxLength={120}
+              maxLength={240}
               placeholder="Ex : cheveux bruns bouclés, yeux verts, lunettes"
               className="champ mt-2"
             />
@@ -708,5 +734,26 @@ export default function CreateBookForm({
 
       {pending && <GenerationOverlay prenom={prenom || undefined} themeId={mode === "theme" ? themeId : undefined} />}
     </form>
+  );
+}
+
+/** Attente du portrait : un message qui évolue, le modèle de ressemblance pouvant être lent au démarrage. */
+function AttentePortrait({ prenom }: { prenom: string }) {
+  const [secondes, setSecondes] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setSecondes((x) => x + 1), 1000);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div className="space-y-2 py-8 text-center" aria-live="polite">
+      <p className="font-serif text-xl">Nous dessinons le portrait de {prenom}…</p>
+      <p className="text-sm text-magique-texteClair">
+        {secondes < 30
+          ? "Environ 30 secondes."
+          : secondes < 75
+            ? "Le dessinateur s'installe, c'est un peu plus long au premier portrait. Encore un instant…"
+            : "Presque fini : nous peaufinons son visage."}
+      </p>
+    </div>
   );
 }

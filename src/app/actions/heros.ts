@@ -41,8 +41,12 @@ export async function preparerHeros(formData: FormData): Promise<PortraitResulta
   let essais = 1;
   if (precedent) {
     const h = await lireHeros(precedent, user.id);
-    if (h && h.essais >= 2 && !admin) {
-      return { ok: false, message: "Vous avez déjà refait le portrait une fois. Gardez-le, ou continuez avec une description." };
+    // Deux portraits, puis un dernier seulement avec des traits corrigés par le parent.
+    if (h && h.essais >= 3 && !admin) {
+      return { ok: false, message: "C'était le dernier portrait possible. Gardez-le, ou continuez avec un héros décrit, sans photo." };
+    }
+    if (h && h.essais >= 2 && !admin && String(formData.get("traits") ?? "").trim() === h.traits.trim()) {
+      return { ok: false, message: "Pour un dernier portrait, corrigez d'abord ses traits dans la liste (cheveux, yeux, signes particuliers…)." };
     }
     essais = (h?.essais ?? 1) + 1;
   }

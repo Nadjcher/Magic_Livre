@@ -88,7 +88,7 @@ export const createBookSchema = z
     appearance: z
       .string()
       .trim()
-      .max(160, "La description est trop longue.")
+      .max(240, "La description est trop longue.")
       .optional(),
   })
   .superRefine((data, ctx) => {
