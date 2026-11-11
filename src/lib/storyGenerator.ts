@@ -27,7 +27,7 @@ import { ILLUSTRATION_STYLES } from "./style_config";
 import { findFormat } from "./bookFormats";
 import { fetchAsDataUrl } from "./imageFetch";
 import { controleActif, controlerIllustrations } from "./controleIllustrations";
-import { blocModeles, exemplesParIds, exemplesPour } from "./bibliotheque";
+import { blocModeles, exemplesParIds, exemplesPour, type Exemple } from "./bibliotheque";
 import { PRIX_ESTIMES, noterDepense } from "./budget";
 import { BIBLE, GRILLE, SEUIL_ACCEPTATION, criteresPetits, reglesAge } from "./bible";
 
@@ -440,12 +440,16 @@ export async function generateStory(
   // RAG : extraits modèles (ton) + trame (structure) les plus proches de la demande.
   // 7 ans et plus : consigne du 9 novembre, sans modèles du RAG ni relecture (cf. SYSTEM_PROMPT_LONG).
   const longue = req.childAge >= AGE_CONSIGNE_LONGUE;
-  const modeles = longue ? { extraits: [], trame: null } : await exemplesPour({
+  const modeles: { extraits: Exemple[]; trame: Exemple | null } = longue ? { extraits: [], trame: null } : await exemplesPour({
     age: req.childAge,
     format: req.format,
     themeId: req.mode === "theme" ? req.themeId : undefined,
     childId: req.childId,
   });
+  if (req.trameId && !longue) {
+    const [imposee] = await exemplesParIds([req.trameId]);
+    if (imposee) modeles.trame = imposee;
+  }
   let userMessage = buildUserMessage(req, blocModeles(modeles));
   const usees = await comparaisonsUsees(req.childId);
   if (usees.length) {

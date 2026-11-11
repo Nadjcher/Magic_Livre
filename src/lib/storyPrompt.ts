@@ -212,6 +212,8 @@ export interface StoryRequest {
    * Utilisée seulement pendant la génération des images ; jamais stockée.
    */
   photo?: { base64: string; mime: string };
+  /** Trame imposée (collections : « Les contes de papa et maman »…), sinon choisie par le RAG. */
+  trameId?: string;
   /** Identifiant de l'enfant (rotation des extraits du RAG). */
   childId?: string;
   /** Fiche de l'enfant renseignée par le parent (mémoire). */
