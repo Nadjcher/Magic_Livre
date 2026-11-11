@@ -134,6 +134,8 @@ export const storySchema = z.object({
       problemes: z.array(z.string()),
       reecrit: z.boolean(),
       total: z.number().optional(),
+      max: z.number().optional(),
+      justifications: z.record(z.string(), z.string()).optional().catch(undefined),
       accepte: z.boolean().optional(),
       eliminatoire: z.string().nullable().optional(),
       essais: z.number().optional(),

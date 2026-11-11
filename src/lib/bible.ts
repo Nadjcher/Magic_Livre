@@ -16,13 +16,14 @@ Les six règles de ton :
 5. La peur reste à hauteur d'enfant et se résout toujours avant la dernière page.
 6. L'enfant agit : c'est lui qui trouve la solution, ni un adulte ni la magie à sa place.
 
-Le lexique à privilégier :
+Le lexique (une palette, pas une liste à réciter) : PIOCHE 3 ou 4 mots au plus par histoire, différents d'une histoire à l'autre.
 - Lumière : lueur, éclat, braise, reflet, luciole, clair de lune.
 - Sons : murmure, froufrou, tintement, bruissement, clapotis, chuchoter.
 - Nature : clairière, mousse, rosée, brume, écorce, sentier.
 - Matières : velours, plume, fil d'or, coquille, ruban.
 - Mouvements : se faufiler, virevolter, glisser, frémir, avancer sur la pointe des pieds.
 Mots à limiter à UNE fois par histoire : magique, incroyable, extraordinaire, merveilleux, soudain.
+Comparaisons usées, à ne plus utiliser : « comme une braise », « grand comme une armoire », « sur la pointe des pieds », « le cœur battant », « doux comme du miel ». Invente des comparaisons neuves, tirées du monde de l'enfant (le goûter, l'école, la baignoire), et jamais deux fois la même dans une histoire.
 
 Les motifs qui signent la marque :
 - La petite lumière qui guide, présente dans chaque histoire sous une forme différente.
@@ -72,6 +73,11 @@ Chaque critère est noté de 1 à 5, avec une justification d'une phrase qui cit
 6. feerique — La magie est-elle petite, précise, dans le lexique de la bible ? Échec : adjectifs vagues, mots limités répétés.
 7. age — Longueur, phrases et vocabulaire respectent-ils la tranche d'âge ? Échec : trop long, mots abstraits, enjeu inadapté.
 8. fin — Est-elle douce, sans morale, avec l'accroche pour une série ? Échec : morale écrite, fin brusque, pas de retour au calme.
+Pour les 1 à 3 ans et les comptines, DEUX critères de plus :
+9. rimes — Les rimes sont-elles justes et le rythme régulier ? Échec : rimes approximatives (« chuchote-t-il / fragile »), vers boiteux.
+10. chute_comprise — Un enfant de cet âge comprend-il la chute sans explication ? Échec : il faut l'expliquer à l'enfant pour qu'il comprenne pourquoi le problème disparaît.
+Sévérité : 5 = rien à redire ; 4 = un défaut mineur ; 3 = un défaut net ; 2 ou 1 = raté. Utilise toute l'échelle : ne mets pas 5 par habitude.
+Chaque note DOIT être justifiée par une phrase qui cite le passage concerné ; une note sans justification est invalide. Une note inférieure à 5 entraîne au moins une correction.
 
 Motifs éliminatoires (un seul suffit à imposer la réécriture, quelle que soit la note) :
 - Une peur non résolue, de la violence ou une moquerie.
@@ -80,6 +86,12 @@ Motifs éliminatoires (un seul suffit à imposer la réécriture, quelle que soi
 - Un passage repris presque mot pour mot d'un extrait de style fourni à l'autrice.
 - Un cliché de la liste interdite de la bible.
 
-Une histoire est ACCEPTÉE à 32 sur 40 ou plus, sans aucun critère sous 3 et sans motif éliminatoire.`;
+Une histoire est ACCEPTÉE à 80 % du total possible ou plus (32 sur 40, ou 40 sur 50 avec les deux critères des petits), sans aucun critère sous 3 et sans motif éliminatoire.`;
 
-export const SEUIL_ACCEPTATION = 32;
+/** Seuil d'acceptation : 80 % du total possible (32/40, ou 40/50 avec rimes et chute). */
+export const SEUIL_ACCEPTATION = 0.8;
+
+/** Les deux critères en plus pour les 1 à 3 ans et les comptines. */
+export function criteresPetits(age: number, format?: string): boolean {
+  return age <= 3 || format === "comptine" || format === "imagier";
+}

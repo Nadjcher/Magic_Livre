@@ -45,6 +45,8 @@ const CRITERES: Record<string, string> = {
   feerique: "Féerique",
   age: "Âge",
   fin: "Fin",
+  rimes: "Rimes",
+  chute_comprise: "Chute comprise",
 };
 
 /**
@@ -147,20 +149,21 @@ export default async function AtelierPage() {
                   {l.child.firstName}, {l.child.age} ans ·{" "}
                   {q
                     ? q.total !== undefined
-                      ? `${q.total}/40 ${q.accepte ? "acceptée" : "refusée"}${q.essais ? ` après ${q.essais} réécriture${q.essais > 1 ? "s" : ""}` : ""}`
+                      ? `${q.total}/${q.max ?? 40} ${q.accepte ? "acceptée" : "refusée"}${q.essais ? ` après ${q.essais} réécriture${q.essais > 1 ? "s" : ""}` : ""}`
                       : `note ${q.note}/10`
                     : "non notée"}
                 </span>
               </summary>
               {q && (
                 <div className="mt-3 space-y-2 rounded-xl bg-white/[0.05] p-3 text-sm">
-                  <p className="flex flex-wrap gap-x-4 gap-y-1">
+                  <ul className="space-y-1">
                     {Object.entries(q.notes ?? {}).map(([k, v]) => (
-                      <span key={k}>
-                        {CRITERES[k] ?? k} : <strong>{v}</strong>
-                      </span>
+                      <li key={k}>
+                        {CRITERES[k] ?? k} : <strong>{v}/5</strong>
+                        {q.justifications?.[k] && <span className="text-magique-texteClair"> — {q.justifications[k]}</span>}
+                      </li>
                     ))}
-                  </p>
+                  </ul>
                   {q.problemes.length > 0 && (
                     <ul className="list-disc pl-5 text-magique-texteClair">
                       {q.problemes.map((p) => (
@@ -212,7 +215,7 @@ export default async function AtelierPage() {
                 {enAttente && <span className="mr-2 rounded-full bg-or-clair px-2 py-0.5 text-xs font-bold text-nuit">À livrer sous 24 h</span>}
                 <span className="font-serif">{masquer(st.data.titre)}</span>
                 <span className="ml-2 text-sm text-magique-texteClair">
-                  {r.age} ans · {st.data.qualite?.total ?? "?"}/40{st.data.qualite?.eliminatoire ? " · éliminatoire" : ""}
+                  {r.age} ans · {st.data.qualite?.total ?? "?"}/{st.data.qualite?.max ?? 40}{st.data.qualite?.eliminatoire ? " · éliminatoire" : ""}
                   {enAttente ? "" : " · déjà livrée au client"}
                 </span>
               </summary>

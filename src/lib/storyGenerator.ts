@@ -29,7 +29,7 @@ import { fetchAsDataUrl } from "./imageFetch";
 import { controleActif, controlerIllustrations } from "./controleIllustrations";
 import { blocModeles, exemplesParIds, exemplesPour } from "./bibliotheque";
 import { PRIX_ESTIMES, noterDepense } from "./budget";
-import { BIBLE, GRILLE, SEUIL_ACCEPTATION, reglesAge } from "./bible";
+import { BIBLE, GRILLE, SEUIL_ACCEPTATION, criteresPetits, reglesAge } from "./bible";
 
 export type GenerateResult =
   | {
@@ -188,7 +188,8 @@ ${GRILLE}
 3. En cas de refus, donne au plus 5 corrections précises, par page.
 
 Réponds uniquement en JSON :
-{"eliminatoire": null, "notes": {"voix_haute": 0, "ritournelle": 0, "structure": 0, "enfant_agit": 0, "personnalisation": 0, "feerique": 0, "age": 0, "fin": 0}, "justifications": {"voix_haute": "…"}, "total": 0, "verdict": "accepte | reecrire", "corrections": [{"page": 3, "probleme": "…", "piste": "…"}]}
+{"eliminatoire": null, "notes": {"voix_haute": 0, "ritournelle": 0, "structure": 0, "enfant_agit": 0, "personnalisation": 0, "feerique": 0, "age": 0, "fin": 0}, "justifications": {"voix_haute": "phrase qui cite le passage", "ritournelle": "…", "structure": "…", "enfant_agit": "…", "personnalisation": "…", "feerique": "…", "age": "…", "fin": "…"}, "total": 0, "verdict": "accepte | reecrire", "corrections": [{"page": 3, "probleme": "…", "piste": "…"}]}
+(Pour les 1 à 3 ans et les comptines, ajoute "rimes" et "chute_comprise" dans "notes" ET dans "justifications".)
 ("eliminatoire" : null, ou le motif éliminatoire constaté, en une phrase.)`;
 
 /** Consignes de la réécriture : ne modifier que les pages citées. */
@@ -203,6 +204,7 @@ Réponds UNIQUEMENT avec ce JSON, qui ne contient QUE les pages réécrites :
 type Verdict = {
   eliminatoire?: string | null;
   notes?: Record<string, number>;
+  justifications?: Record<string, string>;
   total?: number;
   corrections?: { page?: number; probleme?: string; piste?: string }[];
 };
@@ -248,22 +250,37 @@ async function relireEtAmeliorer(
       return null;
     }
   };
+  const petits = criteresPetits(req.childAge, req.format);
   const bilan = (v: Verdict) => {
     const notes = Object.values(v.notes ?? {}).filter((n): n is number => typeof n === "number");
     const total = notes.length ? notes.reduce((a, b) => a + b, 0) : v.total ?? 0;
+    const max = notes.length * 5;
     const elim = v.eliminatoire && String(v.eliminatoire).toLowerCase() !== "null" ? String(v.eliminatoire) : null;
-    const accepte = !elim && total >= SEUIL_ACCEPTATION && notes.length > 0 && Math.min(...notes) >= 3;
+    // Une note sans justification ne compte pas comme un « 5 » gratuit : elle bloque l'acceptation.
+    const sansJustif = Object.keys(v.notes ?? {}).filter((k) => !(v.justifications?.[k] ?? "").trim());
+    const petitsManquants = petits && !(v.notes && "rimes" in v.notes && "chute_comprise" in v.notes);
+    const accepte =
+      !elim && max > 0 && total >= SEUIL_ACCEPTATION * max && Math.min(...notes) >= 3 && sansJustif.length === 0 && !petitsManquants;
     const problemes = [
       ...(elim ? [`Éliminatoire : ${elim}`] : []),
       ...(v.corrections ?? []).slice(0, 5).map((c) => `${c.page ? `p. ${c.page} : ` : ""}${c.probleme ?? ""}${c.piste ? ` → ${c.piste}` : ""}`),
     ];
-    return { total, accepte, elim, problemes, notes: v.notes };
+    if (sansJustif.length) problemes.push(`Relecture incomplète : notes sans justification (${sansJustif.join(", ")}).`);
+    return { total, max, accepte, elim, problemes, notes: v.notes, justifications: v.justifications, invalide: sansJustif.length > 0 || petitsManquants };
   };
 
   let actuelle = story;
   let verdict = await juger(actuelle);
   if (!verdict) return story;
   let b = bilan(verdict);
+  // Relecture incomplète (notes sans justification) : c'est la relectrice qui recommence, pas l'autrice.
+  if (b.invalide) {
+    const nouveau = await juger(actuelle);
+    if (nouveau) {
+      verdict = nouveau;
+      b = bilan(verdict);
+    }
+  }
   let meilleure = { story: actuelle, b };
   let essais = 0;
   console.log("[relecture] total", b.total, b.accepte ? "accepté" : "à réécrire");
@@ -317,9 +334,11 @@ async function relireEtAmeliorer(
   return {
     ...finale.story,
     qualite: {
-      note: Math.round((finale.b.total / 4) * 10) / 10, // sur 10 (affichage)
+      note: finale.b.max ? Math.round((finale.b.total / finale.b.max) * 100) / 10 : 0, // sur 10 (affichage)
       total: finale.b.total,
+      max: finale.b.max,
       notes: finale.b.notes,
+      justifications: finale.b.justifications,
       problemes: finale.b.problemes,
       accepte: finale.b.accepte,
       eliminatoire: finale.b.elim,
@@ -428,6 +447,10 @@ export async function generateStory(
     childId: req.childId,
   });
   let userMessage = buildUserMessage(req, blocModeles(modeles));
+  const usees = await comparaisonsUsees(req.childId);
+  if (usees.length) {
+    userMessage += `\n\nComparaisons déjà utilisées dans les histoires précédentes de cet enfant (n'en reprends AUCUNE) : ${usees.map((c) => `« ${c} »`).join(", ")}.`;
+  }
   const client = createClient();
   // Édition premium : modèle de texte haut de gamme (configurable).
   const model = req.premium ? env.groqModelPremium() : env.groqModel();
@@ -527,6 +550,30 @@ export async function generateStory(
   }
 
   return { ok: false, message: lastMessage };
+}
+
+/** Les comparaisons (« comme une braise »…) des 5 dernières histoires de l'enfant, pour ne pas les resservir. */
+async function comparaisonsUsees(childId?: string): Promise<string[]> {
+  if (!childId) return [];
+  try {
+    const { prisma } = await import("./prisma");
+    const livres = await prisma.book.findMany({
+      where: { childId, status: "ready" },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      select: { pages: true },
+    });
+    const vues = new Set<string>();
+    for (const l of livres) {
+      const pages = (l.pages as { pages?: { texte?: string }[] } | null)?.pages ?? [];
+      for (const p of pages) {
+        for (const m of (p.texte ?? "").matchAll(/\bcomme (?:un|une|des|du|de la|de l['’]|le|la|les|l['’])\s*[\p{L}'’-]+(?: [\p{L}'’-]+)?/giu)) vues.add(m[0].toLowerCase());
+      }
+    }
+    return [...vues].slice(0, 20);
+  } catch {
+    return [];
+  }
 }
 
 /** Aperçu gratuit : nombre de pages illustrées (en plus de la couverture). */
