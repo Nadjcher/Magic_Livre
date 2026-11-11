@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { childSchema, checkUserText } from "@/lib/validation";
+import { ecrireFiche } from "@/lib/ficheEnfant";
 
 export interface ActionResult {
   ok: boolean;
@@ -112,4 +113,22 @@ export async function deleteChild(childId: string): Promise<ActionResult> {
   revalidatePath("/enfants");
   revalidatePath("/bibliotheque");
   return { ok: true, message: "Enfant supprimé." };
+}
+
+/** Fiche de l'enfant pour les histoires (mémoire), renseignée par le parent. */
+export async function enregistrerFiche(childId: string, formData: FormData): Promise<ActionResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, message: "Vous devez être connecté." };
+  const enfant = await prisma.child.findFirst({ where: { id: childId, userId: user.id }, select: { id: true } });
+  if (!enfant) return { ok: false, message: "Enfant introuvable." };
+  const champ = (n: string) => String(formData.get(n) ?? "").replace(/\s+/g, " ").trim().slice(0, 160);
+  const fiche = { objet: champ("objet"), aime: champ("aime"), peur: champ("peur"), proches: champ("proches") };
+  for (const v of Object.values(fiche)) {
+    if (!v) continue;
+    const check = checkUserText(v);
+    if (!check.ok) return { ok: false, message: check.message };
+  }
+  await ecrireFiche(enfant.id, fiche);
+  revalidatePath("/enfants");
+  return { ok: true, message: "Fiche enregistrée : les prochaines histoires s'en souviendront." };
 }

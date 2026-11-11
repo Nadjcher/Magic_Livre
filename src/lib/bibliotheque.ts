@@ -10,6 +10,7 @@
  */
 
 import "server-only";
+import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
 import { BIBLIOTHEQUE_DEPART, type Ton, type TypeExemple } from "./bibliothequeDepart";
 import { findThemeById } from "./themes";
@@ -79,11 +80,29 @@ export async function exemplesPour(demande: {
   age: number;
   format?: string;
   themeId?: string;
+  /** Rotation : un extrait servi à cet enfant n'est pas resservi dans ses 5 histoires suivantes. */
+  childId?: string;
 }): Promise<{ extraits: Exemple[]; trame: Exemple | null }> {
   try {
     await assurerTable();
-    const tous = await prisma.$queryRaw<Exemple[]>`
+    const deja = new Set<string>();
+    if (demande.childId) {
+      const recents = await prisma.book.findMany({
+        where: { childId: demande.childId, pages: { not: Prisma.DbNull } },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        select: { pages: true },
+      });
+      for (const r of recents) {
+        const ids = (r.pages as { meta?: { modeles?: unknown } } | null)?.meta?.modeles;
+        if (Array.isArray(ids)) ids.forEach((id) => deja.add(String(id)));
+      }
+    }
+    const candidats = await prisma.$queryRaw<Exemple[]>`
       SELECT * FROM "Exemple" WHERE actif AND "ageMin" - 1 <= ${demande.age} AND "ageMax" + 1 >= ${demande.age}`;
+    // Les extraits déjà lus par l'enfant passent en dernier (les trames peuvent revenir).
+    const frais = candidats.filter((e) => e.type === "trame" || !deja.has(e.id));
+    const tous = frais.filter((e) => e.type === "extrait").length >= 2 ? frais : candidats;
     const theme = findThemeById(demande.themeId);
     const tonsVoulus = new Set<string>(theme ? TONS_CATEGORIE[theme.categorie] ?? [] : ["drole", "aventure"]);
     const score = (e: Exemple) =>

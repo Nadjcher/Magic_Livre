@@ -12,6 +12,7 @@ import { getAbonnement } from "@/lib/subscription";
 import { reserver, liberer } from "@/lib/idempotence";
 import { plafondGratuitAtteint, noterLivreGratuit } from "@/lib/apercu";
 import { generateStory } from "@/lib/storyGenerator";
+import { lireFiche } from "@/lib/ficheEnfant";
 import { lancerIllustrations } from "@/lib/bookPipeline";
 import { EPISODES_PAR_MOIS, episodesDuMois, memoire, moisParis, serieDe } from "@/lib/serie";
 import type { StoryRequest } from "@/lib/storyPrompt";
@@ -81,6 +82,8 @@ export async function creerEpisode(
     format: serie.racine.meta?.format,
     premium: livre.tier === "premium",
     serie: m,
+    childId: livre.childId,
+    fiche: await lireFiche(livre.childId),
   };
   waitUntil(genererEpisode(book.id, req, serie.id, cleDecouverte));
   revalidatePath("/bibliotheque");

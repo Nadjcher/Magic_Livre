@@ -13,6 +13,7 @@ import {
   SYSTEM_PROMPT,
   buildUserMessage,
   ageGuidance,
+  blocMemoire,
   type StoryRequest,
 } from "./storyPrompt";
 import { parseStory, type Story } from "./storySchema";
@@ -25,6 +26,7 @@ import { findFormat } from "./bookFormats";
 import { fetchAsDataUrl } from "./imageFetch";
 import { controleActif, controlerIllustrations } from "./controleIllustrations";
 import { blocModeles, exemplesPour } from "./bibliotheque";
+import { BIBLE, GRILLE, SEUIL_ACCEPTATION, reglesAge } from "./bible";
 
 export type GenerateResult =
   | {
@@ -163,75 +165,149 @@ async function callModel(
   return response.choices[0]?.message?.content?.trim() ?? "";
 }
 
-/** Grille de la relecture notée (directrice littéraire). */
-const GRILLE_SYSTEM = `Tu es la directrice littéraire d'une maison d'édition d'albums jeunesse française, très exigeante. On te donne une histoire au format JSON, écrite pour un enfant dont l'âge est indiqué. Tu la notes sans complaisance, de 0 à 10, sur 7 critères :
-- voix_haute : le texte se lit bien à voix haute (rythme, sonorités, phrases variées) ;
-- langue : français naturel et juste, sans calques de l'anglais, typographie française, temps cohérents ;
-- age : vocabulaire et longueur de phrases adaptés à l'âge exact ;
-- coherence : personnages présentés, même genre (il/elle) et même apparence partout, logique d'une page à l'autre ;
-- originalite : une idée forte et inattendue, pas une trame plate ;
-- fin : une chute tendre ou drôle, sans morale expliquée ;
-- clichés : absence de tics d'IA (« soudain » répété, « magique », « scintillant », « ses yeux brillaient », « il avait compris que… »).
-Réponds UNIQUEMENT avec ce JSON : {"notes": {"voix_haute": n, "langue": n, "age": n, "coherence": n, "originalite": n, "fin": n, "cliches": n}, "problemes": ["problème précis avec le numéro de page et la correction attendue", …]} (6 problèmes au plus, les plus importants d'abord).`;
+/** Prompt de la relectrice (éditrice jeunesse) : document « Bible féerique et grille de relecture ». */
+const RELECTRICE_SYSTEM = `Tu es éditeur jeunesse exigeant pour Encore une histoire.
+Tu n'as pas écrit ce texte et tu ne cherches pas à le défendre.
 
-/** Consignes de la réécriture ciblée. */
-const REECRITURE_SYSTEM = `Tu es l'auteur de cette histoire pour enfants. Ta directrice littéraire a relevé des problèmes. Réécris l'histoire pour les corriger TOUS, et améliore la langue partout où elle peut être plus vivante, plus juste, plus agréable à lire à voix haute. Garde le même héros, la même intrigue, les mêmes personnages et le même nombre de pages. Garde "scene_illustration" en anglais (corrige-la seulement si elle contredit le texte), "cast" et "presents" identiques. Réponds UNIQUEMENT avec le JSON complet, même structure que celui reçu.`;
+${BIBLE}
+
+${GRILLE}
+
+ÉTAPES
+1. Vérifie d'abord les motifs éliminatoires.
+2. Note chaque critère de 1 à 5 et justifie en une phrase qui cite le passage concerné.
+3. En cas de refus, donne au plus 5 corrections précises, par page.
+
+Réponds uniquement en JSON :
+{"eliminatoire": null, "notes": {"voix_haute": 0, "ritournelle": 0, "structure": 0, "enfant_agit": 0, "personnalisation": 0, "feerique": 0, "age": 0, "fin": 0}, "justifications": {"voix_haute": "…"}, "total": 0, "verdict": "accepte | reecrire", "corrections": [{"page": 3, "probleme": "…", "piste": "…"}]}
+("eliminatoire" : null, ou le motif éliminatoire constaté, en une phrase.)`;
+
+/** Consignes de la réécriture : ne modifier que les pages citées. */
+const REECRITURE_SYSTEM = `Tu es auteur jeunesse pour Encore une histoire. Ton éditeur a relu ton histoire et demande des corrections.
+
+${BIBLE}
+
+Corrige l'histoire selon les corrections reçues, en NE MODIFIANT QUE LES PAGES CITÉES (et le titre seulement si une correction le demande). Garde le même héros, la même intrigue, les mêmes personnages, le même nombre de pages, la même ritournelle mot pour mot. Garde "scene_illustration" en anglais (corrige-la seulement si elle contredit le nouveau texte), "cast" et "presents" identiques.
+Réponds UNIQUEMENT avec le JSON complet, même structure que celui reçu.`;
+
+type Verdict = {
+  eliminatoire?: string | null;
+  notes?: Record<string, number>;
+  total?: number;
+  corrections?: { page?: number; probleme?: string; piste?: string }[];
+};
 
 /**
- * Relecture notée : une IA note l'histoire sur une grille ; si la note est
- * basse, l'auteur la réécrit en corrigeant les problèmes relevés. Bornée dans
- * le temps et jamais bloquante : en cas de souci, on garde l'histoire d'origine.
+ * Étape 3 : la relecture. Une deuxième IA (qui ne voit pas la conversation de
+ * l'autrice) note l'histoire avec la grille. Acceptée à 32/40, sans critère
+ * sous 3 et sans motif éliminatoire ; sinon l'autrice réécrit les pages citées,
+ * deux fois au maximum. Après deux échecs, l'histoire part en file de relecture
+ * humaine (on garde la meilleure version). Borné dans le temps, jamais bloquant.
  */
-async function relireEtAmeliorer(client: OpenAI, model: string, story: Story, req: StoryRequest, debut: number): Promise<Story> {
-  if (Date.now() - debut > 150_000) return story;
-  const json = JSON.stringify({ titre: story.titre, personnages: story.personnages, cast: story.cast, pages: story.pages });
-  let grille: { notes?: Record<string, number>; problemes?: string[] } = {};
-  try {
-    const raw = await callModel(client, model, GRILLE_SYSTEM, `Âge de l'enfant : ${req.childAge} ans.\n\n${json}`, 0.3, false, undefined, {
-      modele: process.env.STORY_CRITIC_MODEL || "anthropic/claude-sonnet-5.5",
-      delaiMs: 60_000,
-    });
-    grille = JSON.parse(/\{[\s\S]*\}/.exec(raw)?.[0] ?? "{}");
-  } catch (e) {
-    console.error("[relecture] indisponible :", String(e).slice(0, 160));
-    return story;
+async function relireEtAmeliorer(
+  client: OpenAI,
+  model: string,
+  story: Story,
+  req: StoryRequest,
+  debut: number,
+  extraits: string,
+): Promise<Story> {
+  const juger = async (s: Story): Promise<Verdict | null> => {
+    if (Date.now() - debut > 200_000) return null;
+    const histoire = JSON.stringify({ titre: s.titre, pages: s.pages.map((p, i) => ({ page: i + 1, texte: p.texte })) });
+    const message = [
+      `Âge de l'enfant : ${req.childAge} ans. Prénom : ${req.childFirstName}.`,
+      `Règles de longueur : ${reglesAge(req.childAge)}`,
+      "",
+      `PLAN\n${JSON.stringify(s.plan ?? {})}`,
+      "",
+      `MÉMOIRE DE L'ENFANT\n${blocMemoire(req) || "(aucune)"}`,
+      "",
+      `EXTRAITS FOURNIS À L'AUTEUR\n${extraits || "(aucun)"}`,
+      "",
+      `HISTOIRE À JUGER\n${histoire}`,
+    ].join("\n");
+    try {
+      const raw = await callModel(client, model, RELECTRICE_SYSTEM, message, 0.3, false, undefined, {
+        modele: process.env.STORY_CRITIC_MODEL || "anthropic/claude-sonnet-5.5",
+        delaiMs: 60_000,
+      });
+      return JSON.parse(/\{[\s\S]*\}/.exec(raw)?.[0] ?? "null") as Verdict | null;
+    } catch (e) {
+      console.error("[relecture] indisponible :", String(e).slice(0, 160));
+      return null;
+    }
+  };
+  const bilan = (v: Verdict) => {
+    const notes = Object.values(v.notes ?? {}).filter((n): n is number => typeof n === "number");
+    const total = notes.length ? notes.reduce((a, b) => a + b, 0) : v.total ?? 0;
+    const elim = v.eliminatoire && String(v.eliminatoire).toLowerCase() !== "null" ? String(v.eliminatoire) : null;
+    const accepte = !elim && total >= SEUIL_ACCEPTATION && notes.length > 0 && Math.min(...notes) >= 3;
+    const problemes = [
+      ...(elim ? [`Éliminatoire : ${elim}`] : []),
+      ...(v.corrections ?? []).slice(0, 5).map((c) => `${c.page ? `p. ${c.page} : ` : ""}${c.probleme ?? ""}${c.piste ? ` → ${c.piste}` : ""}`),
+    ];
+    return { total, accepte, elim, problemes, notes: v.notes };
+  };
+
+  let actuelle = story;
+  let verdict = await juger(actuelle);
+  if (!verdict) return story;
+  let b = bilan(verdict);
+  let meilleure = { story: actuelle, b };
+  let essais = 0;
+  console.log("[relecture] total", b.total, b.accepte ? "accepté" : "à réécrire");
+
+  while (!b.accepte && essais < 2 && Date.now() - debut < 190_000) {
+    essais++;
+    try {
+      const raw = await callModel(
+        client,
+        model,
+        REECRITURE_SYSTEM,
+        `Âge de l'enfant : ${req.childAge} ans.\nRègles de longueur : ${reglesAge(req.childAge)}\n\nCORRECTIONS\n- ${b.problemes.join("\n- ")}\n\nHISTOIRE\n${JSON.stringify({ plan: actuelle.plan, titre: actuelle.titre, personnages: actuelle.personnages, cast: actuelle.cast, pages: actuelle.pages, resume: actuelle.resume, fils: actuelle.fils, faits: actuelle.faits, suites: actuelle.suites })}`,
+        0.5,
+        req.premium,
+        undefined,
+        { delaiMs: Math.max(30_000, 265_000 - (Date.now() - debut)) },
+      );
+      const parsed = parseStory(raw);
+      if (!parsed.ok || texteEnAnglais(parsed.story) || parsed.story.pages.length !== actuelle.pages.length) break;
+      if (!filterStory(parsed.story).ok) break;
+      const texte = [parsed.story.titre, ...parsed.story.pages.map((p) => `${p.texte} ${p.scene_illustration}`)].join(" ");
+      if (findProtectedNames(texte).length > 0) break;
+      actuelle = {
+        ...actuelle,
+        titre: parsed.story.titre || actuelle.titre,
+        pages: parsed.story.pages.map((p, i) => ({ ...p, presents: p.presents ?? actuelle.pages[i]?.presents })),
+      };
+    } catch (e) {
+      console.error("[réécriture] impossible :", String(e).slice(0, 160));
+      break;
+    }
+    verdict = await juger(actuelle);
+    if (!verdict) break;
+    b = bilan(verdict);
+    console.log("[relecture] réécriture", essais, "total", b.total, b.accepte ? "accepté" : "refusé");
+    if (b.accepte || b.total >= meilleure.b.total) meilleure = { story: actuelle, b };
   }
-  const notes = Object.values(grille.notes ?? {}).filter((n): n is number => typeof n === "number");
-  if (!notes.length) return story;
-  const moyenne = notes.reduce((a, b) => a + b, 0) / notes.length;
-  const problemes = (grille.problemes ?? []).filter((p) => typeof p === "string").slice(0, 6);
-  const qualite = { note: Math.round(moyenne * 10) / 10, notes: grille.notes, problemes, reecrit: false };
-  console.log("[relecture] note", qualite.note, problemes.length, "problèmes");
-  if ((moyenne >= 7.5 && Math.min(...notes) >= 6) || !problemes.length || Date.now() - debut > 170_000) {
-    return { ...story, qualite };
-  }
-  try {
-    const raw = await callModel(
-      client,
-      model,
-      REECRITURE_SYSTEM,
-      `Âge de l'enfant : ${req.childAge} ans.\nConsignes d'âge :\n${ageGuidance(req.childAge)}\n\nProblèmes relevés :\n- ${problemes.join("\n- ")}\n\nHistoire :\n${json}`,
-      0.5,
-      req.premium,
-      undefined,
-      { delaiMs: Math.max(30_000, 270_000 - (Date.now() - debut)) },
-    );
-    const parsed = parseStory(raw);
-    if (!parsed.ok || texteEnAnglais(parsed.story) || parsed.story.pages.length !== story.pages.length) return { ...story, qualite };
-    if (!filterStory(parsed.story).ok) return { ...story, qualite };
-    const texte = [parsed.story.titre, ...parsed.story.pages.map((p) => `${p.texte} ${p.scene_illustration}`)].join(" ");
-    if (findProtectedNames(texte).length > 0) return { ...story, qualite };
-    return {
-      ...story,
-      titre: parsed.story.titre || story.titre,
-      personnages: parsed.story.personnages || story.personnages,
-      pages: parsed.story.pages.map((p, i) => ({ ...p, presents: p.presents ?? story.pages[i]?.presents })),
-      qualite: { ...qualite, reecrit: true },
-    };
-  } catch (e) {
-    console.error("[réécriture] impossible :", String(e).slice(0, 160));
-    return { ...story, qualite };
-  }
+
+  const finale = meilleure;
+  return {
+    ...finale.story,
+    qualite: {
+      note: Math.round((finale.b.total / 4) * 10) / 10, // sur 10 (affichage)
+      total: finale.b.total,
+      notes: finale.b.notes,
+      problemes: finale.b.problemes,
+      accepte: finale.b.accepte,
+      eliminatoire: finale.b.elim,
+      reecrit: essais > 0,
+      essais,
+      // Après deux réécritures refusées : file de relecture humaine.
+      aRevoir: !finale.b.accepte && essais >= 2,
+    },
+  };
 }
 
 /** Prompt « éditeur » : réécrit une histoire pour la clarifier et l'adapter à l'âge. */
@@ -308,7 +384,12 @@ export async function generateStory(
 ): Promise<GenerateResult> {
   const debut = Date.now();
   // RAG : extraits modèles (ton) + trame (structure) les plus proches de la demande.
-  const modeles = await exemplesPour({ age: req.childAge, format: req.format, themeId: req.mode === "theme" ? req.themeId : undefined });
+  const modeles = await exemplesPour({
+    age: req.childAge,
+    format: req.format,
+    themeId: req.mode === "theme" ? req.themeId : undefined,
+    childId: req.childId,
+  });
   let userMessage = buildUserMessage(req, blocModeles(modeles));
   const client = createClient();
   // Édition premium : modèle de texte haut de gamme (configurable).
@@ -384,10 +465,17 @@ export async function generateStory(
     const polished = info.viaFal ? null : await polishStory(client, model, parsed.story, req);
     let base: Story = polished ?? parsed.story;
     // Relecture notée par une deuxième IA ; réécriture si la note est basse.
-    if (info.viaFal) base = await relireEtAmeliorer(client, model, base, req, debut);
+    if (info.viaFal) base = await relireEtAmeliorer(client, model, base, req, debut, blocModeles(modeles));
     base = {
       ...base,
-      meta: { age: req.childAge, format: req.format, themeId: req.mode === "theme" ? req.themeId : undefined, mode: req.mode },
+      meta: {
+        age: req.childAge,
+        format: req.format,
+        themeId: req.mode === "theme" ? req.themeId : undefined,
+        mode: req.mode,
+        trame: modeles.trame?.id,
+        modeles: [...modeles.extraits.map((e) => e.id), ...(modeles.trame ? [modeles.trame.id] : [])],
+      },
     };
 
     // Étape « texte seul » : les illustrations seront faites par une seconde

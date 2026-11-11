@@ -19,6 +19,7 @@ import { migrateBookImagesToBlob } from "./bookImages";
 export const DUREES_CONSERVATION: { donnee: string; duree: string }[] = [
   { donnee: "Photo de l'enfant", duree: "Jamais conservée : utilisée le temps de dessiner le héros, puis oubliée." },
   { donnee: "Compte, enfants (prénom, âge) et livres", duree: "Tant que le compte est utilisé. Après 2 ans sans connexion, le compte est supprimé (un email vous prévient 30 jours avant)." },
+  { donnee: "Fiche de l'enfant pour les histoires (doudou, goûts, proches)", duree: "Tant que l'enfant est dans votre compte ; effacée avec lui, avec le compte, ou dès que vous videz la fiche." },
   { donnee: "Livre que vous supprimez", duree: "Effacé définitivement sous 30 jours, avec ses illustrations." },
   { donnee: "Livre dont la création a échoué", duree: "Effacé sous 30 jours." },
   { donnee: "Commandes et factures", duree: "10 ans, obligation comptable (article L123-22 du Code de commerce). Le contenu du livre n'y est pas conservé." },

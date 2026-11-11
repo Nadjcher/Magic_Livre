@@ -26,8 +26,10 @@ export default function ConfidentialitePage() {
       <p className="text-magique-texteClair">
         Nous collectons uniquement les données nécessaires : adresse email du
         parent (connexion), prénom et âge de l'enfant (personnalisation),
-        historique des livres et des commandes. Aucune photo n'est demandée ni
-        stockée.
+        historique des livres et des commandes. Si vous le souhaitez, la fiche de
+        l'enfant pour les histoires (son doudou, ce qu'il aime, ce qui lui fait peur,
+        les proches à citer), facultative et modifiable ou effaçable à tout moment.
+        La photo éventuelle sert seulement à dessiner le héros et n'est jamais conservée.
       </p>
 
       <h2 className="text-xl font-semibold">Finalités</h2>
@@ -35,7 +37,9 @@ export default function ConfidentialitePage() {
         Les données servent à créer et afficher les livres, à gérer les paiements
         et à assurer le fonctionnement du service. Le prénom de l'enfant est
         transmis au modèle de génération de texte uniquement pour écrire
-        l'histoire.
+        l'histoire. Pour la qualité des histoires, une histoire jugée insuffisante
+        par notre relecture automatique peut être relue par notre équipe, le prénom
+        de l'enfant masqué et sans lien avec votre compte.
       </p>
 
       <h2 className="text-xl font-semibold">Consentement parental</h2>

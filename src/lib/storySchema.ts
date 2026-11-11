@@ -88,6 +88,21 @@ export const storySchema = z.object({
     .array(z.object({ orderId: z.string(), gelatoId: z.string(), creeLe: z.number() }))
     .optional()
     .catch(undefined),
+  // Plan en neuf cases (bible), écrit par l'autrice avant les pages.
+  plan: z
+    .object({
+      objet_cle: z.string().optional(),
+      compagnon: z.string().optional(),
+      ritournelle: z.string().optional(),
+      emotion_depart: z.string().optional(),
+      emotion_arrivee: z.string().optional(),
+      cases: z.array(z.object({ n: z.number(), page: z.number().optional(), resume: z.string() })).optional(),
+      accroche_suite: z.string().optional(),
+    })
+    .optional()
+    .catch(undefined),
+  // Faits établis par l'histoire (règles du monde) : à ne jamais contredire dans la série.
+  faits: z.preprocess((v) => (typeof v === "string" ? v.slice(0, 500) : undefined), z.string().optional()),
   // Mémoire pour la série : résumé de l'épisode, fils laissés ouverts, et
   // 3 suites possibles proposées à l'enfant (« Et demain ? »).
   resume: z.preprocess((v) => (typeof v === "string" ? v.slice(0, 600) : undefined), z.string().optional()),
@@ -99,12 +114,29 @@ export const storySchema = z.object({
   serie: z.object({ id: z.string(), numero: z.number().int().min(1) }).optional().catch(undefined),
   // Fiche de la demande (pour la bibliothèque d'exemples et les séries).
   meta: z
-    .object({ age: z.number(), format: z.string().optional(), themeId: z.string().optional(), mode: z.string().optional() })
+    .object({
+      age: z.number(),
+      format: z.string().optional(),
+      themeId: z.string().optional(),
+      mode: z.string().optional(),
+      trame: z.string().optional(),
+      modeles: z.array(z.string()).optional(),
+    })
     .optional()
     .catch(undefined),
   // Relecture notée par la directrice littéraire (IA).
   qualite: z
-    .object({ note: z.number(), notes: z.record(z.string(), z.number()).optional(), problemes: z.array(z.string()), reecrit: z.boolean() })
+    .object({
+      note: z.number(),
+      notes: z.record(z.string(), z.number()).optional(),
+      problemes: z.array(z.string()),
+      reecrit: z.boolean(),
+      total: z.number().optional(),
+      accepte: z.boolean().optional(),
+      eliminatoire: z.string().nullable().optional(),
+      essais: z.number().optional(),
+      aRevoir: z.boolean().optional(),
+    })
     .optional()
     .catch(undefined),
   // Aperçu gratuit : seules la couverture et les premières pages sont illustrées ;

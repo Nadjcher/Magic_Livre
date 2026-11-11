@@ -33,13 +33,20 @@ const TONS: [string, string][] = [
 
 const CRITERES: Record<string, string> = {
   voix_haute: "Voix haute",
-  langue: "Langue",
+  ritournelle: "Ritournelle",
+  structure: "Structure",
+  enfant_agit: "L'enfant agit",
+  personnalisation: "Personnalisation",
+  feerique: "Féerique",
   age: "Âge",
-  coherence: "Cohérence",
-  originalite: "Originalité",
   fin: "Fin",
-  cliches: "Sans clichés",
 };
+
+/** Le prénom de l'enfant est masqué dans la file de relecture (données d'un mineur). */
+function anonymiser(texte: string, prenom: string): string {
+  const p = prenom.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return texte.replace(new RegExp(`(^|[^\\p{L}])${p}(?=[^\\p{L}]|$)`, "gu"), "$1[prénom]");
+}
 
 function CasesTons() {
   return (
@@ -64,6 +71,16 @@ export default async function AtelierPage() {
     select: { id: true, title: true, pages: true, createdAt: true, child: { select: { firstName: true, age: true } } },
   });
   const exemples = await listerExemples();
+  // File de relecture humaine : histoires refusées deux fois par la relectrice (tous comptes, anonymisées).
+  const aRevoir = await prisma.$queryRaw<{ id: string; pages: unknown; prenom: string; age: number }[]>`
+    SELECT b.id, b.pages, c."firstName" AS prenom, c.age FROM "Book" b JOIN "Child" c ON c.id = b."childId"
+    WHERE b."deletedAt" IS NULL AND b.pages->'qualite'->>'aRevoir' = 'true'
+    ORDER BY b."createdAt" DESC LIMIT 20`.catch(() => []);
+  // Note moyenne par trame (sur 40) : une trame sous 30 est à réécrire à la main.
+  const parTrame = await prisma.$queryRaw<{ trame: string | null; moyenne: number; n: bigint }[]>`
+    SELECT b.pages->'meta'->>'trame' AS trame, AVG((b.pages->'qualite'->>'total')::float) AS moyenne, COUNT(*) AS n
+    FROM "Book" b WHERE b.pages->'qualite'->>'total' IS NOT NULL GROUP BY 1 ORDER BY 2`.catch(() => []);
+  const titreTrame = new Map(exemples.map((e) => [e.id, e.titre]));
 
   return (
     <div className="mx-auto max-w-3xl space-y-10">
@@ -91,7 +108,12 @@ export default async function AtelierPage() {
               <summary className="cursor-pointer py-1">
                 <span className="font-serif text-lg">{l.title}</span>
                 <span className="ml-2 text-sm text-magique-texteClair">
-                  {l.child.firstName}, {l.child.age} ans · {q ? `note ${q.note}/10${q.reecrit ? " (réécrite)" : ""}` : "non notée"}
+                  {l.child.firstName}, {l.child.age} ans ·{" "}
+                  {q
+                    ? q.total !== undefined
+                      ? `${q.total}/40 ${q.accepte ? "acceptée" : "refusée"}${q.essais ? ` après ${q.essais} réécriture${q.essais > 1 ? "s" : ""}` : ""}`
+                      : `note ${q.note}/10`
+                    : "non notée"}
                 </span>
               </summary>
               {q && (
@@ -136,6 +158,53 @@ export default async function AtelierPage() {
           );
         })}
       </section>
+
+      <section className="space-y-3">
+        <h2 className="text-2xl">File de relecture ({aRevoir.length})</h2>
+        <p className="text-sm text-magique-texteClair">
+          Histoires refusées deux fois par la relectrice (sous 32/40 ou motif éliminatoire). Le prénom de l'enfant est masqué.
+        </p>
+        {aRevoir.map((r) => {
+          const st = storySchema.safeParse(r.pages);
+          if (!st.success) return null;
+          return (
+            <details key={r.id} className="carte">
+              <summary className="cursor-pointer py-1">
+                <span className="font-serif">{anonymiser(st.data.titre, r.prenom)}</span>
+                <span className="ml-2 text-sm text-magique-texteClair">{r.age} ans · {st.data.qualite?.total ?? "?"}/40</span>
+              </summary>
+              <ul className="mt-3 list-disc pl-5 text-sm text-magique-texteClair">
+                {(st.data.qualite?.problemes ?? []).map((p) => (
+                  <li key={p}>{anonymiser(p, r.prenom)}</li>
+                ))}
+              </ul>
+              <ol className="mt-3 space-y-2">
+                {st.data.pages.map((p, i) => (
+                  <li key={i} className="whitespace-pre-line text-sm leading-relaxed">
+                    <span className="mr-2 text-xs text-magique-texteClair">p. {i + 1}</span>
+                    {anonymiser(p.texte, r.prenom)}
+                  </li>
+                ))}
+              </ol>
+            </details>
+          );
+        })}
+      </section>
+
+      {parTrame.length > 0 && (
+        <section className="carte space-y-2">
+          <h2 className="text-2xl">Note moyenne par trame</h2>
+          <p className="text-sm text-magique-texteClair">Sur 40. Une trame sous 30 de moyenne est à réécrire à la main.</p>
+          <ul className="space-y-1 text-sm">
+            {parTrame.map((t) => (
+              <li key={t.trame ?? "aucune"} className={t.moyenne < 30 ? "text-rose-200" : ""}>
+                {t.trame ? titreTrame.get(t.trame) ?? t.trame : "Sans trame"} : <strong>{t.moyenne.toFixed(1)}</strong> ({Number(t.n)} histoire
+                {Number(t.n) > 1 ? "s" : ""})
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="carte space-y-3">
         <h2 className="text-2xl">Écrire un modèle à la main</h2>

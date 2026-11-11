@@ -77,9 +77,12 @@ export function memoire(serie: Serie, choix: string): MemoireSerie {
     numero: (serie.episodes[serie.episodes.length - 1]?.numero ?? 1) + 1,
     personnages: dernier.personnages ?? serie.racine.personnages,
     cast: [...cast.values()].slice(0, 6),
-    // Les 6 derniers résumés suffisent (au-delà, la série se résume elle-même).
-    resumes: serie.episodes.slice(-6).map((e) => e.story.resume ?? e.story.pages.map((p) => p.texte).join(" ").slice(0, 400)),
-    fils: dernier.fils,
+    // Les 3 derniers résumés (bible : la mémoire reçoit les trois derniers épisodes).
+    resumes: serie.episodes.slice(-3).map((e) => e.story.resume ?? e.story.pages.map((p) => p.texte).join(" ").slice(0, 400)),
+    fils: dernier.fils ?? dernier.plan?.accroche_suite,
+    // La ritournelle de la série est celle du premier épisode ; les faits s'accumulent.
+    ritournelle: serie.racine.plan?.ritournelle,
+    faits: serie.episodes.map((e) => e.story.faits).filter(Boolean).join(" ").slice(-700) || undefined,
     choix,
   };
 }

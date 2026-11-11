@@ -14,6 +14,7 @@
 import { revalidatePath } from "next/cache";
 import sharp from "sharp";
 import { plafondGratuitAtteint, noterLivreGratuit } from "@/lib/apercu";
+import { lireFiche } from "@/lib/ficheEnfant";
 import { waitUntil } from "@vercel/functions";
 import { getCurrentUser, hasParentalConsent } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
@@ -254,6 +255,8 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
       apercu,
       format: input.format,
       extras,
+      childId: child.id,
+      fiche: await lireFiche(child.id),
     }),
   );
 
