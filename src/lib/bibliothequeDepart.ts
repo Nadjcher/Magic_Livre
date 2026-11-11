@@ -452,11 +452,12 @@ Consignes propres à cette trame
 - {parent} ne dit pas qu'il comprend ce qui s'est passé.
 - 450 à 550 mots, 10 pages.
 
+Style visuel de la collection : l'enfant (et les personnages du conte) en 3D et en couleurs, à l'intérieur d'un livre dessiné au crayon gris sur papier crème. Règle : ce que l'enfant a dessiné se distingue TOUJOURS du dessin d'origine du livre (traits blancs maladroits d'un enfant de 5 ans, de tailles inégales, jamais un pavage ni une route propre).
 Images (champ scene_illustration, pour les 4 illustrations)
-1. Couverture : l'enfant et Poucet de dos, un chemin de cailloux blancs dans une forêt au crayon.
+1. Couverture : l'enfant et Poucet de dos (Poucet arrive au genou de l'enfant), une file de cailloux blancs séparés, de tailles inégales, un peu tordus, dans une forêt au crayon.
 2. Case 3 : la main de l'enfant touche le caillou qui luit sur la page ouverte.
 3. Case 7 : l'enfant accroupi(e) dessine un caillou au sol, Poucet penché à côté.
-4. Case 9 : le livre ouvert sur le lit, les cailloux tordus sur la page, la main du parent.`,
+4. Case 9 : le livre ouvert sur le lit ; sur la belle page au crayon, des cailloux blancs maladroits, visiblement tracés par une main d'enfant ; la main du parent ; une botte qui dépasse d'un buisson à la page suivante.`,
   },
   // ─── Trames (structures) ───
   {

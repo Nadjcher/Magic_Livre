@@ -48,12 +48,15 @@ function assurerTable(): Promise<void> {
       utilisations INT NOT NULL DEFAULT 0,
       "creeLe" TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )`);
-    // Bibliothèque de départ : ajoutée une fois (un exemple désactivé par l'admin le reste).
+    // Bibliothèque de départ : ajoutée, et mise à jour quand son texte change dans le code
+    // (un exemple désactivé par l'admin le reste : « actif » n'est jamais écrasé).
     for (const e of BIBLIOTHEQUE_DEPART) {
       await prisma.$executeRaw`
         INSERT INTO "Exemple" (id, type, titre, "ageMin", "ageMax", tons, formats, themes, texte, source)
         VALUES (${`depart:${e.cle}`}, ${e.type}, ${e.titre}, ${e.ageMin}, ${e.ageMax}, ${e.tons}, ${e.formats}, ${e.themes}, ${e.texte}, 'depart')
-        ON CONFLICT (id) DO NOTHING`;
+        ON CONFLICT (id) DO UPDATE SET type = EXCLUDED.type, titre = EXCLUDED.titre, "ageMin" = EXCLUDED."ageMin",
+          "ageMax" = EXCLUDED."ageMax", tons = EXCLUDED.tons, formats = EXCLUDED.formats, themes = EXCLUDED.themes,
+          texte = EXCLUDED.texte`;
     }
     for (const cle of DEPART_RETIRES) {
       await prisma.$executeRaw`UPDATE "Exemple" SET actif = FALSE WHERE id = ${`depart:${cle}`}`;
