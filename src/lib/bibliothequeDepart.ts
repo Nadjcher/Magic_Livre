@@ -378,6 +378,39 @@ La canne resta immobile un long moment. Puis elle frappa trois coups.
 
 Alors Grand-père sourit et, pour la première fois depuis des semaines, il ouvrit la bouche pour raconter.`,
   },
+  // ─── Histoires validées (banc d'essai du 11 novembre, classées 1re et 2e) ───
+  {
+    cle: "validee-volcan-de-poche",
+    type: "extrait",
+    titre: "Le volcan de poche",
+    ageMin: 8,
+    ageMax: 12,
+    tons: ["drole", "tendre"],
+    formats: ["album", "roman", "realiste"],
+    themes: ["emotions", "colere"],
+    texte: `« Ce volcan, c'est ta colère, expliqua Cendrine en époussetant sa queue. Il pousse quand une chose injuste reste coincée quelque part. Les gens croient que c'est dans la gorge. Moi, je dirais plutôt entre le ventre et les oreilles. » Maé regarda le volcan cracher une nouvelle étincelle. Elle n'avait aucune envie qu'il grandisse. Elle attrapa le verre vide sur sa table de chevet et le retourna d'un coup sur le cratère, comme on attrape une araignée. « Voilà. Enfermé. » Cendrine ouvrit la bouche pour dire quelque chose. Puis elle la referma, ce qui, chez elle, n'arrivait presque jamais.
+
+Sous le verre, la fumée tourna, tourna, de plus en plus épaisse. Le verre se mit à trembler, puis à tinter contre le bois. Ting, ting, ting. Le volcan avait déjà la taille d'un melon. Avec un « plop » de bouchon, le verre sauta et roula sur le tapis, et une pluie d'étincelles retomba sur la couette sans la brûler. Maé sentit ses joues chauffer encore plus. « Une colère qu'on enferme, elle grossit en cachette, soupira Cendrine. Répète avec moi, c'est une vieille formule de gardienne : “Gronde, petit volcan, mais pas plus haut que moi.” » Maé la répéta du bout des lèvres. Ça ressemblait plus à une prière qu'à une formule.
+
+« On essaie la méthode de la soupe ? proposa Cendrine. Quand une soupe est trop chaude, on ne crie pas dessus. On souffle. » Maé s'assit en tailleur face au volcan. Elle inspira par le nez, longtemps, en comptant jusqu'à quatre, puis elle souffla doucement vers le cratère, comme sur une bougie qu'on ne veut pas éteindre. Une fois. Deux fois. Dix fois. La fumée devint plus claire, presque de la brume. Les étincelles s'espacèrent. Le volcan rapetissa jusqu'à la taille d'une théière, puis d'une tasse. Cendrine applaudissait avec ses quatre pattes à la fois, ce qui la fit tomber sur le dos.`,
+  },
+  {
+    cle: "validee-carte-clair-de-lune",
+    type: "extrait",
+    titre: "La carte au clair de lune",
+    ageMin: 5,
+    ageMax: 8,
+    tons: ["feerique", "drole", "aventure"],
+    formats: ["album", "aventure", "dodo"],
+    themes: ["aventures", "foret-enchantee"],
+    texte: `Au bout du lit, Caramel ouvrit un œil. « Un trésor ? Dehors ? La nuit ? miaula-t-il. Il y a peut-être des loups. Ou des flaques. » Caramel parlait seulement la nuit, et il avait peur de presque tout. Maé le gratta sous le menton. « Je tiens la lampe, toi, tu tiens la carte. »
+
+À pas de chat, ils se glissèrent dans le jardin. La carte montrait d'abord le rosier. Sous une feuille, un ruban d'argent brillait. « Petit sourire, où es-tu caché ? » demanda Maé. Mais ce n'était qu'une trace d'escargot. Caramel fit un bond en arrière : « Il colle, ton trésor ! »
+
+La carte menait ensuite au petit bassin. Tout au fond, sous la mousse, brillait un croissant d'argent. « Petit sourire, où es-tu caché ? » murmura Maé, sans respirer. Caramel tendit une patte tremblante. Plic ! L'eau fit des ronds… Ce n'était qu'une vieille cuillère, couchée dans la vase.
+
+Maé s'assit au bord du bassin et regarda la carte de plus près. Puis elle éclata de rire. Elle la tenait à l'envers ! La croix n'était pas dans le jardin. Elle était dans sa chambre, juste sous son lit. « Tout ce chemin pour rien ? » soupira Caramel.`,
+  },
   // ─── Trames (structures) ───
   {
     cle: "trame-randonnee",
