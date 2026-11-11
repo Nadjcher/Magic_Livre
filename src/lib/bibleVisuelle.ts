@@ -21,7 +21,7 @@ export const CONSIGNE_STYLE =
   "Palette: deep night blue (sky, distances, shadows), moss green and warm brown (foliage, trunks, ground), warm golden light " +
   "(window, lamp, glowing object), ONE accent color tied to the child (pajamas, bonnet or cuddly toy); white is reserved for what the child draws. " +
   "Daytime scenes keep the same hues, lightened: never bright saturated colors. " +
-  "LIGHT: a single light source, the one named in the scene; it lights the child's face first; the edges of the image are darker than the center.";
+  "LIGHT: a single main light source, the one named in the scene; it lights the child's face first; small distant lights (a lit window far away, stars) are allowed only if they do not light the characters; the edges of the image are darker than the center.";
 
 /** Bloc HÉROS : traits du portrait validé, répétés à chaque page. */
 export function consigneHeros(nom: string | undefined, traits: string | undefined): string {
@@ -44,7 +44,7 @@ export const PERSONNAGES_FIXES =
 /** Le dessin de l'enfant : toujours distinct du décor peint. */
 export const DESSIN_ENFANT =
   "WHAT THE CHILD DRAWS: irregular lumpy white shapes of unequal sizes, each outlined by a shaky white pencil line, " +
-  "clearly different from the painted scenery; never a paved path, a road or regular pebbles; a slight golden halo when the drawing becomes real.";
+  "clearly different from the painted scenery; never a paved path, a road or regular pebbles. While it is only drawn: outline only, empty inside. Once it has become real: a full solid shape with a slight golden glow.";
 
 /** Interdits. */
 export const INTERDITS_IMAGE =
@@ -64,7 +64,7 @@ export const GRILLE_IMAGES = [
   "The hero has the traits of the reference portrait: hair (color and cut), eyes, skin tone, distinctive features (glasses, freckles…).",
   "The technique is painted (watercolor/gouache), with no ink outlines and no 3D.",
   "The scenery fills the whole frame, with no empty area outside the calm text area.",
-  "There is a single light source, the one named in the scene.",
+  "There is a single MAIN light source, the one named in the scene, lighting the hero's face; small distant lights (a far-away window, stars) are fine as long as they do not light the characters.",
   "Fixed characters match their sheet and their scale (a secondary character never resembles the hero; the cuddly toy is a toy, not alive).",
   "The objects named in the scene are present, in the right place.",
   "If the child has drawn something, it is clearly distinct from the painted scenery (white, irregular, shaky outline).",
