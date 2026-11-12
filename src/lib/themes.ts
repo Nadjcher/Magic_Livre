@@ -59,7 +59,7 @@ export function themeOuvert(id: string | undefined, age?: number): boolean {
   if (!id) return false;
   if (THEMES_FORCES.includes("*") || THEMES_FORCES.includes(id)) return true;
   // Une histoire maîtresse a sa tranche d'âge (ex. le Petit Poucet : 4 à 8 ans).
-  return HISTOIRES_MAITRESSES.some((h) => h.themeId === id && (age === undefined || (age >= h.ageMin && age <= h.ageMax)));
+  return HISTOIRES_MAITRESSES.some((h) => h.themeId === id && h.ouverte !== false && (age === undefined || (age >= h.ageMin && age <= h.ageMax)));
 }
 
 /** Réservé au Club : un classique sans histoire maîtresse (celles-ci sont ouvertes à tous). */
