@@ -83,13 +83,13 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       },
       {
         texte:
-          "{parent} alla à la cuisine chercher un verre d'eau. Sur la page, un seul caillou blanc luisait encore, minuscule. {prenom} attrapa le crayon blanc posé sur sa table de nuit. Du bout du doigt, {il} toucha la petite lueur. Hop ! {prenom} glissa dans la forêt du livre, {doudou} sous le bras. Le caillou brillait au creux de sa main.",
+          "{parent} descendit à la cuisine chercher un verre d'eau. Sur la page, un seul caillou blanc luisait encore, minuscule. {prenom} attrapa le crayon blanc posé sur sa table de nuit. Du bout du doigt, {il} toucha la petite lueur. Hop ! {prenom} glissa dans la forêt du livre, {doudou} sous le bras. Le caillou brillait au creux de sa main.",
         scene:
           "Close-up of the open old storybook on the duvet: on the forest page one single tiny white stone glows softly; {prenom}'s small hand reaches down to touch the glow while the other hand holds a white pencil; {doudou} peeks at the edge; a gentle light rises from the page in the dim room.",
       },
       {
         texte:
-          "Dans le livre, les arbres sentaient l'encre, et la mousse le vieux papier. Un garçon haut comme une botte fouillait sous les fougères : Poucet ! Ses frères attendaient, serrés contre un tronc. « Mes cailloux se sont effacés, je ne sais pas pourquoi. — Je peux t'aider, dit {prenom}. — Pas besoin, je trouve toujours le chemin. » Au loin, le géant ronflait, et le bord de la page s'assombrit.",
+          "Dans le livre, les arbres sentaient l'encre, et la mousse le vieux papier. Un garçon haut comme une botte fouillait sous les fougères : Poucet ! « Mes cailloux se sont effacés, je ne sais pas pourquoi. — Je peux t'aider, dit {prenom}. — Pas besoin, je trouve toujours le chemin. » Au loin, le géant ronflait, et le bord de la page s'assombrit.",
         scene:
           "Inside a soft storybook forest: {prenom}, holding {doudou} and a white pencil, offers help to Poucet, who searches under the ferns with his chin raised proudly; in the background his six little brothers (same tiny size, plain clothes, no bonnets) wait huddled together against a tree trunk; the edges of the scene slightly darker, the leaves trembling as if from a distant snore.",
         presents: ["Poucet"],
