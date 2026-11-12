@@ -218,7 +218,7 @@ export const ILLUSTRATION_STYLES: Record<
  * (la page 7 du Petit Poucet, regardée et validée). Les autres apparaissent
  * en « Bientôt ». Réglable dans Vercel (NEXT_PUBLIC_STYLES_OUVERTS=anim3d,maison,…), puis redéploiement.
  */
-export const STYLES_OUVERTS: IllustrationStyle[] = (process.env.NEXT_PUBLIC_STYLES_OUVERTS || "anim3d,maison,feerique,aventure,crayon,realiste")
+export const STYLES_OUVERTS: IllustrationStyle[] = (process.env.NEXT_PUBLIC_STYLES_OUVERTS || "anim3d,maison,feerique,aventure,crayon,realiste,aquarelle,classique,bd,pixel")
   .split(",")
   .map((x) => x.trim())
   .filter((x): x is IllustrationStyle => x in ILLUSTRATION_STYLES);

@@ -104,6 +104,51 @@ async function pixeliser(img: Ref): Promise<Ref> {
   }
 }
 
+/**
+ * Plein cadre garanti : certains styles (BD, papier découpé) ajoutent une
+ * bordure claire autour de l'image. Si le pourtour est presque blanc, on recadre
+ * sur l'image et on la remet au carré. Une image plein cadre n'est pas touchée.
+ */
+export async function retirerCadre(img: Ref): Promise<Ref> {
+  try {
+    const { default: sharp } = await import("sharp");
+    const src = Buffer.from(img.base64, "base64");
+    const N = 256;
+    const { data } = await sharp(src).resize(N, N, { fit: "fill" }).greyscale().raw().toBuffer({ resolveWithObject: true });
+    const clair = (x: number, y: number) => (data[y * N + x] ?? 0) > 222;
+    // Pourtour (2 px) : faut-il recadrer ?
+    let n = 0;
+    let c = 0;
+    for (let k = 0; k < N; k++)
+      for (const [x, y] of [[k, 0], [k, 1], [k, N - 1], [k, N - 2], [0, k], [1, k], [N - 1, k], [N - 2, k]] as const) {
+        n++;
+        if (clair(x, y)) c++;
+      }
+    if (c / n < 0.85) return img;
+    // Lignes et colonnes encore « cadre » (au moins 85 % de pixels clairs) depuis chaque bord.
+    const ligneClaire = (y: number) => Array.from({ length: N }, (_, x) => clair(x, y)).filter(Boolean).length / N > 0.85;
+    const colClaire = (x: number) => Array.from({ length: N }, (_, y) => clair(x, y)).filter(Boolean).length / N > 0.85;
+    let haut = 0, bas = N - 1, gauche = 0, droite = N - 1;
+    while (haut < N / 4 && ligneClaire(haut)) haut++;
+    while (bas > (3 * N) / 4 && ligneClaire(bas)) bas--;
+    while (gauche < N / 4 && colClaire(gauche)) gauche++;
+    while (droite > (3 * N) / 4 && colClaire(droite)) droite--;
+    const marge = 3; // on rogne un peu plus pour effacer le trait du cadre
+    const meta = await sharp(src).metadata();
+    const W = meta.width ?? 1024;
+    const H = meta.height ?? 1024;
+    const l = Math.round(((gauche + marge) / N) * W);
+    const t = Math.round(((haut + marge) / N) * H);
+    const w = Math.round(((droite - gauche - 2 * marge) / N) * W);
+    const h = Math.round(((bas - haut - 2 * marge) / N) * H);
+    if (w < W * 0.6 || h < H * 0.6) return img;
+    const out = await sharp(src).extract({ left: l, top: t, width: w, height: h }).resize(W, H, { fit: "cover" }).jpeg({ quality: 92 }).toBuffer();
+    return { base64: out.toString("base64"), mime: "image/jpeg" };
+  } catch {
+    return img;
+  }
+}
+
 /** Génère une illustration selon le fournisseur configuré. */
 export async function generateIllustration(
   req: IllustrationRequest,
@@ -169,6 +214,7 @@ export async function generateIllustration(
         console.error("[image] échec fal :", error);
         return { imageUrl: null, error };
       }
+      if (!req.coloring) img = await retirerCadre(img);
       if (req.style === "pixel" && !req.coloring) img = await pixeliser(img);
       return {
         imageUrl: req.stocker === false ? null : await storeImage(img.base64, img.mime, seed),
