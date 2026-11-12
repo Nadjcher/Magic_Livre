@@ -26,7 +26,7 @@ import BoutonCollant from "@/components/BoutonCollant";
 import { FONDATEUR } from "@/lib/fondateur";
 import { ILLUSTRATION_STYLES, ILLUSTRATION_STYLE_KEYS } from "@/lib/style_config";
 import Lucioles from "@/components/accueil/Lucioles";
-import Metamorphose from "@/components/accueil/Metamorphose";
+import Diptyque from "@/components/accueil/Diptyque";
 import LivreVitrine from "@/components/accueil/LivreVitrine";
 import { LIVRE_VITRINE } from "@/lib/livreVitrine";
 
@@ -171,64 +171,74 @@ export default async function AccueilPage() {
   return (
     <div className="space-y-24 sm:space-y-28">
 
-      {/* ─── Héros : une nuit étoilée, des lucioles, la photo qui devient un livre ─── */}
-      <section className="relative isolate overflow-hidden rounded-[2.5rem] px-5 py-10 sm:px-10 sm:py-16"
-        style={{ backgroundImage: "radial-gradient(ellipse at 75% 45%, rgba(255,196,110,.20), transparent 55%), linear-gradient(180deg,#0f1a44 0%,#16245c 60%,#1e2c74 100%)" }}
+      {/* ─── Héros : la photo et le héros du livre, côte à côte, sous un ciel de lucioles ─── */}
+      <section className="relative isolate overflow-hidden rounded-[2.5rem] px-5 pb-10 pt-8 sm:px-10 sm:py-14"
+        style={{ backgroundImage: "radial-gradient(ellipse at 72% 40%, rgba(255,196,110,.22), transparent 55%), linear-gradient(180deg,#0f1a44 0%,#16245c 60%,#1e2c74 100%)" }}
       >
-        <Lucioles />
-        <div className="relative grid items-center gap-10 md:grid-cols-[1.05fr_.95fr]">
-          <div style={{ animation: "monter .6s .05s both" }}>
-            <p className="font-serif text-lg italic text-[#ffd98a] sm:text-xl">« Encore une histoire ! »</p>
-            <h1 className="mt-3 text-[2.5rem] leading-[1.05] text-white sm:text-6xl">
+        <Lucioles nombre={9} />
+        <div className="relative grid items-center gap-7 md:grid-cols-[1fr_1fr] md:gap-10">
+          <div className="order-first md:order-none md:col-start-2 md:row-start-1">
+            <Diptyque />
+          </div>
+          <div className="md:col-start-1 md:row-start-1" style={{ animation: "monter .6s .05s both" }}>
+            <h1 className="text-[2rem] leading-[1.08] text-white sm:text-[3.4rem]">
               Ce soir, c'est lui le héros de l'histoire.
             </h1>
-            <p className="mt-5 max-w-[46ch] text-lg leading-relaxed text-magique-texteClair">
-              Une photo, et nous peignons son portrait. Vous nous dites « oui, c'est lui », et son livre
-              s'écrit pour son âge, avec son prénom, son doudou et ceux qu'il aime. Vous le lisez en entier
-              avant de payer.
+            <p className="mt-4 max-w-[44ch] text-base leading-relaxed text-magique-texteClair sm:mt-5 sm:text-lg">
+              Envoyez une photo : nous le dessinons, vous dites «&nbsp;oui, c'est lui&nbsp;», et son livre
+              s'écrit pour son âge, avec son prénom, son doudou et ceux qu'il aime.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-5">
+            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 sm:mt-7">
               <Link href={cta} className="btn-primaire text-lg">
-                Créer son histoire
+                Créer son livre gratuitement
               </Link>
               <Link href="#exemple" className="inline-flex min-h-11 items-center font-semibold text-[#ffd98a] underline-offset-4 hover:underline">
                 Feuilleter le livre de Léo
               </Link>
             </div>
+            <p className="mt-4 max-w-[48ch] text-[15px] leading-relaxed text-magique-texte">
+              Vous lisez toute l'histoire avant de payer, sans carte bancaire. Vous la gardez pour {prix}, ou
+              reliée en couverture rigide pour {euros(LIVRE_IMPRIME.priceCents)}.
+            </p>
             {!ventesOuvertes() && (
-              <p className="mt-3 max-w-[52ch] text-sm text-or-clair">
-                Créez et lisez son livre gratuitement dès ce soir. Les achats ouvrent le {DATE_OUVERTURE} : nous vous
-                prévenons par email.
+              <p className="mt-2 max-w-[52ch] text-sm text-or-clair">
+                Les achats ouvrent le {DATE_OUVERTURE} : créez et lisez son livre dès ce soir, nous vous prévenons par email.
               </p>
             )}
-            <ul className="mt-6 space-y-2.5">
-              {PROMESSES.map((p) => (
-                <li key={p} className="flex items-center gap-2.5 text-[15px] text-magique-texte">
-                  <Coche />
-                  {p}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="order-first md:order-none" style={{ animation: "eclore .9s .15s both" }}>
-            <Metamorphose />
           </div>
         </div>
       </section>
+
+      {/* ─── Noël : la date limite, là où elle compte ─── */}
+      <aside className="-mt-14 flex flex-col items-start gap-3 rounded-3xl border border-[#ffd98a]/30 bg-[#ffd98a]/[0.08] px-6 py-5 sm:-mt-16 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-[15px] text-magique-texte">
+          <strong className="text-[#ffd98a]">Pour Noël :</strong> le livre relié commandé avant le 10 décembre arrive sous le sapin.
+          Un cadeau qu'aucun autre enfant n'aura.
+        </p>
+        <Link href={`/creer?theme=noel`} rel="nofollow" className="btn-secondaire whitespace-nowrap px-4 text-[15px]">
+          Créer son livre de Noël
+        </Link>
+      </aside>
 
       {/* ─── Le livre de Léo, qui se feuillette tout seul ─── */}
       <section id="exemple" className="scroll-mt-24">
         <h2 className="text-center text-3xl sm:text-4xl">Feuilletez le livre de Léo</h2>
         <p className="mx-auto mt-3 max-w-[56ch] text-center text-magique-texteClair">
-          Écrit pour un petit garçon de 4 ans : sa veilleuse, son ours Caramel, une phrase qui revient comme
-          une berceuse. Le livre de votre enfant sera écrit pour lui seul.
+          Écrit pour un petit garçon de 4 ans qui a peur quand sa veilleuse s'éteint. Son ours Caramel, une
+          phrase qui revient comme une berceuse, et c'est lui qui trouve la solution.
         </p>
         <div className="mx-auto mt-10 max-w-5xl">
           <LivreVitrine />
         </div>
-        <p className="mt-6 text-center">
-          <Link href={cta} className="btn-primaire">Créer le livre de mon enfant</Link>
-        </p>
+        <div className="mx-auto mt-8 flex max-w-5xl flex-col items-center justify-between gap-5 rounded-3xl bg-white/[0.06] px-6 py-6 text-center sm:flex-row sm:text-left">
+          <div>
+            <p className="font-serif text-2xl text-white">Le même, avec votre enfant dedans.</p>
+            <p className="mt-1 text-[15px] text-magique-texteClair">
+              Prêt en quelques minutes. Lu en entier gratuitement, gardé pour {prix}.
+            </p>
+          </div>
+          <Link href={cta} className="btn-primaire whitespace-nowrap text-lg">Créer son livre gratuitement</Link>
+        </div>
       </section>
 
       {/* ─── Le soir où il s'est découvert ─── */}

@@ -302,3 +302,17 @@ p, li, figcaption, blockquote { text-wrap: pretty; }
   .luciole { opacity: 0.8; }
   .balayage-dore { display: none; }
 }
+
+/* Diptyque photo → héros : un seul moment au chargement. */
+.diptyque-photo { animation: diptyque-pose 0.7s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.diptyque-portrait { animation: eclore 0.9s 0.75s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.diptyque-fleche { animation: apparition 0.5s 0.55s both; opacity: 0; }
+@keyframes diptyque-pose {
+  from { opacity: 0; transform: translateY(24px) rotate(-12deg); }
+  to { opacity: 1; transform: rotate(-5deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .diptyque-photo, .diptyque-portrait { animation: none; }
+  .diptyque-photo { transform: rotate(-5deg); }
+  .diptyque-fleche { animation: none; opacity: 1; }
+}

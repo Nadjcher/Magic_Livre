@@ -92,8 +92,8 @@ export default function LivreVitrine() {
         <div className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-10 -translate-x-1/2 bg-gradient-to-r from-transparent via-black/15 to-transparent md:block" aria-hidden="true" />
         {/* Page de droite : le texte, à lire à voix haute */}
         <div className="flex flex-col justify-between gap-5 p-6 text-[#2a2140] sm:p-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#8a6a3a]">
-            {LIVRE_VITRINE.titre} · page {i + 1}
+          <p className="font-serif text-base italic text-[#8a6a3a]">
+            {LIVRE_VITRINE.titre}, page {i + 1} sur {pages.length}
           </p>
           <p key={i} className="texte-apparait min-h-[9.5em] font-serif text-[1.2rem] leading-relaxed sm:min-h-0 sm:text-2xl" aria-live="polite">
             <Texte texte={page.texte} />
