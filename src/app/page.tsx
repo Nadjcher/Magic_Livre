@@ -26,7 +26,7 @@ import BoutonCollant from "@/components/BoutonCollant";
 import { FONDATEUR } from "@/lib/fondateur";
 import { ILLUSTRATION_STYLES, ILLUSTRATION_STYLE_KEYS } from "@/lib/style_config";
 import Lucioles from "@/components/accueil/Lucioles";
-import Diptyque from "@/components/accueil/Diptyque";
+import LivreQuiSAnime from "@/components/accueil/LivreQuiSAnime";
 import LivreMagique from "@/components/accueil/LivreMagique";
 import { LIVRE_VITRINE } from "@/lib/livreVitrine";
 
@@ -178,15 +178,16 @@ export default async function AccueilPage() {
         <Lucioles nombre={9} />
         <div className="relative grid items-center gap-7 md:grid-cols-[1fr_1fr] md:gap-10">
           <div className="order-first md:order-none md:col-start-2 md:row-start-1">
-            <Diptyque />
+            <LivreQuiSAnime />
           </div>
           <div className="md:col-start-1 md:row-start-1" style={{ animation: "monter .6s .05s both" }}>
             <h1 className="text-[2rem] leading-[1.08] text-white sm:text-[3.4rem]">
-              Ce soir, c'est lui le héros de l'histoire.
+              Il ouvre le livre… et c'est lui dedans.
             </h1>
             <p className="mt-4 max-w-[44ch] text-base leading-relaxed text-magique-texteClair sm:mt-5 sm:text-lg">
-              Envoyez une photo : nous le dessinons, vous dites «&nbsp;oui, c'est lui&nbsp;», et son livre
-              s'écrit pour son âge, avec son prénom, son doudou et ceux qu'il aime.
+              Une photo suffit : nous le dessinons, vous dites «&nbsp;oui, c'est lui&nbsp;», et une histoire
+              s'écrit pour son âge, avec son prénom, son doudou et ceux qu'il aime.<span className="hidden sm:inline"> Dragons, fusées ou
+              pirates : c'est lui qui part à l'aventure.</span>
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 sm:mt-7">
               <Link href={cta} className="btn-primaire text-lg">
