@@ -54,7 +54,7 @@ export const INTERDITS_IMAGE =
 
 /** Zone de texte et couverture. */
 export const ZONE_TEXTE =
-  "TEXT AREA: a calm part of the scene (sky, shadow, quiet ground) covering about a quarter of the image, integrated into the painting, never a flat band, frame or empty box.";
+  "QUIET AREA: keep about a quarter of the picture simple and quiet (open night sky, soft shadow or plain ground), painted with the same texture and colors as the rest of the scene, so text can be read over it.";
 
 export const CONSIGNE_COUVERTURE =
   "COVER: a medium shot, the hero in three-quarter view facing the viewer, the top third calm (sky or soft shadow) for the title, which the website adds (never drawn).";

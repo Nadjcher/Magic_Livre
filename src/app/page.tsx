@@ -25,6 +25,10 @@ import Picto from "@/components/Picto";
 import BoutonCollant from "@/components/BoutonCollant";
 import { FONDATEUR } from "@/lib/fondateur";
 import { ILLUSTRATION_STYLES, ILLUSTRATION_STYLE_KEYS } from "@/lib/style_config";
+import Lucioles from "@/components/accueil/Lucioles";
+import Metamorphose from "@/components/accueil/Metamorphose";
+import LivreVitrine from "@/components/accueil/LivreVitrine";
+import { LIVRE_VITRINE } from "@/lib/livreVitrine";
 
 export const metadata: Metadata = {
   title: { absolute: "Livre personnalisé pour enfant, illustré à son image · Encore une histoire" },
@@ -35,12 +39,6 @@ const APP_URL = getAppUrl();
 
 function euros(cents: number): string {
   return `${(cents / 100).toFixed(2).replace(".", ",")} €`;
-}
-
-/** Illustration peinte de la marque (fichiers dans /public/illustrations/feerique). */
-function Illu({ nom, alt, className = "" }: { nom: string; alt: string; className?: string }) {
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={`/illustrations/feerique/${nom}.webp`} alt={alt} className={className} />;
 }
 
 function Coche() {
@@ -67,30 +65,11 @@ const COMPARATIF: [string, string, string][] = [
                 ["Avant d'acheter", "Un aperçu de quelques pages", "Le livre entier, gratuitement"],
 ];
 
-/** L'histoire d'un soir, en quatre images (même personnage que le livre de démonstration). */
-const RECIT = [
-  { img: "a_supplie", alt: "Léo au lit tend un vieux livre", texte: "« Encore une histoire, Maman ! » Il tend le même vieux livre, une fois de plus." },
-  { img: "b_pile", alt: "Une pile de livres usés", texte: "Les mêmes livres, lus et relus. Il les connaît par cœur. Vous aussi." },
-  { img: "c_cestmoi", alt: "Léo découvre qu'il est le héros du livre", texte: "Un soir, une photo… Le lendemain : « Maman… c'est MOI ? »" },
-  { img: "d_dort", alt: "Léo endormi, son livre serré contre lui", texte: "Il s'est endormi en serrant son livre contre lui." },
-];
-
+/** Comment ça marche, avec les vraies images du livre de Léo. */
 const ETAPES = [
-  {
-    illu: "imagine",
-    titre: "Choisissez un thème",
-    texte: "Noël, premier jour d'école, dinosaures, peur du noir… ou votre propre idée.",
-  },
-  {
-    illu: "write",
-    titre: "Nous écrivons et illustrons",
-    texte: "Une histoire adaptée à son âge, illustrée à son image, en quelques minutes.",
-  },
-  {
-    illu: "together",
-    titre: "Lisez-la ensemble",
-    texte: "À l'écran ou à voix haute, blottis ensemble. Gardez-la en PDF si elle vous plaît.",
-  },
+  { img: LIVRE_VITRINE.photo, titre: "Une photo", texte: "Son prénom, son âge, son doudou, une photo. Choisissez un thème ou racontez votre idée." },
+  { img: LIVRE_VITRINE.portrait, titre: "Son portrait peint", texte: "Nous le dessinons dans le style du livre. Vous nous dites « oui, c'est lui » avant tout le reste." },
+  { img: LIVRE_VITRINE.couverture, titre: "Son livre, ce soir", texte: "Une histoire écrite pour son âge, illustrée page après page. À lire à l'écran, à imprimer ou relié." },
 ];
 
 const THEMES_VITRINE = [
@@ -192,132 +171,109 @@ export default async function AccueilPage() {
   return (
     <div className="space-y-24 sm:space-y-28">
 
-      {/* ─── Héros ─── */}
-      <section className="grid items-center gap-12 pt-0 md:grid-cols-[1.1fr_.9fr] md:pt-2">
-        <div style={{ animation: "monter .6s .05s both" }}>
-          <h1 className="text-[2.6rem] leading-[1.05] sm:text-6xl">
-            Le livre dont votre enfant est le héros.
-          </h1>
-          <p className="mt-5 font-serif text-xl italic text-or sm:text-2xl">
-            « Encore une histoire ! » Ce soir, ce sera la sienne.
-          </p>
-          <p className="mt-4 max-w-[44ch] text-lg leading-relaxed text-magique-texteClair">
-            Une histoire inventée pour lui, avec son prénom, son visage et ceux qu'il aime. Vous lisez
-            toute l'histoire avant de décider de la garder.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-5">
-            <Link href={cta} className="btn-primaire text-lg">
-              Créer son histoire
-            </Link>
-            <Link href="/demo" className="inline-flex min-h-11 items-center font-semibold text-magique-primaire underline-offset-4 hover:underline">
-              Lire un exemple
-            </Link>
-          </div>
-          {!ventesOuvertes() && (
-            <p className="mt-3 max-w-[52ch] text-sm text-or-clair">
-              Créez et lisez son livre gratuitement dès ce soir. Les achats ouvrent le {DATE_OUVERTURE} : nous vous
-              prévenons par email.
+      {/* ─── Héros : une nuit étoilée, des lucioles, la photo qui devient un livre ─── */}
+      <section className="relative isolate overflow-hidden rounded-[2.5rem] px-5 py-10 sm:px-10 sm:py-16"
+        style={{ backgroundImage: "radial-gradient(ellipse at 75% 45%, rgba(255,196,110,.20), transparent 55%), linear-gradient(180deg,#0f1a44 0%,#16245c 60%,#1e2c74 100%)" }}
+      >
+        <Lucioles />
+        <div className="relative grid items-center gap-10 md:grid-cols-[1.05fr_.95fr]">
+          <div style={{ animation: "monter .6s .05s both" }}>
+            <p className="font-serif text-lg italic text-[#ffd98a] sm:text-xl">« Encore une histoire ! »</p>
+            <h1 className="mt-3 text-[2.5rem] leading-[1.05] text-white sm:text-6xl">
+              Ce soir, c'est lui le héros de l'histoire.
+            </h1>
+            <p className="mt-5 max-w-[46ch] text-lg leading-relaxed text-magique-texteClair">
+              Une photo, et nous peignons son portrait. Vous nous dites « oui, c'est lui », et son livre
+              s'écrit pour son âge, avec son prénom, son doudou et ceux qu'il aime. Vous le lisez en entier
+              avant de payer.
             </p>
-          )}
-          <ul className="mt-6 space-y-2.5">
-            {PROMESSES.map((p) => (
-              <li key={p} className="flex items-center gap-2.5 text-[15px] text-magique-texte">
-                <Coche />
-                {p}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* De la photo au livre : la promesse, montrée d'un coup d'œil. */}
-        <div className="relative mx-auto w-full max-w-[460px]" style={{ animation: "eclore .9s .15s both" }}>
-          {/* Le livre en relief, couverture illustrée pleine page */}
-          <div className="ml-auto w-[78%] [perspective:1400px]">
-            <div
-              className="relative aspect-[4/5] overflow-hidden rounded-l-md rounded-r-2xl shadow-conte"
-              style={{ transform: "rotateY(-14deg) rotateX(4deg)", transformStyle: "preserve-3d" }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/exemple/noel/couverture.webp"
-                alt="Couverture du livre de Léo : Le hoquet doré de la nuit de Noël"
-                className="absolute inset-0 h-full w-full object-cover object-[45%_50%]"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0f1a44]/90 via-transparent to-transparent" aria-hidden="true" />
-              <div
-                className="absolute inset-y-0 left-0 w-4"
-                style={{ background: "linear-gradient(90deg,rgba(0,0,0,.4),rgba(255,255,255,.1))" }}
-                aria-hidden="true"
-              />
-              <div className="absolute inset-x-6 bottom-6">
-                <p className="font-serif text-2xl leading-tight text-white">Le hoquet doré de la nuit de Noël</p>
-                <p className="mt-1 text-sm text-magique-texteClair">Une histoire écrite pour Léo</p>
-              </div>
+            <div className="mt-8 flex flex-wrap items-center gap-5">
+              <Link href={cta} className="btn-primaire text-lg">
+                Créer son histoire
+              </Link>
+              <Link href="#exemple" className="inline-flex min-h-11 items-center font-semibold text-[#ffd98a] underline-offset-4 hover:underline">
+                Feuilleter le livre de Léo
+              </Link>
             </div>
+            {!ventesOuvertes() && (
+              <p className="mt-3 max-w-[52ch] text-sm text-or-clair">
+                Créez et lisez son livre gratuitement dès ce soir. Les achats ouvrent le {DATE_OUVERTURE} : nous vous
+                prévenons par email.
+              </p>
+            )}
+            <ul className="mt-6 space-y-2.5">
+              {PROMESSES.map((p) => (
+                <li key={p} className="flex items-center gap-2.5 text-[15px] text-magique-texte">
+                  <Coche />
+                  {p}
+                </li>
+              ))}
+            </ul>
           </div>
-
-          {/* La photo d'origine, en polaroïd */}
-          <figure
-            className="absolute -left-1 top-0 w-[38%] rotate-[-7deg] rounded-md bg-white p-1.5 pb-6 shadow-conte sm:-left-6 sm:top-4 sm:w-[42%] sm:p-2 sm:pb-7"
-            style={{ animation: "monter .7s .5s both" }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/exemple/photo.webp" alt="La photo de Léo" className="aspect-[3/4] w-full rounded-sm object-cover" />
-            <figcaption className="absolute inset-x-0 bottom-1 text-center font-serif text-xs italic text-nuit sm:bottom-1.5 sm:text-sm">
-              La photo de Léo
-            </figcaption>
-          </figure>
-
+          <div className="order-first md:order-none" style={{ animation: "eclore .9s .15s both" }}>
+            <Metamorphose />
+          </div>
         </div>
       </section>
 
-      {/* ─── L'histoire d'un soir (ce que vit un parent) ─── */}
+      {/* ─── Le livre de Léo, qui se feuillette tout seul ─── */}
       <section id="exemple" className="scroll-mt-24">
-        <h2 className="text-center text-3xl sm:text-4xl">Chaque soir, la même phrase…</h2>
-        <p className="mx-auto mt-3 max-w-[46ch] text-center font-serif text-xl italic text-or">« Encore une histoire, Maman ! »</p>
-        <ol className="sans-barre -mx-4 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0">
-          {RECIT.map((r) => (
-            <li key={r.img} className="w-[72%] flex-none snap-center sm:w-auto">
-              <figure className="overflow-hidden rounded-3xl bg-white/[0.05] shadow-conte">
+        <h2 className="text-center text-3xl sm:text-4xl">Feuilletez le livre de Léo</h2>
+        <p className="mx-auto mt-3 max-w-[56ch] text-center text-magique-texteClair">
+          Écrit pour un petit garçon de 4 ans : sa veilleuse, son ours Caramel, une phrase qui revient comme
+          une berceuse. Le livre de votre enfant sera écrit pour lui seul.
+        </p>
+        <div className="mx-auto mt-10 max-w-5xl">
+          <LivreVitrine />
+        </div>
+        <p className="mt-6 text-center">
+          <Link href={cta} className="btn-primaire">Créer le livre de mon enfant</Link>
+        </p>
+      </section>
+
+      {/* ─── Le soir où il s'est découvert ─── */}
+      <section className="relative isolate overflow-hidden rounded-[2.5rem] px-5 py-12 sm:px-10"
+        style={{ backgroundImage: "linear-gradient(180deg,#16245c,#0f1a44)" }}
+      >
+        <Lucioles nombre={7} />
+        <div className="relative grid items-center gap-8 md:grid-cols-2">
+          <figure className="relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={LIVRE_VITRINE.soirs[0]!.image} alt={LIVRE_VITRINE.soirs[0]!.alt} loading="lazy" className="aspect-square w-full rounded-[2rem] object-cover shadow-conte" />
+            <figcaption className="absolute -bottom-4 left-6 rounded-2xl bg-white px-5 py-3 font-serif text-xl italic text-nuit shadow-conte">
+              « Maman… c'est moi ? »
+            </figcaption>
+          </figure>
+          <div className="space-y-6">
+            <h2 className="text-3xl text-white sm:text-4xl">Le soir où il s'est découvert dans son livre</h2>
+            <p className="max-w-[46ch] text-lg leading-relaxed text-magique-texteClair">
+              Son visage, son prénom, son ours, sa chambre. Il reconnaît tout, et il écoute jusqu'à la dernière
+              page. Le lendemain soir, c'est lui qui le rapporte : « Encore ! »
+            </p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={LIVRE_VITRINE.soirs[1]!.image} alt={LIVRE_VITRINE.soirs[1]!.alt} loading="lazy" className="aspect-[16/10] w-full max-w-md rounded-3xl object-cover object-[50%_60%] shadow-conte" />
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Comment ça marche ─── */}
+      <section>
+        <h2 className="text-center text-3xl sm:text-4xl">Trois étapes, quelques minutes</h2>
+        <ol className="mt-10 grid gap-6 md:grid-cols-3">
+          {ETAPES.map((e, k) => (
+            <li key={e.titre} className="carte flex flex-col gap-4">
+              <div className="relative">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/histoire/${r.img}.webp`} alt={r.alt} width={900} height={1600} loading="lazy" className="aspect-[3/4] h-auto w-full object-cover object-top" />
-                <figcaption className="p-4 text-[15px] leading-relaxed">{r.texte}</figcaption>
-              </figure>
+                <img src={e.img} alt="" loading="lazy" className="aspect-[4/3] w-full rounded-2xl object-cover object-top" />
+                <span className="absolute -top-3 -left-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#ffd98a] font-serif text-xl font-bold text-nuit shadow-conte">
+                  {k + 1}
+                </span>
+              </div>
+              <h3 className="text-xl">{e.titre}</h3>
+              <p className="text-[15px] leading-relaxed text-magique-texteClair">{e.texte}</p>
             </li>
           ))}
         </ol>
-        <div className="mt-12 grid items-center gap-8 md:grid-cols-[auto_1fr]">
-          <video
-            className="mx-auto w-full max-w-[300px] rounded-3xl shadow-conte"
-            src="/video/encore-une-histoire.mp4"
-            poster="/video/encore-une-histoire.webp"
-            controls
-            playsInline
-            preload="none"
-            aria-label="Le petit film « Encore une histoire ! », avec la voix d'une maman"
-          />
-          <div className="space-y-5 text-center md:text-left">
-            <h3 className="text-2xl sm:text-3xl">Le soir où il s'est découvert dans son livre</h3>
-            <p className="max-w-[46ch] text-magique-texteClair md:max-w-none">
-              Une photo, et une histoire écrite rien que pour lui, avec son prénom, son visage et ceux
-              qu'il aime. Le lendemain soir, c'est lui qui a demandé : « encore ».
-            </p>
-            <ol className="space-y-2 text-[15px]">
-              {ETAPES.map((e) => (
-                <li key={e.titre} className="flex items-center justify-center gap-3 md:justify-start">
-                  <Illu nom={e.illu} alt="" className="h-10 w-10 flex-none object-contain" />
-                  <span><strong>{e.titre}</strong> <span className="text-magique-texteClair">· {e.texte}</span></span>
-                </li>
-              ))}
-            </ol>
-            <div className="flex flex-wrap items-center justify-center gap-5 md:justify-start">
-              <Link href={cta} className="btn-primaire">Créer son histoire</Link>
-              <Link href="/demo" className="inline-flex min-h-11 items-center font-semibold text-magique-primaire underline-offset-4 hover:underline">
-                Lire le livre de Léo
-              </Link>
-            </div>
-          </div>
-        </div>
       </section>
 
       {/* ─── Un livre pour chaque âge ─── */}
@@ -334,10 +290,10 @@ export default async function AccueilPage() {
       <section id="styles" className="scroll-mt-24">
         <h2 className="text-center text-3xl sm:text-4xl">Le style de dessin qu'il préfère</h2>
         <p className="mx-auto mt-3 max-w-[50ch] text-center text-magique-texteClair">
-          La même scène, dessinée de mille façons : douce, rigolote, en BD, en manga… À lui de choisir.
+          Notre album peint, ou un autre style : doux, rigolo, en BD, en manga… À lui de choisir.
         </p>
         {(() => {
-          const vitrine = ["feerique", "aquarelle", "manga", "anim3d"] as const;
+          const vitrine = ["maison", "aquarelle", "feerique", "manga"] as const;
           const vignette = (k: (typeof ILLUSTRATION_STYLE_KEYS)[number]) => (
             <li key={k} className="overflow-hidden rounded-2xl bg-white/[0.06]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -591,7 +547,7 @@ export default async function AccueilPage() {
           </div>
           <div className="mx-auto w-full max-w-xs">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/histoire/d_dort.webp" alt="Léo endormi, son livre serré contre lui" width={900} height={1600} loading="lazy" className="aspect-[4/5] h-auto w-full rounded-3xl object-cover object-top" />
+            <img src="/vitrine/page6.webp" alt="Léo endormi, son ours dans les bras" width={900} height={900} loading="lazy" className="aspect-square h-auto w-full rounded-3xl object-cover" />
           </div>
         </div>
       </section>

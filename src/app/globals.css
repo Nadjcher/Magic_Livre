@@ -235,3 +235,70 @@ p, li, figcaption, blockquote { text-wrap: pretty; }
 .sans-barre::-webkit-scrollbar {
   display: none;
 }
+
+/* ─── Page d'accueil : nuit étoilée, lucioles, métamorphose, livre qui se feuillette ─── */
+.etoile-ciel {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.7);
+  animation: scintille 3.2s ease-in-out infinite;
+}
+.luciole {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: #ffe39a;
+  box-shadow: 0 0 10px 4px rgba(255, 205, 110, 0.75), 0 0 28px 10px rgba(255, 190, 90, 0.25);
+  animation-name: luciole-vol, luciole-pulse;
+  animation-timing-function: ease-in-out, ease-in-out;
+  animation-iteration-count: infinite, infinite;
+  animation-direction: alternate, alternate;
+}
+@keyframes luciole-vol {
+  0% { transform: translate(0, 0); }
+  33% { transform: translate(26px, -34px); }
+  66% { transform: translate(-18px, -58px); }
+  100% { transform: translate(14px, -86px); }
+}
+@keyframes luciole-pulse {
+  from { opacity: 0.25; }
+  to { opacity: 1; }
+}
+/* Halo doré qui « respire » derrière une image. */
+.halo-dore {
+  background: radial-gradient(closest-side, rgba(255, 200, 110, 0.45), rgba(255, 200, 110, 0.12) 60%, transparent);
+  animation: halo-respire 5s ease-in-out infinite;
+}
+@keyframes halo-respire {
+  0%, 100% { opacity: 0.65; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+/* Poussière dorée qui balaie une image (la photo devient dessin). */
+.balayage-dore {
+  background: linear-gradient(100deg, transparent 35%, rgba(255, 226, 150, 0.85) 50%, transparent 65%);
+  background-size: 250% 100%;
+  animation: balayage 1.4s ease-in-out both;
+}
+@keyframes balayage {
+  from { background-position: 120% 0; opacity: 1; }
+  to { background-position: -30% 0; opacity: 0; }
+}
+/* Page qui se tourne (livre de la vitrine). */
+.page-tourne {
+  transform-origin: left center;
+  animation: page-tourne 900ms cubic-bezier(0.45, 0, 0.2, 1) both;
+}
+@keyframes page-tourne {
+  0% { transform: perspective(1600px) rotateY(0deg); opacity: 1; }
+  100% { transform: perspective(1600px) rotateY(-160deg); opacity: 0.2; }
+}
+.texte-apparait { animation: monter 0.7s 0.35s both; }
+@media (prefers-reduced-motion: reduce) {
+  .etoile-ciel, .luciole, .halo-dore, .balayage-dore, .page-tourne, .texte-apparait { animation: none; }
+  .luciole { opacity: 0.8; }
+  .balayage-dore { display: none; }
+}
