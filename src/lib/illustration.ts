@@ -55,6 +55,8 @@ export interface IllustrationRequest {
   castRefs?: { name: string; base64: string; mime: string }[];
   /** false : ne pas stocker l'image (fiche de référence interne). */
   stocker?: boolean;
+  /** Force le format carré (sinon : carré pour le style de la maison seulement). */
+  carre?: boolean;
 }
 
 type Ref = { base64: string; mime: string };
@@ -128,7 +130,7 @@ export async function generateIllustration(
       let error = "";
       for (let essai = 0; essai < 3 && !img; essai++) {
         if (essai > 0) await new Promise((r) => setTimeout(r, essai * 3000));
-        const r = await falImage(texte, model, req.referenceImage, req.anchorImage, req.castRefs, estCarre(req.style));
+        const r = await falImage(texte, model, req.referenceImage, req.anchorImage, req.castRefs, req.carre ?? estCarre(req.style));
         if ("img" in r) img = r.img;
         else {
           error = r.error;
