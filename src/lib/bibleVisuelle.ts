@@ -55,30 +55,30 @@ export const FICHES_STYLE: Record<string, FicheStyle> = {
     interdits: "golden-hour or amber cast, gloomy darkness, 3D",
   },
   manga: {
-    technique: "Japanese anime / manga TV-series style: thin clean lineart, flat cel shading with crisp shadow shapes, hair in clumps",
-    palette: "soft pastel anime backgrounds, bright clean character colors",
-    interdits: "western cartoon look, 3D, painterly textures",
-    yeux: "large glossy anime eyes with highlights",
+    technique: "a frame of a Japanese anime TV series for children: thin clean lineart, two-tone cel shading with crisp shadow shapes, anime faces (small nose, simple mouth), spiky glossy hair clumps with highlights, painted anime background; tiny characters stay truly tiny",
+    palette: "bright clean anime colors over a soft painted background",
+    interdits: "western cartoon or storybook look, 3D, watercolor or painterly characters",
+    yeux: "large glossy anime eyes with big highlights",
   },
   bd: {
-    technique: "a French bande dessinée / comic panel for kids: bold black ink outlines, clean cel coloring, light halftone dots, dynamic but gentle",
+    technique: "French bande dessinée style for kids (one single full-bleed image, not a comic page): bold black ink outlines, clean cel coloring, light halftone dots, dynamic but gentle; tiny characters stay truly tiny",
     palette: "vivid saturated primary colors",
-    interdits: "speech bubbles, onomatopoeia or any lettering, superhero logos, 3D",
+    interdits: "panel borders, white frame or margin, speech bubbles, onomatopoeia or any lettering, superhero logos, 3D",
   },
   aquarelle: {
-    technique: "delicate watercolor: soft wet-on-wet washes with gentle blooms, loose expressive brushwork, cold-press paper grain",
+    technique: "delicate watercolor: soft wet-on-wet washes with gentle blooms, loose expressive brushwork, cold-press paper grain; tiny characters stay truly tiny (toy-figurine size)",
     palette: "tender pastels: lilac, blush, sky blue, sage",
-    interdits: "harsh outlines, 3D, flat digital colors",
+    interdits: "harsh outlines, 3D, flat digital colors, small characters drawn as big as the hero",
   },
   papier: {
-    technique: "layered cut-paper collage: flat matte paper shapes with soft drop shadows between layers, torn edges, tactile handcrafted feel",
+    technique: "layered cut-paper collage: flat matte paper shapes with soft drop shadows between layers, torn edges, tactile handcrafted feel; tiny characters are cut truly tiny (toy-figurine size)",
     palette: "violet, teal, rose and cream-white",
-    interdits: "painterly gradients, 3D renders, photographs",
+    interdits: "painterly gradients, 3D renders, photographs, small characters as big as the hero",
   },
   pastel: {
-    technique: "soft pastel and colored pencil: velvety chalky texture, gentle grainy strokes, rounded cuddly characters",
+    technique: "soft pastel and colored pencil: velvety chalky texture, gentle grainy strokes, rounded cuddly characters; tiny characters stay truly tiny (toy-figurine size)",
     palette: "cool pastels: mauve, periwinkle, mint, dusty pink",
-    interdits: "yellow or orange light, hard outlines, 3D",
+    interdits: "yellow or orange light, hard outlines, 3D, small characters drawn as big as the hero",
   },
   realiste: {
     technique: "a semi-realistic digital painting for a children's book: natural proportions, detailed faces and textures, painterly brushwork",
@@ -91,14 +91,14 @@ export const FICHES_STYLE: Record<string, FicheStyle> = {
     interdits: "3D, digital gradients, black ink outlines",
   },
   classique: {
-    technique: "a vintage mid-century storybook illustration in gouache and ink, elegant simple shapes, subtle print grain",
+    technique: "a vintage mid-century storybook illustration in gouache and ink, elegant simple shapes, subtle print grain, the scene running to all four edges of the image",
     palette: "a limited harmonious vintage palette",
-    interdits: "3D, glossy digital rendering, neon colors",
+    interdits: "3D, glossy digital rendering, neon colors, ANY frame, border, margin or rounded corners around the picture",
   },
   pixel: {
-    technique: "PIXEL ART like a 16-bit retro console game: clearly visible square pixels, hard pixel edges, dithering, cute chunky sprites with readable faces",
-    palette: "a limited flat retro palette",
-    interdits: "smooth gradients, painterly brushwork, realistic rendering",
+    technique: "PIXEL ART like a 16-bit retro console game: big simple shapes, flat color areas, strong contrast, cute chunky sprites with large readable faces (the image is pixelated afterwards, so keep details big and simple)",
+    palette: "a limited flat retro palette with strong contrast",
+    interdits: "fine details, thin lines, smooth gradients, painterly brushwork, realistic rendering",
     yeux: "simple readable pixel eyes",
   },
 };
@@ -129,9 +129,10 @@ export function consigneHeros(nom: string | undefined, traits: string | undefine
 /** Personnages fixes (fiches identiques dans tous les livres). */
 export const PERSONNAGES_FIXES =
   "FIXED CHARACTERS: a secondary character never looks like the hero. " +
-  "Little Thumb (Petit Poucet): straight black hair, red knitted bonnet, brown jacket, a cheerful face; ALWAYS the same tiny size on every page: " +
+  "Little Thumb (Petit Poucet): clearly a little BOY (a boy's face, short straight black hair cut above the ears, no fringe over the eyes), red knitted bonnet, brown jacket, a cheerful face; ALWAYS the same tiny size on every page: " +
   "a toy-figurine-sized boy about 25 cm tall: his whole body fits between the ground and the child's knee, and even when the child crouches, " +
-  "the top of his bonnet stays below the child's chest (never at waist or shoulder height); trousers patched, never ripped. " +
+  "the top of his bonnet stays below the child's chest (never at waist or shoulder height); when he is next to the child he stands ON something " +
+  "(a mushroom, a stone, a leaf) so his tiny size is obvious; trousers patched, never ripped. " +
   "The child's cuddly toy: exactly the plush described in the character sheet (its species, colour and shape clearly readable: ears, muzzle, paws), " +
   "soft and cute, never a shapeless blob, no seams or patches, held in the child's arms, never alive. " +
   "The parent: only a hand, a silhouette from behind or a profile in shadow, never a detailed face. " +

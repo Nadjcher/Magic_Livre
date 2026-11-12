@@ -85,6 +85,25 @@ export interface IllustrationResult {
 const WIDTH = 1024;
 const HEIGHT = 640; // ratio paysage, cohérent avec le PDF A4 paysage
 
+/**
+ * Pixel art garanti : le modèle d'image peint souvent au lieu de pixeliser. On
+ * réduit l'image à 128 px avec une palette limitée, puis on l'agrandit sans
+ * lissage (gros pixels nets). Repli : l'image d'origine.
+ */
+async function pixeliser(img: Ref): Promise<Ref> {
+  try {
+    const { default: sharp } = await import("sharp");
+    const petit = await sharp(Buffer.from(img.base64, "base64"))
+      .resize(128, 128, { fit: "cover", kernel: "nearest" })
+      .png({ palette: true, colors: 40, dither: 0.6 })
+      .toBuffer();
+    const grand = await sharp(petit).resize(1024, 1024, { kernel: "nearest" }).png().toBuffer();
+    return { base64: grand.toString("base64"), mime: "image/png" };
+  } catch {
+    return img;
+  }
+}
+
 /** Génère une illustration selon le fournisseur configuré. */
 export async function generateIllustration(
   req: IllustrationRequest,
@@ -150,6 +169,7 @@ export async function generateIllustration(
         console.error("[image] échec fal :", error);
         return { imageUrl: null, error };
       }
+      if (req.style === "pixel" && !req.coloring) img = await pixeliser(img);
       return {
         imageUrl: req.stocker === false ? null : await storeImage(img.base64, img.mime, seed),
         base64: img.base64,
