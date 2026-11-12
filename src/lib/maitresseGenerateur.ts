@@ -9,7 +9,8 @@ import { env } from "./env";
 import { noterDepense, PRIX_ESTIMES } from "./budget";
 import type { Story } from "./storySchema";
 import type { StoryRequest } from "./storyPrompt";
-import { passageValide, remplir, type HistoireMaitresse, type Personnalisation } from "./histoiresMaitresses";
+import { passageValide, possessif, remplir, type HistoireMaitresse, type Personnalisation } from "./histoiresMaitresses";
+import { checkUserText } from "./validation";
 
 interface Lecture {
   fille?: boolean;
@@ -32,8 +33,8 @@ async function lirePersonnalisation(h: HistoireMaitresse, req: StoryRequest, dou
     "",
     "Tâches :",
     req.genre ? "" : "1. \"fille\" : true si le prénom est le plus souvent féminin, false sinon.",
-    "2. \"doudou\" : \"nom\" (le nom propre du doudou, ou un joli nom inventé s'il n'en a pas), \"son\" (« son lapin », « sa girafe », « son ours », « son doudou »…), \"visuel\" (description EN ANGLAIS pour l'illustrateur : espèce, couleur, matière, signes distinctifs, en 25 mots max ; « a soft plush … »).",
-    "3. \"passages\" : écris chaque passage ci-dessous en français, pour une lecture à voix haute à un enfant, dans le ton de l'histoire. Utilise un VRAI détail de l'enfant (ce qu'il aime, son doudou). Pas de guillemets, pas de chiffres, une seule phrase.",
+    "2. \"doudou\" : \"nom\" (son nom propre SEULEMENT s'il est donné par le parent, sinon \"\"), \"son\" (« son lapin », « sa girafe », « son ours », « son doudou »…), \"visuel\" (description EN ANGLAIS pour l'illustrateur : espèce, couleur, matière, signes distinctifs, en 25 mots max ; « a soft plush … »).",
+    "3. \"passages\" : écris chaque passage ci-dessous en français, pour une lecture à voix haute à un enfant, dans le ton de l'histoire. Utilise un VRAI détail de l'enfant (ce qu'il aime, son doudou), mais JAMAIS de marque, de personnage connu, de dessin animé, de film ni de jeu vidéo : si l'enfant aime « Spider-Man » ou « la Pat' Patrouille », parle plutôt d'araignées ou de chiots pompiers. Pas de majuscule (sauf en début), pas de guillemets, pas de chiffres, une seule phrase.",
     consignes,
     "",
     'Réponds UNIQUEMENT en JSON : {"fille": true, "doudou": {"nom": "", "son": "", "visuel": ""}, "passages": {"cle": "texte"}}',
@@ -73,16 +74,28 @@ export async function histoireDepuisMaitresse(h: HistoireMaitresse, req: StoryRe
     .join(" ; ");
   const lu = await lirePersonnalisation(h, req, doudouSaisi);
 
-  const nomDoudou = propre(doudouExtra?.name, 30) || propre(lu.doudou?.nom, 30) || "Caramel";
-  const son = /^(son|sa)\s+\S+/i.test(propre(lu.doudou?.son, 30)) ? propre(lu.doudou?.son, 30).toLowerCase() : doudouSaisi ? "son doudou" : "son ours";
+  // Doudou : son nom s'il en a un, sinon « son lapin » ; « son doudou » si le parent n'en a pas parlé.
+  const nomDoudou = propre(doudouExtra?.name, 30) || propre(lu.doudou?.nom, 30);
+  const son = doudouSaisi ? possessif(propre(lu.doudou?.son, 30) || "son doudou") : "son doudou";
   const visuel =
     propre(lu.doudou?.visuel, 220) || (doudouSaisi ? `a soft plush toy: ${doudouSaisi}` : "a soft light-brown plush teddy bear with round ears, a cream muzzle and small black eyes");
-  const parentExtra = req.extras?.find((e) => e.role === "maman" || e.role === "papa");
+  // Un seul lecteur dans l'histoire (le texte est au singulier) : Papa, sinon Maman, Mamie, Papi.
+  const roles = (req.extras ?? []).map((e) => e.role);
+  const parent: Personnalisation["parent"] = roles.includes("papa")
+    ? "Papa"
+    : roles.includes("maman")
+      ? "Maman"
+      : roles.includes("mamie")
+        ? "Mamie"
+        : roles.includes("papi")
+          ? "Papi"
+          : "Papa";
 
   const passages: Record<string, string> = {};
   for (const cle of Object.keys(h.passages)) {
     const propose = lu.passages?.[cle];
-    if (typeof propose === "string" && passageValide(cle, propose, h)) {
+    // Repli sur le texte relu si le passage déborde, cite une marque ou un personnage protégé.
+    if (typeof propose === "string" && passageValide(cle, propose, h) && checkUserText(propose).ok) {
       const t = propose.trim();
       // Le passage reprend la ponctuation de son texte par défaut (phrase complète ou morceau de phrase).
       passages[cle] = /[.!?…]$/.test(h.passages[cle]!.defaut) ? (/[.!?…]$/.test(t) ? t : `${t}.`) : t.replace(/[.!?…]+$/, "");
@@ -95,33 +108,36 @@ export async function histoireDepuisMaitresse(h: HistoireMaitresse, req: StoryRe
     doudou: nomDoudou,
     sonDoudou: son,
     doudouVisuel: visuel,
-    parent: parentExtra?.role === "maman" ? "Maman" : "Papa",
+    parent,
     passages,
   };
 
-  const fiche = `${p.doudou} (the child's cuddly toy, never alive): ${visuel}`;
+  const nomFiche = p.doudou || "Doudou";
+  const fiche = `${nomFiche} (the child's cuddly toy, never alive): ${visuel}`;
   const personnages = [
     `${p.prenom} (hero): ${h.tenueHeros} — same outfit on every page.`,
     fiche,
     ...h.cast.map((c) => `${c.nom}: ${c.visuel}`),
     `${p.parent}: a grown-up ${p.parent === "Maman" ? "woman" : "man"}, only a hand, a silhouette from behind or a profile in shadow, never a detailed face.`,
   ].join(" ");
-  const scene = (t: string) => remplir(t, p, h);
+  // Dans les consignes d'image (en anglais), le doudou garde un nom (« Doudou » s'il n'en a pas).
+  const pImage = { ...p, doudou: nomFiche };
+  const scene = (t: string) => remplir(t, pImage, h);
 
   return {
     titre: remplir(h.titre, p, h),
     pages: h.pages.map((pg) => ({
       texte: remplir(pg.texte, p, h),
       scene_illustration: scene(pg.scene),
-      presents: pg.presents?.map((x) => remplir(x, p, h)),
+      presents: pg.presents?.map((x) => remplir(x, pImage, h)),
     })),
     personnages,
-    cast: [{ nom: p.doudou, visuel: `PLUSH TOY, never alive: ${visuel}`.slice(0, 400) }, ...h.cast],
+    cast: [{ nom: nomFiche, visuel: `PLUSH TOY, never alive: ${visuel}`.slice(0, 400) }, ...h.cast],
     resume: remplir(h.resume, p, h),
     faits: remplir(h.faits, p, h),
-    plan: { ritournelle: h.ritournelle, objet_cle: `${p.sonDoudou} ${p.doudou}` },
+    plan: { ritournelle: h.ritournelle, objet_cle: `${p.sonDoudou}${p.doudou ? ` ${p.doudou}` : ""}` },
     style: req.style,
     meta: { age: req.childAge, format: "album", themeId: h.themeId, mode: "theme", trame: h.id, modeles: [h.id] },
-    couvertureScene: remplir(h.couverture, p, h),
+    couvertureScene: remplir(h.couverture, pImage, h),
   };
 }

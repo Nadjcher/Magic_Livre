@@ -152,7 +152,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
   // Les grands classiques (contes de papa et maman) sont toujours dans le style de la maison.
   if (input.mode === "theme" && estClassique(findThemeById(input.themeId))) input.style = STYLE_DEFAUT;
   // Seuls les thèmes qui ont une histoire validée sont proposés (les administrateurs peuvent tout tester).
-  if (input.mode === "theme" && !themeOuvert(input.themeId) && !estAdmin(user.email)) {
+  if (input.mode === "theme" && !themeOuvert(input.themeId, child.age) && !estAdmin(user.email)) {
     return { ok: false, message: "Cette histoire arrive bientôt. Choisissez-en une autre, ou racontez votre idée." };
   }
   // Seuls les styles validés au test d'entrée sont proposés (les administrateurs peuvent tout tester).

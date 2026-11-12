@@ -194,7 +194,9 @@ export default function CreateBookForm({
         ? "Indiquez le prénom de l'enfant."
         : null
       : etape === 1
-        ? classiqueVerrouille
+        ? mode === "theme" && !themeOuvert(themeId, age)
+          ? "Choisissez une histoire disponible pour son âge, ou racontez votre idée."
+          : classiqueVerrouille
           ? "Ce grand classique est réservé aux membres du Club."
           : mode === "libre" && prompt.trim().length < 10
             ? "Décrivez l'aventure en quelques mots."
@@ -470,7 +472,7 @@ export default function CreateBookForm({
           {mode === "theme" && <input type="hidden" name="themeId" value={themeId} />}
 
           <div className="sans-barre -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
-            {[...THEME_CATEGORIES.filter((c) => c.id !== "classiques"), ...THEME_CATEGORIES.filter((c) => c.id === "classiques")].filter((c) => THEMES.some((t) => t.categorie === c.id && themeOuvert(t.id))).map((c) => (
+            {[...THEME_CATEGORIES.filter((c) => c.id !== "classiques"), ...THEME_CATEGORIES.filter((c) => c.id === "classiques")].filter((c) => THEMES.some((t) => t.categorie === c.id && themeOuvert(t.id, age))).map((c) => (
               <button
                 key={c.id}
                 type="button"
@@ -499,6 +501,15 @@ export default function CreateBookForm({
 
           {mode === "theme" ? (
             <>
+              {!THEMES.some((t) => themeOuvert(t.id, age)) && (
+                <p className="rounded-2xl bg-white/[0.06] p-4 text-sm">
+                  Nos histoires prêtes sont écrites pour les plus grands. Pour {age} an{age > 1 ? "s" : ""}, racontez votre idée :
+                  nous écrivons une histoire rien que pour {prenom || "votre enfant"}.{" "}
+                  <button type="button" onClick={() => setMode("libre")} className="font-semibold text-magique-primaire underline">
+                    Raconter mon idée
+                  </button>
+                </p>
+              )}
               {categorie === "classiques" && !abonnement.actif && THEMES.some((t) => t.categorie === "classiques" && themeOuvert(t.id) && reserveClub(t)) && (
                 <p className="text-sm text-magique-texteClair">
                   Les grands classiques sont réservés aux membres du{" "}
@@ -509,7 +520,7 @@ export default function CreateBookForm({
                 </p>
               )}
               <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Thèmes">
-                {THEMES.filter((t) => t.categorie === categorie && themeOuvert(t.id)).map((t) => {
+                {THEMES.filter((t) => t.categorie === categorie && themeOuvert(t.id, age)).map((t) => {
                   const actif = t.id === themeId;
                   const verrou = reserveClub(t) && !abonnement.actif;
                   return (
@@ -771,7 +782,7 @@ export default function CreateBookForm({
               Continuer
             </button>
           ) : (
-            <button type="submit" className="btn-primaire flex-1 text-lg" disabled={pending || classiqueVerrouille}>
+            <button type="submit" className="btn-primaire flex-1 text-lg" disabled={pending || classiqueVerrouille || (mode === "theme" && !themeOuvert(themeId, age))}>
               {pending ? "Création en cours…" : prenom ? `Créer le livre de ${prenom}` : "Créer le livre"}
             </button>
           )}

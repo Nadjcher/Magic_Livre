@@ -6,10 +6,11 @@
  *
  * Marqueurs dans le texte :
  *   {prenom}            prénom de l'enfant
+ *   {de_prenom}         « de Kamil » ou « d'Inès » (élision)
  *   {Il} {il}           « Elle/Il », « elle/il » selon l'enfant
- *   {doudou}            nom du doudou (« Pompon »)
- *   {son_doudou}        « son lapin », « sa girafe », « son doudou »
- *   {parent}            « Papa » ou « Maman »
+ *   {doudou}            nom du doudou (« Pompon »), ou « son lapin » s'il n'a pas de nom
+ *   {son_doudou} {doudou}  « son lapin Pompon », ou « son lapin » sans nom, « son doudou » sans doudou
+ *   {parent}            « Papa », « Maman », « Mamie » ou « Papi »
  *   {dit_parent}        « dit-il » / « dit-elle »
  *   {petit_parent}      « petit » / « petite »
  *   [[cle]]             passage personnalisé (voir `passages`), sinon texte par défaut
@@ -47,9 +48,10 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
   {
     id: "maitresse-petit-poucet",
     themeId: "petit-poucet",
-    ageMin: 3,
+    // Passé simple, ton du conte : à partir de 4 ans.
+    ageMin: 4,
     ageMax: 8,
-    titre: "Les cailloux tordus de {prenom}",
+    titre: "Les cailloux tordus {de_prenom}",
     ritournelle: "« Petit caillou blanc, montre-nous le chemin. »",
     resume:
       "Ce soir, {parent} ouvre le vieux livre de contes de son enfance. Mais à la page du Petit Poucet, les cailloux blancs ont disparu ! Avec un crayon blanc et {doudou}, {prenom} entre dans la forêt du livre pour ramener Poucet et ses frères à la maison.",
@@ -81,15 +83,15 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       },
       {
         texte:
-          "{parent} descendit à la cuisine chercher un verre d'eau. Sur la page, un seul caillou blanc luisait encore, minuscule. {prenom} attrapa le crayon blanc posé sur sa table de nuit. Du bout du doigt, {il} toucha la petite lueur. Hop ! {prenom} glissa dans la forêt du livre, {doudou} sous le bras. Le caillou brillait au creux de sa main.",
+          "{parent} alla à la cuisine chercher un verre d'eau. Sur la page, un seul caillou blanc luisait encore, minuscule. {prenom} attrapa le crayon blanc posé sur sa table de nuit. Du bout du doigt, {il} toucha la petite lueur. Hop ! {prenom} glissa dans la forêt du livre, {doudou} sous le bras. Le caillou brillait au creux de sa main.",
         scene:
           "Close-up of the open old storybook on the duvet: on the forest page one single tiny white stone glows softly; {prenom}'s small hand reaches down to touch the glow while the other hand holds a white pencil; {doudou} peeks at the edge; a gentle light rises from the page in the dim room.",
       },
       {
         texte:
-          "Dans le livre, les arbres sentaient l'encre, et la mousse le vieux papier. Un garçon haut comme une botte fouillait sous les fougères : Poucet ! « Mes cailloux se sont effacés, je ne sais pas pourquoi. — Je peux t'aider, dit {prenom}. — Pas besoin, je trouve toujours le chemin. » Au loin, le géant ronflait, et le bord de la page s'assombrit.",
+          "Dans le livre, les arbres sentaient l'encre, et la mousse le vieux papier. Un garçon haut comme une botte fouillait sous les fougères : Poucet ! Ses frères attendaient, serrés contre un tronc. « Mes cailloux se sont effacés, je ne sais pas pourquoi. — Je peux t'aider, dit {prenom}. — Pas besoin, je trouve toujours le chemin. » Au loin, le géant ronflait, et le bord de la page s'assombrit.",
         scene:
-          "Inside a soft storybook forest: {prenom}, holding {doudou} and a white pencil, offers help to Poucet, who searches under the ferns with his chin raised proudly; the edges of the scene slightly darker, the leaves trembling as if from a distant snore.",
+          "Inside a soft storybook forest: {prenom}, holding {doudou} and a white pencil, offers help to Poucet, who searches under the ferns with his chin raised proudly; in the background his six little brothers (same tiny size, plain clothes, no bonnets) wait huddled together against a tree trunk; the edges of the scene slightly darker, the leaves trembling as if from a distant snore.",
         presents: ["Poucet"],
       },
       {
@@ -124,7 +126,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "Au bout du chemin tordu, une petite maison avait sa fenêtre allumée. Les frères de Poucet coururent vers la porte en riant. Poucet glissa un caillou dessiné dans sa poche. « Merci, {prenom} », dit-il. Tout autour, la page redevint claire.",
         scene:
-          "At the end of the crooked glowing stone path, a small cottage with a warmly lit window stands in a forest turning bright again; Poucet slips a white stone into his pocket with rosy cheeks, smiling at {prenom}, who stands proudly holding {doudou} and the white pencil; soft golden light.",
+          "At the end of the crooked glowing stone path, a small cottage with a warmly lit window stands in a forest turning bright again; Poucet's six tiny brothers run laughing toward the door; Poucet slips a white stone into his pocket with rosy cheeks, smiling at {prenom}, who stands proudly holding {doudou} and the white pencil; soft golden light.",
         presents: ["Poucet"],
       },
       {
@@ -161,27 +163,42 @@ export function maitressePour(themeId: string | undefined, age: number): Histoir
 export interface Personnalisation {
   prenom: string;
   fille: boolean;
+  /** Nom propre du doudou ; vide s'il n'en a pas (on dit alors « son lapin »). */
   doudou: string;
   /** « son lapin », « sa girafe », « son doudou ». */
   sonDoudou: string;
   /** Apparence du doudou pour les images (anglais). */
   doudouVisuel: string;
-  parent: "Papa" | "Maman";
+  parent: "Papa" | "Maman" | "Mamie" | "Papi";
   passages: Record<string, string>;
 }
 
 /** Remplace les marqueurs d'un texte (les passages [[…]] compris). */
 export function remplir(texte: string, p: Personnalisation, h: HistoireMaitresse): string {
+  const feminin = p.parent === "Maman" || p.parent === "Mamie";
+  const nomme = p.doudou.trim();
+  const de = /^[aeiouyhàâäéèêëîïôöûùü]/i.test(p.prenom.trim()) ? "d'" : "de ";
   return texte
     .replace(/\[\[(\w+)\]\]/g, (_, cle: string) => p.passages[cle] ?? h.passages[cle]?.defaut ?? "")
+    .replaceAll("{de_prenom}", `${de}${p.prenom}`)
     .replaceAll("{prenom}", p.prenom)
     .replaceAll("{Il}", p.fille ? "Elle" : "Il")
     .replaceAll("{il}", p.fille ? "elle" : "il")
+    // Doudou sans nom : « son lapin » partout (et « son doudou » si l'enfant n'en a pas décrit).
+    .replaceAll("{son_doudou} {doudou}", nomme ? `${p.sonDoudou} ${nomme}` : p.sonDoudou)
     .replaceAll("{son_doudou}", p.sonDoudou)
-    .replaceAll("{doudou}", p.doudou)
+    .replaceAll("{doudou}", nomme || p.sonDoudou)
     .replaceAll("{parent}", p.parent)
-    .replaceAll("{dit_parent}", p.parent === "Maman" ? "dit-elle" : "dit-il")
-    .replaceAll("{petit_parent}", p.parent === "Maman" ? "petite" : "petit");
+    .replaceAll("{dit_parent}", feminin ? "dit-elle" : "dit-il")
+    .replaceAll("{petit_parent}", feminin ? "petite" : "petit");
+}
+
+/** « son lapin », « sa girafe », mais « son amie » devant une voyelle ou un h muet. */
+export function possessif(son: string): string {
+  const m = /^(son|sa)\s+(.+)$/i.exec(son.trim());
+  if (!m) return "son doudou";
+  const reste = m[2]!.toLowerCase();
+  return `${/^[aeiouyhàâäéèêëîïôöûù]/i.test(reste) ? "son" : m[1]!.toLowerCase()} ${reste}`;
 }
 
 /** Mots (pour la limite des passages personnalisés). */
@@ -197,6 +214,8 @@ export function passageValide(cle: string, texte: string, h: HistoireMaitresse):
   const t = texte.trim();
   if (!t || mots(t) > def.motsMax) return false;
   if (/[«»"{}[\]\n]|\d|bouche|sourire|visage|illustration|image/i.test(t)) return false;
+  // Une majuscule après le premier mot = un nom propre (marque, personnage connu, dessin animé) : refusé.
+  if (/\s\p{Lu}/u.test(t) || /[®™]/.test(t)) return false;
   // Même début que le texte par défaut (« rond comme », « Il sortit »…) : la phrase s'insère sans couture.
   const debut = def.defaut.split(/\s+/).slice(0, 2).join(" ").toLowerCase();
   const debutAlt = cle === "comparaison" ? ["rond comme", "doux comme", "ronde comme"] : [debut];
