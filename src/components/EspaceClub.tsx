@@ -9,7 +9,7 @@ import { titreCouvertureTheme } from "@/lib/titrePrenom";
 import CouvertureLivre from "./CouvertureLivre";
 import { prisma } from "@/lib/prisma";
 import type { Abonnement } from "@/lib/subscription";
-import { THEMES, type Theme } from "@/lib/themes";
+import { THEMES, themeOuvert, type Theme } from "@/lib/themes";
 import { bookImageUrl } from "@/lib/bookImages";
 import { nomMois, selectionDuMois } from "@/lib/selectionMois";
 import LivreCouverture from "./LivreCouverture";
@@ -96,7 +96,7 @@ export default async function EspaceClub({ userId, ab, enfantId }: { userId: str
   const livreDe = (t: Theme) => recus.find((l) => l.childId === enfant.id && l.theme === t.titre);
   const recusSelection = selection.filter((p) => livreDe(p.theme)).length;
   const horsSelection = recus.filter((l) => !selection.some((p) => p.theme.titre === l.theme && l.childId === enfant.id));
-  const autresClassiques = THEMES.filter((t) => t.categorie === "classiques" && !selection.some((p) => p.theme.id === t.id));
+  const autresClassiques = THEMES.filter((t) => t.categorie === "classiques" && themeOuvert(t.id) && !selection.some((p) => p.theme.id === t.id));
 
   return (
     <div className="space-y-14">

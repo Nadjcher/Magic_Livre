@@ -9,7 +9,10 @@
  * tourne d'un mois à l'autre.
  */
 
-import { THEMES, type Theme } from "./themes";
+import { THEMES as TOUS, themeOuvert, type Theme } from "./themes";
+
+/** Seulement les histoires disponibles (celles qui ont une histoire validée). */
+const THEMES = TOUS.filter((t) => themeOuvert(t.id));
 import { formatParDefaut } from "./bookFormats";
 import { stylesPourAge, type IllustrationStyle } from "./style_config";
 
@@ -53,8 +56,8 @@ export function selectionDuMois(age: number, n: number, d = new Date()): LivrePr
 
   const choix: Theme[] = [];
   if (saison) choix.push(saison);
-  choix.push(...tourner(classiques, (index * 3) % classiques.length, Math.ceil(n / 2)));
-  choix.push(...tourner(autres, (index * 5) % autres.length, n - choix.length));
+  if (classiques.length) choix.push(...tourner(classiques, (index * 3) % classiques.length, Math.ceil(n / 2)));
+  if (autres.length) choix.push(...tourner(autres, (index * 5) % autres.length, n - choix.length));
 
   const styles = stylesPourAge(age);
   const format = formatParDefaut(age).id;

@@ -20,7 +20,7 @@ import { avisPublics } from "@/lib/reviews";
 import { auth } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { getAppUrl } from "@/lib/appUrl";
-import { findThemeById } from "@/lib/themes";
+import { findThemeById, themeOuvert } from "@/lib/themes";
 import Picto from "@/components/Picto";
 import BoutonCollant from "@/components/BoutonCollant";
 import { FONDATEUR } from "@/lib/fondateur";
@@ -73,6 +73,7 @@ const ETAPES = [
 ];
 
 const THEMES_VITRINE = [
+  "petit-poucet",
   "chaperon-rouge",
   "haricot-magique",
   "noel",
@@ -216,8 +217,8 @@ export default async function AccueilPage() {
           <strong className="text-[#ffd98a]">Pour Noël :</strong> le livre relié commandé avant le 10 décembre arrive sous le sapin.
           Un cadeau qu'aucun autre enfant n'aura.
         </p>
-        <Link href={`/creer?theme=noel`} rel="nofollow" className="btn-secondaire whitespace-nowrap px-4 text-[15px]">
-          Créer son livre de Noël
+        <Link href={themeOuvert("noel") ? "/creer?theme=noel" : cta} rel="nofollow" className="btn-secondaire whitespace-nowrap px-4 text-[15px]">
+          {themeOuvert("noel") ? "Créer son livre de Noël" : "Créer son livre"}
         </Link>
       </aside>
 
@@ -346,20 +347,24 @@ export default async function AccueilPage() {
           </Link>
         </div>
         <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-5">
-          {THEMES_VITRINE.map((id) => {
+          {/* Les histoires disponibles d'abord ; les autres sont annoncées « Bientôt ». */}
+          {[...THEMES_VITRINE.filter(themeOuvert), ...THEMES_VITRINE.filter((id) => !themeOuvert(id))].map((id) => {
             const t = findThemeById(id);
             if (!t) return null;
+            const ouvert = themeOuvert(t.id);
             return (
               <Link
                 key={t.id}
-                href={`/creer?theme=${t.id}`} rel="nofollow"
-                className="group flex flex-col gap-2 text-[15px] font-semibold text-magique-texte"
+                href={ouvert ? `/creer?theme=${t.id}` : `/catalogue/${t.id}`} rel="nofollow"
+                className={`group flex flex-col gap-2 text-[15px] font-semibold text-magique-texte ${ouvert ? "" : "opacity-55"}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <CouvertureLivre src={couvertureTheme(t.id)} prenom={prenomExemple(t.id)} titre={titreCouvertureTheme(t.id, t.titre)} className="transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-translate-y-1.5" />
                 <span className="leading-snug">{t.titre}</span>
-                {t.saison && (
-                  <span className="w-fit rounded-full bg-magique-rose/15 px-2 py-0.5 text-xs text-or-clair">De saison</span>
+                {!ouvert ? (
+                  <span className="w-fit rounded-full bg-white/10 px-2 py-0.5 text-xs font-normal text-magique-texteClair">Bientôt</span>
+                ) : (
+                  t.saison && <span className="w-fit rounded-full bg-magique-rose/15 px-2 py-0.5 text-xs text-or-clair">De saison</span>
                 )}
               </Link>
             );

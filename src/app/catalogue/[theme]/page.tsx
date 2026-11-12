@@ -14,7 +14,7 @@ import { env } from "@/lib/env";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { THEMES, THEME_CATEGORIES, estClassique, findThemeById } from "@/lib/themes";
+import { THEMES, THEME_CATEGORIES, findThemeById, reserveClub, themeOuvert } from "@/lib/themes";
 import { getAppUrl } from "@/lib/appUrl";
 
 export function generateStaticParams() {
@@ -88,14 +88,19 @@ export default async function ThemePage(props: { params: Promise<{ theme: string
         titre={t.titre}
         titreCouverture={titreCouvertureTheme(t.id, t.titre)}
         prenomParDefaut={prenomExemple(t.id)}
-        reserveClub={estClassique(t)}
+        reserveClub={reserveClub(t)}
+        bientot={!themeOuvert(t.id)}
       >
         <header className="space-y-3">
           <div className="flex flex-wrap gap-2 text-xs font-bold">
             {categorie && <span className="rounded-full bg-white/[0.08] px-3 py-1">{categorie.label}</span>}
             <span className="rounded-full bg-white/[0.08] px-3 py-1">De 1 à 12 ans</span>
             {t.saison && <span className="rounded-full bg-magique-rose/15 px-3 py-1 text-or-clair">De saison</span>}
-            {estClassique(t) && <span className="rounded-full bg-or/15 px-3 py-1 text-or">Réservé au Club</span>}
+            {!themeOuvert(t.id) ? (
+              <span className="rounded-full bg-white/[0.08] px-3 py-1">Bientôt</span>
+            ) : (
+              reserveClub(t) && <span className="rounded-full bg-or/15 px-3 py-1 text-or">Réservé au Club</span>
+            )}
           </div>
           <h1 className="text-4xl sm:text-5xl">{t.titre}</h1>
           <p className="text-lg text-magique-texteClair">{t.accroche}</p>

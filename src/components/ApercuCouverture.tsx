@@ -17,6 +17,7 @@ export default function ApercuCouverture({
   titreCouverture,
   prenomParDefaut,
   reserveClub,
+  bientot = false,
   children,
 }: {
   themeId: string;
@@ -26,6 +27,8 @@ export default function ApercuCouverture({
   titreCouverture: string;
   prenomParDefaut: string;
   reserveClub: boolean;
+  /** Histoire pas encore disponible (pas d'histoire validée) : bouton « Bientôt ». */
+  bientot?: boolean;
   /** Colonne de droite (titre, bénéfices, prix), placée entre l'aperçu et le bouton. */
   children: ReactNode;
 }) {
@@ -66,12 +69,23 @@ export default function ApercuCouverture({
             placeholder={`Ex : ${prenomParDefaut}`}
             className="champ"
           />
-          <Link href={lien} rel="nofollow" className="btn-primaire w-full text-lg">
-            {reserveClub ? "Le lire avec le Club" : nom.trim() ? `Créer le livre ${dePrenom(nom).de}${nom.trim()}` : "Créer son livre gratuitement"}
-          </Link>
-          <p className="text-center text-sm text-magique-texteClair">
-            Toute l'histoire à lire gratuitement · prête en 3 minutes · sans carte bancaire
-          </p>
+          {bientot ? (
+            <>
+              <p className="rounded-2xl bg-white/[0.08] px-4 py-3 text-center font-semibold">Cette histoire arrive bientôt.</p>
+              <Link href="/catalogue" className="btn-secondaire w-full">
+                Voir les histoires disponibles
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link href={lien} rel="nofollow" className="btn-primaire w-full text-lg">
+                {reserveClub ? "Le lire avec le Club" : nom.trim() ? `Créer le livre ${dePrenom(nom).de}${nom.trim()}` : "Créer son livre gratuitement"}
+              </Link>
+              <p className="text-center text-sm text-magique-texteClair">
+                Toute l'histoire à lire gratuitement · prête en 3 minutes · sans carte bancaire
+              </p>
+            </>
+          )}
         </div>
       </div>
     </div>

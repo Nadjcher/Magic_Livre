@@ -10,6 +10,7 @@
  */
 
 import type { IllustrationStyle } from "./style_config";
+import { HISTOIRES_MAITRESSES } from "./histoiresMaitresses";
 
 export type ThemeCategory = "classiques" | "fetes" | "grandir" | "emotions" | "aventures" | "passions";
 
@@ -41,6 +42,27 @@ export interface Theme {
 /** Les grands classiques revisités sont réservés aux membres du Club. */
 export function estClassique(t: Theme | undefined): boolean {
   return t?.categorie === "classiques";
+}
+
+/** Le thème a une histoire maîtresse (écrite et validée une fois pour toutes). */
+export function aMaitresse(id: string | undefined): boolean {
+  return Boolean(id) && HISTOIRES_MAITRESSES.some((h) => h.themeId === id);
+}
+
+/**
+ * Thèmes proposés : seulement ceux qui ont une histoire maîtresse validée (les
+ * autres sont « Bientôt »), plus ceux ouverts par NEXT_PUBLIC_THEMES_OUVERTS
+ * (liste d'identifiants, ou « * » pour tout rouvrir), puis redéploiement.
+ */
+const THEMES_FORCES = (process.env.NEXT_PUBLIC_THEMES_OUVERTS ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+export function themeOuvert(id: string | undefined): boolean {
+  if (!id) return false;
+  return aMaitresse(id) || THEMES_FORCES.includes("*") || THEMES_FORCES.includes(id);
+}
+
+/** Réservé au Club : un classique sans histoire maîtresse (celles-ci sont ouvertes à tous). */
+export function reserveClub(t: Theme | undefined): boolean {
+  return estClassique(t) && !aMaitresse(t?.id);
 }
 
 /** Consigne commune : relecture libre d'un conte du domaine public. */

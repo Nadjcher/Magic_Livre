@@ -27,7 +27,7 @@ import { checkDailyBookLimit, estAdmin } from "@/lib/rateLimit";
 import { generateStory } from "@/lib/storyGenerator";
 import { lancerRelecture, livrer } from "@/lib/livraison";
 import { describeChildFromPhoto } from "@/lib/illustration";
-import { estClassique, findThemeById } from "@/lib/themes";
+import { estClassique, findThemeById, reserveClub, themeOuvert } from "@/lib/themes";
 import { getAbonnement, inclureLivre } from "@/lib/subscription";
 import type { LongueurKey } from "@/lib/validation";
 import { STYLE_DEFAUT, styleOuvert, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
@@ -151,6 +151,10 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
 
   // Les grands classiques (contes de papa et maman) sont toujours dans le style de la maison.
   if (input.mode === "theme" && estClassique(findThemeById(input.themeId))) input.style = STYLE_DEFAUT;
+  // Seuls les thèmes qui ont une histoire validée sont proposés (les administrateurs peuvent tout tester).
+  if (input.mode === "theme" && !themeOuvert(input.themeId) && !estAdmin(user.email)) {
+    return { ok: false, message: "Cette histoire arrive bientôt. Choisissez-en une autre, ou racontez votre idée." };
+  }
   // Seuls les styles validés au test d'entrée sont proposés (les administrateurs peuvent tout tester).
   if (!styleOuvert(input.style) && !estAdmin(user.email)) {
     return { ok: false, message: "Ce style arrive bientôt. Choisissez-en un autre." };
@@ -221,7 +225,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
         "Victimes de notre succès : tous les livres gratuits du jour sont partis ! Revenez demain matin, ou rejoignez le Club pour créer vos livres tout de suite.",
     };
   }
-  if (input.mode === "theme" && estClassique(findThemeById(input.themeId)) && !abonnement.actif) {
+  if (input.mode === "theme" && reserveClub(findThemeById(input.themeId)) && !abonnement.actif) {
     return { ok: false, message: "Les grands classiques revisités sont réservés aux membres du Club." };
   }
 

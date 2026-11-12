@@ -21,7 +21,7 @@ import { groupePourAge } from "@/lib/ageGroups";
 import { useRouter } from "next/navigation";
 import { createBook } from "@/app/actions/books";
 import { preparerHeros, type PortraitResultat } from "@/app/actions/heros";
-import { THEMES, THEME_CATEGORIES, estClassique, findThemeById, type ThemeCategory } from "@/lib/themes";
+import { THEMES, THEME_CATEGORIES, estClassique, findThemeById, reserveClub, themeOuvert, type ThemeCategory } from "@/lib/themes";
 import type { ChildView } from "./ChildrenManager";
 import { ILLUSTRATION_STYLES, STYLE_DEFAUT, styleOuvert, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
 import Notice from "./Notice";
@@ -113,7 +113,9 @@ export default function CreateBookForm({
   // Sans abonnement, on n'ouvre jamais sur les grands classiques (réservés au Club).
   const initial = findThemeById(initialThemeId);
   const themeInitial =
-    initial && (abonnement.actif || !estClassique(initial)) ? initial : THEMES.find((t) => t.saison) ?? THEMES.find((t) => !estClassique(t))!;
+    initial && themeOuvert(initial.id) && (abonnement.actif || !reserveClub(initial))
+      ? initial
+      : THEMES.find((t) => t.saison && themeOuvert(t.id)) ?? THEMES.find((t) => themeOuvert(t.id) && !reserveClub(t)) ?? THEMES[0]!;
   const [mode, setMode] = useState<"theme" | "libre">("theme");
   const [themeId, setThemeId] = useState(themeInitial.id);
   const [categorie, setCategorie] = useState<ThemeCategory>(themeInitial.categorie);
@@ -123,7 +125,7 @@ export default function CreateBookForm({
   const formats = formatsPourAge(age);
   const formatValide = formats.some((f) => f.id === formatId) ? formatId : formatParDefaut(age).id;
   const format = findFormat(formatValide);
-  const classiqueVerrouille = mode === "theme" && estClassique(findThemeById(themeId)) && !abonnement.actif;
+  const classiqueVerrouille = mode === "theme" && reserveClub(findThemeById(themeId)) && !abonnement.actif;
 
   // ─── Étape 3 : les finitions ───
   // Style 3D par défaut, comme sur la page d'accueil (le parent peut en choisir un autre, sauf pour les grands classiques).
@@ -468,7 +470,7 @@ export default function CreateBookForm({
           {mode === "theme" && <input type="hidden" name="themeId" value={themeId} />}
 
           <div className="sans-barre -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
-            {[...THEME_CATEGORIES.filter((c) => c.id !== "classiques"), ...THEME_CATEGORIES.filter((c) => c.id === "classiques")].map((c) => (
+            {[...THEME_CATEGORIES.filter((c) => c.id !== "classiques"), ...THEME_CATEGORIES.filter((c) => c.id === "classiques")].filter((c) => THEMES.some((t) => t.categorie === c.id && themeOuvert(t.id))).map((c) => (
               <button
                 key={c.id}
                 type="button"
@@ -497,7 +499,7 @@ export default function CreateBookForm({
 
           {mode === "theme" ? (
             <>
-              {categorie === "classiques" && !abonnement.actif && (
+              {categorie === "classiques" && !abonnement.actif && THEMES.some((t) => t.categorie === "classiques" && themeOuvert(t.id) && reserveClub(t)) && (
                 <p className="text-sm text-magique-texteClair">
                   Les grands classiques sont réservés aux membres du{" "}
                   <Link href="/club" className="font-semibold text-magique-primaire underline">
@@ -507,9 +509,9 @@ export default function CreateBookForm({
                 </p>
               )}
               <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Thèmes">
-                {THEMES.filter((t) => t.categorie === categorie).map((t) => {
+                {THEMES.filter((t) => t.categorie === categorie && themeOuvert(t.id)).map((t) => {
                   const actif = t.id === themeId;
-                  const verrou = estClassique(t) && !abonnement.actif;
+                  const verrou = reserveClub(t) && !abonnement.actif;
                   return (
                     <button key={t.id} type="button" role="radio" aria-checked={actif} onClick={() => choisirTheme(t.id)} className={`${tuile(actif)} flex items-start gap-3 p-3 ${verrou ? "opacity-70" : ""}`}>
                       {couvertureTheme(t.id) ? (
