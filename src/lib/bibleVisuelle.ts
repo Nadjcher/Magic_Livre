@@ -6,11 +6,14 @@
  * le générateur comprend le mieux) et à la relectrice d'images.
  */
 
-/** Le style de la maison (pages carrées). */
+/** Le style de la maison (peint). */
 export const STYLE_MAISON = "maison";
+/** Le style 3D (celui de la page d'accueil et du catalogue). */
+export const STYLE_3D = "anim3d";
 
+/** Styles soumis à la bible visuelle : pages carrées, consigne type, relectrice à grille. */
 export function estCarre(style: string | undefined): boolean {
-  return style === STYLE_MAISON;
+  return style === STYLE_MAISON || style === STYLE_3D;
 }
 
 /** « Consigne type » : bloc STYLE (fixe). */
@@ -23,12 +26,27 @@ export const CONSIGNE_STYLE =
   "Daytime scenes keep the same hues, lightened: never bright saturated colors. " +
   "LIGHT: a single main light source, the one named in the scene; it lights the child's face first; small distant lights (a lit window far away, stars) are allowed only if they do not light the characters; the edges of the image are darker than the center.";
 
+/** Bloc STYLE de la 3D : un plan de film d'animation, en un seul rendu cohérent. */
+export const CONSIGNE_STYLE_3D =
+  "STYLE (fixed): a single frame from a premium modern 3D animated family film: volumetric characters and sets, soft plush and polished materials, " +
+  "subsurface skin shading, cinematic composition, rich cosy set dressing. ONE consistent 3D render for the whole image: characters AND scenery are 3D " +
+  "(never a 2D drawn, sketched or pencil background, never mixed media, never photographic). Full-bleed to every edge, square format. " +
+  "Palette: deep night blue (sky, shadows), warm wood and moss tones, warm golden light (lamp, window, glowing object), ONE accent color tied to the child; " +
+  "daytime scenes keep the same hues, lightened, never garish. " +
+  "LIGHT: a single main light source, the one named in the scene; it lights the child's face first (soft key light with gentle rim light); small distant " +
+  "lights are allowed only if they do not light the characters; the edges of the image are darker than the center.";
+
 /** Bloc HÉROS : traits du portrait validé, répétés à chaque page. */
-export function consigneHeros(nom: string | undefined, traits: string | undefined): string {
+export function consigneHeros(nom: string | undefined, traits: string | undefined, style?: string): string {
+  const yeux =
+    style === STYLE_3D
+      ? "expressive eyes in proportion (never huge exaggerated eyes); "
+      : "natural-sized almond-shaped eyes (never big round cartoon eyes); ";
   return (
     `HERO${nom ? ` (${nom})` : ""}: drawn from the approved portrait (reference image), never from a photo. ` +
     (traits ? `Exact traits: ${traits}. ` : "") +
-    "Natural-sized almond-shaped eyes (never big round cartoon eyes); soft smile with the mouth barely open unless the scene asks for laughter; " +
+    yeux +
+    "soft smile with the mouth barely open unless the scene asks for laughter; " +
     "proportions of a child of that age (the head is a quarter to a fifth of the body)."
   );
 }
@@ -36,15 +54,17 @@ export function consigneHeros(nom: string | undefined, traits: string | undefine
 /** Personnages fixes (fiches identiques dans tous les livres). */
 export const PERSONNAGES_FIXES =
   "FIXED CHARACTERS: a secondary character never looks like the hero. " +
-  "Little Thumb (Petit Poucet): straight black hair, red knitted bonnet, brown jacket; tiny, his scale shown by an object (standing on a mushroom, sitting on a leaf, smaller than the child's pencil). " +
-  "The child's cuddly toy: soft and round, small black eyes, sleepy look, no seams or patches, held in the child's arms, never alive. " +
+  "Little Thumb (Petit Poucet): straight black hair, red knitted bonnet, brown jacket, a cheerful face; ALWAYS the same tiny size on every page: " +
+  "as tall as a boot, his head reaching the child's knee, never taller (show it next to the child or an object). " +
+  "The child's cuddly toy: exactly the plush described in the character sheet (its species, colour and shape clearly readable: ears, muzzle, paws), " +
+  "soft and cute, never a shapeless blob, no seams or patches, held in the child's arms, never alive. " +
   "The parent: only a hand, a silhouette from behind or a profile in shadow, never a detailed face. " +
   "The giant: never shown, only suggested by a shadow or boots.";
 
 /** Le dessin de l'enfant : toujours distinct du décor peint. */
 export const DESSIN_ENFANT =
   "WHAT THE CHILD DRAWS: irregular lumpy white shapes of unequal sizes, each outlined by a shaky white pencil line, " +
-  "clearly different from the painted scenery; never a paved path, a road or regular pebbles. While it is only drawn: outline only, empty inside. Once it has become real: a full solid shape with a slight golden glow.";
+  "clearly different from the scenery; never a paved path, a road or regular pebbles. While it is only drawn: outline only, empty inside. Once it has become real: a full solid shape with a slight golden glow.";
 
 /** Interdits. */
 export const INTERDITS_IMAGE =
@@ -59,7 +79,7 @@ export const ZONE_TEXTE =
 export const CONSIGNE_COUVERTURE =
   "COVER: a medium shot, the hero in three-quarter view facing the viewer, the top third calm (sky or soft shadow) for the title, which the website adds (never drawn).";
 
-/** La grille de la relectrice d'images (oui / non, avec ce qu'elle voit). */
+/** La grille de la relectrice d'images, style peint (oui / non, avec ce qu'elle voit). */
 export const GRILLE_IMAGES = [
   "The hero has the traits of the reference portrait: hair (color and cut), eyes, skin tone, distinctive features (glasses, freckles…).",
   "The technique is painted (watercolor/gouache), with no ink outlines and no 3D.",
@@ -71,3 +91,26 @@ export const GRILLE_IMAGES = [
   "The image is free of everything forbidden: no letters or signs, no wrong hands, nothing frightening.",
   "The text area is calm and integrated into the scene (not a flat band or empty box).",
 ];
+
+/** La grille de la relectrice d'images, style 3D : mêmes règles, technique 3D. */
+export const GRILLE_IMAGES_3D = [
+  "The hero has the traits of the reference portrait: hair (color and cut), eyes, skin tone, distinctive features (glasses, freckles…), and the same outfit as the character sheet.",
+  "The whole image is ONE consistent 3D animated-film render: characters and scenery are both 3D (no 2D drawn or pencil background, no mixed media, no photo-realism).",
+  "The scenery fills the whole frame, with no empty area outside the calm text area.",
+  "There is a single MAIN light source, the one named in the scene, lighting the hero's face; small distant lights are fine as long as they do not light the characters.",
+  "Fixed characters match their sheet and their scale (a secondary character never resembles the hero; the cuddly toy is a recognisable plush, not alive, not a shapeless blob).",
+  "The objects named in the scene are present, in the right place.",
+  "If the child has drawn something, it is clearly distinct from the scenery (white, irregular, shaky outline).",
+  "The image is free of everything forbidden: no letters or signs, no wrong hands, nothing frightening.",
+  "The text area is calm and integrated into the scene (not a flat band or empty box).",
+];
+
+/** La grille qui s'applique à un style. */
+export function grillePour(style: string | undefined): string[] {
+  return style === STYLE_3D ? GRILLE_IMAGES_3D : GRILLE_IMAGES;
+}
+
+/** Le bloc STYLE de la consigne type pour un style soumis à la bible. */
+export function consigneStylePour(style: string | undefined): string {
+  return style === STYLE_3D ? CONSIGNE_STYLE_3D : CONSIGNE_STYLE;
+}

@@ -25,12 +25,14 @@ import { env } from "@/lib/env";
 import { findFormat, formatsPourAge } from "@/lib/bookFormats";
 import { checkDailyBookLimit, estAdmin } from "@/lib/rateLimit";
 import { generateStory } from "@/lib/storyGenerator";
-import { lancerRelecture } from "@/lib/livraison";
+import { lancerRelecture, livrer } from "@/lib/livraison";
 import { describeChildFromPhoto } from "@/lib/illustration";
 import { estClassique, findThemeById } from "@/lib/themes";
 import { getAbonnement, inclureLivre } from "@/lib/subscription";
 import type { LongueurKey } from "@/lib/validation";
 import { STYLE_DEFAUT, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
+import { maitressePour } from "@/lib/histoiresMaitresses";
+import { histoireDepuisMaitresse } from "@/lib/maitresseGenerateur";
 
 export interface CreateBookResult {
   ok: boolean;
@@ -266,6 +268,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
       extras,
       childId: child.id,
       fiche: await lireFiche(child.id),
+      genre: formData.get("genre") === "fille" ? "fille" : formData.get("genre") === "garcon" ? "garcon" : undefined,
     }),
   );
 
@@ -325,6 +328,15 @@ async function genererEtEnregistrer(bookId: string, req: GenerationInput): Promi
       appearance: appearance.length > 0 ? appearance : undefined,
       extras: extras.map((e) => ({ ...e, appearance: e.appearance || undefined })),
     };
+    // Histoire maîtresse (écrite et validée une fois pour toutes) : on la personnalise
+    // sans la réécrire, et elle part directement à l'illustration (pas de relecture).
+    const maitresse = req.mode === "theme" ? maitressePour(req.themeId, req.childAge) : null;
+    if (maitresse) {
+      const story = await histoireDepuisMaitresse(maitresse, reqGeneration);
+      await livrer({ bookId, req: reqGeneration, portrait: portraitHeros ?? null, tentative: 1 }, story);
+      return;
+    }
+
     const result = await generateStory(reqGeneration, { illustrer: false, relire: false });
 
     if (!result.ok) {

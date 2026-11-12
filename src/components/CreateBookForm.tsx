@@ -103,6 +103,7 @@ export default function CreateBookForm({
   const [nouvelAge, setNouvelAge] = useState(5);
   const [photo, setPhoto] = useState<string>("");
   const [appearance, setAppearance] = useState("");
+  const [genre, setGenre] = useState<"" | "fille" | "garcon">("");
   const nouveau = childId === "nouveau";
   const enfant = enfants.find((c) => c.id === childId);
   const age = nouveau ? nouvelAge : enfant?.age ?? 5;
@@ -396,6 +397,21 @@ export default function CreateBookForm({
               </label>
             </div>
           )}
+          {/* Pour accorder l'histoire (« il » ou « elle ») ; facultatif. */}
+          <input type="hidden" name="genre" value={genre} />
+          <div className="flex flex-wrap items-center gap-3" role="radiogroup" aria-label="Fille ou garçon">
+            <span className="text-sm font-semibold">Dans l'histoire, on dit&nbsp;:</span>
+            {(
+              [
+                ["fille", "« elle »"],
+                ["garcon", "« il »"],
+              ] as const
+            ).map(([v, l]) => (
+              <button key={v} type="button" role="radio" aria-checked={genre === v} onClick={() => setGenre(genre === v ? "" : v)} className={`${tuile(genre === v)} min-h-11 px-4 py-2 text-sm`}>
+                {l}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="carte space-y-4">

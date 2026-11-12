@@ -75,6 +75,8 @@ export const storySchema = z.object({
     .catch(undefined),
   // Illustration de couverture (optionnelle).
   couvertureUrl: z.string().url().nullable().optional(),
+  /** Scène de couverture imposée (histoires maîtresses) ; sinon tirée de la page centrale. */
+  couvertureScene: z.string().max(800).optional().catch(undefined),
   // Style d'illustration retenu (mémoire, utile pour un « tome » suivant).
   style: z.enum(ILLUSTRATION_STYLE_KEYS).optional(),
   // Fiches de référence dessinées (héros + personnages secondaires), gardées pour

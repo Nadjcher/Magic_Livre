@@ -41,12 +41,13 @@ export type StyleConfig = typeof STYLE_CONFIG;
  * devant la description de la scène. On garde un seul endroit pour les définir.
  */
 import {
-  CONSIGNE_STYLE,
   DESSIN_ENFANT,
   INTERDITS_IMAGE,
   PERSONNAGES_FIXES,
   ZONE_TEXTE,
   consigneHeros,
+  consigneStylePour,
+  estCarre,
 } from "./bibleVisuelle";
 
 export type IllustrationStyle =
@@ -283,11 +284,11 @@ export function buildIllustrationPrompt(opts: {
   /** true : version dessin au trait pour le cahier de coloriage. */
   coloring?: boolean;
 }): string {
-  // Style de la maison : la « consigne type » de la bible visuelle.
-  if (opts.style === "maison" && !opts.coloring) {
+  // Styles de la bible visuelle (maison, 3D) : la « consigne type ».
+  if (estCarre(opts.style) && !opts.coloring) {
     return [
-      CONSIGNE_STYLE,
-      consigneHeros(opts.heroName, opts.appearance),
+      consigneStylePour(opts.style),
+      consigneHeros(opts.heroName, opts.appearance, opts.style),
       opts.recurringCharacters?.trim()
         ? `CHARACTER SHEET (the hero always wears exactly this outfit; recurring characters drawn exactly as described, identical on every page): ${opts.recurringCharacters.trim()}`
         : "",

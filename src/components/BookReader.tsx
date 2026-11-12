@@ -8,6 +8,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { estCarre } from "@/lib/bibleVisuelle";
 import { separerChapitre } from "@/lib/chapitre";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -43,7 +44,7 @@ export default function BookReader({
   carre,
 }: {
   story: Story;
-  /** Illustrations carrées (forcé pour un livre d'exemple ; sinon : style de la maison). */
+  /** Illustrations carrées (forcé pour un livre d'exemple ; sinon : styles de la bible visuelle). */
   carre?: boolean;
   /** Écran de fin : « Et demain ? » (le choix de la suite de la série). */
   suite?: ReactNode;
@@ -53,7 +54,7 @@ export default function BookReader({
   retouche?: { bookId: string; restantes: number };
 }) {
   const router = useRouter();
-  const pagesCarrees = carre ?? story.style === "maison";
+  const pagesCarrees = carre ?? estCarre(story.style);
   const [redessin, setRedessin] = useState<{ enCours: boolean; message?: string }>({ enCours: false });
   const [restantes, setRestantes] = useState(retouche?.restantes ?? 0);
   // Couverture + pages + une vraie page « Fin ».

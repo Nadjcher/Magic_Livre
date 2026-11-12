@@ -694,8 +694,10 @@ async function addIllustrations(
     generateIllustration({
       ...commun,
       scene:
-        `Book cover illustration for the story "${story.titre}": ${heroName} in an exciting, emblematic moment ` +
-        `of this story (${pageCentrale?.scene_illustration ?? ""})` +
+        (story.couvertureScene
+          ? `Book cover illustration for the story "${story.titre}": ${story.couvertureScene}`
+          : `Book cover illustration for the story "${story.titre}": ${heroName} in an exciting, emblematic moment ` +
+            `of this story (${pageCentrale?.scene_illustration ?? ""})`) +
         (couvertureFiches.length ? `, together with ${couvertureFiches.map((c) => c.name).join(" and ")}` : "") +
         ", rich setting, inviting composition, full body or medium shot, NOT a plain portrait" +
         (estCarre(style) ? `. ${CONSIGNE_COUVERTURE}` : ""),

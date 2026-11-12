@@ -429,8 +429,8 @@ Champs
 - Ritournelle : « Petit caillou blanc, montre-nous le chemin. »
 - Objet clé : {objet_enfant}, et un crayon blanc pris sur la table de nuit.
 - Compagnon : le Petit Poucet, malin mais trop fier pour demander de l'aide.
-- Fiche visuelle FIXE de Poucet (à reprendre telle quelle dans "cast", identique dans tous les livres) : « POUCET: a tiny boy only 20 cm tall, the size of a toy figurine, straight BLACK hair, a red knitted bonnet, a brown wool jacket, patched trousers, little wooden clogs — never curly, never blond, never looking like the hero ». L'échelle se montre par un objet, jamais par des centimètres : Poucet est debout sur un champignon, assis au bord d'une feuille, ou plus petit que le crayon de l'enfant.
-- Le doudou de l'enfant (s'il apparaît) : une peluche douce et ronde, petits yeux noirs, air endormi ; jamais de coutures ni de rapiéçages visibles, jamais inquiétante.
+- Fiche visuelle FIXE de Poucet (à reprendre telle quelle dans "cast", identique dans tous les livres) : « POUCET: a tiny cheerful boy as tall as a boot (his head reaches the child's knee), straight BLACK hair, a red knitted bonnet, a brown wool jacket, patched trousers, little wooden clogs — never curly, never blond, never looking like the hero; ALWAYS this same size on every page ». La taille de Poucet ne change jamais : haut comme une botte, il arrive au genou de l'enfant.
+- Le doudou de l'enfant : TOUJOURS nommé par son nom, dessiné exactement comme le parent l'a décrit (son espèce et sa couleur bien reconnaissables : oreilles, museau, pattes), doux et mignon, jamais une boule informe, jamais vivant.
 - Émotion de départ : inquiet(e) pour Poucet. Émotion d'arrivée : fier(e).
 - Accroche de suite : à la page suivante du livre, une botte dépasse d'un buisson.
 
@@ -454,12 +454,8 @@ Consignes propres à cette trame
 - {parent} ne dit pas qu'il comprend ce qui s'est passé.
 - 450 à 550 mots, 10 pages.
 
-Style visuel de la collection : l'enfant (et les personnages du conte) en 3D et en couleurs, à l'intérieur d'un livre dessiné au crayon gris sur papier crème. Règle : ce que l'enfant a dessiné se distingue TOUJOURS du dessin d'origine du livre (traits blancs maladroits d'un enfant de 5 ans, de tailles inégales, jamais un pavage ni une route propre).
-Images (champ scene_illustration, pour les 4 illustrations)
-1. Couverture : l'enfant et Poucet de dos (Poucet arrive au genou de l'enfant), une file de cailloux blancs séparés, de tailles inégales, un peu tordus, dans une forêt au crayon.
-2. Case 3 : la main de l'enfant touche le caillou qui luit sur la page ouverte.
-3. Case 7 : l'enfant accroupi(e) dessine un caillou au sol, Poucet penché à côté.
-4. Case 9 : le livre ouvert sur le lit ; sur la belle page au crayon, des cailloux blancs maladroits, visiblement tracés par une main d'enfant ; la main du parent ; une botte qui dépasse d'un buisson à la page suivante.`,
+Style visuel : celui du livre (3D, un seul rendu cohérent). La forêt du conte est une forêt de livre d'images en 3D, douce et lumineuse : JAMAIS de décor dessiné au crayon gris, jamais de mélange 3D et dessin. Ce que l'enfant dessine au crayon blanc se distingue toujours du décor (traits blancs maladroits d'un enfant de 5 ans, de tailles inégales, jamais un pavage ni une route propre).
+Les scene_illustration décrivent seulement ce qu'on voit (lieu, personnages, objets, lumière) : jamais de consigne d'expression du visage, et rien de tout cela ne doit apparaître dans le texte de l'histoire.`,
   },
   // ─── Trames (structures) ───
   {

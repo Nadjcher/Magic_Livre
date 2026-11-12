@@ -11,7 +11,7 @@
 import "server-only";
 import { prisma } from "./prisma";
 
-export const DATE_OUVERTURE = process.env.DATE_OUVERTURE || "15 novembre";
+export const DATE_OUVERTURE = process.env.DATE_OUVERTURE || "22 novembre";
 
 export function ventesOuvertes(): boolean {
   const force = (process.env.VENTES_OUVERTES ?? "").toLowerCase();

@@ -17,13 +17,14 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { prisma } from "./prisma";
 import { getAppUrl } from "./appUrl";
 import { emailMarketing } from "./mailer";
+import { DATE_OUVERTURE } from "./lancement";
 
 export type Campagne = "avant-premiere" | "ouverture" | "relance" | "noel";
 
 export const CAMPAGNES: { id: Campagne; quand: string; titre: string; cible: string }[] = [
-  { id: "avant-premiere", quand: "12 ou 13 novembre", titre: "Avant-première", cible: "Tous les inscrits et comptes" },
-  { id: "ouverture", quand: "15 novembre, à l'ouverture des ventes", titre: "Ouverture", cible: "Tous (message différent si un livre est déjà créé)" },
-  { id: "relance", quand: "18 novembre", titre: "Relance", cible: "Ceux qui ont reçu l'ouverture il y a 2 jours ou plus et n'ont rien acheté" },
+  { id: "avant-premiere", quand: "19 novembre (J-3)", titre: "Avant-première", cible: "Tous les inscrits et comptes" },
+  { id: "ouverture", quand: `${DATE_OUVERTURE}, à l'ouverture des ventes`, titre: "Ouverture", cible: "Tous (message différent si un livre est déjà créé)" },
+  { id: "relance", quand: "25 novembre (J+3)", titre: "Relance", cible: "Ceux qui ont reçu l'ouverture il y a 2 jours ou plus et n'ont rien acheté" },
   { id: "noel", quand: "6 au 8 décembre", titre: "Dernier délai Noël", cible: "Ceux qui n'ont pas commandé de livre imprimé" },
 ];
 
@@ -128,7 +129,7 @@ function message(campagne: Campagne, c: Contact): Message | null {
             sujet: `Dans 3 jours, « ${c.titre} » pourra rejoindre sa bibliothèque`,
             titre: "Plus que 3 jours ✨",
             paragraphes: [
-              `Le 15 novembre, les commandes ouvrent. Le livre de ${prenom}, « ${titre} », sera prêt à être gardé : en PDF à imprimer, ou en vrai livre relié, livré chez vous.`,
+              `Le ${DATE_OUVERTURE}, les commandes ouvrent. Le livre de ${prenom}, « ${titre} », sera prêt à être gardé : en PDF à imprimer, ou en vrai livre relié, livré chez vous.`,
               "D'ici là, vous pouvez en créer un autre gratuitement, pour un frère, une sœur, ou juste pour le plaisir.",
             ],
             url: `${base}/bibliotheque/${c.bookId}`,
@@ -138,7 +139,7 @@ function message(campagne: Campagne, c: Contact): Message | null {
             sujet: "Dans 3 jours, son histoire commence",
             titre: "Plus que 3 jours ✨",
             paragraphes: [
-              "Le 15 novembre, les commandes ouvrent. Mais vous pouvez déjà créer son livre aujourd'hui : son prénom, son visage, une histoire écrite pour son âge, prête en quelques minutes.",
+              `Le ${DATE_OUVERTURE}, les commandes ouvrent. Mais vous pouvez déjà créer son livre aujourd'hui : son prénom, son visage, une histoire écrite pour son âge, prête en quelques minutes.`,
               "Vous lisez toute l'histoire gratuitement. Le jour de l'ouverture, il sera prêt à être gardé ou imprimé pour Noël.",
             ],
             url: `${base}/creer`,
@@ -224,10 +225,10 @@ export async function bienvenueListe(email: string): Promise<void> {
   if (await estDesinscrit(email)) return;
   await emailMarketing(
     email,
-    "C'est noté ! On vous prévient le 15 novembre ✨",
+    `C'est noté ! On vous prévient le ${DATE_OUVERTURE} ✨`,
     "Bienvenue sur la liste",
     [
-      "Merci ! Vous serez parmi les premiers prévenus à l'ouverture des commandes, le 15 novembre.",
+      `Merci ! Vous serez parmi les premiers prévenus à l'ouverture des commandes, le ${DATE_OUVERTURE}.`,
       "Bonne nouvelle : vous n'avez pas besoin d'attendre pour essayer. Créez son livre dès maintenant, avec son prénom et sa photo, et lisez toute son histoire gratuitement.",
     ],
     `${getAppUrl()}/creer`,

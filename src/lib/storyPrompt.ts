@@ -235,6 +235,8 @@ export interface StoryRequest {
    * apparence (décrite à partir d'une photo ou par le parent).
    */
   extras?: { name: string; role: string; appearance?: string }[];
+  /** Fille ou garçon (accords du texte). */
+  genre?: "fille" | "garcon";
 }
 
 /**
@@ -394,11 +396,9 @@ export function buildUserMessage(req: StoryRequest, modeles = ""): string {
     lignes.push(`Idée d'aventure proposée par le parent : « ${req.prompt} »`);
   }
 
-  if (req.appearance && req.appearance.trim().length > 0) {
-    lignes.push(
-      `Apparence de l'enfant (à refléter avec délicatesse) : ${req.appearance.trim()}.`,
-    );
-  }
+  // L'apparence lue sur la photo (cheveux, sourire…) sert UNIQUEMENT aux images :
+  // donnée à l'auteur, elle finissait dans le texte (« Kamil sourit, bouche fermée »).
+  if (req.genre) lignes.push(`${req.childFirstName} est ${req.genre === "fille" ? "une fille" : "un garçon"} : accorde le texte en conséquence.`);
 
   if (!theme && !req.serie) lignes.push(
     `Étincelle d'originalité à intégrer avec finesse, AU SERVICE du thème/de l'idée ci-dessus (adapte-la à l'âge, garde une histoire cohérente et rassurante ; ignore-la si elle ne s'accorde pas) : ${pickSpark()}.`,

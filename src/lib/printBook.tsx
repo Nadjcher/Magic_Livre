@@ -1,6 +1,6 @@
 /**
- * Fichier d'impression du livre relié (Gelato, couverture rigide 28 × 21 cm à
- * l'italienne). Un seul PDF, dans l'ordre exigé par l'imprimeur :
+ * Fichier d'impression du livre relié (Gelato, couverture rigide ; format lu dans
+ * la référence du produit : 28 × 21 cm à l'italienne ou carré). Un seul PDF, dans l'ordre exigé par l'imprimeur :
  *
  *   1. couverture à plat : 4e de couverture + dos + 1re de couverture, avec les
  *      marges de rabat (618 × 256 mm) ;
@@ -19,6 +19,7 @@ import "server-only";
 import path from "node:path";
 import { Document, Page, Text, View, Image, renderToBuffer } from "@react-pdf/renderer";
 import type { Story } from "./storySchema";
+import { estCarre } from "./bibleVisuelle";
 import {
   DOSSIER_POLICES,
   ENCRE,
@@ -35,18 +36,35 @@ import {
 const MM = 72 / 25.4;
 export const PAGES_INTERIEURES = 30;
 
-// Couverture à plat (cf. dimensions Gelato du produit) : rabat 20 mm, carton
-// 278 mm, charnière 8 mm, dos 6 mm.
-const COUV_L = 618 * MM;
-const COUV_H = 256 * MM;
+/**
+ * Format du livre, lu dans la référence du produit Gelato (« _pf_210x280-mm », « _hor ») :
+ * le fichier suit le produit commandé. Carré : « _pf_210x210-mm ».
+ */
+export function formatImpression(uid = process.env.GELATO_PRODUCT_UID || ""): { largeur: number; hauteur: number } {
+  const m = /_pf_(\d+)x(\d+)-mm/.exec(uid);
+  if (!m) return { largeur: 280, hauteur: 210 }; // produit par défaut : 28 × 21 cm à l'italienne
+  const [a, b] = [Number(m[1]), Number(m[2])];
+  const italienne = /_hor\b|_hor$/.test(uid);
+  return italienne ? { largeur: Math.max(a, b), hauteur: Math.min(a, b) } : { largeur: a, hauteur: b };
+}
+
+const FMT = formatImpression();
+export const LIVRE_CARRE = FMT.largeur === FMT.hauteur;
+
+// Couverture à plat (règles du gabarit Gelato du produit 28 × 21, appliquées au
+// format choisi) : rabat 20 mm, carton = largeur - 2 mm, charnière 8 mm, dos 6 mm,
+// hauteur = format + 6 mm + 2 rabats. À VÉRIFIER avec le gabarit Gelato du produit carré.
+const CARTON = FMT.largeur - 2;
+const COUV_L = (2 * (20 + CARTON + 8) + 6) * MM;
+const COUV_H = (FMT.hauteur + 6 + 40) * MM;
 const RABAT = 20 * MM;
-const DOS_X = 306 * MM; // début du dos
+const DOS_X = (20 + CARTON + 8) * MM; // début du dos
 const DOS_L = 6 * MM;
 const FACE_X = DOS_X + DOS_L; // début de la 1re de couverture (avec charnière)
 
-// Page intérieure avec fond perdu.
-const PAGE_L = 286 * MM;
-const PAGE_H = 216 * MM;
+// Page intérieure avec fond perdu (3 mm de chaque côté).
+const PAGE_L = (FMT.largeur + 6) * MM;
+const PAGE_H = (FMT.hauteur + 6) * MM;
 const MARGE = 20 * MM; // zone de sécurité (3 mm de coupe + 17 mm)
 
 export interface ImagesImpression {
@@ -96,7 +114,7 @@ export function buildPrintDocument(story: Story, prenom: string, images: ImagesI
       <Text style={{ fontFamily: f.titre, fontSize: 64, color: NUIT, marginTop: 12 }}>{nom}</Text>
       <Ornement />
       <Text style={{ fontFamily: f.texte, fontSize: 15, color: "#5B6598" }}>
-        Une histoire inventée rien que pour toi.
+        Une histoire écrite pour toi.
       </Text>
     </Page>,
   );
@@ -118,7 +136,11 @@ export function buildPrintDocument(story: Story, prenom: string, images: ImagesI
     </Page>,
   );
 
-  // Histoire : texte à gauche (pages paires), illustration à droite (impaires).
+  // Une seule taille de texte pour tout le livre (celle de la page la plus longue).
+  const plusLong = story.pages.reduce((m, p) => Math.max(m, separerChapitre(p.texte).corps.length), 0);
+  const tailleLivre = Math.min(tailleTexte("x".repeat(plusLong)) + (LIVRE_CARRE ? 5 : 8), LIVRE_CARRE ? 26 : 34);
+
+  // Histoire : texte seul à gauche (pages paires), illustration pleine page à droite (impaires).
   story.pages.forEach((p, i) => {
     const kTexte = 4 + 2 * i;
     const { chapitre, corps } = separerChapitre(p.texte);
@@ -129,7 +151,7 @@ export function buildPrintDocument(story: Story, prenom: string, images: ImagesI
         {chapitre ? (
           <Text style={{ fontFamily: f.titre, fontSize: 18, color: "#5B6598", marginBottom: 12, textAlign: "center" }}>{sur(chapitre)}</Text>
         ) : null}
-        <Text style={{ fontFamily: f.texte, fontWeight: 500, fontSize: Math.min(tailleTexte(texte) + 8, 34), lineHeight: 1.5, color: ENCRE, textAlign: "center" }}>
+        <Text style={{ fontFamily: f.texte, fontWeight: 500, fontSize: tailleLivre, lineHeight: 1.55, color: ENCRE, textAlign: "center" }}>
           {texte}
         </Text>
         {numero(kTexte, true)}
@@ -138,14 +160,15 @@ export function buildPrintDocument(story: Story, prenom: string, images: ImagesI
     interieures.push(
       <Page key={`i${i}`} size={[PAGE_L, PAGE_H]} style={{ backgroundColor: NUIT }}>
         {images.pages[i] ? (
-          story.style === "maison" ? (
-            // Page carrée : image entière, sur toute la hauteur, au centre d'une page bleu nuit.
+          LIVRE_CARRE || !estCarre(story.style) ? (
+            // Livre carré, ou image paysage sur livre paysage : pleine page.
+            <Image src={images.pages[i] as string} style={plein} />
+          ) : (
+            // Image carrée sur livre paysage : image entière, sur toute la hauteur, au centre.
             <Image
               src={images.pages[i] as string}
               style={{ position: "absolute", top: 0, left: (PAGE_L - PAGE_H) / 2, width: PAGE_H, height: PAGE_H, objectFit: "cover" }}
             />
-          ) : (
-            <Image src={images.pages[i] as string} style={plein} />
           )
         ) : (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: MARGE }}>
@@ -182,7 +205,7 @@ export function buildPrintDocument(story: Story, prenom: string, images: ImagesI
         <Text style={{ fontFamily: f.italique, fontSize: 16, color: "#D4698C", marginBottom: 10 }}>Souvenirs d'aventure</Text>
         <View style={{ flexDirection: "row", justifyContent: "center" }}>
           {[galerie[k], galerie[k + 1]].map((src, j) => (
-            <Image key={j} src={src as string} style={{ width: 112 * MM, height: 70 * MM, objectFit: "cover", borderRadius: 12, marginHorizontal: 4 * MM }} />
+            <Image key={j} src={src as string} style={{ width: (PAGE_L - 2 * MARGE - 8 * MM) / 2, height: LIVRE_CARRE ? (PAGE_L - 2 * MARGE - 8 * MM) / 2 : 70 * MM, objectFit: "cover", borderRadius: 12, marginHorizontal: 4 * MM }} />
           ))}
         </View>
       </Page>,
@@ -233,14 +256,14 @@ export function buildPrintDocument(story: Story, prenom: string, images: ImagesI
         src={path.join(DOSSIER_POLICES, "voile.png")}
         style={{ position: "absolute", left: face.x, bottom: 0, width: face.l, height: COUV_H * 0.48 }}
       />
-      <View style={{ position: "absolute", left: face.x + 22 * MM, width: 250 * MM, bottom: RABAT + 16 * MM, alignItems: "center" }}>
+      <View style={{ position: "absolute", left: face.x + 22 * MM, width: face.l - 44 * MM - RABAT, bottom: RABAT + 16 * MM, alignItems: "center" }}>
         <Text style={{ fontFamily: f.titre, fontSize: titre.length > 45 ? 30 : 38, color: "#FFFFFF", textAlign: "center", lineHeight: 1.15 }}>
           {titre}
         </Text>
         <Text style={{ fontFamily: f.italique, fontSize: 16, color: "#DCE3FF", marginTop: 10 }}>Une histoire écrite pour {nom}</Text>
       </View>
       {/* 4e de couverture : résumé (haut de page ; le bas est réservé au code-barres) */}
-      <View style={{ position: "absolute", left: RABAT + 30 * MM, width: 218 * MM, top: RABAT + 30 * MM, alignItems: "center" }}>
+      <View style={{ position: "absolute", left: RABAT + 24 * MM, width: DOS_X - RABAT - 48 * MM, top: RABAT + 26 * MM, alignItems: "center" }}>
         <View style={{ flexDirection: "row", marginBottom: 14 }}>
           <Etoile taille={10} couleur="#FFFFFF" />
           <View style={{ marginHorizontal: 8 }}><Etoile taille={14} couleur="#FF9FD6" /></View>
@@ -248,7 +271,7 @@ export function buildPrintDocument(story: Story, prenom: string, images: ImagesI
         </View>
         <Text style={{ fontFamily: f.titre, fontSize: 20, color: "#FFFFFF", textAlign: "center" }}>{titre}</Text>
         <Text style={{ fontFamily: f.texte, fontSize: 12, color: "#C9D2F5", textAlign: "center", marginTop: 14, lineHeight: 1.6 }}>
-          {sur(story.pages[0]?.texte ?? "")}
+          {sur(story.resume?.trim() || story.pages[0]?.texte || "")}
         </Text>
         <Text style={{ fontFamily: f.texte, fontSize: 10, color: "#9FAEE0", marginTop: 24 }}>Une histoire unique, créée pour {nom} · encoreunehistoire.fr</Text>
       </View>

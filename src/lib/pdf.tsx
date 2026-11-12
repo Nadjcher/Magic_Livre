@@ -23,6 +23,7 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 import type { Story } from "./storySchema";
+import { estCarre } from "./bibleVisuelle";
 import { STYLE_CONFIG } from "./style_config";
 
 /**
@@ -51,13 +52,14 @@ function pdfSafe(story: Story): Story {
   return {
     ...story,
     titre: pdfText(story.titre),
+    resume: story.resume ? pdfText(story.resume) : story.resume,
     pages: story.pages.map((p) => ({ ...p, texte: pdfText(p.texte) })),
   };
 }
 
 // ---------------------------------------------------------------------------
-// Le livre : mise en page « album » (couverture pleine page, dédicace, pages
-// variées, page « Fin », 4e de couverture), polices Fraunces + Nunito.
+// Le livre : carré, mise en page « album » unique (couverture pleine page,
+// dédicace, image pleine page puis texte seul, « Fin », 4e de couverture).
 // ---------------------------------------------------------------------------
 
 export const DOSSIER_POLICES = path.join(process.cwd(), "src", "pdf-assets");
@@ -141,44 +143,53 @@ export function PrenomCouverture({ prenom, police, largeur, gauche = 0, haut = 3
   );
 }
 
-const plein = { position: "absolute" as const, top: 0, left: 0, width: 842, height: 595, objectFit: "cover" as const };
+/** Le livre numérique est carré (21 × 21 cm), comme le livre relié. */
+const COTE = 595;
+const PAGE = [COTE, COTE] as [number, number];
+const plein = { position: "absolute" as const, top: 0, left: 0, width: COTE, height: COTE, objectFit: "cover" as const };
 
 /**
  * Construit le document PDF (élément React) à partir d'une histoire.
+ * Une seule mise en page, comme un album : l'illustration en pleine page, puis
+ * le texte seul sur sa page, dans une seule taille pour tout le livre.
  * Séparé du rendu binaire pour faciliter les tests unitaires.
  */
 export function buildStoryDocument(story: Story, childName?: string): JSX.Element {
   const f = polices();
   story =
     f.texte === "Nunito"
-      ? { ...story, titre: texteLivre(story.titre), pages: story.pages.map((p) => ({ ...p, texte: texteLivre(p.texte) })) }
+      ? { ...story, titre: texteLivre(story.titre), resume: story.resume ? texteLivre(story.resume) : story.resume, pages: story.pages.map((p) => ({ ...p, texte: texteLivre(p.texte) })) }
       : pdfSafe(story);
   const prenom = childName ? pdfText(childName) : "";
   const date = new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  // Images carrées (styles de la bible visuelle) : pleine page ; sinon l'image entière, centrée.
+  const carre = estCarre(story.style);
+  const plusLong = story.pages.reduce((m, p) => Math.max(m, separerChapitre(p.texte).corps.length), 0);
+  const tailleLivre = Math.min(Math.max(tailleTexte("x".repeat(plusLong)) + 6, 15), 24);
+  const numero = (k: number) => (
+    <Text style={{ position: "absolute", bottom: 22, left: 0, right: 0, textAlign: "center", fontFamily: f.texte, fontSize: 9, color: "#8A90B4" }}>
+      {k}
+    </Text>
+  );
 
   return (
     <Document title={story.titre} author="Encore une histoire">
       {/* Couverture pleine page */}
-      <Page size="A4" orientation="landscape" style={{ backgroundColor: NUIT }}>
+      <Page size={PAGE} style={{ backgroundColor: NUIT }}>
         {story.couvertureUrl ? <Image src={story.couvertureUrl} style={plein} /> : null}
-        <Voile hauteur={300} />
-        <View style={{ position: "absolute", left: 60, right: 60, bottom: 46, alignItems: "center" }}>
-          <Text style={{ fontFamily: f.titre, fontSize: story.titre.length > 45 ? 32 : 40, color: "#FFFFFF", textAlign: "center", lineHeight: 1.15 }}>
+        <Voile hauteur={260} />
+        <View style={{ position: "absolute", left: 44, right: 44, bottom: 44, alignItems: "center" }}>
+          <Text style={{ fontFamily: f.titre, fontSize: story.titre.length > 45 ? 28 : 34, color: "#FFFFFF", textAlign: "center", lineHeight: 1.15 }}>
             {story.titre}
           </Text>
           {prenom ? (
-            <Text style={{ fontFamily: f.italique, fontSize: 16, color: "#DCE3FF", marginTop: 12 }}>
-              Une histoire écrite pour {prenom}
-            </Text>
+            <Text style={{ fontFamily: f.italique, fontSize: 15, color: "#DCE3FF", marginTop: 10 }}>Une histoire écrite pour {prenom}</Text>
           ) : null}
         </View>
-        <Text style={{ position: "absolute", bottom: 18, right: 28, fontFamily: f.texte, fontSize: 9, color: "#FFFFFF", opacity: 0.8 }}>
-          ENCORE UNE HISTOIRE
-        </Text>
       </Page>
 
       {/* Dédicace */}
-      <Page size="A4" orientation="landscape" style={{ backgroundColor: PAPIER, alignItems: "center", justifyContent: "center", padding: 80 }}>
+      <Page size={PAGE} style={{ backgroundColor: PAPIER, alignItems: "center", justifyContent: "center", padding: 70 }}>
         <View style={{ flexDirection: "row", marginBottom: 18 }}>
           <Etoile taille={10} />
           <View style={{ marginHorizontal: 8 }}>
@@ -186,106 +197,55 @@ export function buildStoryDocument(story: Story, childName?: string): JSX.Elemen
           </View>
           <Etoile taille={10} />
         </View>
-        <Text style={{ fontFamily: f.italique, fontSize: 22, color: ENCRE }}>Ce livre appartient à</Text>
-        <Text style={{ fontFamily: f.titre, fontSize: 60, color: NUIT, marginTop: 10 }}>{prenom || "…………………"}</Text>
+        <Text style={{ fontFamily: f.italique, fontSize: 20, color: ENCRE }}>Ce livre appartient à</Text>
+        <Text style={{ fontFamily: f.titre, fontSize: 54, color: NUIT, marginTop: 10 }}>{prenom || "…………………"}</Text>
         <Ornement />
-        <Text style={{ fontFamily: f.texte, fontSize: 16, color: "#5B6598", textAlign: "center", lineHeight: 1.6 }}>
-          Une histoire inventée rien que pour toi, en {date}.
+        <Text style={{ fontFamily: f.texte, fontSize: 14, color: "#5B6598", textAlign: "center", lineHeight: 1.6 }}>
+          Une histoire écrite pour toi, en {date}.
         </Text>
       </Page>
 
-      {/* Pages de l'histoire, mises en page en alternance */}
-      {story.pages.map((p, index) => {
-        const taille = tailleTexte(p.texte);
-        // Pages carrées (style de la maison) : toujours la mise en page « album », image entière.
-        const carre = story.style === "maison";
-        const pleinePage = !carre && Boolean(p.imageUrl) && index % 2 === 0 && p.texte.length < 300;
-        const numero = (
-          <Text style={{ position: "absolute", bottom: 16, left: 0, right: 0, textAlign: "center", fontFamily: f.texte, fontSize: 9, color: "#8A90B4" }}>
-            {index + 1}
-          </Text>
-        );
-
-        if (pleinePage) {
-          return (
-            <Page key={index} size="A4" orientation="landscape" style={{ backgroundColor: NUIT }}>
-              <Image src={p.imageUrl as string} style={plein} />
-              <View
-                style={{
-                  position: "absolute",
-                  left: 70,
-                  right: 70,
-                  bottom: 34,
-                  backgroundColor: "#FFFFFF",
-                  opacity: 0.94,
-                  borderRadius: 18,
-                  paddingVertical: 16,
-                  paddingHorizontal: 28,
-                }}
-              >
-                <Text style={{ fontFamily: f.texte, fontWeight: 500, fontSize: taille, lineHeight: 1.45, color: ENCRE, textAlign: "center" }}>
-                  {p.texte}
-                </Text>
-              </View>
-              <Text style={{ position: "absolute", top: 16, right: 22, fontFamily: f.texte, fontSize: 9, color: "#FFFFFF" }}>
-                {index + 1}
-              </Text>
-            </Page>
+      {/* L'histoire : illustration pleine page, puis le texte seul sur sa page */}
+      {story.pages.flatMap((p, index) => {
+        const { chapitre, corps } = separerChapitre(p.texte);
+        const pages: JSX.Element[] = [];
+        if (p.imageUrl) {
+          pages.push(
+            <Page key={`i${index}`} size={PAGE} style={{ backgroundColor: NUIT }}>
+              {carre ? (
+                <Image src={p.imageUrl} style={plein} />
+              ) : (
+                <View style={{ flex: 1, justifyContent: "center" }}>
+                  <Image src={p.imageUrl} style={{ width: COTE, height: Math.round((COTE * 9) / 16), objectFit: "cover" }} />
+                </View>
+              )}
+            </Page>,
           );
         }
-
-        // Page « album » : l'illustration ENTIÈRE (jamais recadrée) dans un
-        // cadre arrondi, le texte dessous sur fond papier.
-        const long = p.texte.length > 300;
-        const hImage = long ? 300 : 392;
-        return (
-          <Page key={index} size="A4" orientation="landscape" style={{ backgroundColor: PAPIER, paddingTop: 34, paddingHorizontal: 60, alignItems: "center" }}>
-            {p.imageUrl ? (
-              <Image
-                src={p.imageUrl}
-                style={{ height: hImage, width: carre ? hImage : Math.round((hImage * 16) / 9), objectFit: "cover", borderRadius: 16 }}
-              />
+        pages.push(
+          <Page key={`t${index}`} size={PAGE} style={{ backgroundColor: PAPIER, paddingHorizontal: 66, paddingVertical: 60, justifyContent: "center" }}>
+            <Ornement />
+            {chapitre ? (
+              <Text style={{ fontFamily: f.titre, fontSize: 15, color: "#5B6598", marginBottom: 10, textAlign: "center" }}>{chapitre}</Text>
             ) : null}
-            <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 30 }}>
-              {separerChapitre(p.texte).chapitre ? (
-                <Text style={{ fontFamily: f.titre, fontSize: 14, color: "#5B6598", marginBottom: 8, textAlign: "center" }}>
-                  {separerChapitre(p.texte).chapitre}
-                </Text>
-              ) : null}
-              <Text
-                style={{
-                  fontFamily: f.texte,
-                  fontWeight: 500,
-                  fontSize: p.imageUrl ? Math.min(taille + 2, long ? 13 : 22) : taille + 3,
-                  lineHeight: 1.5,
-                  color: ENCRE,
-                  textAlign: "center",
-                }}
-              >
-                {separerChapitre(p.texte).corps}
-              </Text>
-              {!p.imageUrl ? (
-                <Text style={{ marginTop: 20, fontFamily: f.italique, fontSize: 10, color: "#8A90B4", textAlign: "center" }}>
-                  ✦ {p.scene_illustration}
-                </Text>
-              ) : null}
-            </View>
-            {numero}
-          </Page>
+            <Text style={{ fontFamily: f.texte, fontWeight: 500, fontSize: tailleLivre, lineHeight: 1.6, color: ENCRE, textAlign: "center" }}>{corps}</Text>
+            {numero(index + 1)}
+          </Page>,
         );
+        return pages;
       })}
 
       {/* Fin */}
-      <Page size="A4" orientation="landscape" style={{ backgroundColor: PAPIER, alignItems: "center", justifyContent: "center" }}>
-        <Text style={{ fontFamily: f.titre, fontSize: 64, color: NUIT }}>Fin</Text>
+      <Page size={PAGE} style={{ backgroundColor: PAPIER, alignItems: "center", justifyContent: "center", padding: 60 }}>
+        <Text style={{ fontFamily: f.titre, fontSize: 60, color: NUIT }}>Fin</Text>
         <Ornement />
-        <Text style={{ fontFamily: f.italique, fontSize: 17, color: ENCRE, textAlign: "center", maxWidth: 520, lineHeight: 1.5 }}>
+        <Text style={{ fontFamily: f.italique, fontSize: 16, color: ENCRE, textAlign: "center", lineHeight: 1.5 }}>
           {prenom ? `Et toi, ${prenom}, quelle sera ta prochaine aventure ?` : "Et toi, quelle sera ta prochaine aventure ?"}
         </Text>
       </Page>
 
-      {/* 4e de couverture */}
-      <Page size="A4" orientation="landscape" style={{ backgroundColor: NUIT, alignItems: "center", justifyContent: "center", padding: 90 }}>
+      {/* 4e de couverture : le résumé de l'histoire */}
+      <Page size={PAGE} style={{ backgroundColor: NUIT, alignItems: "center", justifyContent: "center", padding: 70 }}>
         <View style={{ flexDirection: "row", marginBottom: 20 }}>
           <Etoile taille={9} couleur="#FFFFFF" />
           <View style={{ marginHorizontal: 10 }}>
@@ -293,11 +253,11 @@ export function buildStoryDocument(story: Story, childName?: string): JSX.Elemen
           </View>
           <Etoile taille={9} couleur="#FFFFFF" />
         </View>
-        <Text style={{ fontFamily: f.titre, fontSize: 24, color: "#FFFFFF", textAlign: "center" }}>{story.titre}</Text>
-        <Text style={{ fontFamily: f.texte, fontSize: 13, color: "#C9D2F5", textAlign: "center", marginTop: 18, lineHeight: 1.6, maxWidth: 520 }}>
-          {story.pages[0]?.texte ?? ""}
+        <Text style={{ fontFamily: f.titre, fontSize: 22, color: "#FFFFFF", textAlign: "center" }}>{story.titre}</Text>
+        <Text style={{ fontFamily: f.texte, fontSize: 13, color: "#C9D2F5", textAlign: "center", marginTop: 18, lineHeight: 1.6 }}>
+          {story.resume?.trim() || story.pages[0]?.texte || ""}
         </Text>
-        <Text style={{ position: "absolute", bottom: 40, fontFamily: f.texte, fontSize: 10, color: "#9FAEE0" }}>
+        <Text style={{ position: "absolute", bottom: 36, fontFamily: f.texte, fontSize: 10, color: "#9FAEE0" }}>
           {prenom ? `Une histoire unique, créée pour ${prenom} · ` : ""}encoreunehistoire.fr
         </Text>
       </Page>

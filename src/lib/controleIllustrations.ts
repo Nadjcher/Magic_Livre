@@ -15,7 +15,7 @@
 import "server-only";
 import { env } from "./env";
 import { PRIX_ESTIMES, noterDepense } from "./budget";
-import { GRILLE_IMAGES, estCarre } from "./bibleVisuelle";
+import { estCarre, grillePour } from "./bibleVisuelle";
 import { fetchAsDataUrl } from "./imageFetch";
 import { generateIllustration } from "./illustration";
 import type { Story } from "./storySchema";
@@ -51,7 +51,7 @@ async function verifier(
   cast: { nom: string; description: string; image: Ref }[],
   page: Ref,
   scene: string,
-  grille = false,
+  grille: string[] | null = null,
 ): Promise<{ ok: boolean; fix: string }> {
   const lignes = [`Image 1 is the reference sheet of the hero ${heros.nom} (${heros.description}).`];
   cast.forEach((c, k) => lignes.push(`Image ${k + 2} is the reference sheet of ${c.nom} (${c.description}).`));
@@ -60,7 +60,7 @@ async function verifier(
     lignes.push(
       `The LAST image is the book page to check. Scene requested: ${scene}`,
       "Answer EACH question with yes or no and one short sentence describing what you SEE. A single \"no\" means the image must be redone.",
-      ...GRILLE_IMAGES.map((q, i) => `${i + 1}. ${q}`),
+      ...grille.map((q, i) => `${i + 1}. ${q}`),
       'Reply with JSON only: {"answers": [{"n": 1, "yes": true, "seen": "…"}], "fix": "if any no: one short English instruction listing what to correct"}',
     );
   } else lignes.push(
@@ -97,7 +97,7 @@ async function verifier(
     const v = JSON.parse(json) as { ok?: unknown; fix?: unknown; answers?: { n?: number; yes?: boolean; seen?: string }[] };
     if (grille && Array.isArray(v.answers)) {
       const non = v.answers.filter((a) => a.yes === false);
-      const fix = typeof v.fix === "string" && v.fix ? v.fix : non.map((a) => `${GRILLE_IMAGES[(a.n ?? 1) - 1] ?? ""} (${a.seen ?? ""})`).join("; ");
+      const fix = typeof v.fix === "string" && v.fix ? v.fix : non.map((a) => `${grille[(a.n ?? 1) - 1] ?? ""} (${a.seen ?? ""})`).join("; ");
       return { ok: non.length === 0, fix: fix.slice(0, 400) };
     }
     return { ok: v.ok !== false, fix: typeof v.fix === "string" ? v.fix.slice(0, 300) : "" };
@@ -153,8 +153,8 @@ export async function controlerIllustrations(
     if (p.imageUrl) cibles.push({ i, url: p.imageUrl, scene: p.scene_illustration, cast: presentsSur(p) });
   });
 
-  // Style de la maison : grille de la bible visuelle, une seule nouvelle tentative, puis relecture humaine.
-  const grille = estCarre(story.style);
+  // Styles de la bible visuelle (maison, 3D) : leur grille, une seule nouvelle tentative, puis relecture humaine.
+  const grille = estCarre(story.style) ? grillePour(story.style) : null;
   const controler = async (url: string, scene: string, cast: ReturnType<typeof presentsSur>) => {
     const img = enRef(await fetchAsDataUrl(url, petit));
     return img ? verifier(heros, cast, img, scene, grille) : { ok: true, fix: "" };
