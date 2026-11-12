@@ -55,7 +55,8 @@ export function consigneHeros(nom: string | undefined, traits: string | undefine
 export const PERSONNAGES_FIXES =
   "FIXED CHARACTERS: a secondary character never looks like the hero. " +
   "Little Thumb (Petit Poucet): straight black hair, red knitted bonnet, brown jacket, a cheerful face; ALWAYS the same tiny size on every page: " +
-  "as tall as a boot, his head reaching the child's knee, never taller (show it next to the child or an object). " +
+  "a toy-figurine-sized boy about 25 cm tall: his whole body fits between the ground and the child's knee, and even when the child crouches, " +
+  "the top of his bonnet stays below the child's chest (never at waist or shoulder height); trousers patched, never ripped. " +
   "The child's cuddly toy: exactly the plush described in the character sheet (its species, colour and shape clearly readable: ears, muzzle, paws), " +
   "soft and cute, never a shapeless blob, no seams or patches, held in the child's arms, never alive. " +
   "The parent: only a hand, a silhouette from behind or a profile in shadow, never a detailed face. " +
@@ -85,7 +86,7 @@ export const GRILLE_IMAGES = [
   "The technique is painted (watercolor/gouache), with no ink outlines and no 3D.",
   "The scenery fills the whole frame, with no empty area outside the calm text area.",
   "There is a single MAIN light source, the one named in the scene, lighting the hero's face; small distant lights (a far-away window, stars) are fine as long as they do not light the characters.",
-  "Fixed characters match their sheet and their scale (a secondary character never resembles the hero; the cuddly toy is a toy, not alive).",
+  "Fixed characters match their sheet and their scale (a secondary character never resembles the hero; the cuddly toy is a toy, not alive). Little Thumb (Poucet), if present, is TINY: the top of his bonnet is below the hero's knee when the hero stands; if he reaches the hero's waist or shoulder, answer no.",
   "The objects named in the scene are present, in the right place.",
   "If the child has drawn something, it is clearly distinct from the painted scenery (white, irregular, shaky outline).",
   "The image is free of everything forbidden: no letters or signs, no wrong hands, nothing frightening.",
@@ -98,7 +99,7 @@ export const GRILLE_IMAGES_3D = [
   "The whole image is ONE consistent 3D animated-film render: characters and scenery are both 3D (no 2D drawn or pencil background, no mixed media, no photo-realism).",
   "The scenery fills the whole frame, with no empty area outside the calm text area.",
   "There is a single MAIN light source, the one named in the scene, lighting the hero's face; small distant lights are fine as long as they do not light the characters.",
-  "Fixed characters match their sheet and their scale (a secondary character never resembles the hero; the cuddly toy is a recognisable plush, not alive, not a shapeless blob).",
+  "Fixed characters match their sheet and their scale (a secondary character never resembles the hero; the cuddly toy is a recognisable plush, not alive, not a shapeless blob). Little Thumb (Poucet), if present, is TINY: the top of his bonnet is below the hero's knee when the hero stands, below the hero's chest when the hero crouches; if he reaches the hero's waist or shoulder, answer no.",
   "The objects named in the scene are present, in the right place.",
   "If the child has drawn something, it is clearly distinct from the scenery (white, irregular, shaky outline).",
   "The image is free of everything forbidden: no letters or signs, no wrong hands, nothing frightening.",

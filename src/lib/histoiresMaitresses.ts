@@ -60,7 +60,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       {
         nom: "Poucet",
         visuel:
-          "HUMAN BOY: a tiny cheerful fairy-tale boy as tall as a boot (his head reaches the hero's knee, ALWAYS this size), straight black hair, red knitted bonnet, brown wool jacket, patched grey trousers, little wooden clogs; never looks like the hero.",
+          "HUMAN BOY: a tiny cheerful fairy-tale boy the size of a toy figurine, about 25 cm tall (his whole body fits between the ground and the hero's knee; even next to the crouching hero his bonnet stays below the hero's chest; ALWAYS this size), straight black hair, red knitted bonnet, brown wool jacket, grey trousers with neat patches (never ripped), little wooden clogs; never looks like the hero.",
       },
     ],
     couverture:
