@@ -27,7 +27,7 @@ import { FONDATEUR } from "@/lib/fondateur";
 import { ILLUSTRATION_STYLES, ILLUSTRATION_STYLE_KEYS } from "@/lib/style_config";
 import Lucioles from "@/components/accueil/Lucioles";
 import Diptyque from "@/components/accueil/Diptyque";
-import LivreVitrine from "@/components/accueil/LivreVitrine";
+import LivreMagique from "@/components/accueil/LivreMagique";
 import { LIVRE_VITRINE } from "@/lib/livreVitrine";
 
 export const metadata: Metadata = {
@@ -222,13 +222,13 @@ export default async function AccueilPage() {
 
       {/* ─── Le livre de Léo, qui se feuillette tout seul ─── */}
       <section id="exemple" className="scroll-mt-24">
-        <h2 className="text-center text-3xl sm:text-4xl">Feuilletez le livre de Léo</h2>
+        <h2 className="text-center text-3xl sm:text-4xl">Ouvrez le livre de Léo</h2>
         <p className="mx-auto mt-3 max-w-[56ch] text-center text-magique-texteClair">
           Écrit pour un petit garçon de 4 ans qui a peur quand sa veilleuse s'éteint. Son ours Caramel, une
           phrase qui revient comme une berceuse, et c'est lui qui trouve la solution.
         </p>
-        <div className="mx-auto mt-10 max-w-5xl">
-          <LivreVitrine />
+        <div className="mx-auto mt-12 max-w-5xl">
+          <LivreMagique href={cta} prix={prix} />
         </div>
         <div className="mx-auto mt-8 flex max-w-5xl flex-col items-center justify-between gap-5 rounded-3xl bg-white/[0.06] px-6 py-6 text-center sm:flex-row sm:text-left">
           <div>
@@ -251,7 +251,7 @@ export default async function AccueilPage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={LIVRE_VITRINE.soirs[0]!.image} alt={LIVRE_VITRINE.soirs[0]!.alt} loading="lazy" className="aspect-square w-full rounded-[2rem] object-cover shadow-conte" />
             <figcaption className="absolute -bottom-4 left-6 rounded-2xl bg-white px-5 py-3 font-serif text-xl italic text-nuit shadow-conte">
-              « Maman… c'est moi ? »
+              « C'est moi, là ? »
             </figcaption>
           </figure>
           <div className="space-y-6">
