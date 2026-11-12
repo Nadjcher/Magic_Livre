@@ -171,7 +171,7 @@ export const ILLUSTRATION_STYLES: Record<
   },
   anim3d: {
     label: "Animation 3D",
-    ageMin: 2,
+    ageMin: 1,
     description: "Comme un film d'animation en 3D",
     prompt:
       "IMPORTANT — this must look like a rendered 3D CGI frame from a modern animated family movie, NOT a 2D " +
@@ -212,6 +212,9 @@ export const ILLUSTRATION_STYLES: Record<
  * validation serveur, schéma d'histoire).
  */
 /** Styles adaptés à un âge. */
+/** Style proposé par défaut à la création (celui de la page d'accueil). */
+export const STYLE_DEFAUT: IllustrationStyle = "anim3d";
+
 export function stylesPourAge(age: number): IllustrationStyle[] {
   return (Object.keys(ILLUSTRATION_STYLES) as IllustrationStyle[]).filter(
     (k) => age >= ILLUSTRATION_STYLES[k].ageMin,

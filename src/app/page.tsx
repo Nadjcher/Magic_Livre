@@ -301,10 +301,10 @@ export default async function AccueilPage() {
       <section id="styles" className="scroll-mt-24">
         <h2 className="text-center text-3xl sm:text-4xl">Le style de dessin qu'il préfère</h2>
         <p className="mx-auto mt-3 max-w-[50ch] text-center text-magique-texteClair">
-          Notre album peint, ou un autre style : doux, rigolo, en BD, en manga… À lui de choisir.
+          En 3D comme un film d'animation, en album peint, en BD, en manga… À lui de choisir.
         </p>
         {(() => {
-          const vitrine = ["maison", "aquarelle", "feerique", "manga"] as const;
+          const vitrine = ["anim3d", "maison", "aquarelle", "manga"] as const;
           const vignette = (k: (typeof ILLUSTRATION_STYLE_KEYS)[number]) => (
             <li key={k} className="overflow-hidden rounded-2xl bg-white/[0.06]">
               {/* eslint-disable-next-line @next/next/no-img-element */}

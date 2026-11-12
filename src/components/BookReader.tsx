@@ -40,8 +40,11 @@ export default function BookReader({
   retouche,
   prenom,
   suite,
+  carre,
 }: {
   story: Story;
+  /** Illustrations carrées (forcé pour un livre d'exemple ; sinon : style de la maison). */
+  carre?: boolean;
   /** Écran de fin : « Et demain ? » (le choix de la suite de la série). */
   suite?: ReactNode;
   /** Prénom du héros, imprimé en grand sur la couverture. */
@@ -50,6 +53,7 @@ export default function BookReader({
   retouche?: { bookId: string; restantes: number };
 }) {
   const router = useRouter();
+  const pagesCarrees = carre ?? story.style === "maison";
   const [redessin, setRedessin] = useState<{ enCours: boolean; message?: string }>({ enCours: false });
   const [restantes, setRestantes] = useState(retouche?.restantes ?? 0);
   // Couverture + pages + une vraie page « Fin ».
@@ -171,12 +175,12 @@ export default function BookReader({
           ) : index === 0 ? (
             <>
               {story.couvertureUrl && (
-                <div className={`relative mb-6 w-full overflow-hidden rounded-2xl shadow-conte [container-type:inline-size] ${story.style === "maison" ? "max-w-md" : "max-w-xl"}`}>
+                <div className={`relative mb-6 w-full overflow-hidden rounded-2xl shadow-conte [container-type:inline-size] ${pagesCarrees ? "max-w-md" : "max-w-xl"}`}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={story.couvertureUrl} alt={`Couverture : ${story.titre}`} className={story.style === "maison" ? "aspect-square w-full object-cover" : "max-h-80 w-full object-cover"} />
+                  <img src={story.couvertureUrl} alt={`Couverture : ${story.titre}`} className={pagesCarrees ? "aspect-square w-full object-cover" : "max-h-80 w-full object-cover"} />
                 </div>
               )}
-              <p className="font-serif text-lg italic text-or-fonce">Il était une fois…</p>
+              <p className="font-serif text-lg italic text-or-fonce">{prenom ? `Une histoire écrite pour ${prenom}` : "Une histoire écrite pour toi"}</p>
               <h2 className="mt-1 text-gradient text-3xl sm:text-4xl">{story.titre}</h2>
               <p className="mt-4 text-magique-texteClair">Tournez la page pour commencer</p>
             </>
@@ -188,7 +192,7 @@ export default function BookReader({
                   src={pageCourante.imageUrl}
                   alt={pageCourante.scene_illustration}
                   className={`mb-6 rounded-2xl shadow-conte ${
-                    story.style === "maison" ? "aspect-square w-full max-w-md object-cover" : "max-h-80 w-full max-w-2xl object-cover"
+                    pagesCarrees ? "aspect-square w-full max-w-md object-cover" : "max-h-80 w-full max-w-2xl object-cover"
                   }`}
                 />
               )}

@@ -23,7 +23,7 @@ import { createBook } from "@/app/actions/books";
 import { preparerHeros, type PortraitResultat } from "@/app/actions/heros";
 import { THEMES, THEME_CATEGORIES, estClassique, findThemeById, type ThemeCategory } from "@/lib/themes";
 import type { ChildView } from "./ChildrenManager";
-import { ILLUSTRATION_STYLES, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
+import { ILLUSTRATION_STYLES, STYLE_DEFAUT, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
 import Notice from "./Notice";
 import GenerationOverlay from "./GenerationOverlay";
 import Link from "next/link";
@@ -125,8 +125,8 @@ export default function CreateBookForm({
   const classiqueVerrouille = mode === "theme" && estClassique(findThemeById(themeId)) && !abonnement.actif;
 
   // ─── Étape 3 : les finitions ───
-  // Style de la maison par défaut (le parent peut en choisir un autre, sauf pour les grands classiques).
-  const [style, setStyle] = useState<IllustrationStyle>("maison");
+  // Style 3D par défaut, comme sur la page d'accueil (le parent peut en choisir un autre, sauf pour les grands classiques).
+  const [style, setStyle] = useState<IllustrationStyle>(STYLE_DEFAUT);
   const [voirStyles, setVoirStyles] = useState(false);
   const [longueur, setLongueur] = useState<"courte" | "moyenne" | "longue">("moyenne");
   const [extras, setExtras] = useState<Extra[]>([]);
@@ -134,8 +134,8 @@ export default function CreateBookForm({
   const groupe = groupePourAge(age);
   const classiqueChoisi = mode === "theme" && estClassique(findThemeById(themeId));
   const stylesAge: IllustrationStyle[] = classiqueChoisi
-    ? ["maison"]
-    : ["maison", ...groupe.styles.filter((k) => k !== "maison" && stylesPourAge(age).includes(k)), ...stylesPourAge(age).filter((k) => k !== "maison" && !groupe.styles.includes(k))];
+    ? [STYLE_DEFAUT]
+    : [STYLE_DEFAUT, ...groupe.styles.filter((k) => k !== STYLE_DEFAUT && stylesPourAge(age).includes(k)), ...stylesPourAge(age).filter((k) => k !== STYLE_DEFAUT && !groupe.styles.includes(k))];
   const styleAffiche: IllustrationStyle = stylesAge.includes(style) ? style : stylesAge[0] ?? "feerique";
   const stylesVisibles = voirStyles ? stylesAge : [styleAffiche, ...stylesAge.filter((s) => s !== styleAffiche)].slice(0, 4);
 
@@ -176,7 +176,7 @@ export default function CreateBookForm({
   function choisirTheme(id: string) {
     setThemeId(id);
     const t = findThemeById(id);
-    if (t && estClassique(t)) setStyle("maison");
+    if (t && estClassique(t)) setStyle(STYLE_DEFAUT);
   }
 
   // Ce qui manque pour passer à l'étape suivante (null = tout va bien).

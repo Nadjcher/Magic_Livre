@@ -109,7 +109,7 @@ export function buildPrintDocument(story: Story, prenom: string, images: ImagesI
   // p3 (droite) : page de titre
   interieures.push(
     <Page key="titre" size={[PAGE_L, PAGE_H]} style={{ backgroundColor: PAPIER, alignItems: "center", justifyContent: "center", padding: MARGE * 1.5 }}>
-      <Text style={{ fontFamily: f.italique, fontSize: 20, color: "#D4698C" }}>Il était une fois…</Text>
+      <Text style={{ fontFamily: f.italique, fontSize: 20, color: "#D4698C" }}>{`Une histoire écrite pour ${nom}`}</Text>
       <Text style={{ fontFamily: f.titre, fontSize: titre.length > 45 ? 34 : 42, color: NUIT, textAlign: "center", marginTop: 14, lineHeight: 1.15 }}>
         {titre}
       </Text>
