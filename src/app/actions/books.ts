@@ -30,7 +30,7 @@ import { describeChildFromPhoto } from "@/lib/illustration";
 import { estClassique, findThemeById } from "@/lib/themes";
 import { getAbonnement, inclureLivre } from "@/lib/subscription";
 import type { LongueurKey } from "@/lib/validation";
-import { STYLE_DEFAUT, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
+import { STYLE_DEFAUT, styleOuvert, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
 import { maitressePour } from "@/lib/histoiresMaitresses";
 import { histoireDepuisMaitresse } from "@/lib/maitresseGenerateur";
 
@@ -151,6 +151,10 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
 
   // Les grands classiques (contes de papa et maman) sont toujours dans le style de la maison.
   if (input.mode === "theme" && estClassique(findThemeById(input.themeId))) input.style = STYLE_DEFAUT;
+  // Seuls les styles validés au test d'entrée sont proposés (les administrateurs peuvent tout tester).
+  if (!styleOuvert(input.style) && !estAdmin(user.email)) {
+    return { ok: false, message: "Ce style arrive bientôt. Choisissez-en un autre." };
+  }
   // Le style de dessin doit convenir à l'âge (pas de manga pour un tout-petit).
   if (!stylesPourAge(child.age).includes(input.style as IllustrationStyle)) {
     return { ok: false, message: "Ce style de dessin n'est pas proposé pour cet âge. Choisissez-en un autre." };

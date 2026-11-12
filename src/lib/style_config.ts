@@ -213,6 +213,20 @@ export const ILLUSTRATION_STYLES: Record<
  * validation serveur, schéma d'histoire).
  */
 /** Styles adaptés à un âge. */
+/**
+ * Styles proposés aux parents : seulement ceux qui ont passé le test d'entrée
+ * (la page 7 du Petit Poucet, regardée et validée). Les autres apparaissent
+ * en « Bientôt ». Réglable dans Vercel (NEXT_PUBLIC_STYLES_OUVERTS=anim3d,maison,…), puis redéploiement.
+ */
+export const STYLES_OUVERTS: IllustrationStyle[] = (process.env.NEXT_PUBLIC_STYLES_OUVERTS || "anim3d,maison")
+  .split(",")
+  .map((x) => x.trim())
+  .filter((x): x is IllustrationStyle => x in ILLUSTRATION_STYLES);
+
+export function styleOuvert(style: string): boolean {
+  return (STYLES_OUVERTS as string[]).includes(style);
+}
+
 /** Style proposé par défaut à la création (celui de la page d'accueil). */
 export const STYLE_DEFAUT: IllustrationStyle = "anim3d";
 

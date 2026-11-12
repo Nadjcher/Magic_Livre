@@ -116,8 +116,8 @@ export async function dessinerPortrait(
     style,
     scene:
       "Head-and-shoulders portrait of the hero, facing the viewer with a soft gentle smile, mouth barely open (teeth hardly visible), " +
-      "natural-sized almond-shaped eyes (NOT big round cartoon eyes), painted exactly like the pages of this book " +
-      `(same technique, same palette, same light), soft painted background from the book's world, not a white background. Keep these exact traits: ${traits}.`,
+      "drawn exactly like the pages of this book (same technique, same palette, same light), " +
+      `a soft background from the book's world, not a white background. Keep these exact traits: ${traits}.`,
     appearance: traits,
     referenceImage: identite ?? photo,
     seed: Date.now() % 1_000_000,

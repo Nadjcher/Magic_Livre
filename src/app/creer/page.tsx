@@ -47,11 +47,17 @@ export default async function CreerPage(
   }
 
   const ab = await getAbonnement(user.id);
-  const children = await prisma.child.findMany({
+  const enfants = await prisma.child.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "asc" },
     select: { id: true, firstName: true, age: true },
   });
+  // Le style du dernier livre de chaque enfant (proposé par défaut : sa bibliothèque reste homogène).
+  const styles = await prisma.$queryRaw<{ childId: string; style: string }[]>`
+    SELECT DISTINCT ON ("childId") "childId", pages->>'style' AS style FROM "Book"
+    WHERE "userId" = ${user.id} AND "deletedAt" IS NULL AND pages->>'style' IS NOT NULL
+    ORDER BY "childId", "createdAt" DESC`.catch(() => []);
+  const children = enfants.map((c) => ({ ...c, dernierStyle: styles.find((x) => x.childId === c.id)?.style ?? null }));
 
   return (
     <div className="space-y-6">

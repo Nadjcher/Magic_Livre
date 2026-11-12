@@ -24,7 +24,7 @@ import { findThemeById } from "@/lib/themes";
 import Picto from "@/components/Picto";
 import BoutonCollant from "@/components/BoutonCollant";
 import { FONDATEUR } from "@/lib/fondateur";
-import { ILLUSTRATION_STYLES, ILLUSTRATION_STYLE_KEYS } from "@/lib/style_config";
+import { ILLUSTRATION_STYLES, ILLUSTRATION_STYLE_KEYS, styleOuvert } from "@/lib/style_config";
 import Lucioles from "@/components/accueil/Lucioles";
 import LivreQuiSAnime from "@/components/accueil/LivreQuiSAnime";
 import LivreMagique from "@/components/accueil/LivreMagique";
@@ -309,7 +309,10 @@ export default async function AccueilPage() {
             <li key={k} className="overflow-hidden rounded-2xl bg-white/[0.06]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={`/styles/${k}.webp`} alt={`Exemple du style ${ILLUSTRATION_STYLES[k].label}`} loading="lazy" className="aspect-[4/3] w-full object-cover" />
-              <p className="px-3 py-2 text-sm font-semibold text-magique-texte">{ILLUSTRATION_STYLES[k].label}</p>
+              <p className="px-3 py-2 text-sm font-semibold text-magique-texte">
+                {ILLUSTRATION_STYLES[k].label}
+                {!styleOuvert(k) && <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-xs font-normal text-magique-texteClair">Bientôt</span>}
+              </p>
             </li>
           );
           return (

@@ -23,7 +23,7 @@ import { createBook } from "@/app/actions/books";
 import { preparerHeros, type PortraitResultat } from "@/app/actions/heros";
 import { THEMES, THEME_CATEGORIES, estClassique, findThemeById, type ThemeCategory } from "@/lib/themes";
 import type { ChildView } from "./ChildrenManager";
-import { ILLUSTRATION_STYLES, STYLE_DEFAUT, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
+import { ILLUSTRATION_STYLES, STYLE_DEFAUT, styleOuvert, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
 import Notice from "./Notice";
 import GenerationOverlay from "./GenerationOverlay";
 import Link from "next/link";
@@ -80,7 +80,7 @@ export default function CreateBookForm({
   consentRequis,
   termsVersion,
 }: {
-  enfants: ChildView[];
+  enfants: (ChildView & { dernierStyle?: string | null })[];
   /** Thème présélectionné (lien « Créer ce livre » du catalogue). */
   initialThemeId?: string;
   /** Prénom tapé sur la page produit (aperçu de la couverture). */
@@ -128,6 +128,9 @@ export default function CreateBookForm({
   // ─── Étape 3 : les finitions ───
   // Style 3D par défaut, comme sur la page d'accueil (le parent peut en choisir un autre, sauf pour les grands classiques).
   const [style, setStyle] = useState<IllustrationStyle>(STYLE_DEFAUT);
+  // Le style déjà choisi pour cet enfant est proposé d'abord : ses livres se ressemblent sur l'étagère.
+  const styleBibliotheque = enfant?.dernierStyle && styleOuvert(enfant.dernierStyle) ? (enfant.dernierStyle as IllustrationStyle) : null;
+  const [styleChoisi, setStyleChoisi] = useState(false);
   const [voirStyles, setVoirStyles] = useState(false);
   const [longueur, setLongueur] = useState<"courte" | "moyenne" | "longue">("moyenne");
   const [extras, setExtras] = useState<Extra[]>([]);
@@ -137,8 +140,10 @@ export default function CreateBookForm({
   const stylesAge: IllustrationStyle[] = classiqueChoisi
     ? [STYLE_DEFAUT]
     : [STYLE_DEFAUT, ...groupe.styles.filter((k) => k !== STYLE_DEFAUT && stylesPourAge(age).includes(k)), ...stylesPourAge(age).filter((k) => k !== STYLE_DEFAUT && !groupe.styles.includes(k))];
-  const styleAffiche: IllustrationStyle = stylesAge.includes(style) ? style : stylesAge[0] ?? "feerique";
-  const stylesVisibles = voirStyles ? stylesAge : [styleAffiche, ...stylesAge.filter((s) => s !== styleAffiche)].slice(0, 4);
+  const stylePropose = !styleChoisi && styleBibliotheque && !classiqueChoisi ? styleBibliotheque : style;
+  const styleAffiche: IllustrationStyle =
+    stylesAge.includes(stylePropose) && styleOuvert(stylePropose) ? stylePropose : stylesAge.find(styleOuvert) ?? STYLE_DEFAUT;
+  const stylesVisibles = voirStyles ? stylesAge : [styleAffiche, ...stylesAge.filter((s) => s !== styleAffiche && styleOuvert(s))].slice(0, 4);
 
   const [erreur, setErreur] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -595,14 +600,33 @@ export default function CreateBookForm({
         <div className="carte space-y-4">
           <div>
             <h2 className="font-serif text-2xl">Le style des dessins</h2>
-            <p className="mt-1 text-sm text-magique-texteClair">Le style conseillé est déjà choisi. Seuls les styles adaptés à {age} ans sont proposés.</p>
+            <p className="mt-1 text-sm text-magique-texteClair">
+              {styleBibliotheque && styleAffiche === styleBibliotheque
+                ? `Le style de la bibliothèque de ${prenom} est déjà choisi, pour que ses livres se ressemblent. Vous pouvez en changer.`
+                : `Le style conseillé est déjà choisi. Seuls les styles adaptés à ${age} ans sont proposés.`}
+            </p>
           </div>
           <input type="hidden" name="style" value={styleAffiche} />
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4" role="radiogroup" aria-label="Styles d'illustration">
             {stylesVisibles.map((s) => {
               const actif = styleAffiche === s;
+              const bientot = !styleOuvert(s);
               return (
-                <button key={s} type="button" role="radio" aria-checked={actif} onClick={() => setStyle(s)} className={`${tuile(actif)} overflow-hidden`}>
+                <button
+                  key={s}
+                  type="button"
+                  role="radio"
+                  aria-checked={actif}
+                  disabled={bientot}
+                  onClick={() => {
+                    setStyle(s);
+                    setStyleChoisi(true);
+                  }}
+                  className={`${tuile(actif)} relative overflow-hidden ${bientot ? "cursor-not-allowed opacity-50" : ""}`}
+                >
+                  {bientot && (
+                    <span className="absolute right-2 top-2 rounded-full bg-nuit/85 px-2 py-0.5 text-xs font-semibold text-white">Bientôt</span>
+                  )}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={groupe.styles.includes(s) ? `/styles/ages/${groupe.slug}/${s}.webp` : `/styles/${s}.webp`}
