@@ -133,6 +133,10 @@ export async function retirerCadre(img: Ref): Promise<Ref> {
     while (bas > (3 * N) / 4 && ligneClaire(bas)) bas--;
     while (gauche < N / 4 && colClaire(gauche)) gauche++;
     while (droite > (3 * N) / 4 && colClaire(droite)) droite--;
+    // Un vrai cadre fait le tour de l'image avec une épaisseur comparable sur les quatre côtés.
+    // Une scène de neige (ciel laiteux, sol blanc) n'a pas ce profil : on n'y touche pas.
+    const bandes = [haut, N - 1 - bas, gauche, N - 1 - droite];
+    if (Math.min(...bandes) < 1 || Math.max(...bandes) > 3 * Math.min(...bandes) + 2 || Math.max(...bandes) > N * 0.12) return img;
     const marge = 3; // on rogne un peu plus pour effacer le trait du cadre
     const meta = await sharp(src).metadata();
     const W = meta.width ?? 1024;
