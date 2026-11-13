@@ -127,7 +127,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "{prenom} dessina, et Poucet montra où aller. « Par là, après la souche ! Ici, près du ruisseau ! » Les cailloux étaient un peu tordus, mais ils brillaient tous. Alors {prenom} et Poucet dirent ensemble : « Petit caillou blanc, montre-nous le chemin. » Et le chemin s'allongea entre les arbres, caillou après caillou.",
         scene:
-          "Seen from behind, {prenom} with {doudou} under one arm walks beside tiny Poucet (knee-high) on a grassy forest floor where only FIVE small crooked glowing white pebbles lie far apart from each other, like breadcrumbs, each one alone in the green grass with a big gap of grass between two pebbles (no path, no paving, no stepping stones, no continuous white line), leading into the storybook forest, past a tree stump and a little stream; hopeful warm glow.",
+          "Seen from behind, {prenom} with {doudou} under one arm walks beside tiny Poucet (knee-high) on a grassy forest floor where only a few small crooked glowing white pebbles (four to six) lie far apart from each other, like breadcrumbs, each one alone in the green grass with a big gap of grass between two pebbles (no path, no paving, no stepping stones, no continuous white line), leading into the storybook forest, past a tree stump and a little stream; hopeful warm glow.",
         presents: ["Poucet"],
       },
       {
