@@ -13,6 +13,13 @@ export async function POST(req: Request): Promise<Response> {
   if (createHash("sha256").update(u.searchParams.get("s") ?? "").digest("hex") !== "03902131a32cfa92b9e3f1ba1f0db77116f66fac69cb6810395682dd10c1d393") return new NextResponse("Non.", { status: 404 });
   const brut = (await req.json()) as { mode?: string; uid?: string };
   if (brut.mode === "gelato") return NextResponse.json(await gelato(brut.uid));
+  if (brut.mode === "couverture" && brut.uid) {
+    const r = await fetch(`https://product.gelatoapis.com/v3/products/${brut.uid}/cover-dimensions?pageCount=30`, {
+      headers: { "X-API-KEY": process.env.GELATO_API_KEY ?? "" },
+      signal: AbortSignal.timeout(30_000),
+    });
+    return NextResponse.json({ status: r.status, corps: (await r.text()).slice(0, 4000) });
+  }
   const b = brut as unknown as { scene: string; couverture?: boolean; titre?: string; traits: string; personnages: string; ancre: Ref; heros: Ref; cast: { name: string; base64: string; mime: string; description: string }[]; seed: number };
   const scene = b.couverture ? `Book cover illustration for the story "${b.titre}": ${b.scene}. ${CONSIGNE_COUVERTURE}` : b.scene;
   const r = await generateIllustration({ style: "anim3d", scene, heroName: "Léo", appearance: b.traits, recurringCharacters: b.personnages, anchorImage: b.ancre, castRefs: b.cast.map(({ name, base64, mime }) => ({ name, base64, mime })), seed: b.seed, stocker: false });
