@@ -16,6 +16,7 @@ import { fetchAsDataUrl } from "@/lib/imageFetch";
 import { fichesPresentes, illustrerEpisode, imageReportOf } from "@/lib/storyGenerator";
 import { EN_COURS } from "@/lib/illustrationStatus";
 import { debloquerLivre, peutDebloquer } from "@/lib/apercu";
+import { retouchesMax } from "@/lib/validationImpression";
 
 
 function manquantes(story: Story): number {
@@ -157,8 +158,6 @@ async function completer(
   }
 }
 
-/** Nombre de pages qu'on peut redessiner gratuitement par livre. */
-const RETOUCHES_MAX = 5;
 
 /**
  * Redessine UNE page (ou la couverture, index -1) avec les mêmes fiches de
@@ -179,8 +178,10 @@ export async function redrawPage(
   if (!parsed.success) return { ok: false, message: "Le contenu de ce livre est illisible." };
   const story = parsed.data;
   const faites = story.retouches ?? 0;
+  // 5 retouches par livre, et 2 de plus offertes pendant la validation du livre imprimé.
+  const RETOUCHES_MAX = retouchesMax(story);
   if (faites >= RETOUCHES_MAX) {
-    return { ok: false, message: `Vous avez déjà redessiné ${RETOUCHES_MAX} pages de ce livre.`, restantes: 0 };
+    return { ok: false, message: `Vous avez déjà redessiné ${faites} pages de ce livre.`, restantes: 0 };
   }
   const page = index >= 0 ? story.pages[index] : undefined;
   if (index >= 0 && !page) return { ok: false, message: "Page introuvable." };

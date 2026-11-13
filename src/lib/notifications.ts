@@ -65,7 +65,7 @@ export async function notifierEchecHistoire(bookId: string): Promise<void> {
 
 /**
  * Actions au passage d'une commande à « payée » (appelé une seule fois, au
- * moment exact de la transition) : livre imprimé envoyé à l'imprimeur, ou
+ * moment exact de la transition) : livre imprimé soumis à la validation du parent, ou
  * email avec les liens de téléchargement.
  */
 export async function apresPaiement(orderId: string): Promise<void> {
@@ -81,8 +81,9 @@ export async function apresPaiement(orderId: string): Promise<void> {
       await debloquerLivre(order.bookId);
     }
     if (order?.sku === "imprime") {
-      const { lancerImpression } = await import("./print");
-      await lancerImpression(orderId);
+      // Rien ne part chez l'imprimeur avant l'accord du parent (validationImpression.ts).
+      const { demanderValidation } = await import("./validationImpression");
+      await demanderValidation(orderId);
       return;
     }
     await notifierAchat(orderId);

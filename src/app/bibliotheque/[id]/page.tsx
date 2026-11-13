@@ -21,6 +21,8 @@ import { peutDebloquer } from "@/lib/apercu";
 import { serieDe } from "@/lib/serie";
 import EtDemain from "@/components/EtDemain";
 import { PAGES_APERCU } from "@/lib/storyGenerator";
+import ImprimerLivreButton from "@/components/ImprimerLivreButton";
+import { RETOUCHES_VALIDATION, retouchesMax } from "@/lib/validationImpression";
 
 // La complétion des illustrations tourne en arrière-plan depuis cette page.
 export const maxDuration = 300;
@@ -173,6 +175,17 @@ export default async function LivrePage(
           )}
         </div>
       )}
+      {story && (story.impressionsAValider?.length ?? 0) > 0 && (
+        <div className="carte space-y-3 border-2 border-or-clair">
+          <h2 className="font-serif text-xl">📖 Votre livre imprimé attend votre accord</h2>
+          <p className="text-sm text-magique-texteClair">
+            {story.apercu || completionEnCours
+              ? "Nous dessinons les dernières pages (quelques minutes). Revenez ensuite relire le livre : nous vous prévenons par email."
+              : `Relisez chaque page ci-dessous avant l'impression. Un dessin ne vous plaît pas ? Utilisez « Redessiner cette page » : ${RETOUCHES_VALIDATION} pages refaites vous sont offertes. Quand tout vous convient, lancez l'impression : le livre arrive chez vous en 7 à 12 jours.`}
+          </p>
+          {!story.apercu && !completionEnCours && <ImprimerLivreButton bookId={book.id} />}
+        </div>
+      )}
       {story && imagesManquantes > 0 && !completionEnCours && (
         <div className="carte space-y-3">
           <h2 className="font-serif text-xl">
@@ -204,7 +217,7 @@ export default async function LivrePage(
                     autreEpisode={suivant ? `/bibliotheque/${suivant.id}` : undefined}
                   />
                 }
-                retouche={{ bookId: book.id, restantes: Math.max(0, 5 - (story.retouches ?? 0)) }} />
+                retouche={{ bookId: book.id, restantes: Math.max(0, retouchesMax(story) - (story.retouches ?? 0)) }} />
               <div className="carte flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="font-serif text-xl">🎁 La boutique de ce livre</h2>

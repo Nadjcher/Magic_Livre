@@ -106,7 +106,7 @@ const FAQ = [
   },
   {
     q: "Combien de temps faut-il ?",
-    r: "Quelques minutes après avoir validé (environ 3 minutes) : l'histoire et toutes les illustrations sont créées pendant ce temps.",
+    r: "Votre livre numérique en quelques minutes, votre livre imprimé après votre validation. L'histoire et ses illustrations sont créées en 3 minutes environ (un peu plus aux heures chargées : nous vous prévenons par email dès qu'il est prêt). Pour le livre imprimé, vous relisez chaque page et pouvez faire refaire deux dessins gratuitement avant l'impression ; il arrive ensuite en " + DELAI_IMPRIME + ".",
   },
   {
     q: "Pour quel âge ?",
@@ -237,7 +237,7 @@ export default async function AccueilPage() {
           <div>
             <p className="font-serif text-2xl text-white">Le même, avec votre enfant dedans.</p>
             <p className="mt-1 text-[15px] text-magique-texteClair">
-              Prêt en quelques minutes. Lu en entier gratuitement, gardé pour {prix}.
+              Votre livre numérique en quelques minutes, votre livre imprimé après votre validation.
             </p>
           </div>
           <Link href={cta} className="btn-primaire whitespace-nowrap text-lg">Créer son livre gratuitement</Link>
@@ -439,6 +439,7 @@ export default async function AccueilPage() {
             <ul className="mt-5 flex-1 space-y-2.5 text-[15px]">
               <li className="flex gap-2"><Coche />Relié, couverture rigide, carré {FORMAT_IMPRIME}</li>
               <li className="flex gap-2"><Coche />30 pages, prêt à offrir</li>
+              <li className="flex gap-2"><Coche />Relu et validé par vous avant l'impression</li>
               <li className="flex gap-2"><Coche />Livré chez vous en {DELAI_IMPRIME}</li>
             </ul>
             <p className="mt-4 text-sm text-or-clair">Commandé avant le {NOEL_LIMITE_DEFAUT} : sous le sapin.</p>

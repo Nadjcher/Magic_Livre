@@ -107,7 +107,7 @@ export default function CgvPage() {
       <p>
         <strong>Livre imprimé</strong> : il est fabriqué et expédié par notre imprimeur partenaire, à l'adresse
         indiquée lors du paiement. Pays desservis : {PAYS_LIVRAISON.map((c) => NOMS_PAYS[c] ?? c).join(", ")}.
-        Délai indicatif : {DELAI_IMPRIME}, après votre validation du livre. Le suivi est disponible dans « Mon compte ». À défaut de livraison
+        Avant l'impression, vous relisez le livre dans votre bibliothèque et pouvez faire redessiner deux pages gratuitement ; l'impression démarre quand vous cliquez « Imprimer mon livre », ou d'office 7 jours après le paiement sans réponse de votre part (deux rappels vous sont envoyés). Délai indicatif : {DELAI_IMPRIME}, après votre validation du livre. Le suivi est disponible dans « Mon compte ». À défaut de livraison
         dans un délai de 30 jours, vous pouvez, après une mise en demeure restée sans effet, résoudre la vente et
         obtenir le remboursement (articles L216-6 et suivants du Code de la consommation).
       </p>

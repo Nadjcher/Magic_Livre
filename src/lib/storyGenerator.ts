@@ -737,6 +737,7 @@ export async function illustrateStory(
   story: Story,
   req: StoryRequest,
   portrait: { base64: string; mime: string } | null,
+  opts: { controle?: boolean } = {},
 ): Promise<{ story: Story; imageReport?: string }> {
   const debut = Date.now();
   const errors: string[] = [];
@@ -751,7 +752,8 @@ export async function illustrateStory(
   }
   // Contrôle « directeur artistique » : héros en double, personnage qui change
   // d'espèce ou de couleurs… les pages fautives sont redessinées.
-  if (illustrationsEnabled() && controleActif() && Date.now() - debut < 210_000) {
+  // (`controle: false` : la chaîne du livre le fait ensuite, dans sa propre exécution.)
+  if (opts.controle !== false && illustrationsEnabled() && controleActif() && Date.now() - debut < 210_000) {
     const { story: controle, bilan } = await controlerIllustrations(illustre, req, debut + 268_000);
     console.log("[livre]", bilan);
     illustre = controle;

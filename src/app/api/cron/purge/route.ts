@@ -14,5 +14,8 @@ export async function GET(req: Request): Promise<Response> {
   // Passage quotidien : les livres en attente d'illustrations retentent leur chance.
   const { relancerEnAttente } = await import("@/lib/attenteIllustrations");
   const relances = await relancerEnAttente().catch(() => 0);
-  return NextResponse.json({ ...(await purger()), relances });
+  // Livres imprimés en attente de l'accord du parent : rappels, puis impression à 7 jours.
+  const { relancerValidations } = await import("@/lib/validationImpression");
+  const validations = await relancerValidations().catch(() => null);
+  return NextResponse.json({ ...(await purger()), relances, validations });
 }

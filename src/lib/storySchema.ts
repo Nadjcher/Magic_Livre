@@ -90,6 +90,11 @@ export const storySchema = z.object({
     .array(z.object({ orderId: z.string(), gelatoId: z.string(), creeLe: z.number() }))
     .optional()
     .catch(undefined),
+  // Livres imprimés payés, en attente de la validation du parent (rien n'est envoyé à l'imprimeur avant).
+  impressionsAValider: z
+    .array(z.object({ orderId: z.string(), depuis: z.number(), retouchesAuDebut: z.number(), relances: z.number().optional() }))
+    .optional()
+    .catch(undefined),
   // Plan en neuf cases (bible), écrit par l'autrice avant les pages.
   plan: z
     .object({
