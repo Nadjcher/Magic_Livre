@@ -74,7 +74,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       },
     ],
     couverture:
-      "Book cover, medium shot: {prenom} and Poucet seen from behind walking hand in hand along a path of crooked glowing white stones of unequal sizes into a soft storybook forest; {prenom} holds {doudou} under one arm and a white pencil in the other hand; warm golden light at the end of the path; calm dark-blue sky with stars in the upper third.",
+      "Book cover, medium shot: {prenom} and Poucet seen from behind walking hand in hand along a trail of separate small crooked glowing white pebbles of unequal sizes, spaced apart with grass between them (never a paved path, never stepping stones) into a soft storybook forest; {prenom} holds {doudou} under one arm and a white pencil in the other hand; warm golden light at the end of the path; calm dark-blue sky with stars in the upper third.",
     pages: [
       {
         texte:
@@ -127,21 +127,21 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "{prenom} dessina, et Poucet montra où aller. « Par là, après la souche ! Ici, près du ruisseau ! » Les cailloux étaient un peu tordus, mais ils brillaient tous. Alors {prenom} et Poucet dirent ensemble : « Petit caillou blanc, montre-nous le chemin. » Et le chemin s'allongea entre les arbres, caillou après caillou.",
         scene:
-          "Seen from behind, {prenom} with {doudou} under one arm walks beside Poucet along a winding path of slightly crooked glowing white stones of unequal sizes that stretches into the storybook forest, past a tree stump and a little stream; hopeful warm glow.",
+          "Seen from behind, {prenom} with {doudou} under one arm walks beside Poucet along a trail of separate small crooked glowing white pebbles of unequal sizes, spaced apart with grass between them (never a paved path, never stepping stones) winding into the storybook forest, past a tree stump and a little stream; hopeful warm glow.",
         presents: ["Poucet"],
       },
       {
         texte:
           "Au bout du chemin tordu, une petite maison avait sa fenêtre allumée. Les frères de Poucet coururent vers la porte en riant. Poucet glissa un caillou dessiné dans sa poche. « Merci, {prenom} », dit-il. Tout autour, la page redevint claire.",
         scene:
-          "At the end of the crooked glowing stone path, a small cottage with a warmly lit window stands in a forest turning bright again; Poucet's six tiny brothers run laughing toward the door; Poucet slips a white stone into his pocket with rosy cheeks, smiling at {prenom}, who stands proudly holding {doudou} and the white pencil; soft golden light.",
+          "At the end of a trail of separate small crooked glowing white pebbles of unequal sizes, spaced apart with grass between them (never a paved path, never stepping stones), a small cottage with a warmly lit window stands in a forest turning bright again; Poucet's six tiny brothers run laughing toward the door; Poucet slips a white stone into his pocket with rosy cheeks, smiling at {prenom}, who stands proudly holding {doudou} and the white pencil; soft golden light.",
         presents: ["Poucet"],
       },
       {
         texte:
           "{prenom} était de nouveau dans son lit, {doudou} contre sa joue. {Il} reposa le crayon blanc sur sa table de nuit. {parent} revint et regarda la page : les cailloux étaient là, un peu tordus. « Ils sont encore plus beaux qu'avant », {dit_parent} doucement. À la page suivante, une botte dépassait d'un buisson. {prenom} sourit et ferma les yeux.",
         scene:
-          "The old storybook lies open on the duvet showing the forest with a path of slightly crooked glowing white stones; {parent}'s hand rests gently on the page near the corner where the next page shows a large boot sticking out of a bush; {prenom} drifts to sleep against the pillow with {doudou} against their cheek; the white pencil back on the bedside table; soft lamplight.",
+          "The old storybook lies open on the duvet showing the forest with a trail of separate small crooked glowing white pebbles of unequal sizes, spaced apart with grass between them (never a paved path, never stepping stones); {parent}'s hand rests gently on the page near the corner where the next page shows a large boot sticking out of a bush; {prenom} drifts to sleep against the pillow with {doudou} against their cheek; the white pencil back on the bedside table; soft lamplight.",
         presents: ["{parent}"],
       },
     ],

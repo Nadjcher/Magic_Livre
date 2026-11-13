@@ -111,7 +111,8 @@ export function consigneStylePour(style: string | undefined): string {
     "ONE consistent rendering for the whole image (characters and scenery in the same technique). " +
     "Full-bleed scenery to every edge, square format, no empty area. " +
     "LIGHT: a single main light source, the one named in the scene; it lights the child's face first; small distant lights are allowed only if " +
-    "they do not light the characters; the edges of the image are darker than the center."
+    "they do not light the characters; the edges of the image are a little darker than the center. Night scenes stay LUMINOUS (moonlit blue, " +
+    "never black): faces and hair bright and clearly readable, no large pure-black areas, so the page prints well."
   );
 }
 
@@ -120,7 +121,7 @@ export function consigneHeros(nom: string | undefined, traits: string | undefine
   const yeux = FICHES_STYLE[style ?? ""]?.yeux ?? "natural-sized almond-shaped eyes (never big round cartoon eyes)";
   return (
     `HERO${nom ? ` (${nom})` : ""}: drawn from the approved portrait (reference image), never from a photo. ` +
-    (traits ? `Exact traits: ${traits}. ` : "") +
+    (traits ? `Exact traits: ${traits}. The hair keeps EXACTLY this color and cut on every page, whatever the light (never darker at night). ` : "") +
     `${yeux}; soft smile with the mouth barely open unless the scene asks for laughter; ` +
     "proportions of a child of that age (the head is a quarter to a fifth of the body)."
   );
@@ -138,6 +139,11 @@ export const PERSONNAGES_FIXES =
   "Tiny characters (Poucet, elves) keep their tiny size on EVERY page: never as big as the hero, never seated on full-size chairs. " +
   "The parent: an adult, clearly bigger than the child and never dressed like the child; only a hand, a silhouette from behind or a profile in shadow, never a detailed face. " +
   "The giant: never shown, only suggested by a shadow or boots.";
+
+/** Objets fixes. */
+export const OBJETS_FIXES =
+  "THE WHITE PENCIL: a pure white pencil (white wood and white tip), never an ordinary yellow or wooden pencil. " +
+  "PEBBLES drawn by the child: separate small crooked pebbles spaced apart, never a paved path, never stepping stones or flagstones.";
 
 /** Le dessin de l'enfant : toujours distinct du décor peint. */
 export const DESSIN_ENFANT =

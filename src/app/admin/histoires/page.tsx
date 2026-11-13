@@ -6,6 +6,7 @@
  */
 
 import type { Metadata } from "next";
+import EpreuveRelectrice from "@/components/EpreuveRelectrice";
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { estAdmin } from "@/lib/rateLimit";
@@ -127,6 +128,15 @@ export default async function AtelierPage() {
           l'âge, le type de livre et le thème. Plus vous y ajoutez de bons textes, plus les histoires prennent votre ton.
         </p>
       </header>
+
+      <section className="carte space-y-3">
+        <h2 className="text-2xl">Jeu d'épreuve de la relectrice d'images</h2>
+        <p className="text-sm text-magique-texteClair">
+          Dix images aux défauts connus (doudou en chat, Poucet trop grand, parent dessiné en enfant, chemin pavé…). Après toute
+          modification de la relectrice, elle doit les refuser toutes.
+        </p>
+        <EpreuveRelectrice />
+      </section>
 
       <section className="carte space-y-2">
         <h2 className="text-2xl">Dépenses fal (estimation)</h2>

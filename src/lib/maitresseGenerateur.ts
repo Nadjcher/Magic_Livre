@@ -129,7 +129,13 @@ export async function histoireDepuisMaitresse(h: HistoireMaitresse, req: StoryRe
     pages: h.pages.map((pg) => ({
       texte: remplir(pg.texte, p, h),
       scene_illustration: scene(pg.scene),
-      presents: pg.presents?.map((x) => remplir(x, pImage, h)),
+      // Le doudou est fourni au dessinateur sur toutes les pages où il apparaît (sinon : un chien à sa place).
+      presents: (() => {
+        const scene = remplir(pg.scene, pImage, h);
+        const liste = (pg.presents ?? []).map((x) => remplir(x, pImage, h));
+        if (pg.presents && scene.includes(nomFiche) && !liste.includes(nomFiche)) liste.push(nomFiche);
+        return pg.presents ? liste : undefined;
+      })(),
     })),
     personnages,
     cast: [{ nom: nomFiche, visuel: `PLUSH TOY, never alive: ${visuel}`.slice(0, 400) }, ...h.cast],

@@ -10,6 +10,9 @@ const nextConfig = {
   // Polices du livre PDF, lues sur disque au moment du rendu.
   outputFileTracingIncludes: {
     "/api/books/[id]/pdf": ["./src/pdf-assets/**"],
+    // Jeu d'épreuve de la relectrice d'images (images aux défauts connus).
+    "/api/admin/epreuve": ["./src/epreuve/**"],
+    "/api/temp-images": ["./src/epreuve/**"],
   },
   experimental: {
     // Revenir sur une page déjà vue dans les 30 dernières secondes est instantané.

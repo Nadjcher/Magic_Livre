@@ -1,0 +1,207 @@
+[
+ {
+  "id": "poucet-p01",
+  "image": "poucet-p01.jpg",
+  "style": "anim3d",
+  "scene": "A cosy child's bedroom at night lit by a warm bedside lamp: Léo sits in bed under the duvet hugging Caramel; Papa (seen from behind, face not shown) sits on the edge of the bed opening a worn old storybook with a soft faded cover; a white pencil lies on the bedside table.",
+  "heros": "poucet-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft plush teddy bear, light brown fur, cream-coloured muzzle, round ea",
+  "cast": [
+   {
+    "nom": "Caramel",
+    "image": "poucet-fiche-caramel.jpg",
+    "description": "PLUSH TOY, never alive: a soft plush teddy bear, light brown fur, cream-coloured muzzle, round ears, friendly stitched face"
+   }
+  ],
+  "defaut": "le doudou est un chien au lieu de l'ours Caramel"
+ },
+ {
+  "id": "poucet-p02",
+  "image": "poucet-p02.jpg",
+  "style": "anim3d",
+  "scene": "In the lamp-lit bedroom, Léo leans over the open old storybook on the duvet with a worried frown, squeezing Caramel; the open page shows a forest with a bare path and no white stones (no letters on the page); warm golden lamplight.",
+  "heros": "poucet-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft plush teddy bear, light brown fur, cream-coloured muzzle, round ea",
+  "cast": [
+   {
+    "nom": "Caramel",
+    "image": "poucet-fiche-caramel.jpg",
+    "description": "PLUSH TOY, never alive: a soft plush teddy bear, light brown fur, cream-coloured muzzle, round ears, friendly stitched face"
+   }
+  ],
+  "defaut": "cheveux de Léo bruns presque noirs (portrait : blond roux)"
+ },
+ {
+  "id": "poucet-p07",
+  "image": "poucet-p07.jpg",
+  "style": "anim3d",
+  "scene": "In the storybook forest, Léo crouches and draws a crooked white stone on the ground with a white pencil; the freshly drawn stone puffs up and glows; Poucet leans over, laughing for the first time and twisting his red bonnet shyly; Caramel sits beside Léo.",
+  "heros": "poucet-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft plush teddy bear, light brown fur, cream-coloured muzzle, round ea",
+  "cast": [
+   {
+    "nom": "Poucet",
+    "image": "poucet-fiche-poucet.jpg",
+    "description": "HUMAN BOY: a tiny cheerful fairy-tale boy the size of a toy figurine, about 25 cm tall (his whole body fits between the ground and the hero's knee; even next to the crouching hero his bonnet stays bel"
+   },
+   {
+    "nom": "Caramel",
+    "image": "poucet-fiche-caramel.jpg",
+    "description": "PLUSH TOY, never alive: a soft plush teddy bear, light brown fur, cream-coloured muzzle, round ears, friendly stitched face"
+   }
+  ],
+  "defaut": "Poucet trop grand (à hauteur de tête de Léo accroupi)"
+ },
+ {
+  "id": "poucet-p08",
+  "image": "poucet-p08.jpg",
+  "style": "anim3d",
+  "scene": "Seen from behind, Léo with Caramel under one arm walks beside Poucet along a trail of separate small crooked glowing white pebbles of unequal sizes, spaced apart with grass between them (never a paved path, never stepping stones) winding into the storybook forest, past a tree stump and a little stream; hopeful warm glow.",
+  "heros": "poucet-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft plush teddy bear, light brown fur, cream-coloured muzzle, round ea",
+  "cast": [
+   {
+    "nom": "Poucet",
+    "image": "poucet-fiche-poucet.jpg",
+    "description": "HUMAN BOY: a tiny cheerful fairy-tale boy the size of a toy figurine, about 25 cm tall (his whole body fits between the ground and the hero's knee; even next to the crouching hero his bonnet stays bel"
+   },
+   {
+    "nom": "Caramel",
+    "image": "poucet-fiche-caramel.jpg",
+    "description": "PLUSH TOY, never alive: a soft plush teddy bear, light brown fur, cream-coloured muzzle, round ears, friendly stitched face"
+   }
+  ],
+  "defaut": "chemin pavé au lieu de cailloux séparés"
+ },
+ {
+  "id": "poucet-p09",
+  "image": "poucet-p09.jpg",
+  "style": "anim3d",
+  "scene": "At the end of a trail of separate small crooked glowing white pebbles of unequal sizes, spaced apart with grass between them (never a paved path, never stepping stones), a small cottage with a warmly lit window stands in a forest turning bright again; Poucet's six tiny brothers run laughing toward the door; Poucet slips a white stone into his pocket with rosy cheeks, smiling at Léo, who stands proudly holding Caramel and the white pencil; soft golden light.",
+  "heros": "poucet-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft plush teddy bear, light brown fur, cream-coloured muzzle, round ea",
+  "cast": [
+   {
+    "nom": "Poucet",
+    "image": "poucet-fiche-poucet.jpg",
+    "description": "HUMAN BOY: a tiny cheerful fairy-tale boy the size of a toy figurine, about 25 cm tall (his whole body fits between the ground and the hero's knee; even next to the crouching hero his bonnet stays bel"
+   },
+   {
+    "nom": "Caramel",
+    "image": "poucet-fiche-caramel.jpg",
+    "description": "PLUSH TOY, never alive: a soft plush teddy bear, light brown fur, cream-coloured muzzle, round ears, friendly stitched face"
+   }
+  ],
+  "defaut": "Poucet trop grand"
+ },
+ {
+  "id": "noel-p01",
+  "image": "noel-p01.jpg",
+  "style": "aquarelle",
+  "scene": "A cosy child's bedroom at night lit by a warm bedside lamp: Léo snuggles under the duvet hugging Caramel; Papa (seen from behind, face not shown) sits on the edge of the bed opening a worn old storybook with a soft faded cover; a white pencil lies on the bedside table.",
+  "heros": "noel-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft plush teddy bear, light brown fur, cream-colored muzzle, round ear",
+  "cast": [
+   {
+    "nom": "Caramel",
+    "image": "noel-fiche-caramel.jpg",
+    "description": "PLUSH TOY, never alive: a soft plush teddy bear, light brown fur, cream-colored muzzle, round ears, friendly stitched face"
+   }
+  ],
+  "defaut": "le parent ressemble à un enfant, en pyjama comme Léo"
+ },
+ {
+  "id": "noel-p05",
+  "image": "noel-p05.jpg",
+  "style": "aquarelle",
+  "scene": "On the workbench by the frosty window: grumpy Poinçon holds a needle with a snapped spider-web thread; little Dé is snuggled entirely into Caramel, only his long brown hat sticking out; Léo watches kindly; Bobine throws up her hands.",
+  "heros": "noel-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft plush teddy bear, light brown fur, cream-colored muzzle, round ear",
+  "cast": [
+   {
+    "nom": "Caramel",
+    "image": "noel-fiche-caramel.jpg",
+    "description": "PLUSH TOY, never alive: a soft plush teddy bear, light brown fur, cream-colored muzzle, round ears, friendly stitched face"
+   },
+   {
+    "nom": "Bobine",
+    "image": "noel-fiche-bobine.jpg",
+    "description": "TINY ELF the size of a teacup (ALWAYS this size, standing on the workbench or on a spool), a chatty elf girl with round rosy cheeks, auburn braid, a pointed GREEN felt hat, a patched apron with a tape"
+   },
+   {
+    "nom": "Poinçon",
+    "image": "noel-fiche-poincon.jpg",
+    "description": "TINY ELF the size of a teacup (ALWAYS this size), a grumpy little elf with a short white beard, bushy eyebrows, a pointed RED felt hat, a brown leather apron, holding a tiny awl; never looks like the "
+   }
+  ],
+  "defaut": "le doudou est un chat"
+ },
+ {
+  "id": "noel-p06",
+  "image": "noel-p06.jpg",
+  "style": "aquarelle",
+  "scene": "In the workshop, Léo holds out a short strand of red wool to Bobine, who has made only one single stitch on a small shoe; snow falls thickly outside the dark window; Poinçon and little Dé (still wrapped in Caramel) look on; a single candle lights Léo's face.",
+  "heros": "noel-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft plush teddy bear, light brown fur, cream-colored muzzle, round ear",
+  "cast": [
+   {
+    "nom": "Caramel",
+    "image": "noel-fiche-caramel.jpg",
+    "description": "PLUSH TOY, never alive: a soft plush teddy bear, light brown fur, cream-colored muzzle, round ears, friendly stitched face"
+   },
+   {
+    "nom": "Bobine",
+    "image": "noel-fiche-bobine.jpg",
+    "description": "TINY ELF the size of a teacup (ALWAYS this size, standing on the workbench or on a spool), a chatty elf girl with round rosy cheeks, auburn braid, a pointed GREEN felt hat, a patched apron with a tape"
+   },
+   {
+    "nom": "Poinçon",
+    "image": "noel-fiche-poincon.jpg",
+    "description": "TINY ELF the size of a teacup (ALWAYS this size), a grumpy little elf with a short white beard, bushy eyebrows, a pointed RED felt hat, a brown leather apron, holding a tiny awl; never looks like the "
+   }
+  ],
+  "defaut": "lutin aussi grand que l'enfant"
+ },
+ {
+  "id": "noel-p08",
+  "image": "noel-p08.jpg",
+  "style": "aquarelle",
+  "scene": "A busy joyful night in the workshop: Bobine cuts leather, Poinçon stitches, little Dé pulls a needle with crooked golden thread, Léo draws more thread; finished little shoes pile up: red shoes, fur-lined boots and a tiny pair of slippers; Caramel sits on the bench; warm golden glow from the thread.",
+  "heros": "noel-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft plush teddy bear, light brown fur, cream-colored muzzle, round ear",
+  "cast": [
+   {
+    "nom": "Bobine",
+    "image": "noel-fiche-bobine.jpg",
+    "description": "TINY ELF the size of a teacup (ALWAYS this size, standing on the workbench or on a spool), a chatty elf girl with round rosy cheeks, auburn braid, a pointed GREEN felt hat, a patched apron with a tape"
+   },
+   {
+    "nom": "Poinçon",
+    "image": "noel-fiche-poincon.jpg",
+    "description": "TINY ELF the size of a teacup (ALWAYS this size), a grumpy little elf with a short white beard, bushy eyebrows, a pointed RED felt hat, a brown leather apron, holding a tiny awl; never looks like the "
+   },
+   {
+    "nom": "Caramel",
+    "image": "noel-fiche-caramel.jpg",
+    "description": "PLUSH TOY, never alive: a soft plush teddy bear, light brown fur, cream-colored muzzle, round ears, friendly stitched face"
+   }
+  ],
+  "defaut": "lutins de taille d'enfant assis sur des chaises, Léo absent"
+ },
+ {
+  "id": "noel-p10",
+  "image": "noel-p10.jpg",
+  "style": "aquarelle",
+  "scene": "The old storybook lies open on the duvet showing the shoemaker (seen from behind) in front of rows of new shoes, and at the corner of the next page a small broken wooden chair; Papa's hand rests on the page; Léo drifts to sleep with Caramel against their cheek and a golden ribbon around the wrist; soft lamplight.",
+  "heros": "noel-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft plush teddy bear, light brown fur, cream-colored muzzle, round ear",
+  "cast": [
+   {
+    "nom": "Caramel",
+    "image": "noel-fiche-caramel.jpg",
+    "description": "PLUSH TOY, never alive: a soft plush teddy bear, light brown fur, cream-colored muzzle, round ears, friendly stitched face"
+   }
+  ],
+  "defaut": "rectangle blanc vide en haut à droite"
+ }
+]
