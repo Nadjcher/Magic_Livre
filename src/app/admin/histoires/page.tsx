@@ -132,8 +132,8 @@ export default async function AtelierPage() {
       <section className="carte space-y-3">
         <h2 className="text-2xl">Jeu d'épreuve de la relectrice d'images</h2>
         <p className="text-sm text-magique-texteClair">
-          Dix images aux défauts connus (doudou en chat, Poucet trop grand, parent dessiné en enfant, chemin pavé…). Après toute
-          modification de la relectrice, elle doit les refuser toutes.
+          Dix images aux défauts connus (doudou en chat, Poucet trop grand, parent dessiné en enfant, chemin pavé…), à refuser pour
+          la bonne raison, et des images réussies, à accepter. À lancer seulement après une modification de la relectrice.
         </p>
         <EpreuveRelectrice />
       </section>

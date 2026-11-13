@@ -21,20 +21,20 @@ export default function EpreuveRelectrice() {
   return (
     <div className="space-y-3">
       <button type="button" onClick={lancer} disabled={etat === "encours"} className="btn-secondaire">
-        {etat === "encours" ? "Relecture des 10 images… (1 à 2 min)" : "Lancer le jeu d'épreuve (≈ 0,30 $)"}
+        {etat === "encours" ? "Relecture des 20 images… (1 à 2 min)" : "Lancer le jeu d'épreuve (≈ 0,60 $)"}
       </button>
       {etat === "erreur" && <p className="text-sm text-rose-200">Le jeu d'épreuve n'a pas pu tourner. Réessayez.</p>}
       {res && (
         <div className="space-y-2 text-sm">
           <p className={res.reussie ? "font-semibold text-emerald-300" : "font-semibold text-rose-200"}>
             {res.reussie
-              ? "Réussi : les 10 images fautives sont refusées."
-              : `Échec : ${res.resultats.filter((r) => r.verdict !== "refusée").length} image(s) fautive(s) non refusée(s). Ne modifiez pas la relectrice en production.`}
+              ? "Réussi : les images fautives sont refusées pour la bonne raison, les bonnes sont acceptées."
+              : `Échec : ${res.resultats.filter((r) => !r.juste).length} verdict(s) faux sur ${res.resultats.length}. Ne gardez pas cette modification de la relectrice.`}
           </p>
           <ul className="space-y-1">
             {res.resultats.map((r) => (
               <li key={r.id}>
-                <strong>{r.verdict === "refusée" ? "✓" : "✗"} {r.id}</strong> — attendu : {r.defaut} · {r.verdict}
+                <strong>{r.juste ? "✓" : "✗"} {r.id}</strong> — {r.attendu === "refusée" ? `défaut : ${r.defaut}` : "bonne image"} · attendu {r.attendu}, obtenu {r.verdict}
                 {r.correction ? <span className="text-magique-texteClair"> · « {r.correction.slice(0, 160)} »</span> : null}
               </li>
             ))}

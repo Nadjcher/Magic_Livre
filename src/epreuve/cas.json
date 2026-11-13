@@ -13,7 +13,14 @@
     "description": "PLUSH TOY, never alive: a soft plush teddy bear, light brown fur, cream-coloured muzzle, round ears, friendly stitched face"
    }
   ],
-  "defaut": "le doudou est un chien au lieu de l'ours Caramel"
+  "defaut": "le doudou est un chien au lieu de l'ours Caramel",
+  "attendu": "refusée",
+  "motif": [
+   "dog",
+   "bear",
+   "teddy",
+   "plush"
+  ]
  },
  {
   "id": "poucet-p02",
@@ -29,7 +36,11 @@
     "description": "PLUSH TOY, never alive: a soft plush teddy bear, light brown fur, cream-coloured muzzle, round ears, friendly stitched face"
    }
   ],
-  "defaut": "cheveux de Léo bruns presque noirs (portrait : blond roux)"
+  "defaut": "cheveux de Léo bruns presque noirs (portrait : blond roux)",
+  "attendu": "refusée",
+  "motif": [
+   "hair"
+  ]
  },
  {
   "id": "poucet-p07",
@@ -50,7 +61,17 @@
     "description": "PLUSH TOY, never alive: a soft plush teddy bear, light brown fur, cream-coloured muzzle, round ears, friendly stitched face"
    }
   ],
-  "defaut": "Poucet trop grand (à hauteur de tête de Léo accroupi)"
+  "defaut": "Poucet trop grand (à hauteur de tête de Léo accroupi)",
+  "attendu": "refusée",
+  "motif": [
+   "small",
+   "tiny",
+   "size",
+   "smaller",
+   "knee",
+   "chest",
+   "scale"
+  ]
  },
  {
   "id": "poucet-p08",
@@ -71,7 +92,13 @@
     "description": "PLUSH TOY, never alive: a soft plush teddy bear, light brown fur, cream-coloured muzzle, round ears, friendly stitched face"
    }
   ],
-  "defaut": "chemin pavé au lieu de cailloux séparés"
+  "defaut": "chemin pavé au lieu de cailloux séparés",
+  "attendu": "refusée",
+  "motif": [
+   "paved",
+   "pebble",
+   "stepping"
+  ]
  },
  {
   "id": "poucet-p09",
@@ -92,7 +119,18 @@
     "description": "PLUSH TOY, never alive: a soft plush teddy bear, light brown fur, cream-coloured muzzle, round ears, friendly stitched face"
    }
   ],
-  "defaut": "Poucet trop grand"
+  "defaut": "Poucet trop grand",
+  "attendu": "refusée",
+  "motif": [
+   "small",
+   "tiny",
+   "size",
+   "smaller",
+   "knee",
+   "scale",
+   "paved",
+   "pebble"
+  ]
  },
  {
   "id": "noel-p01",
@@ -108,7 +146,14 @@
     "description": "PLUSH TOY, never alive: a soft plush teddy bear, light brown fur, cream-colored muzzle, round ears, friendly stitched face"
    }
   ],
-  "defaut": "le parent ressemble à un enfant, en pyjama comme Léo"
+  "defaut": "le parent ressemble à un enfant, en pyjama comme Léo",
+  "attendu": "refusée",
+  "motif": [
+   "adult",
+   "parent",
+   "papa",
+   "child"
+  ]
  },
  {
   "id": "noel-p05",
@@ -134,7 +179,13 @@
     "description": "TINY ELF the size of a teacup (ALWAYS this size), a grumpy little elf with a short white beard, bushy eyebrows, a pointed RED felt hat, a brown leather apron, holding a tiny awl; never looks like the "
    }
   ],
-  "defaut": "le doudou est un chat"
+  "defaut": "le doudou est un chat",
+  "attendu": "refusée",
+  "motif": [
+   "cat",
+   "bear",
+   "teddy"
+  ]
  },
  {
   "id": "noel-p06",
@@ -160,7 +211,16 @@
     "description": "TINY ELF the size of a teacup (ALWAYS this size), a grumpy little elf with a short white beard, bushy eyebrows, a pointed RED felt hat, a brown leather apron, holding a tiny awl; never looks like the "
    }
   ],
-  "defaut": "lutin aussi grand que l'enfant"
+  "defaut": "lutin aussi grand que l'enfant",
+  "attendu": "refusée",
+  "motif": [
+   "small",
+   "tiny",
+   "size",
+   "smaller",
+   "knee",
+   "scale"
+  ]
  },
  {
   "id": "noel-p08",
@@ -186,7 +246,18 @@
     "description": "PLUSH TOY, never alive: a soft plush teddy bear, light brown fur, cream-colored muzzle, round ears, friendly stitched face"
    }
   ],
-  "defaut": "lutins de taille d'enfant assis sur des chaises, Léo absent"
+  "defaut": "lutins de taille d'enfant assis sur des chaises, Léo absent",
+  "attendu": "refusée",
+  "motif": [
+   "small",
+   "tiny",
+   "size",
+   "léo",
+   "leo",
+   "hero",
+   "chair",
+   "scale"
+  ]
  },
  {
   "id": "noel-p10",
@@ -202,6 +273,233 @@
     "description": "PLUSH TOY, never alive: a soft plush teddy bear, light brown fur, cream-colored muzzle, round ears, friendly stitched face"
    }
   ],
-  "defaut": "rectangle blanc vide en haut à droite"
+  "defaut": "rectangle blanc vide en haut à droite",
+  "attendu": "refusée",
+  "motif": [
+   "blank",
+   "white area",
+   "empty",
+   "unpainted"
+  ]
+ },
+ {
+  "id": "bon-poucet-v2-p01",
+  "image": "bon-poucet-v2-p01.jpg",
+  "style": "anim3d",
+  "scene": "A cosy child's bedroom at night lit by a warm bedside lamp: Léo sits in bed under the duvet hugging Caramel; Papa (seen from behind, face not shown) sits on the edge of the bed opening a worn old storybook with a soft faded cover; a white pencil lies on the bedside table.",
+  "heros": "poucet-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft plush teddy bear, light brown fur, cream-coloured muzzle, round ea",
+  "cast": [
+   {
+    "nom": "Caramel",
+    "image": "poucet-fiche-caramel.jpg",
+    "description": "see sheet"
+   }
+  ],
+  "defaut": "aucun (bonne image)",
+  "attendu": "acceptée",
+  "motif": []
+ },
+ {
+  "id": "bon-poucet-v2-p07",
+  "image": "bon-poucet-v2-p07.jpg",
+  "style": "anim3d",
+  "scene": "In the storybook forest, Léo crouches and draws a crooked white stone on the ground with a white pencil; the freshly drawn stone puffs up and glows; Poucet leans over, laughing for the first time and twisting his red bonnet shyly; Caramel sits beside Léo.",
+  "heros": "poucet-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft plush teddy bear, light brown fur, cream-coloured muzzle, round ea",
+  "cast": [
+   {
+    "nom": "Poucet",
+    "image": "poucet-fiche-poucet.jpg",
+    "description": "see sheet"
+   },
+   {
+    "nom": "Caramel",
+    "image": "poucet-fiche-caramel.jpg",
+    "description": "see sheet"
+   }
+  ],
+  "defaut": "aucun (bonne image)",
+  "attendu": "acceptée",
+  "motif": []
+ },
+ {
+  "id": "bon-poucet-p10",
+  "image": "bon-poucet-p10.jpg",
+  "style": "anim3d",
+  "scene": "The old storybook lies open on the duvet showing the forest with a trail of separate small crooked glowing white pebbles of unequal sizes, spaced apart with grass between them (never a paved path, never stepping stones); Papa's hand rests gently on the page near the corner where the next page shows a large boot sticking out of a bush; Léo drifts to sleep against the pillow with Caramel against their cheek; the white pencil back on the bedside table; soft lamplight.",
+  "heros": "poucet-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft plush teddy bear, light brown fur, cream-coloured muzzle, round ea",
+  "cast": [
+   {
+    "nom": "Caramel",
+    "image": "poucet-fiche-caramel.jpg",
+    "description": "see sheet"
+   }
+  ],
+  "defaut": "aucun (bonne image)",
+  "attendu": "acceptée",
+  "motif": []
+ },
+ {
+  "id": "bon-style-anim3d",
+  "image": "bon-style-anim3d.jpg",
+  "style": "anim3d",
+  "scene": "In the storybook forest at night, Léo crouches and draws a crooked white stone on the ground with a white pencil; the freshly drawn stone puffs up and glows and is the main light, lighting his face; next to him Poucet stands ON TOP OF A MUSHROOM, laughing for the first time and twisting his red bonnet shyly; a second white pencil lies on the ground beside the mushroom and Poucet is about as tall as that pencil; Caramel the teddy bear sits beside Léo.",
+  "heros": "poucet-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft light-brown plush teddy bear with round ears, a cream muzzle, smal",
+  "cast": [
+   {
+    "nom": "Poucet",
+    "image": "poucet-fiche-poucet.jpg",
+    "description": "tiny boy, red bonnet"
+   },
+   {
+    "nom": "Caramel",
+    "image": "poucet-fiche-caramel.jpg",
+    "description": "light-brown plush teddy bear"
+   }
+  ],
+  "defaut": "aucun (bonne image)",
+  "attendu": "acceptée",
+  "motif": []
+ },
+ {
+  "id": "bon-style-maison",
+  "image": "bon-style-maison.jpg",
+  "style": "maison",
+  "scene": "In the storybook forest at night, Léo crouches and draws a crooked white stone on the ground with a white pencil; the freshly drawn stone puffs up and glows and is the main light, lighting his face; next to him Poucet stands ON TOP OF A MUSHROOM, laughing for the first time and twisting his red bonnet shyly; a second white pencil lies on the ground beside the mushroom and Poucet is about as tall as that pencil; Caramel the teddy bear sits beside Léo.",
+  "heros": "poucet-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft light-brown plush teddy bear with round ears, a cream muzzle, smal",
+  "cast": [
+   {
+    "nom": "Poucet",
+    "image": "poucet-fiche-poucet.jpg",
+    "description": "tiny boy, red bonnet"
+   },
+   {
+    "nom": "Caramel",
+    "image": "poucet-fiche-caramel.jpg",
+    "description": "light-brown plush teddy bear"
+   }
+  ],
+  "defaut": "aucun (bonne image)",
+  "attendu": "acceptée",
+  "motif": []
+ },
+ {
+  "id": "bon-style-feerique",
+  "image": "bon-style-feerique.jpg",
+  "style": "feerique",
+  "scene": "In the storybook forest at night, Léo crouches and draws a crooked white stone on the ground with a white pencil; the freshly drawn stone puffs up and glows and is the main light, lighting his face; next to him Poucet stands ON TOP OF A MUSHROOM, laughing for the first time and twisting his red bonnet shyly; a second white pencil lies on the ground beside the mushroom and Poucet is about as tall as that pencil; Caramel the teddy bear sits beside Léo.",
+  "heros": "poucet-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft light-brown plush teddy bear with round ears, a cream muzzle, smal",
+  "cast": [
+   {
+    "nom": "Poucet",
+    "image": "poucet-fiche-poucet.jpg",
+    "description": "tiny boy, red bonnet"
+   },
+   {
+    "nom": "Caramel",
+    "image": "poucet-fiche-caramel.jpg",
+    "description": "light-brown plush teddy bear"
+   }
+  ],
+  "defaut": "aucun (bonne image)",
+  "attendu": "acceptée",
+  "motif": []
+ },
+ {
+  "id": "bon-style-aventure",
+  "image": "bon-style-aventure.jpg",
+  "style": "aventure",
+  "scene": "In the storybook forest at night, Léo crouches and draws a crooked white stone on the ground with a white pencil; the freshly drawn stone puffs up and glows and is the main light, lighting his face; next to him Poucet stands ON TOP OF A MUSHROOM, laughing for the first time and twisting his red bonnet shyly; a second white pencil lies on the ground beside the mushroom and Poucet is about as tall as that pencil; Caramel the teddy bear sits beside Léo.",
+  "heros": "poucet-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft light-brown plush teddy bear with round ears, a cream muzzle, smal",
+  "cast": [
+   {
+    "nom": "Poucet",
+    "image": "poucet-fiche-poucet.jpg",
+    "description": "tiny boy, red bonnet"
+   },
+   {
+    "nom": "Caramel",
+    "image": "poucet-fiche-caramel.jpg",
+    "description": "light-brown plush teddy bear"
+   }
+  ],
+  "defaut": "aucun (bonne image)",
+  "attendu": "acceptée",
+  "motif": []
+ },
+ {
+  "id": "bon-style-crayon",
+  "image": "bon-style-crayon.jpg",
+  "style": "crayon",
+  "scene": "In the storybook forest at night, Léo crouches and draws a crooked white stone on the ground with a white pencil; the freshly drawn stone puffs up and glows and is the main light, lighting his face; next to him Poucet stands ON TOP OF A MUSHROOM, laughing for the first time and twisting his red bonnet shyly; a second white pencil lies on the ground beside the mushroom and Poucet is about as tall as that pencil; Caramel the teddy bear sits beside Léo.",
+  "heros": "poucet-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft light-brown plush teddy bear with round ears, a cream muzzle, smal",
+  "cast": [
+   {
+    "nom": "Poucet",
+    "image": "poucet-fiche-poucet.jpg",
+    "description": "tiny boy, red bonnet"
+   },
+   {
+    "nom": "Caramel",
+    "image": "poucet-fiche-caramel.jpg",
+    "description": "light-brown plush teddy bear"
+   }
+  ],
+  "defaut": "aucun (bonne image)",
+  "attendu": "acceptée",
+  "motif": []
+ },
+ {
+  "id": "bon-style-realiste",
+  "image": "bon-style-realiste.jpg",
+  "style": "realiste",
+  "scene": "In the storybook forest at night, Léo crouches and draws a crooked white stone on the ground with a white pencil; the freshly drawn stone puffs up and glows and is the main light, lighting his face; next to him Poucet stands ON TOP OF A MUSHROOM, laughing for the first time and twisting his red bonnet shyly; a second white pencil lies on the ground beside the mushroom and Poucet is about as tall as that pencil; Caramel the teddy bear sits beside Léo.",
+  "heros": "poucet-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft light-brown plush teddy bear with round ears, a cream muzzle, smal",
+  "cast": [
+   {
+    "nom": "Poucet",
+    "image": "poucet-fiche-poucet.jpg",
+    "description": "tiny boy, red bonnet"
+   },
+   {
+    "nom": "Caramel",
+    "image": "poucet-fiche-caramel.jpg",
+    "description": "light-brown plush teddy bear"
+   }
+  ],
+  "defaut": "aucun (bonne image)",
+  "attendu": "acceptée",
+  "motif": []
+ },
+ {
+  "id": "bon-style-aquarelle",
+  "image": "bon-style-aquarelle.jpg",
+  "style": "aquarelle",
+  "scene": "In the storybook forest at night, Léo crouches and draws a crooked white stone on the ground with a white pencil; the freshly drawn stone puffs up and glows and is the main light, lighting his face; next to him Poucet stands ON TOP OF A MUSHROOM, laughing for the first time and twisting his red bonnet shyly; a second white pencil lies on the ground beside the mushroom and Poucet is about as tall as that pencil; Caramel the teddy bear sits beside Léo.",
+  "heros": "poucet-fiche-heros.jpg",
+  "tenue": "Léo (hero): soft yellow pyjamas with small orange moons, felt slippers — same outfit on every page. Caramel (the child's cuddly toy, never alive): a soft light-brown plush teddy bear with round ears, a cream muzzle, smal",
+  "cast": [
+   {
+    "nom": "Poucet",
+    "image": "poucet-fiche-poucet.jpg",
+    "description": "tiny boy, red bonnet"
+   },
+   {
+    "nom": "Caramel",
+    "image": "poucet-fiche-caramel.jpg",
+    "description": "light-brown plush teddy bear"
+   }
+  ],
+  "defaut": "aucun (bonne image)",
+  "attendu": "acceptée",
+  "motif": []
  }
 ]

@@ -1,7 +1,10 @@
 /**
- * Jeu d'épreuve de la relectrice d'images : dix images aux défauts connus
- * (tirées des livres de test du 13 novembre). Après toute modification de la
- * relectrice, elle doit les refuser TOUTES. Coût : environ 0,30 $ par passage.
+ * Jeu d'épreuve de la relectrice d'images (livres de test du 13 novembre) :
+ *  - dix images aux défauts connus, à refuser POUR LA BONNE RAISON (la
+ *    correction doit nommer le défaut, sinon la page refaite ne le corrige pas) ;
+ *  - dix bonnes images, à accepter (une relectrice trop sévère ferait refaire
+ *    une image sur deux sans qu'on le sache).
+ * À lancer seulement après une modification de la relectrice : environ 0,60 $.
  * Né d'un vrai incident : pendant des semaines, la relectrice laissait tout
  * passer sans relire, et personne ne le voyait.
  */
@@ -23,13 +26,19 @@ interface Cas {
   tenue: string;
   cast: { nom: string; image: string; description: string }[];
   defaut: string;
+  attendu: "refusée" | "acceptée";
+  /** Mots dont l'un au moins doit figurer dans la correction (motif du refus). */
+  motif: string[];
 }
 
 export interface ResultatEpreuve {
   id: string;
   defaut: string;
+  attendu: "refusée" | "acceptée";
   verdict: "refusée" | "acceptée" | "non vérifiée";
   correction: string;
+  /** Verdict attendu ET, pour un refus, motif juste. */
+  juste: boolean;
 }
 
 const lire = async (f: string) => ({ base64: (await readFile(path.join(DOSSIER, f))).toString("base64"), mime: "image/jpeg" });
@@ -45,13 +54,11 @@ export async function lancerEpreuve(): Promise<{ resultats: ResultatEpreuve[]; r
         c.scene,
         grillePour(c.style),
       );
-      return {
-        id: c.id,
-        defaut: c.defaut,
-        verdict: v.nonVerifiee ? "non vérifiée" : v.ok ? "acceptée" : "refusée",
-        correction: v.fix,
-      };
+      const verdict = v.nonVerifiee ? "non vérifiée" : v.ok ? "acceptée" : "refusée";
+      const correction = v.fix.toLowerCase();
+      const motifJuste = c.motif.length === 0 || c.motif.some((m) => correction.includes(m.toLowerCase()));
+      return { id: c.id, defaut: c.defaut, attendu: c.attendu, verdict, correction: v.fix, juste: verdict === c.attendu && (c.attendu === "acceptée" || motifJuste) };
     }),
   );
-  return { resultats, reussie: resultats.every((r) => r.verdict === "refusée") };
+  return { resultats, reussie: resultats.every((r) => r.juste) };
 }
