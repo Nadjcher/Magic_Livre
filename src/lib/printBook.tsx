@@ -30,6 +30,7 @@ import {
   pdfText,
   polices,
   tailleTexte,
+  texteAlbum,
   texteLivre,
 } from "./pdf";
 
@@ -138,7 +139,7 @@ export function buildPrintDocument(story: Story, prenom: string, images: ImagesI
 
   // Une seule taille de texte pour tout le livre (celle de la page la plus longue).
   const plusLong = story.pages.reduce((m, p) => Math.max(m, separerChapitre(p.texte).corps.length), 0);
-  const tailleLivre = Math.min(tailleTexte("x".repeat(plusLong)) + (LIVRE_CARRE ? 5 : 8), LIVRE_CARRE ? 26 : 34);
+  const album = texteAlbum(PAGE_L - 2 * MARGE, PAGE_H - 2 * MARGE - 40, plusLong);
 
   // Histoire : texte seul à gauche (pages paires), illustration pleine page à droite (impaires).
   story.pages.forEach((p, i) => {
@@ -146,14 +147,16 @@ export function buildPrintDocument(story: Story, prenom: string, images: ImagesI
     const { chapitre, corps } = separerChapitre(p.texte);
     const texte = sur(corps);
     interieures.push(
-      <Page key={`t${i}`} size={[PAGE_L, PAGE_H]} style={{ backgroundColor: PAPIER, paddingHorizontal: MARGE * 1.6, paddingVertical: MARGE, justifyContent: "center" }}>
-        <Ornement />
-        {chapitre ? (
-          <Text style={{ fontFamily: f.titre, fontSize: 18, color: "#5B6598", marginBottom: 12, textAlign: "center" }}>{sur(chapitre)}</Text>
-        ) : null}
-        <Text style={{ fontFamily: f.texte, fontWeight: 500, fontSize: tailleLivre, lineHeight: 1.55, color: ENCRE, textAlign: "center" }}>
-          {texte}
-        </Text>
+      <Page key={`t${i}`} size={[PAGE_L, PAGE_H]} style={{ backgroundColor: PAPIER, paddingVertical: MARGE, alignItems: "center" }}>
+        <View style={{ flex: 1, width: album.largeur, justifyContent: "center", alignItems: "center" }}>
+          <Ornement />
+          {chapitre ? (
+            <Text style={{ fontFamily: f.titre, fontSize: 18, color: "#5B6598", marginBottom: 12, textAlign: "center" }}>{sur(chapitre)}</Text>
+          ) : null}
+          <Text style={{ fontFamily: f.texte, fontWeight: 500, fontSize: album.taille, lineHeight: 1.55, color: ENCRE, textAlign: "center" }}>
+            {texte}
+          </Text>
+        </View>
         {numero(kTexte, true)}
       </Page>,
     );

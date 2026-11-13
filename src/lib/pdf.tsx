@@ -91,6 +91,21 @@ export const PAPIER = "#FBF8F3";
 export const ENCRE = "#2A2F4F";
 export const ROSE = "#D4698C";
 
+/**
+ * Mise en page d'une page de texte d'album : la taille qui remplit la page,
+ * environ 7 mots par ligne (6 à 8), le bloc centré dans la hauteur.
+ * `largeurPage`, `hauteurUtile` en points ; `caracteres` : la page la plus longue du livre.
+ */
+export function texteAlbum(largeurPage: number, hauteurUtile: number, caracteres: number): { taille: number; largeur: number } {
+  const n = Math.max(caracteres, 60);
+  const largeurMax = largeurPage * 0.8;
+  // Surface d'un caractère en Nunito : ~0,52 × taille de large, 1,55 × taille de haut (interligne).
+  const taille = Math.max(15, Math.min(30, Math.sqrt((largeurMax * hauteurUtile) / (0.806 * n)) * 0.98));
+  // Environ 38 caractères (6 à 8 mots) par ligne.
+  const largeur = Math.min(largeurMax, 38 * 0.52 * taille);
+  return { taille: Math.round(taille * 10) / 10, largeur };
+}
+
 /** Taille du texte selon sa longueur (imagier très gros, mini-roman plus petit). */
 export function tailleTexte(t: string): number {
   const n = t.length;
@@ -165,7 +180,7 @@ export function buildStoryDocument(story: Story, childName?: string): JSX.Elemen
   // Images carrées (styles de la bible visuelle) : pleine page ; sinon l'image entière, centrée.
   const carre = estCarre(story.style);
   const plusLong = story.pages.reduce((m, p) => Math.max(m, separerChapitre(p.texte).corps.length), 0);
-  const tailleLivre = Math.min(Math.max(tailleTexte("x".repeat(plusLong)) + 6, 15), 24);
+  const album = texteAlbum(COTE, COTE - 110, plusLong);
   const numero = (k: number) => (
     <Text style={{ position: "absolute", bottom: 22, left: 0, right: 0, textAlign: "center", fontFamily: f.texte, fontSize: 9, color: "#8A90B4" }}>
       {k}
@@ -223,12 +238,14 @@ export function buildStoryDocument(story: Story, childName?: string): JSX.Elemen
           );
         }
         pages.push(
-          <Page key={`t${index}`} size={PAGE} style={{ backgroundColor: PAPIER, paddingHorizontal: 66, paddingVertical: 60, justifyContent: "center" }}>
-            <Ornement />
-            {chapitre ? (
-              <Text style={{ fontFamily: f.titre, fontSize: 15, color: "#5B6598", marginBottom: 10, textAlign: "center" }}>{chapitre}</Text>
-            ) : null}
-            <Text style={{ fontFamily: f.texte, fontWeight: 500, fontSize: tailleLivre, lineHeight: 1.6, color: ENCRE, textAlign: "center" }}>{corps}</Text>
+          <Page key={`t${index}`} size={PAGE} style={{ backgroundColor: PAPIER, paddingVertical: 50, alignItems: "center" }}>
+            <View style={{ flex: 1, width: album.largeur, justifyContent: "center", alignItems: "center" }}>
+              <Ornement />
+              {chapitre ? (
+                <Text style={{ fontFamily: f.titre, fontSize: 15, color: "#5B6598", marginBottom: 10, textAlign: "center" }}>{chapitre}</Text>
+              ) : null}
+              <Text style={{ fontFamily: f.texte, fontWeight: 500, fontSize: album.taille, lineHeight: 1.55, color: ENCRE, textAlign: "center" }}>{corps}</Text>
+            </View>
             {numero(index + 1)}
           </Page>,
         );

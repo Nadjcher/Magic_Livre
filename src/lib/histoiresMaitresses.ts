@@ -74,7 +74,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       },
     ],
     couverture:
-      "Book cover, medium shot: {prenom} and Poucet seen from behind walking hand in hand along a trail of separate small crooked glowing white pebbles of unequal sizes, spaced apart with grass between them (never a paved path, never stepping stones) into a soft storybook forest; {prenom} holds {doudou} under one arm and a white pencil in the other hand; warm golden light at the end of the path; calm dark-blue sky with stars in the upper third.",
+      "Book cover, medium shot: {prenom} seen from behind walks with tiny Poucet (toy-figurine size, his red bonnet below {prenom}'s knee) who rides standing on a little mushroom-shaped stone at {prenom}'s side, along a trail of separate small crooked glowing white pebbles of unequal sizes, spaced apart with grass between them (never a paved path, never stepping stones) into a soft storybook forest; {prenom} holds {doudou} under one arm and a white pencil in the other hand; warm golden light at the end of the path; calm dark-blue sky with stars in the upper third.",
     pages: [
       {
         texte:
@@ -99,14 +99,14 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "Dans le livre, les arbres sentaient l'encre, et la mousse le vieux papier. Un garçon haut comme une botte fouillait sous les fougères : Poucet ! « Mes cailloux se sont effacés, je ne sais pas pourquoi. — Je peux t'aider, dit {prenom}. — Pas besoin, je trouve toujours le chemin. » Au loin, le géant ronflait, et le bord de la page s'assombrit.",
         scene:
-          "Inside a soft storybook forest: {prenom}, holding {doudou} and a white pencil, offers help to Poucet, who searches under the ferns with his chin raised proudly; in the background his six little brothers (same tiny size, plain clothes, no bonnets) wait huddled together against a tree trunk; the edges of the scene slightly darker, the leaves trembling as if from a distant snore.",
+          "Inside a soft storybook forest: {prenom}, holding {doudou} and a white pencil, offers help to Poucet, a tiny BOY in his RED KNITTED BONNET and brown jacket, standing on a mushroom so his small size is obvious, chin raised proudly while he searches under the ferns; in the background his six little brothers (same tiny size, plain clothes, NO bonnets, so Poucet is the only one in red) wait huddled together against a tree trunk; the edges of the scene slightly darker, the leaves trembling as if from a distant snore.",
         presents: ["Poucet"],
       },
       {
         texte:
           "Poucet sortit un bout de pain de sa poche. Il sema des miettes en chantonnant : « Petit caillou blanc, montre-nous le chemin. » Trois merles gourmands se faufilèrent et picorèrent jusqu'à la dernière miette. Le bord de la page devint plus sombre. Poucet haussa les épaules, mais son menton tremblait un peu. Sans rien dire, {prenom} lui tendit {doudou}. Poucet serra {doudou} contre lui, juste un petit peu.",
         scene:
-          "In the storybook forest, three cheeky blackbirds peck up the last breadcrumbs on the path; Poucet, chin trembling, holds {doudou} that {prenom} has just handed to him; {prenom} watches kindly; the edges of the scene grow darker.",
+          "In the storybook forest, three cheeky blackbirds peck up the last breadcrumbs on the path; Poucet, chin trembling, stands ON A MUSHROOM (toy-figurine size, his red bonnet below {prenom}'s chest as {prenom} kneels) and hugs {doudou}, which is bigger than him, that {prenom} has just handed to him; {prenom} kneels and watches kindly; the edges of the scene grow darker.",
         presents: ["Poucet"],
       },
       {
@@ -127,7 +127,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "{prenom} dessina, et Poucet montra où aller. « Par là, après la souche ! Ici, près du ruisseau ! » Les cailloux étaient un peu tordus, mais ils brillaient tous. Alors {prenom} et Poucet dirent ensemble : « Petit caillou blanc, montre-nous le chemin. » Et le chemin s'allongea entre les arbres, caillou après caillou.",
         scene:
-          "Seen from behind, {prenom} with {doudou} under one arm walks beside Poucet along a trail of separate small crooked glowing white pebbles of unequal sizes, spaced apart with grass between them (never a paved path, never stepping stones) winding into the storybook forest, past a tree stump and a little stream; hopeful warm glow.",
+          "Seen from behind, {prenom} with {doudou} under one arm walks beside tiny Poucet (knee-high) along a trail of separate small crooked glowing white pebbles of unequal sizes, each pebble alone with green grass clearly visible around it and a gap the size of a footstep between two pebbles (never a continuous white line, never a paved path, never stepping stones), winding into the storybook forest, past a tree stump and a little stream; hopeful warm glow.",
         presents: ["Poucet"],
       },
       {
@@ -148,7 +148,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
     passages: {
       comparaison: {
         consigne:
-          "Comparer le caillou qui brille à un objet rond et familier du monde de l'enfant (tiré de ce qu'il aime, de son doudou ou de son quotidien). Commence par « rond comme » ou « doux comme ».",
+          "Comparer la FORME ou la BRILLANCE du caillou qui brille à quelque chose de familier du monde de l'enfant (tiré de ce qu'il aime, de son doudou ou de son quotidien), JAMAIS sa taille : le caillou est minuscule (pas de « gros », « grand », « énorme »). Commence par « rond comme » ou « doux comme ».",
         defaut: "rond comme une bille de la cour de récré",
         motsMax: 10,
       },
@@ -344,6 +344,8 @@ export function passageValide(cle: string, texte: string, h: HistoireMaitresse):
   if (/[«»"{}[\]\n]|\d|bouche|sourire|visage|illustration|image/i.test(t)) return false;
   // Une majuscule après le premier mot = un nom propre (marque, personnage connu, dessin animé) : refusé.
   if (/\s\p{Lu}/u.test(t) || /[®™]/.test(t)) return false;
+  // La comparaison du caillou ne parle jamais de sa taille (il est minuscule).
+  if (cle === "comparaison" && /\b(gros|grosse|grand|grande|énorme|immense|géant|géante)\b/i.test(t)) return false;
   // Même début que le texte par défaut (« rond comme », « Il sortit »…) : la phrase s'insère sans couture.
   const debut = def.defaut.split(/\s+/).slice(0, 2).join(" ").toLowerCase();
   const debutAlt = cle === "comparaison" ? ["rond comme", "doux comme", "ronde comme"] : [debut];
