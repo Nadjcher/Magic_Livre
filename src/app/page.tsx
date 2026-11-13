@@ -11,7 +11,7 @@ import { titreCouvertureTheme } from "@/lib/titrePrenom";
 import CouvertureLivre, { prenomExemple } from "@/components/CouvertureLivre";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PLANS_CLUB } from "@/lib/products";
+import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PLANS_CLUB, mentionLancementImprime } from "@/lib/products";
 import AgeExplorer from "@/components/AgeExplorer";
 import WaitlistForm from "@/components/WaitlistForm";
 import { DATE_OUVERTURE, ventesOuvertes } from "@/lib/lancement";
@@ -102,7 +102,7 @@ const FAQ = [
   },
   {
     q: "C'est vraiment gratuit ?",
-    r: "Oui. Créer le livre et lire toute l'histoire à l'écran ne coûte rien : la couverture et les 3 premières pages sont illustrées. Vous payez seulement pour garder le livre entièrement illustré (PDF et kit), en une fois, sans abonnement.",
+    r: "Oui. Créer le livre et lire toute l'histoire à l'écran ne coûte rien : la couverture et les 3 premières pages sont illustrées. Vous payez seulement pour garder le livre entièrement illustré (PDF et kit), en une fois, sans abonnement. Un livre gratuit par compte : pour en créer un autre, gardez d'abord le premier.",
   },
   {
     q: "Combien de temps faut-il ?",
@@ -200,7 +200,8 @@ export default async function AccueilPage() {
             </div>
             <p className="mt-4 max-w-[48ch] text-[15px] leading-relaxed text-magique-texte">
               Vous lisez toute l'histoire avant de payer, sans carte bancaire. Vous la gardez pour {prix}, ou
-              reliée en couverture rigide pour {euros(LIVRE_IMPRIME.priceCents)}.
+              reliée en couverture rigide pour {euros(LIVRE_IMPRIME.priceCents)}
+              {mentionLancementImprime() ? " (prix de lancement)" : ""}.
             </p>
             {!ventesOuvertes() && (
               <p className="mt-2 max-w-[52ch] text-sm text-or-clair">
@@ -434,6 +435,7 @@ export default async function AccueilPage() {
             </span>
             <h3 className="text-xl">Le livre imprimé</h3>
             <p className="mt-2 font-serif text-4xl text-magique-texte">{euros(LIVRE_IMPRIME.priceCents)}</p>
+            {mentionLancementImprime() && <p className="mt-1 text-xs text-or-clair">{mentionLancementImprime()}</p>}
             <ul className="mt-5 flex-1 space-y-2.5 text-[15px]">
               <li className="flex gap-2"><Coche />Relié, couverture rigide, 28 × 21 cm</li>
               <li className="flex gap-2"><Coche />30 pages, prêt à offrir</li>

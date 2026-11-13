@@ -7,7 +7,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { identiteLegale, VERSION_CGV } from "@/lib/legal";
-import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PAYS_LIVRAISON, PLANS_CLUB, PRIX_IMPRIME_ABONNE, formatEuros } from "@/lib/products";
+import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PAYS_LIVRAISON, PLANS_CLUB, PRIX_IMPRIME_ABONNE, formatEuros, mentionLancementImprime } from "@/lib/products";
 import { env } from "@/lib/env";
 
 export const metadata: Metadata = {
@@ -57,7 +57,10 @@ export default function CgvPage() {
           <li key={p.sku}>{p.label} : {formatEuros(p.priceCents)} ;</li>
         ))}
         <li>la {PACK_TOUT.label.toLowerCase()} (livre PDF, kit et produits ci-dessus) : {formatEuros(PACK_TOUT.priceCents)} ;</li>
-        <li>le {LIVRE_IMPRIME.label.toLowerCase()} (28 × 21 cm, 30 pages), livraison incluse : {formatEuros(LIVRE_IMPRIME.priceCents)}.</li>
+        <li>
+          le {LIVRE_IMPRIME.label.toLowerCase()} (28 × 21 cm, 30 pages), livraison incluse : {formatEuros(LIVRE_IMPRIME.priceCents)}
+          {mentionLancementImprime() ? ` (${mentionLancementImprime()!.toLowerCase()})` : ""}.
+        </li>
       </ul>
       <p>
         Les contenus étant générés automatiquement, de légères imperfections sont possibles. Vous pouvez faire

@@ -84,6 +84,22 @@ export const DELUXE_PRODUCTS: DeluxeProduct[] = [
 ];
 
 /** Livre imprimé et relié, expédié chez le client (imprimeur Gelato). */
+/**
+ * Prix du livre imprimé : 44,90 €, avec un prix de lancement de 39,90 €
+ * jusqu'au 31 décembre 2026 inclus. Pas de « prix barré » : en France, un prix
+ * barré doit avoir été réellement pratiqué ; on annonce donc la date de fin.
+ */
+export const PRIX_IMPRIME_NORMAL = 4490;
+export const PRIX_IMPRIME_LANCEMENT = 3990;
+export const FIN_LANCEMENT_IMPRIME = "2026-12-31T23:59:59+01:00";
+export function prixImprime(d = new Date()): number {
+  return d.getTime() <= Date.parse(FIN_LANCEMENT_IMPRIME) ? PRIX_IMPRIME_LANCEMENT : PRIX_IMPRIME_NORMAL;
+}
+/** Mention à afficher près du prix tant que dure le lancement (sinon null). */
+export function mentionLancementImprime(d = new Date()): string | null {
+  return prixImprime(d) === PRIX_IMPRIME_LANCEMENT ? "Prix de lancement jusqu'au 31 décembre, puis 44,90 €" : null;
+}
+
 export const LIVRE_IMPRIME: DeluxeProduct = {
   sku: "imprime",
   label: "Livre imprimé, couverture rigide",
@@ -91,7 +107,9 @@ export const LIVRE_IMPRIME: DeluxeProduct = {
   description:
     "Le vrai livre relié, 28 × 21 cm, couverture rigide, 30 pages sur papier épais : " +
     "l'histoire, ses personnages, des pages souvenir et à dessiner. Livré chez vous en 7 à 10 jours.",
-  priceCents: 3490,
+  get priceCents() {
+    return prixImprime();
+  },
   route: "",
   physique: true,
 };
@@ -122,7 +140,7 @@ export const PLANS_CLUB: Record<PlanClub, { label: string; priceCents: number; l
       "1 nouveau livre par semaine (4 par mois)",
       "Les grands classiques revisités, avec votre enfant en héros",
       "Le PDF et le kit de chaque livre inclus",
-      "Le livre imprimé à 24,90 € au lieu de 34,90 €",
+      "Le livre imprimé à 24,90 € (prix public : 39,90 €)",
     ],
   },
   clubplus: {
@@ -135,7 +153,7 @@ export const PLANS_CLUB: Record<PlanClub, { label: string; priceCents: number; l
       "Tous les livres en édition premium (illustrations haute qualité)",
       "Les grands classiques revisités",
       "Le PDF et le kit de chaque livre inclus",
-      "Le livre imprimé à 24,90 € au lieu de 34,90 €",
+      "Le livre imprimé à 24,90 € (prix public : 39,90 €)",
     ],
   },
 };

@@ -13,7 +13,7 @@
 
 import { revalidatePath } from "next/cache";
 import sharp from "sharp";
-import { plafondGratuitAtteint, noterLivreGratuit } from "@/lib/apercu";
+import { aUnApercuNonAchete, plafondGratuitAtteint, noterLivreGratuit } from "@/lib/apercu";
 import { lireFiche } from "@/lib/ficheEnfant";
 import { lirePhoto } from "@/lib/photo";
 import { herosValide, lireHeros, lireHerosParId, refHeros, validerHeros } from "@/lib/heros";
@@ -238,6 +238,16 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
   // Édition choisie : premium = illustrations haut de gamme + prix supérieur.
   const premium =
     abonnement.premium || formData.get("premium") === "on" || formData.get("premium") === "true";
+
+  // Un seul livre gratuit par compte, tant qu'il n'est pas acheté.
+  const seraApercu = !estAdmin(user.email) && !(abonnement.actif && abonnement.restants > 0);
+  if (seraApercu && (await aUnApercuNonAchete(user.id))) {
+    return {
+      ok: false,
+      message:
+        "Vous avez déjà votre livre gratuit. Pour en créer un nouveau, gardez d'abord celui-ci (PDF ou livre relié), ou rejoignez le Club.",
+    };
+  }
 
   // Crée le livre en statut « generating ».
   const book = await prisma.book.create({

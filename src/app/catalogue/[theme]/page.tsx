@@ -9,13 +9,16 @@ import { titreCouvertureTheme } from "@/lib/titrePrenom";
 import Picto from "@/components/Picto";
 import ApercuCouverture from "@/components/ApercuCouverture";
 import CouvertureLivre, { prenomExemple } from "@/components/CouvertureLivre";
-import { LIVRE_IMPRIME, formatEuros } from "@/lib/products";
+import { LIVRE_IMPRIME, formatEuros, mentionLancementImprime } from "@/lib/products";
 import { env } from "@/lib/env";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { THEMES, THEME_CATEGORIES, findThemeById, reserveClub, themeOuvert } from "@/lib/themes";
 import { getAppUrl } from "@/lib/appUrl";
+
+// Page statique, régénérée chaque jour (fin du prix de lancement au 31 décembre).
+export const revalidate = 86400;
 
 export function generateStaticParams() {
   return THEMES.map((t) => ({ theme: t.id }));
@@ -130,6 +133,7 @@ export default async function ThemePage(props: { params: Promise<{ theme: string
           <div className="p-3">
             <dt className="text-magique-texteClair">Livre relié</dt>
             <dd className="mt-1 font-serif text-lg font-semibold">{formatEuros(LIVRE_IMPRIME.priceCents)}</dd>
+            {mentionLancementImprime() && <dd className="mt-0.5 text-xs text-or-clair">{mentionLancementImprime()}</dd>}
           </div>
         </dl>
       </ApercuCouverture>

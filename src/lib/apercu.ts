@@ -45,6 +45,24 @@ export async function plafondGratuitAtteint(): Promise<boolean> {
   }
 }
 
+/**
+ * Un seul livre gratuit par compte : tant que son aperçu n'est pas acheté, le
+ * parent n'en crée pas un second (chaque aperçu coûte ~0,30 € d'illustrations).
+ * Un livre supprimé compte aussi, pour qu'on ne puisse pas recommencer en boucle.
+ */
+export async function aUnApercuNonAchete(userId: string): Promise<boolean> {
+  try {
+    const [r] = await prisma.$queryRaw<{ n: bigint }[]>`
+      SELECT COUNT(*)::bigint AS n FROM "Book" b
+      WHERE b."userId" = ${userId}
+        AND EXISTS (SELECT 1 FROM "Traitement" t WHERE t.cle LIKE 'gratuit:%:' || b.id)
+        AND NOT EXISTS (SELECT 1 FROM "Order" o WHERE o."bookId" = b.id AND o.status = 'paid')`;
+    return Number(r?.n ?? 0) > 0;
+  } catch {
+    return false; // jamais bloquant en cas de souci de base
+  }
+}
+
 /** Compte un livre gratuit pour aujourd'hui. */
 export async function noterLivreGratuit(bookId: string): Promise<void> {
   await reserver(`gratuit:${jourParis()}:${bookId}`).catch(() => undefined);
