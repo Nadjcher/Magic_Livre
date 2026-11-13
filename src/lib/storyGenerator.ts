@@ -740,7 +740,8 @@ export async function illustrateStory(
 ): Promise<{ story: Story; imageReport?: string }> {
   const debut = Date.now();
   const errors: string[] = [];
-  let illustre = await addIllustrations(story, req, portrait, errors);
+  // Reprise (livre sorti de la file d'attente) : les fiches existent, on ne dessine que ce qui manque.
+  let illustre = story.fiches?.heros ? await reparer(story, req, errors) : await addIllustrations(story, req, portrait, errors);
 
   const manquantes = () =>
     (illustre.couvertureUrl ? 0 : 1) +

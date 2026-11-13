@@ -6,3 +6,6 @@ export const EN_RELECTURE = "__en_relecture__";
 
 /** Marqueur « illustrations en relecture humaine » (une image fautive deux fois, style de la maison). */
 export const EN_RELECTURE_IMAGES = "__en_relecture_images__";
+
+/** Marqueur « en file d'attente » : le compte fal est bloqué, le livre repartira tout seul. */
+export const EN_ATTENTE_ILLUSTRATIONS = "__en_attente_illustrations__";

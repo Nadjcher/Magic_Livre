@@ -46,6 +46,23 @@ export async function notifierRelecture(bookId: string): Promise<void> {
   );
 }
 
+/** Histoire libre abandonnée après deux essais : on oriente vers une histoire toute prête. */
+export async function notifierEchecHistoire(bookId: string): Promise<void> {
+  const book = await prisma.book.findUnique({
+    where: { id: bookId },
+    select: { user: { select: { email: true } }, child: { select: { firstName: true } } },
+  });
+  if (!book?.user.email) return;
+  await emailAvecBouton(
+    book.user.email,
+    `L'histoire de ${book.child.firstName} : essayons autrement`,
+    "Cette idée ne nous a pas permis d'écrire une belle histoire",
+    `Nous relisons chaque histoire avant de vous la confier, et celle-ci ne nous a pas convaincus. Plutôt que de vous livrer un livre décevant, nous vous proposons nos histoires toutes prêtes, écrites et relues avec soin, où ${echapper(book.child.firstName)} sera le héros. Votre essai gratuit reste disponible.`,
+    `${getAppUrl()}/creer`,
+    "Choisir une histoire",
+  );
+}
+
 /**
  * Actions au passage d'une commande à « payée » (appelé une seule fois, au
  * moment exact de la transition) : livre imprimé envoyé à l'imprimeur, ou

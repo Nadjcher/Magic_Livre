@@ -3,8 +3,9 @@
  * dispose de ses 5 minutes) pour qu'un livre ne plante plus par manque de temps :
  *
  *   1. écriture (texte enregistré tout de suite : l'histoire n'est jamais perdue) ;
- *   2. illustrations + réparation automatique des images ratées, puis « prêt »
- *      et email au parent.
+ *   2. illustrations + relecture automatique des images, puis « prêt » et
+ *      email au parent ; si le crédit fal est épuisé, le livre attend son tour
+ *      (attenteIllustrations.ts) au lieu d'échouer.
  *
  * L'étape 2 est déclenchée par un appel interne signé (HMAC) ; si ce
  * déclenchement échoue, elle s'exécute sur place.
@@ -18,7 +19,6 @@ import { storySchema } from "./storySchema";
 import { PAGES_APERCU, illustrateStory, illustrerEpisode } from "./storyGenerator";
 import type { StoryRequest } from "./storyPrompt";
 import { alerterAdmin, notifierLivrePret } from "./notifications";
-import { EN_RELECTURE_IMAGES } from "./illustrationStatus";
 
 export interface EtapeIllustration {
   bookId: string;
@@ -70,18 +70,15 @@ export async function illustrerLivre({ bookId, req, portrait }: EtapeIllustratio
     const { story, imageReport } = episode
       ? await illustrerEpisode(parsed.data, req)
       : await illustrateStory(parsed.data, req, portrait);
-    // Une illustration fautive deux fois (bible visuelle) : le livre n'est pas livré incomplet, il attend la relecture.
-    if (story.imagesARevoir?.length) {
-      await prisma.book.update({
-        where: { id: bookId },
-        data: { status: "draft", title: story.titre, pages: story, errorMessage: EN_RELECTURE_IMAGES },
-      });
-      const { reserver } = await import("./idempotence");
-      const { notifierRelecture } = await import("./notifications");
-      if (await reserver(`relecture-email:${bookId}`)) await notifierRelecture(bookId).catch(() => undefined);
+    const visiblesAvant = story.apercu ? story.pages.slice(0, PAGES_APERCU) : story.pages;
+    const manquentAvant = (story.couvertureUrl ? 0 : 1) + visiblesAvant.filter((p) => !p.imageUrl).length;
+    const { falBloque, mettreEnAttente, nombreEnAttente, relancerEnAttente } = await import("./attenteIllustrations");
+    if (manquentAvant > 0 && falBloque(imageReport)) {
+      // Compte fal bloqué : le livre attend son tour au lieu d'échouer.
+      await mettreEnAttente(bookId, req, story);
       await alerterAdmin(
-        "des illustrations attendent votre relecture (sous 48 h)",
-        `Livre ${bookId} : ${story.imagesARevoir.length} image(s) refusée(s) deux fois par la relectrice d'images. Atelier : ${getAppUrl()}/admin/histoires`,
+        "crédit fal épuisé — des livres attendent leurs illustrations",
+        `Rechargez le compte sur fal.ai (Billing), puis cliquez « Relancer les livres en attente » dans l'atelier : ${getAppUrl()}/admin/histoires (sinon ils repartent seuls au prochain livre réussi, ou chaque nuit). Livre ${bookId} : ${imageReport}`,
       );
       return;
     }
@@ -89,6 +86,8 @@ export async function illustrerLivre({ bookId, req, portrait }: EtapeIllustratio
       where: { id: bookId },
       data: { status: "ready", title: story.titre, pages: story, errorMessage: imageReport ?? null },
     });
+    // Un livre complet : fal répond de nouveau, les livres en attente repartent.
+    if (manquentAvant === 0 && (await nombreEnAttente()) > 0) await relancerEnAttente().catch(() => undefined);
 
     if (episode) {
       // Un épisode se lit tout de suite dans l'application : pas d'email, sauf
@@ -100,13 +99,7 @@ export async function illustrerLivre({ bookId, req, portrait }: EtapeIllustratio
     const visibles = story.apercu ? story.pages.slice(0, PAGES_APERCU) : story.pages;
     const total = visibles.length + 1;
     const manquantes = (story.couvertureUrl ? 0 : 1) + visibles.filter((p) => !p.imageUrl).length;
-    if (manquantes > 0 && /TOP_UP|locked|balance|crédit|credit/i.test(imageReport ?? "")) {
-      // Compte fal bloqué : tous les livres suivants seraient sans images.
-      await alerterAdmin(
-        "crédit fal épuisé — les livres n'ont plus d'illustrations",
-        `Rechargez le compte sur fal.ai (Billing). Livre ${bookId} : ${imageReport}`,
-      );
-    } else if (manquantes === total || manquantes >= total / 2) {
+    if (manquantes === total || manquantes >= total / 2) {
       await alerterAdmin("illustrations manquantes", imageReport ?? "raison inconnue (crédit fal épuisé ?)");
     }
     await notifierLivrePret(bookId);

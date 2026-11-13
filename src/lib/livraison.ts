@@ -3,8 +3,8 @@
  * - acceptée (ou juste sous le seuil) → enregistrée, puis illustrée ;
  * - motif éliminatoire (peur non résolue, erreur sur le prénom…) → une
  *   génération complète de plus, dans une nouvelle exécution ;
- * - encore un motif éliminatoire → rien n'est livré : le livre passe en
- *   relecture humaine, le parent est prévenu (sous 48 h), l'admin aussi.
+ * - encore un motif éliminatoire → rien n'est livré : le parent est prévenu
+ *   et invité à choisir une histoire toute prête (aucune relecture humaine).
  */
 
 import "server-only";
@@ -30,7 +30,7 @@ function eliminee(story: Story): boolean {
   return Boolean(story.qualite?.eliminatoire) && !story.qualite?.accepte;
 }
 
-/** Enregistre et illustre, ou relance, ou envoie en relecture humaine. */
+/** Enregistre et illustre, ou relance, ou renonce poliment. */
 export async function livrer(l: Livraison, story: Story): Promise<void> {
   const complete = { ...story, ...l.complement } as Story;
   if (!eliminee(complete)) {
@@ -43,7 +43,30 @@ export async function livrer(l: Livraison, story: Story): Promise<void> {
     await lancerSecondeGeneration({ ...l, tentative: 2 });
     return;
   }
-  await mettreEnRelecture(l.bookId, complete);
+  await renoncer(l.bookId, complete);
+}
+
+/**
+ * Deux générations refusées pour un motif éliminatoire : pas de relecture
+ * humaine. Le livre est marqué « échoué » avec un message clair, le parent est
+ * prévenu et son essai gratuit reste disponible (un livre échoué ne compte pas).
+ */
+async function renoncer(bookId: string, story: Story): Promise<void> {
+  await prisma.book.update({
+    where: { id: bookId },
+    data: {
+      status: "failed",
+      title: story.titre,
+      errorMessage:
+        "Nous n'avons pas réussi à écrire une histoire assez belle à partir de cette idée. Essayez l'une de nos histoires toutes prêtes, comme « Le Petit Poucet » : votre essai gratuit reste disponible.",
+    },
+  });
+  const { notifierEchecHistoire, alerterAdmin } = await import("./notifications");
+  if (await reserver(`echec-email:${bookId}`)) await notifierEchecHistoire(bookId).catch(() => undefined);
+  await alerterAdmin(
+    "une histoire libre a été abandonnée (pour information)",
+    `Livre ${bookId}, motif éliminatoire après deux générations : ${story.qualite?.eliminatoire ?? "?"}. Le parent a été invité à choisir une histoire toute prête.`,
+  );
 }
 
 /** Deuxième génération complète, dans sa propre exécution (5 minutes à elle). */

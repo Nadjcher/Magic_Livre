@@ -13,6 +13,7 @@ const STATUT: Record<string, { label: string; classe: string }> = {
   generating: { label: "En cours…", classe: "bg-or-clair text-nuit" },
   failed: { label: "À reprendre", classe: "bg-rose-200 text-nuit" },
   relecture: { label: "En relecture", classe: "bg-or-clair text-nuit" },
+  attente: { label: "En file d'attente", classe: "bg-or-clair text-nuit" },
 };
 
 export default function LivreCouverture({

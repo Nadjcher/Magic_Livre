@@ -55,6 +55,7 @@ export async function aUnApercuNonAchete(userId: string): Promise<boolean> {
     const [r] = await prisma.$queryRaw<{ n: bigint }[]>`
       SELECT COUNT(*)::bigint AS n FROM "Book" b
       WHERE b."userId" = ${userId}
+        AND b.status <> 'failed'
         AND EXISTS (SELECT 1 FROM "Traitement" t WHERE t.cle LIKE 'gratuit:%:' || b.id)
         AND NOT EXISTS (SELECT 1 FROM "Order" o WHERE o."bookId" = b.id AND o.status = 'paid')`;
     return Number(r?.n ?? 0) > 0;

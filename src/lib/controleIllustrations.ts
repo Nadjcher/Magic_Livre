@@ -216,7 +216,7 @@ export async function controlerIllustrations(
     if (p.imageUrl) cibles.push({ i, url: p.imageUrl, scene: p.scene_illustration, cast: presentsSur(p) });
   });
 
-  // Styles de la bible visuelle (maison, 3D) : leur grille, une seule nouvelle tentative, puis relecture humaine.
+  // Styles de la bible visuelle : leur grille, deux nouvelles tentatives, puis une scène simplifiée.
   const grille = estCarre(story.style) ? grillePour(story.style) : null;
   const controler = async (url: string, scene: string, cast: ReturnType<typeof presentsSur>) => {
     const img = enRef(await fetchAsDataUrl(url, petit));
@@ -257,47 +257,66 @@ export async function controlerIllustrations(
     anchorImage: heroImg,
   };
   const graine = Date.now() % 1_000_000;
+  /** Dernier recours : la même scène, avec moins de personnages et un décor simple. */
+  const sceneSimplifiee = (c: (typeof fautives)[number]) => {
+    const doudous = c.cast.filter((x) => /plush|never alive/i.test(x.description));
+    const gardes = [req.childFirstName, ...doudous.map((x) => x.nom)].join(" and ");
+    const base =
+      c.i === -1
+        ? `Book cover illustration for the story "${story.titre}": ${req.childFirstName} alone, in a calm emblematic pose`
+        : `SIMPLIFIED version of this scene: ${c.scene}`;
+    return {
+      cast: doudous,
+      scene: `${base}. Keep ONLY ${gardes}; remove every other character, crowd and animal. Simple, soft, uncluttered background with at most two elements of the setting. ${req.childFirstName} appears only ONCE, clearly visible, matching the reference exactly.`,
+    };
+  };
+  // Jusqu'à 2 nouveaux dessins avec la correction demandée, puis la scène
+  // simplifiée. Le livre part toujours : aucune relecture humaine.
   const corrigees = await mapLimit(fautives, 3, async (c, k) => {
-      let fix = c.v.fix;
-      for (let essai = 0; essai < (grille ? 1 : 2); essai++) {
-        const scene =
-          (c.i === -1
-            ? `Book cover illustration for the story "${story.titre}": ${req.childFirstName} in an emblematic moment, NOT a plain portrait`
-            : c.scene) +
-          `. IMPORTANT CORRECTION: ${fix}. ${req.childFirstName} appears only ONCE; every other character looks exactly like its reference sheet.`;
-        const r = await avant(
-          limite,
-          generateIllustration({
-            ...commun,
-            scene,
-            castRefs: c.cast.map((x) => ({ name: x.nom, ...x.image })),
-            seed: graine + 50 * k + essai,
-          }),
-        );
-        if (!r?.imageUrl) return null;
-        const v = await avant(limite, controler(r.imageUrl, c.scene, c.cast));
-        if (v === null) return null;
-        if (v.ok) return { i: c.i, url: r.imageUrl };
-        fix = v.fix || fix;
-      }
-      return null;
+    let fix = c.v.fix;
+    for (let essai = 0; essai < 2; essai++) {
+      const scene =
+        (c.i === -1
+          ? `Book cover illustration for the story "${story.titre}": ${req.childFirstName} in an emblematic moment, NOT a plain portrait`
+          : c.scene) +
+        `. IMPORTANT CORRECTION: ${fix}. ${req.childFirstName} appears only ONCE; every other character looks exactly like its reference sheet.`;
+      const r = await avant(
+        limite,
+        generateIllustration({ ...commun, scene, castRefs: c.cast.map((x) => ({ name: x.nom, ...x.image })), seed: graine + 50 * k + essai }),
+      );
+      if (!r?.imageUrl) break;
+      const v = await avant(limite, controler(r.imageUrl, c.scene, c.cast));
+      if (v === null) return null;
+      if (v.ok) return { i: c.i, url: r.imageUrl, simplifiee: false };
+      fix = v.fix || fix;
+    }
+    if (!grille) return null;
+    const simple = sceneSimplifiee(c);
+    const r = await avant(
+      limite,
+      generateIllustration({ ...commun, scene: simple.scene, castRefs: simple.cast.map((x) => ({ name: x.nom, ...x.image })), seed: graine + 50 * k + 7 }),
+    );
+    // Une image vide de peinture est la seule raison d'écarter la scène simplifiée.
+    if (!r?.imageUrl) return null;
+    const img = enRef(await fetchAsDataUrl(r.imageUrl, petit));
+    if (img && (await zoneVide(img))) return null;
+    return { i: c.i, url: r.imageUrl, simplifiee: true };
   });
 
-  const remplacees = corrigees.filter((x): x is { i: number; url: string } => x !== null);
+  const remplacees = corrigees.filter((x): x is { i: number; url: string; simplifiee: boolean } => x !== null);
   const parIndex = new Map(remplacees.map((x) => [x.i, x.url]));
-  // Pages restées fautives après la nouvelle tentative : relecture humaine (style de la maison).
-  const aRevoir = grille ? fautives.filter((c) => !parIndex.has(c.i)).map((c) => c.i) : [];
+  const simplifiees = remplacees.filter((x) => x.simplifiee).length;
   const nouvelle: Story = {
     ...story,
     couvertureUrl: parIndex.get(-1) ?? story.couvertureUrl,
     pages: story.pages.map((p, i) => (parIndex.has(i) ? { ...p, imageUrl: parIndex.get(i)! } : p)),
-    ...(aRevoir.length ? { imagesARevoir: aRevoir } : {}),
+    imagesARevoir: undefined,
     // Suivi du coût : combien d'images la relectrice a fait refaire.
     controleImages: { verifiees: cibles.length - nonVerifiees, refaites: fautives.length, nonVerifiees },
   };
   const detail = fautives.map((c) => `${c.i === -1 ? "couverture" : `p${c.i + 1}`}: ${c.v.fix}`).join(" | ");
   return {
     story: nouvelle,
-    bilan: `contrôle : ${fautives.length}/${cibles.length} à reprendre, ${remplacees.length} corrigées — ${detail}`.slice(0, 900),
+    bilan: `contrôle : ${fautives.length}/${cibles.length} à reprendre, ${remplacees.length} corrigées dont ${simplifiees} simplifiées — ${detail}`.slice(0, 900),
   };
 }

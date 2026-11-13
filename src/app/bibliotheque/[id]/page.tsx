@@ -16,7 +16,7 @@ import Notice from "@/components/Notice";
 import GenerationOverlay from "@/components/GenerationOverlay";
 import { THEMES } from "@/lib/themes";
 import CompleteIllustrationsButton from "@/components/CompleteIllustrationsButton";
-import { EN_COURS, EN_RELECTURE, EN_RELECTURE_IMAGES } from "@/lib/illustrationStatus";
+import { EN_ATTENTE_ILLUSTRATIONS, EN_COURS, EN_RELECTURE, EN_RELECTURE_IMAGES } from "@/lib/illustrationStatus";
 import { peutDebloquer } from "@/lib/apercu";
 import { serieDe } from "@/lib/serie";
 import EtDemain from "@/components/EtDemain";
@@ -117,6 +117,13 @@ export default async function LivrePage(
         <Notice kind="info">
           Nous relisons chaque histoire avant de vous la confier. Celle de {book.child.firstName} est entre les mains de
           notre équipe : elle sera ici sous 48 heures, et nous vous préviendrons par email.
+        </Notice>
+      )}
+
+      {book.errorMessage === EN_ATTENTE_ILLUSTRATIONS && (
+        <Notice kind="info">
+          L'histoire de {book.child.firstName} est écrite. Ses illustrations sont dans la file d'attente : beaucoup de
+          livres se créent en ce moment. Nous vous envoyons un email dès qu'il est prêt, inutile de rester sur cette page.
         </Notice>
       )}
 

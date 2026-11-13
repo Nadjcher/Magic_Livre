@@ -173,3 +173,11 @@ export async function livrerIllustrationsAction(formData: FormData): Promise<voi
   await notifierLivrePret(bookId).catch(() => undefined);
   revalidatePath("/admin/histoires");
 }
+
+/** Crédit fal rechargé : les livres en file d'attente repartent (chacun dans sa propre exécution). */
+export async function relancerAttenteAction(): Promise<void> {
+  if (!(await admin())) return;
+  const { relancerEnAttente } = await import("@/lib/attenteIllustrations");
+  waitUntil(relancerEnAttente(20).catch(() => 0));
+  revalidatePath("/admin/histoires");
+}

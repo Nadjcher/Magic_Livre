@@ -21,6 +21,7 @@ import {
   livrerVersionAction,
   relancerHistoireAction,
   livrerIllustrationsAction,
+  relancerAttenteAction,
 } from "@/app/actions/bibliotheque";
 import { bookImageUrl } from "@/lib/bookImages";
 import { EN_RELECTURE, EN_RELECTURE_IMAGES } from "@/lib/illustrationStatus";
@@ -94,6 +95,8 @@ export default async function AtelierPage() {
   });
   const exemples = await listerExemples();
   const depenses = await depensesRecentes();
+  const { nombreEnAttente } = await import("@/lib/attenteIllustrations");
+  const enAttente = await nombreEnAttente();
   // Images refaites par la relectrice d'images (30 derniers jours) : au-delà d'une sur trois, revoir les consignes.
   const [refaites] = await prisma.$queryRaw<{ livres: bigint; verifiees: number | null; refaites: number | null }[]>`
     SELECT COUNT(*) AS livres, SUM((pages->'controleImages'->>'verifiees')::int) AS verifiees,
@@ -128,6 +131,19 @@ export default async function AtelierPage() {
           l'âge, le type de livre et le thème. Plus vous y ajoutez de bons textes, plus les histoires prennent votre ton.
         </p>
       </header>
+
+      {enAttente > 0 && (
+        <section className="carte space-y-3">
+          <h2 className="text-2xl">Livres en file d'attente : {enAttente}</h2>
+          <p className="text-sm text-magique-texteClair">
+            Le compte fal était bloqué (crédit épuisé) : ces livres attendent leurs illustrations. Rechargez fal.ai, puis
+            relancez-les. Ils repartent aussi seuls au prochain livre réussi, et chaque nuit.
+          </p>
+          <form action={relancerAttenteAction}>
+            <button className="btn-primaire">Relancer les livres en attente</button>
+          </form>
+        </section>
+      )}
 
       <section className="carte space-y-3">
         <h2 className="text-2xl">Jeu d'épreuve de la relectrice d'images</h2>

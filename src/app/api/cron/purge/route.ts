@@ -11,5 +11,8 @@ export async function GET(req: Request): Promise<Response> {
   const auth = req.headers.get("authorization");
   const viaVercel = (req.headers.get("user-agent") ?? "").startsWith("vercel-cron");
   if (secret ? auth !== `Bearer ${secret}` : !viaVercel) return new NextResponse("Non autorisé.", { status: 401 });
-  return NextResponse.json(await purger());
+  // Passage quotidien : les livres en attente d'illustrations retentent leur chance.
+  const { relancerEnAttente } = await import("@/lib/attenteIllustrations");
+  const relances = await relancerEnAttente().catch(() => 0);
+  return NextResponse.json({ ...(await purger()), relances });
 }
