@@ -16,6 +16,7 @@ import "server-only";
 import { env } from "./env";
 import { PRIX_ESTIMES, noterDepense } from "./budget";
 import { estCarre, grillePour } from "./bibleVisuelle";
+import { mapLimit } from "./parallele";
 import { fetchAsDataUrl } from "./imageFetch";
 import { generateIllustration } from "./illustration";
 import type { Story } from "./storySchema";
@@ -63,6 +64,7 @@ export async function verifier(
       ...grille.map((q, i) => `${i + 1}. ${q}`),
       'Reply with JSON only: {"answers": [{"n": 1, "yes": true, "seen": "…"}], "fix": "ONLY if at least one answer is no: one short English instruction listing what to correct; otherwise an empty string"}',
       "Be consistent: if you see a real problem, answer no to the matching question.",
+      "Ignore small props entirely (a pencil, a lamp, a cup, a book on a table): never mention them, in the answers or in the fix.",
     );
   } else lignes.push(
     `The LAST image is the page illustration to check. Scene requested: ${scene}`,
@@ -224,12 +226,15 @@ export async function controlerIllustrations(
     }
     const v = await verifier(heros, cast, img, scene, grille);
     // Relecture impossible (délai, panne passagère) : un second essai avant de la compter « non vérifiée ».
-    return "nonVerifiee" in v && v.nonVerifiee ? verifier(heros, cast, img, scene, grille) : v;
+    if (!("nonVerifiee" in v && v.nonVerifiee)) return v;
+    await new Promise((r) => setTimeout(r, 3000)); // fal saturé (10 requêtes simultanées) : on laisse passer la vague
+    return verifier(heros, cast, img, scene, grille);
   };
 
   const verdicts = await avant(
     limite,
-    Promise.all(cibles.map(async (c) => ({ ...c, v: await controler(c.url, c.scene, c.cast) }))),
+    // Au plus 4 relectures à la fois (fal : 10 requêtes simultanées par compte, tous livres confondus).
+    mapLimit(cibles, 4, async (c) => ({ ...c, v: await controler(c.url, c.scene, c.cast) })),
   );
   if (!verdicts) return { story, bilan: "contrôle interrompu (temps)" };
   const fautives = verdicts.filter((c) => !c.v.ok);
@@ -252,8 +257,7 @@ export async function controlerIllustrations(
     anchorImage: heroImg,
   };
   const graine = Date.now() % 1_000_000;
-  const corrigees = await Promise.all(
-    fautives.map(async (c, k) => {
+  const corrigees = await mapLimit(fautives, 3, async (c, k) => {
       let fix = c.v.fix;
       for (let essai = 0; essai < (grille ? 1 : 2); essai++) {
         const scene =
@@ -277,8 +281,7 @@ export async function controlerIllustrations(
         fix = v.fix || fix;
       }
       return null;
-    }),
-  );
+  });
 
   const remplacees = corrigees.filter((x): x is { i: number; url: string } => x !== null);
   const parIndex = new Map(remplacees.map((x) => [x.i, x.url]));

@@ -31,6 +31,7 @@ import { blocModeles, exemplesParIds, exemplesPour, type Exemple } from "./bibli
 import { PRIX_ESTIMES, noterDepense } from "./budget";
 import { BIBLE, GRILLE, SEUIL_ACCEPTATION, criteresPetits, reglesAge } from "./bible";
 import { CONSIGNE_COUVERTURE, estCarre } from "./bibleVisuelle";
+import { mapLimit } from "./parallele";
 
 export type GenerateResult =
   | {
@@ -58,18 +59,6 @@ export function texteEnAnglais(story: Story): boolean {
 }
 
 /** Exécute `fn` sur chaque élément avec au plus `limit` appels simultanés. */
-async function mapLimit<T, R>(items: T[], limit: number, fn: (x: T, i: number) => Promise<R>): Promise<R[]> {
-  const out = new Array<R>(items.length);
-  let next = 0;
-  const worker = async () => {
-    while (next < items.length) {
-      const i = next++;
-      out[i] = await fn(items[i] as T, i);
-    }
-  };
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
-  return out;
-}
 
 /** Résume les échecs d'illustration (« 3/13 images manquantes : HTTP 429 … »). */
 export function imageReportOf(story: Story, errors: string[]): string | undefined {

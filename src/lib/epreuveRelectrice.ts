@@ -12,7 +12,8 @@
 import "server-only";
 import path from "node:path";
 import { readFile } from "node:fs/promises";
-import { verifier } from "./controleIllustrations";
+import { verifier, zoneVide } from "./controleIllustrations";
+import { mapLimit } from "./parallele";
 import { grillePour } from "./bibleVisuelle";
 
 const DOSSIER = path.join(process.cwd(), "src", "epreuve");
@@ -45,20 +46,22 @@ const lire = async (f: string) => ({ base64: (await readFile(path.join(DOSSIER, 
 
 export async function lancerEpreuve(): Promise<{ resultats: ResultatEpreuve[]; reussie: boolean }> {
   const cas = JSON.parse(await readFile(path.join(DOSSIER, "cas.json"), "utf8")) as Cas[];
-  const resultats = await Promise.all(
-    cas.map(async (c): Promise<ResultatEpreuve> => {
-      const v = await verifier(
+  // Comme en production : au plus 4 relectures à la fois, et la zone vide détectée par le code.
+  const resultats = await mapLimit(cas, 4, async (c): Promise<ResultatEpreuve> => {
+      const image = await lire(c.image);
+      const v = (await zoneVide(image))
+        ? { ok: false, fix: "blank unpainted white area", nonVerifiee: false }
+        : await verifier(
         { nom: "Léo", description: c.tenue, image: await lire(c.heros) },
         await Promise.all(c.cast.slice(0, 3).map(async (x) => ({ nom: x.nom, description: x.description, image: await lire(x.image) }))),
-        await lire(c.image),
+        image,
         c.scene,
         grillePour(c.style),
       );
-      const verdict = v.nonVerifiee ? "non vérifiée" : v.ok ? "acceptée" : "refusée";
+      const verdict = "nonVerifiee" in v && v.nonVerifiee ? "non vérifiée" : v.ok ? "acceptée" : "refusée";
       const correction = v.fix.toLowerCase();
       const motifJuste = c.motif.length === 0 || c.motif.some((m) => correction.includes(m.toLowerCase()));
       return { id: c.id, defaut: c.defaut, attendu: c.attendu, verdict, correction: v.fix, juste: verdict === c.attendu && (c.attendu === "acceptée" || motifJuste) };
-    }),
-  );
+  });
   return { resultats, reussie: resultats.every((r) => r.juste) };
 }
