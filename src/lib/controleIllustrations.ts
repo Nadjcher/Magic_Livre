@@ -21,6 +21,7 @@ import { fetchAsDataUrl } from "./imageFetch";
 import { generateIllustration } from "./illustration";
 import type { Story } from "./storySchema";
 import type { StoryRequest } from "./storyPrompt";
+import { falFetch } from "./jetonsFal";
 
 type Ref = { base64: string; mime: string };
 
@@ -77,7 +78,7 @@ export async function verifier(
   );
   const images = [heros.image, ...cast.map((c) => c.image), page].map((r) => `data:${r.mime};base64,${r.base64}`);
   try {
-    const r = await fetch("https://fal.run/openrouter/router/vision", {
+    const r = await falFetch("https://fal.run/openrouter/router/vision", {
       method: "POST",
       headers: { Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -89,8 +90,7 @@ export async function verifier(
         max_tokens: grille ? 1600 : 400,
         temperature: 0,
       }),
-      signal: AbortSignal.timeout(grille ? 90_000 : 40_000),
-    });
+    }, grille ? 90_000 : 40_000);
     const j = (await r.json().catch(() => ({}))) as { output?: string; usage?: { cost?: number } };
     if (r.ok) await noterDepense(j.usage?.cost ?? PRIX_ESTIMES.vision);
     const json = /\{[\s\S]*\}/.exec(j.output ?? "")?.[0];

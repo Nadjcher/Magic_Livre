@@ -11,6 +11,7 @@ import type { Story } from "./storySchema";
 import type { StoryRequest } from "./storyPrompt";
 import { passageValide, possessif, remplir, type HistoireMaitresse, type Personnalisation } from "./histoiresMaitresses";
 import { checkUserText } from "./validation";
+import { falFetch } from "./jetonsFal";
 
 interface Lecture {
   fille?: boolean;
@@ -42,7 +43,7 @@ async function lirePersonnalisation(h: HistoireMaitresse, req: StoryRequest, dou
     .filter(Boolean)
     .join("\n");
   try {
-    const r = await fetch("https://fal.run/openrouter/router", {
+    const r = await falFetch("https://fal.run/openrouter/router", {
       method: "POST",
       headers: { Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -52,8 +53,7 @@ async function lirePersonnalisation(h: HistoireMaitresse, req: StoryRequest, dou
         reasoning: true,
         max_tokens: 4000,
       }),
-      signal: AbortSignal.timeout(70_000),
-    });
+    }, 70_000);
     const j = (await r.json().catch(() => ({}))) as { output?: string; usage?: { cost?: number } };
     if (r.ok) await noterDepense(j.usage?.cost ?? PRIX_ESTIMES.relecture);
     const json = /\{[\s\S]*\}/.exec(j.output ?? "")?.[0];

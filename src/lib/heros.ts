@@ -16,6 +16,7 @@ import { generateIllustration } from "./illustration";
 import { ILLUSTRATION_STYLES, type IllustrationStyle } from "./style_config";
 import { noterDepense, PRIX_ESTIMES } from "./budget";
 import { fetchAsDataUrl } from "./imageFetch";
+import { falFetch } from "./jetonsFal";
 
 type Ref = { base64: string; mime: string };
 
@@ -61,7 +62,7 @@ function assurerTable(): Promise<void> {
  */
 export async function traitsDepuisPhoto(photo: Ref): Promise<{ traits: string; lumiere: "ok" | "chaude" }> {
   try {
-    const r = await fetch("https://fal.run/openrouter/router/vision", {
+    const r = await falFetch("https://fal.run/openrouter/router/vision", {
       method: "POST",
       headers: { Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -74,8 +75,7 @@ export async function traitsDepuisPhoto(photo: Ref): Promise<{ traits: string; l
         max_tokens: 400,
         temperature: 0,
       }),
-      signal: AbortSignal.timeout(40_000),
-    });
+    }, 40_000);
     const j = (await r.json().catch(() => ({}))) as { output?: string; usage?: { cost?: number } };
     if (r.ok) await noterDepense(j.usage?.cost ?? PRIX_ESTIMES.vision);
     const v = JSON.parse(/\{[\s\S]*\}/.exec(j.output ?? "")?.[0] ?? "{}") as Record<string, string>;

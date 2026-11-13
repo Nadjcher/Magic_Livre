@@ -32,6 +32,7 @@ import { PRIX_ESTIMES, noterDepense } from "./budget";
 import { BIBLE, GRILLE, SEUIL_ACCEPTATION, criteresPetits, reglesAge } from "./bible";
 import { CONSIGNE_COUVERTURE, estCarre } from "./bibleVisuelle";
 import { mapLimit } from "./parallele";
+import { falFetch } from "./jetonsFal";
 
 export type GenerateResult =
   | {
@@ -108,7 +109,7 @@ async function callModel(
     for (let essai = 0; essai < 2; essai++) {
       if (essai > 0) await new Promise((r) => setTimeout(r, 3000));
       try {
-        const r = await fetch("https://fal.run/openrouter/router", {
+        const r = await falFetch("https://fal.run/openrouter/router", {
           method: "POST",
           headers: { Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -121,8 +122,7 @@ async function callModel(
           }),
           // L'écriture d'une longue histoire (plan + 12 pages) peut dépasser 2 minutes :
           // elle a sa propre exécution, on lui laisse jusqu'à ~4 min.
-          signal: AbortSignal.timeout(opts.delaiMs ?? (temperature < 0.6 ? 70_000 : 240_000)),
-        });
+        }, opts.delaiMs ?? (temperature < 0.6 ? 70_000 : 240_000));
         const j = (await r.json().catch(() => ({}))) as { output?: string; error?: unknown; detail?: unknown; usage?: { cost?: number } };
         if (r.ok) await noterDepense(j.usage?.cost ?? (opts.modele ? PRIX_ESTIMES.relecture : PRIX_ESTIMES.texte));
         if (r.ok && j.output && j.output.includes("{")) {

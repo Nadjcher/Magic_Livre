@@ -13,6 +13,7 @@ import "server-only";
 import { env } from "./env";
 import { PRIX_ESTIMES, noterDepense } from "./budget";
 import { fetchAllWithTimeout, fetchAsDataUrl } from "./imageFetch";
+import { avecJetonFal } from "./jetonsFal";
 
 /** Un modèle FLUX-PuLID met souvent 20 à 50 s (démarrage à froid compris). */
 const FAL_TIMEOUT_MS = 55_000;
@@ -56,7 +57,7 @@ export async function requestPortrait(opts: {
 
   const key = env.falApiKey();
   try {
-    const res = await fetchAllWithTimeout(
+    const res = await avecJetonFal(() => fetchAllWithTimeout(
       `https://fal.run/${env.falFaceModel()}`,
       {
         method: "POST",
@@ -71,7 +72,7 @@ export async function requestPortrait(opts: {
         }),
       },
       { timeoutMs: FAL_TIMEOUT_MS, maxBytes: 30_000_000 },
-    );
+    ));
     const ms = Date.now() - started;
     const body = res.bytes ? res.bytes.toString("utf8") : "";
     if (res.ok) await noterDepense(PRIX_ESTIMES.portrait);

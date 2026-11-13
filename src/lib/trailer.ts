@@ -16,6 +16,7 @@ import { fetchAsDataUrl } from "./imageFetch";
 import type { Story, Trailer } from "./storySchema";
 
 import { noterDepense } from "./budget";
+import { falFetch } from "./jetonsFal";
 
 const MODELE_VIDEO = () => process.env.TRAILER_VIDEO_MODEL || "fal-ai/kling-video/v2.5-turbo/standard/image-to-video";
 const MODELE_VOIX = "fal-ai/elevenlabs/tts/multilingual-v2";
@@ -44,12 +45,11 @@ export function textesLus(story: Story, prenom: string, sources: ("cover" | numb
 export async function voixOff(texte: string): Promise<{ url: string; sec: number } | null> {
   for (let essai = 0; essai < 3; essai++) {
     try {
-      const r = await fetch(`https://fal.run/${MODELE_VOIX}`, {
+      const r = await falFetch(`https://fal.run/${MODELE_VOIX}`, {
         method: "POST",
         headers: entetes(),
         body: JSON.stringify({ text: texte, voice: VOIX(), language_code: "fr", stability: 0.5, style: 0.3, speed: 0.92 }),
-        signal: AbortSignal.timeout(90_000),
-      });
+      }, 90_000);
       const j = (await r.json()) as { audio?: { url?: string; file_size?: number } };
       if (r.ok) await noterDepense(Math.max(0.01, texte.length * 0.0001));
       if (r.ok && j.audio?.url) {

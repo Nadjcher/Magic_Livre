@@ -20,6 +20,7 @@ import { renderPrintPdf, PAGES_INTERIEURES, PRODUIT_GELATO_CARRE, type ImagesImp
 import { alerterAdmin } from "./notifications";
 import { emailAvecBouton } from "./mailer";
 import { getAppUrl } from "./appUrl";
+import { falFetch } from "./jetonsFal";
 
 export const PRODUIT_GELATO = () =>
   process.env.GELATO_PRODUCT_UID || PRODUIT_GELATO_CARRE;
@@ -34,12 +35,11 @@ export function impressionConfiguree(): boolean {
 export async function agrandir(dataUrl: string | null): Promise<string | null> {
   if (!dataUrl || !env.falApiKey()) return dataUrl;
   try {
-    const r = await fetch("https://fal.run/fal-ai/esrgan", {
+    const r = await falFetch("https://fal.run/fal-ai/esrgan", {
       method: "POST",
       headers: { Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" },
       body: JSON.stringify({ image_url: dataUrl, model: "RealESRGAN_x4plus_anime_6B", scale: 2.5, output_format: "jpeg" }),
-      signal: AbortSignal.timeout(90_000),
-    });
+    }, 90_000);
     const j = (await r.json()) as { image?: { url?: string } };
     if (r.ok) await noterDepense(0.01);
     if (!r.ok || !j.image?.url) return dataUrl;

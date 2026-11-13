@@ -17,6 +17,7 @@ import { env } from "./env";
 import { PRIX_ESTIMES, noterDepense } from "./budget";
 import { estCarre } from "./bibleVisuelle";
 import { fetchAllWithTimeout } from "./imageFetch";
+import { falFetch } from "./jetonsFal";
 import {
   buildIllustrationPrompt,
   type IllustrationStyle,
@@ -428,12 +429,11 @@ async function falImage(
 
   let res: Response;
   try {
-    res = await fetch(`https://fal.run/${endpoint}`, {
+    res = await falFetch(`https://fal.run/${endpoint}`, {
       method: "POST",
       headers: { Authorization: `Key ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(150_000),
-    });
+    }, 150_000);
   } catch (e) {
     return { error: `réseau/délai : ${String(e).slice(0, 120)}`, retry: true };
   }
