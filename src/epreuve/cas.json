@@ -480,7 +480,7 @@
   "motif": []
  },
  {
-  "id": "bon-style-aquarelle",
+  "id": "style-aquarelle-sans-doudou",
   "image": "bon-style-aquarelle.jpg",
   "style": "aquarelle",
   "scene": "In the storybook forest at night, Léo crouches and draws a crooked white stone on the ground with a white pencil; the freshly drawn stone puffs up and glows and is the main light, lighting his face; next to him Poucet stands ON TOP OF A MUSHROOM, laughing for the first time and twisting his red bonnet shyly; a second white pencil lies on the ground beside the mushroom and Poucet is about as tall as that pencil; Caramel the teddy bear sits beside Léo.",
@@ -498,8 +498,12 @@
     "description": "light-brown plush teddy bear"
    }
   ],
-  "defaut": "aucun (bonne image)",
-  "attendu": "acceptée",
-  "motif": []
+  "defaut": "Caramel absent de la scène",
+  "attendu": "refusée",
+  "motif": [
+   "caramel",
+   "teddy",
+   "bear"
+  ]
  }
 ]

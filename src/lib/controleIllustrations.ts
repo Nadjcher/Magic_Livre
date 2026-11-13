@@ -64,7 +64,7 @@ export async function verifier(
       ...grille.map((q, i) => `${i + 1}. ${q}`),
       'Reply with JSON only: {"answers": [{"n": 1, "yes": true, "seen": "…"}], "fix": "ONLY if at least one answer is no: one short English instruction listing what to correct; otherwise an empty string"}',
       "Be consistent: if you see a real problem, answer no to the matching question.",
-      "Ignore small props entirely (a pencil, a lamp, a cup, a book on a table): never mention them, in the answers or in the fix.",
+      "Ignore small props entirely (a pencil, a lamp, a cup, a book on a table) and small pattern details on clothes (stars, moons, prints): never mention them, in the answers or in the fix.",
     );
   } else lignes.push(
     `The LAST image is the page illustration to check. Scene requested: ${scene}`,
