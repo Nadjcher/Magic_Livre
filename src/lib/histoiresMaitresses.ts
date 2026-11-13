@@ -99,7 +99,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "Dans le livre, les arbres sentaient l'encre, et la mousse le vieux papier. Un garçon haut comme une botte fouillait sous les fougères : Poucet ! « Mes cailloux se sont effacés, je ne sais pas pourquoi. — Je peux t'aider, dit {prenom}. — Pas besoin, je trouve toujours le chemin. » Au loin, le géant ronflait, et le bord de la page s'assombrit.",
         scene:
-          "Inside a soft storybook forest: {prenom}, holding {doudou} and a white pencil, offers help to Poucet, a tiny BOY in his RED KNITTED BONNET and brown jacket, standing on a mushroom so his small size is obvious, chin raised proudly while he searches under the ferns; in the background his six little brothers (same tiny size, plain clothes, NO bonnets, so Poucet is the only one in red) wait huddled together against a tree trunk; the edges of the scene slightly darker, the leaves trembling as if from a distant snore.",
+          "Inside a soft storybook forest: {prenom}, holding {doudou} and a white pencil, offers help to Poucet. In the FOREGROUND, Poucet stands alone ON A MUSHROOM: a tiny boy (his bonnet below {prenom}'s knee) wearing a bright RED KNITTED BONNET, brown jacket, chin raised proudly, searching under the ferns. FAR in the background, his six little brothers (bare-headed, NO bonnets, plain clothes) wait huddled together against a tree trunk. Nothing is drawn on the ground in this scene (no white drawings, no pebbles yet). The edges of the scene slightly darker, the leaves trembling as if from a distant snore.",
         presents: ["Poucet"],
       },
       {
