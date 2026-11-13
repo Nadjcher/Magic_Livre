@@ -7,6 +7,8 @@ import { histoireDepuisMaitresse } from "@/lib/maitresseGenerateur";
 import { illustrateStory } from "@/lib/storyGenerator";
 import { fetchAsDataUrl } from "@/lib/imageFetch";
 import type { Story } from "@/lib/storySchema";
+import { verifier } from "@/lib/controleIllustrations";
+import { grillePour } from "@/lib/bibleVisuelle";
 import type { StoryRequest } from "@/lib/storyPrompt";
 import type { IllustrationStyle } from "@/lib/style_config";
 export const runtime = "nodejs";
@@ -33,6 +35,11 @@ export async function POST(req: Request): Promise<Response> {
       ? { heros: await petit(story.fiches.heros), cast: Object.fromEntries(await Promise.all(Object.entries(story.fiches.cast ?? {}).map(async ([k, v]) => [k, await petit(v)]))) }
       : null;
     return NextResponse.json({ story: { ...story, couvertureUrl: await petit(story.couvertureUrl), pages, fiches }, imageReport });
+  }
+  if (b.mode === "verifier") {
+    const v = b as unknown as { heros: Ref; cast: { nom: string; description: string; image: Ref }[]; page: Ref; scene: string; style: string; nom: string; tenue: string };
+    const r = await verifier({ nom: v.nom, description: v.tenue, image: v.heros }, v.cast, v.page, v.scene, grillePour(v.style));
+    return NextResponse.json(r);
   }
   return NextResponse.json({ err: "requête incomplète" }, { status: 400 });
 }

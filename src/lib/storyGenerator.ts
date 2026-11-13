@@ -613,7 +613,7 @@ function fichesPresentes(
     // Repli si "presents" manque : le nom apparaît dans la scène dessinée.
     if (declare || (!page.presents && texte.includes(nom.toLowerCase()))) noms.add(nom);
   }
-  return [...noms].slice(0, 3).map((name) => ({ name, ...fiches.get(name)! }));
+  return [...noms].slice(0, 4).map((name) => ({ name, ...fiches.get(name)! }));
 }
 
 /**
@@ -650,13 +650,14 @@ async function addIllustrations(
   };
 
   // 1. Fiches de référence (en parallèle, non stockées).
-  const cast = (story.cast ?? []).filter((c) => c.nom.toLowerCase() !== heroName.toLowerCase()).slice(0, 3);
+  // Jusqu'à 4 fiches (le doudou et trois lutins, par exemple).
+  const cast = (story.cast ?? []).filter((c) => c.nom.toLowerCase() !== heroName.toLowerCase()).slice(0, 4);
   const [ficheHeros, ...fichesCast] = await Promise.all([
     generateIllustration({
       ...commun,
       scene:
         `Character model sheet of the hero ${heroName}: full body, front view, standing in a friendly relaxed ` +
-        "pose, wearing EXACTLY the hero outfit from the character sheet, plain soft light background, nothing else",
+        "pose, wearing EXACTLY the hero outfit from the character sheet, plain soft light background, nothing else, no text or letters",
       referenceImage: portrait ? undefined : req.photo,
       anchorImage: portrait ?? undefined,
       seed: base + 500,
@@ -668,7 +669,7 @@ async function addIllustrations(
         appearance: undefined,
         scene:
           `Character model sheet of ${c.nom}: ${c.visuel}. Full body, front view, alone, plain soft light ` +
-          "background, nothing else. The species must be unmistakable at first glance.",
+          "background, nothing else, no text or letters. The species must be unmistakable at first glance.",
         seed: base + 600 + k,
       }),
     ),

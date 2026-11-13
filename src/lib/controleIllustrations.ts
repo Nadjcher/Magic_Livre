@@ -46,13 +46,13 @@ function enRef(dataUrl: string | null): Ref | null {
 const petit = { maxPx: 768, quality: 80 };
 
 /** Le verdict d'un contrôle : ok, ou la correction à apporter. */
-async function verifier(
+export async function verifier(
   heros: { nom: string; description: string; image: Ref },
   cast: { nom: string; description: string; image: Ref }[],
   page: Ref,
   scene: string,
   grille: string[] | null = null,
-): Promise<{ ok: boolean; fix: string }> {
+): Promise<{ ok: boolean; fix: string; nonVerifiee?: boolean }> {
   const lignes = [`Image 1 is the reference sheet of the hero ${heros.nom} (${heros.description}).`];
   cast.forEach((c, k) => lignes.push(`Image ${k + 2} is the reference sheet of ${c.nom} (${c.description}).`));
   if (grille) {
@@ -82,19 +82,27 @@ async function verifier(
         system_prompt: SYSTEME,
         prompt: lignes.join("\n"),
         image_urls: images,
-        max_tokens: 400,
+        // 9 réponses avec une phrase chacune : 400 jetons coupaient la réponse, qui passait alors sans contrôle.
+        max_tokens: grille ? 1600 : 400,
         temperature: 0,
       }),
-      signal: AbortSignal.timeout(40_000),
+      signal: AbortSignal.timeout(grille ? 90_000 : 40_000),
     });
     const j = (await r.json().catch(() => ({}))) as { output?: string; usage?: { cost?: number } };
     if (r.ok) await noterDepense(j.usage?.cost ?? PRIX_ESTIMES.vision);
     const json = /\{[\s\S]*\}/.exec(j.output ?? "")?.[0];
     if (!r.ok || !json) {
       console.error("[contrôle] vision indisponible :", r.status, JSON.stringify(j).slice(0, 160));
-      return { ok: true, fix: "" };
+      return { ok: true, fix: "", nonVerifiee: true };
     }
-    const v = JSON.parse(json) as { ok?: unknown; fix?: unknown; answers?: { n?: number; yes?: boolean; seen?: string }[] };
+    let v: { ok?: unknown; fix?: unknown; answers?: { n?: number; yes?: boolean; seen?: string }[] };
+    try {
+      v = JSON.parse(json);
+    } catch {
+      console.error("[contrôle] réponse illisible :", (j.output ?? "").slice(0, 160));
+      return { ok: true, fix: "", nonVerifiee: true };
+    }
+    if (grille && !Array.isArray(v.answers)) return { ok: true, fix: "", nonVerifiee: true };
     if (grille && Array.isArray(v.answers)) {
       const non = v.answers.filter((a) => a.yes === false);
       const fix = typeof v.fix === "string" && v.fix ? v.fix : non.map((a) => `${grille[(a.n ?? 1) - 1] ?? ""} (${a.seen ?? ""})`).join("; ");
@@ -102,7 +110,7 @@ async function verifier(
     }
     return { ok: v.ok !== false, fix: typeof v.fix === "string" ? v.fix.slice(0, 300) : "" };
   } catch {
-    return { ok: true, fix: "" }; // contrôle indisponible : on ne bloque jamais le livre
+    return { ok: true, fix: "", nonVerifiee: true }; // contrôle indisponible : on ne bloque jamais le livre, mais on le compte
   }
 }
 
@@ -166,8 +174,13 @@ export async function controlerIllustrations(
   );
   if (!verdicts) return { story, bilan: "contrôle interrompu (temps)" };
   const fautives = verdicts.filter((c) => !c.v.ok);
+  // Images que la relectrice n'a pas pu lire (panne, délai) : comptées, jamais confondues avec des images conformes.
+  const nonVerifiees = verdicts.filter((c) => "nonVerifiee" in c.v && c.v.nonVerifiee).length;
   if (fautives.length === 0) {
-    return { story: { ...story, controleImages: { verifiees: cibles.length, refaites: 0 } }, bilan: `contrôle : ${cibles.length} images conformes` };
+    return {
+      story: { ...story, controleImages: { verifiees: cibles.length - nonVerifiees, refaites: 0, nonVerifiees } },
+      bilan: `contrôle : ${cibles.length - nonVerifiees} images conformes${nonVerifiees ? `, ${nonVerifiees} non vérifiées` : ""}`,
+    };
   }
 
   // Redessin des fautives, en parallèle, 2 essais chacune.
@@ -218,7 +231,7 @@ export async function controlerIllustrations(
     pages: story.pages.map((p, i) => (parIndex.has(i) ? { ...p, imageUrl: parIndex.get(i)! } : p)),
     ...(aRevoir.length ? { imagesARevoir: aRevoir } : {}),
     // Suivi du coût : combien d'images la relectrice a fait refaire.
-    controleImages: { verifiees: cibles.length, refaites: fautives.length },
+    controleImages: { verifiees: cibles.length - nonVerifiees, refaites: fautives.length, nonVerifiees },
   };
   const detail = fautives.map((c) => `${c.i === -1 ? "couverture" : `p${c.i + 1}`}: ${c.v.fix}`).join(" | ");
   return {

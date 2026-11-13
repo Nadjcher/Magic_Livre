@@ -135,7 +135,8 @@ export const PERSONNAGES_FIXES =
   "(a mushroom, a stone, a leaf) so his tiny size is obvious; trousers patched, never ripped. " +
   "The child's cuddly toy: exactly the plush described in the character sheet (its species, colour and shape clearly readable: ears, muzzle, paws), " +
   "soft and cute, never a shapeless blob, no seams or patches, held in the child's arms, never alive. " +
-  "The parent: only a hand, a silhouette from behind or a profile in shadow, never a detailed face. " +
+  "Tiny characters (Poucet, elves) keep their tiny size on EVERY page: never as big as the hero, never seated on full-size chairs. " +
+  "The parent: an adult, clearly bigger than the child and never dressed like the child; only a hand, a silhouette from behind or a profile in shadow, never a detailed face. " +
   "The giant: never shown, only suggested by a shadow or boots.";
 
 /** Le dessin de l'enfant : toujours distinct du décor peint. */
