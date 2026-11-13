@@ -61,7 +61,8 @@ export async function verifier(
       `The LAST image is the book page to check. Scene requested: ${scene}`,
       "Answer EACH question with yes or no and one short sentence describing what you SEE. A single \"no\" means the image must be redone.",
       ...grille.map((q, i) => `${i + 1}. ${q}`),
-      'Reply with JSON only: {"answers": [{"n": 1, "yes": true, "seen": "…"}], "fix": "if any no: one short English instruction listing what to correct"}',
+      'Reply with JSON only: {"answers": [{"n": 1, "yes": true, "seen": "…"}], "fix": "ONLY if at least one answer is no: one short English instruction listing what to correct; otherwise an empty string"}',
+      "Be consistent: if you see a real problem, answer no to the matching question.",
     );
   } else lignes.push(
     `The LAST image is the page illustration to check. Scene requested: ${scene}`,
@@ -105,8 +106,10 @@ export async function verifier(
     if (grille && !Array.isArray(v.answers)) return { ok: true, fix: "", nonVerifiee: true };
     if (grille && Array.isArray(v.answers)) {
       const non = v.answers.filter((a) => a.yes === false);
-      const fix = typeof v.fix === "string" && v.fix ? v.fix : non.map((a) => `${grille[(a.n ?? 1) - 1] ?? ""} (${a.seen ?? ""})`).join("; ");
-      return { ok: non.length === 0, fix: fix.slice(0, 400) };
+      const corrige = typeof v.fix === "string" ? v.fix.trim() : "";
+      const fix = corrige || non.map((a) => `${grille[(a.n ?? 1) - 1] ?? ""} (${a.seen ?? ""})`).join("; ");
+      // Une correction proposée compte comme un « non » : la relectrice disait parfois « oui » tout en décrivant un défaut.
+      return { ok: non.length === 0 && corrige.length === 0, fix: fix.slice(0, 400) };
     }
     return { ok: v.ok !== false, fix: typeof v.fix === "string" ? v.fix.slice(0, 300) : "" };
   } catch {
