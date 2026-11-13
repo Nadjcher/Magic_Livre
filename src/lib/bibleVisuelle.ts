@@ -170,13 +170,14 @@ export const CONSIGNE_COUVERTURE =
 export function grillePour(style: string | undefined): string[] {
   const f = FICHES_STYLE[style ?? ""] ?? FICHES_STYLE.anim3d!;
   return [
-    "The hero has the traits of the reference portrait: hair (color and cut), eyes, skin tone, distinctive features (glasses, freckles…), and the outfit of the character sheet.",
+    "HAIR: compare the hero's hair COLOR and cut with the reference image very carefully. If the color is noticeably different (e.g. honey-blond or reddish in the reference but dark brown or black on the page, or the reverse), answer no.",
+    "FACE AND OUTFIT: the hero has the face, skin tone and distinctive features of the reference, and wears the outfit of the character sheet.",
     `The rendering is exactly this style, consistently over the whole image (characters and scenery alike): ${f.technique}. Nothing of: ${f.interdits}.`,
-    "The scenery fills the whole frame, with no empty area outside the calm text area.",
+    "The picture is painted to every edge: if ANY part of the image is blank, white, unpainted or looks like an empty rectangle, answer no.",
     "There is a single MAIN light source, the one named in the scene, lighting the hero's face; small distant lights are fine as long as they do not light the characters.",
-    "Fixed characters match their sheet and their scale (a secondary character never resembles the hero; the cuddly toy is a recognisable plush, not alive, not a shapeless blob). Little Thumb (Poucet) and elves, if present, are TINY: the top of their bonnet is below the hero's knee when the hero stands, below the hero's chest when the hero crouches; if one reaches the hero's waist or shoulder, answer no. The parent, if present, is clearly an ADULT (much bigger than the child, never dressed like the child); if the parent looks like a child, answer no.",
-    "The characters named in the scene are all present, and the objects that matter to the story are there (ignore small props such as a pencil that is hard to see).",
-    "If the child has drawn something, it is clearly distinct from the scenery (white, irregular, shaky outline).",
+    "CUDDLY TOY: if the cuddly toy appears, it is the SAME species and color as its reference sheet (a teddy bear stays a teddy bear: if it looks like a dog, a cat, a fox or another animal, answer no), a plush toy, not alive.",
+    "SCALE: tiny characters (Little Thumb / Poucet, elves) are TINY: the top of their hat is below the hero's knee when the hero stands, below the hero's chest when the hero crouches; if one is as big as the hero, reaches the hero's waist or shoulder, or sits on a full-size chair, answer no. The parent, if present, is clearly an ADULT, much bigger than the child and never dressed like the child; otherwise answer no.",
+    "The characters named in the scene are all present (the hero included), and the objects that matter to the story are there (ignore small props that are hard to see). Pebbles drawn by the child are separate, never a paved path or stepping stones.",
     "The image is free of everything forbidden: no letters or signs, no wrong hands, nothing frightening.",
     "The text area is calm and integrated into the scene (not a flat band or empty box).",
   ];
