@@ -16,14 +16,13 @@ import { noterDepense } from "./budget";
 import { getStripe } from "./stripe";
 import { fetchAsDataUrl } from "./imageFetch";
 import { storySchema, type Story } from "./storySchema";
-import { renderPrintPdf, PAGES_INTERIEURES, type ImagesImpression } from "./printBook";
+import { renderPrintPdf, PAGES_INTERIEURES, PRODUIT_GELATO_CARRE, type ImagesImpression } from "./printBook";
 import { alerterAdmin } from "./notifications";
 import { emailAvecBouton } from "./mailer";
 import { getAppUrl } from "./appUrl";
 
 export const PRODUIT_GELATO = () =>
-  process.env.GELATO_PRODUCT_UID ||
-  "photobooks-hardcover_pf_210x280-mm-8x11-inch_pt_170-gsm-65lb-coated-silk_cl_4-4_ccl_4-4_bt_glued-left_ct_matt-lamination_prt_1-0_cpt_130-gsm-65-lb-cover-coated-silk_hor";
+  process.env.GELATO_PRODUCT_UID || PRODUIT_GELATO_CARRE;
 const modeGelato = () => (process.env.GELATO_MODE === "order" ? "order" : "draft");
 const cleGelato = () => process.env.GELATO_API_KEY ?? "";
 
@@ -243,7 +242,7 @@ export async function lancerImpression(orderId: string): Promise<void> {
       adresse.email,
       "Votre livre imprimé est en préparation 📦",
       "Votre livre part à l'impression",
-      "Merci ! Votre livre relié est en préparation chez notre imprimeur. Comptez environ 7 à 10 jours pour la livraison. Vous pouvez suivre la commande depuis votre compte.",
+      "Merci ! Votre livre relié est en préparation chez notre imprimeur. Comptez environ 7 à 12 jours pour la livraison. Vous pouvez suivre la commande depuis votre compte.",
       `${getAppUrl()}/compte`,
       "Suivre ma commande",
     );

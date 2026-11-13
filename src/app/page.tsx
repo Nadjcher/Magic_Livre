@@ -11,7 +11,7 @@ import { titreCouvertureTheme } from "@/lib/titrePrenom";
 import CouvertureLivre, { prenomExemple } from "@/components/CouvertureLivre";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PLANS_CLUB, mentionLancementImprime } from "@/lib/products";
+import { DELAI_IMPRIME, DELUXE_PRODUCTS, FORMAT_IMPRIME, LIVRE_IMPRIME, NOEL_LIMITE_DEFAUT, PACK_TOUT, PLANS_CLUB, mentionLancementImprime } from "@/lib/products";
 import AgeExplorer from "@/components/AgeExplorer";
 import WaitlistForm from "@/components/WaitlistForm";
 import { DATE_OUVERTURE, ventesOuvertes } from "@/lib/lancement";
@@ -215,7 +215,7 @@ export default async function AccueilPage() {
       {/* ─── Noël : la date limite, là où elle compte ─── */}
       <aside className="-mt-14 flex flex-col items-start gap-3 rounded-3xl border border-[#ffd98a]/30 bg-[#ffd98a]/[0.08] px-6 py-5 sm:-mt-16 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-[15px] text-magique-texte">
-          <strong className="text-[#ffd98a]">Pour Noël :</strong> le livre relié commandé avant le 10 décembre arrive sous le sapin.
+          <strong className="text-[#ffd98a]">Pour Noël :</strong> le livre relié commandé avant le {NOEL_LIMITE_DEFAUT} arrive sous le sapin.
           Un cadeau qu'aucun autre enfant n'aura.
         </p>
         <Link href={themeOuvert("noel") ? "/creer?theme=noel" : cta} rel="nofollow" className="btn-secondaire whitespace-nowrap px-4 text-[15px]">
@@ -437,11 +437,11 @@ export default async function AccueilPage() {
             <p className="mt-2 font-serif text-4xl text-magique-texte">{euros(LIVRE_IMPRIME.priceCents)}</p>
             {mentionLancementImprime() && <p className="mt-1 text-xs text-or-clair">{mentionLancementImprime()}</p>}
             <ul className="mt-5 flex-1 space-y-2.5 text-[15px]">
-              <li className="flex gap-2"><Coche />Relié, couverture rigide, 28 × 21 cm</li>
+              <li className="flex gap-2"><Coche />Relié, couverture rigide, carré {FORMAT_IMPRIME}</li>
               <li className="flex gap-2"><Coche />30 pages, prêt à offrir</li>
-              <li className="flex gap-2"><Coche />Livré chez vous en 7 à 10 jours ouvrés</li>
+              <li className="flex gap-2"><Coche />Livré chez vous en {DELAI_IMPRIME}</li>
             </ul>
-            <p className="mt-4 text-sm text-or-clair">Commandé avant le 10 décembre : sous le sapin.</p>
+            <p className="mt-4 text-sm text-or-clair">Commandé avant le {NOEL_LIMITE_DEFAUT} : sous le sapin.</p>
             <Link href={cta} className="btn-primaire mt-4 w-full whitespace-nowrap px-3 text-[15px]">Créer son livre</Link>
           </div>
         </div>

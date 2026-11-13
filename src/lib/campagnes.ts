@@ -18,6 +18,7 @@ import { prisma } from "./prisma";
 import { getAppUrl } from "./appUrl";
 import { emailMarketing } from "./mailer";
 import { DATE_OUVERTURE } from "./lancement";
+import { NOEL_LIMITE_DEFAUT } from "./products";
 
 export type Campagne = "avant-premiere" | "ouverture" | "relance" | "noel";
 
@@ -28,7 +29,7 @@ export const CAMPAGNES: { id: Campagne; quand: string; titre: string; cible: str
   { id: "noel", quand: "6 au 8 décembre", titre: "Dernier délai Noël", cible: "Ceux qui n'ont pas commandé de livre imprimé" },
 ];
 
-const NOEL_LIMITE = process.env.NOEL_LIMITE || "10 décembre";
+const NOEL_LIMITE = process.env.NOEL_LIMITE || NOEL_LIMITE_DEFAUT;
 const echapper = (t: string) => t.replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" })[c]!);
 
 let pret: Promise<void> | null = null;
@@ -176,7 +177,7 @@ function message(campagne: Campagne, c: Contact): Message | null {
         paragraphes: [
           "<strong>« Il va vraiment lui ressembler ? »</strong> Oui : le héros est dessiné d'après sa photo, le même à chaque page. Et la photo n'est jamais conservée.",
           "<strong>« Et si l'histoire ne me plaît pas ? »</strong> Vous lisez toute l'histoire avant de payer quoi que ce soit, et vous pouvez en créer une autre.",
-          `<strong>« Ce sera là pour Noël ? »</strong> Le PDF est immédiat. Le livre relié est livré en 7 à 10 jours : commandez avant le ${NOEL_LIMITE}.`,
+          `<strong>« Ce sera là pour Noël ? »</strong> Le PDF est immédiat. Le livre relié est livré en 7 à 12 jours : commandez avant le ${NOEL_LIMITE}.`,
         ],
         url: c.bookId ? `${base}/bibliotheque/${c.bookId}/boutique` : `${base}/creer`,
         libelle: c.bookId ? "Voir les formules" : "Créer son histoire",
@@ -187,7 +188,7 @@ function message(campagne: Campagne, c: Contact): Message | null {
         sujet: `Livre relié : commandez avant le ${NOEL_LIMITE} pour Noël 🎄`,
         titre: "Dernier délai pour le sapin",
         paragraphes: [
-          `Pour recevoir le livre relié avant Noël, commandez avant le ${NOEL_LIMITE}. Couverture rigide, 28 × 21 cm, imprimé et livré chez vous.`,
+          `Pour recevoir le livre relié avant Noël, commandez avant le ${NOEL_LIMITE}. Couverture rigide, carré 20 × 20 cm, imprimé et livré chez vous.`,
           prenom && titre
             ? `« ${titre} » n'attend que ça. Et si vous préférez, le PDF reste disponible immédiatement, même le 24 au soir.`
             : "Il ne faut que quelques minutes pour créer son livre, et vous le lisez gratuitement avant de commander.",

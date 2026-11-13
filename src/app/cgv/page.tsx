@@ -7,7 +7,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { identiteLegale, VERSION_CGV } from "@/lib/legal";
-import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PAYS_LIVRAISON, PLANS_CLUB, PRIX_IMPRIME_ABONNE, formatEuros, mentionLancementImprime } from "@/lib/products";
+import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PAYS_LIVRAISON, PLANS_CLUB, PRIX_IMPRIME_ABONNE, formatEuros, mentionLancementImprime, FORMAT_IMPRIME, DELAI_IMPRIME } from "@/lib/products";
 import { env } from "@/lib/env";
 
 export const metadata: Metadata = {
@@ -58,7 +58,7 @@ export default function CgvPage() {
         ))}
         <li>la {PACK_TOUT.label.toLowerCase()} (livre PDF, kit et produits ci-dessus) : {formatEuros(PACK_TOUT.priceCents)} ;</li>
         <li>
-          le {LIVRE_IMPRIME.label.toLowerCase()} (28 × 21 cm, 30 pages), livraison incluse : {formatEuros(LIVRE_IMPRIME.priceCents)}
+          le {LIVRE_IMPRIME.label.toLowerCase()} (carré {FORMAT_IMPRIME}, 30 pages), livraison incluse : {formatEuros(LIVRE_IMPRIME.priceCents)}
           {mentionLancementImprime() ? ` (${mentionLancementImprime()!.toLowerCase()})` : ""}.
         </li>
       </ul>
@@ -107,7 +107,7 @@ export default function CgvPage() {
       <p>
         <strong>Livre imprimé</strong> : il est fabriqué et expédié par notre imprimeur partenaire, à l'adresse
         indiquée lors du paiement. Pays desservis : {PAYS_LIVRAISON.map((c) => NOMS_PAYS[c] ?? c).join(", ")}.
-        Délai indicatif : 7 à 10 jours ouvrés. Le suivi est disponible dans « Mon compte ». À défaut de livraison
+        Délai indicatif : {DELAI_IMPRIME}, après votre validation du livre. Le suivi est disponible dans « Mon compte ». À défaut de livraison
         dans un délai de 30 jours, vous pouvez, après une mise en demeure restée sans effet, résoudre la vente et
         obtenir le remboursement (articles L216-6 et suivants du Code de la consommation).
       </p>

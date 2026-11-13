@@ -84,6 +84,12 @@ export const DELUXE_PRODUCTS: DeluxeProduct[] = [
 ];
 
 /** Livre imprimé et relié, expédié chez le client (imprimeur Gelato). */
+/** Le livre relié Gelato : carré 20 × 20 cm, livré de leur atelier en 7 à 12 jours (devis du 13 novembre). */
+export const FORMAT_IMPRIME = "20 × 20 cm";
+export const DELAI_IMPRIME = "7 à 12 jours";
+/** Dernière date de commande pour Noël : 12 jours de livraison + la validation du parent. */
+export const NOEL_LIMITE_DEFAUT = "8 décembre";
+
 /**
  * Prix du livre imprimé : 44,90 €, avec un prix de lancement de 39,90 €
  * jusqu'au 31 décembre 2026 inclus. Pas de « prix barré » : en France, un prix
@@ -105,8 +111,8 @@ export const LIVRE_IMPRIME: DeluxeProduct = {
   label: "Livre imprimé, couverture rigide",
   emoji: "📕",
   description:
-    "Le vrai livre relié, 28 × 21 cm, couverture rigide, 30 pages sur papier épais : " +
-    "l'histoire, ses personnages, des pages souvenir et à dessiner. Livré chez vous en 7 à 10 jours.",
+    "Le vrai livre relié, carré 20 × 20 cm, couverture rigide, 30 pages : " +
+    "l'histoire, ses personnages, des pages souvenir et à dessiner. Livré chez vous en 7 à 12 jours.",
   get priceCents() {
     return prixImprime();
   },

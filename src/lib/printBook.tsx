@@ -41,7 +41,11 @@ export const PAGES_INTERIEURES = 30;
  * Format du livre, lu dans la référence du produit Gelato (« _pf_210x280-mm », « _hor ») :
  * le fichier suit le produit commandé. Carré : « _pf_210x210-mm ».
  */
-export function formatImpression(uid = process.env.GELATO_PRODUCT_UID || ""): { largeur: number; hauteur: number } {
+/** Produit Gelato par défaut : livre rigide carré 20 × 20 cm (dimensions de couverture vérifiées auprès de Gelato : 458 × 246 mm). */
+export const PRODUIT_GELATO_CARRE =
+  "photobooks-hardcover_pf_200x200-mm-8x8-inch_pt_170-gsm-65lb-coated-silk_cl_4-4_ccl_4-4_bt_glued-left_ct_matt-lamination_prt_1-0_cpt_130-gsm-65-lb-cover-coated-silk_ver";
+
+export function formatImpression(uid = process.env.GELATO_PRODUCT_UID || PRODUIT_GELATO_CARRE): { largeur: number; hauteur: number } {
   const m = /_pf_(\d+)x(\d+)-mm/.exec(uid);
   if (!m) return { largeur: 280, hauteur: 210 }; // produit par défaut : 28 × 21 cm à l'italienne
   const [a, b] = [Number(m[1]), Number(m[2])];
@@ -54,7 +58,7 @@ export const LIVRE_CARRE = FMT.largeur === FMT.hauteur;
 
 // Couverture à plat (règles du gabarit Gelato du produit 28 × 21, appliquées au
 // format choisi) : rabat 20 mm, carton = largeur - 2 mm, charnière 8 mm, dos 6 mm,
-// hauteur = format + 6 mm + 2 rabats. À VÉRIFIER avec le gabarit Gelato du produit carré.
+// hauteur = format + 6 mm + 2 rabats. Vérifié auprès de l'API Gelato (cover-dimensions) pour 28 × 21 (618 × 256) et 20 × 20 (458 × 246).
 const CARTON = FMT.largeur - 2;
 const COUV_L = (2 * (20 + CARTON + 8) + 6) * MM;
 const COUV_H = (FMT.hauteur + 6 + 40) * MM;
