@@ -117,6 +117,56 @@ export async function verifier(
   }
 }
 
+/**
+ * Zone vide (contrôle par le code, sans IA) : un bloc d'image presque blanc et
+ * uniforme, d'au moins 4 cases de 1/8 d'image qui se touchent (rectangle non
+ * peint). La relectrice IA ne le voyait pas.
+ */
+export async function zoneVide(img: Ref): Promise<boolean> {
+  try {
+    const { default: sharp } = await import("sharp");
+    const N = 64;
+    const { data } = await sharp(Buffer.from(img.base64, "base64")).resize(N, N, { fit: "fill" }).greyscale().raw().toBuffer({ resolveWithObject: true });
+    const B = 8;
+    const t = N / B;
+    const vide: boolean[] = [];
+    for (let by = 0; by < B; by++)
+      for (let bx = 0; bx < B; bx++) {
+        const v: number[] = [];
+        for (let y = by * t; y < (by + 1) * t; y++) for (let x = bx * t; x < (bx + 1) * t; x++) v.push(data[y * N + x] ?? 0);
+        const m = v.reduce((a, b) => a + b, 0) / v.length;
+        const ec = Math.sqrt(v.reduce((a, b) => a + (b - m) ** 2, 0) / v.length);
+        vide.push(m > 238 && ec < 4);
+      }
+    // Plus grand groupe de cases vides voisines.
+    const vu = new Set<number>();
+    let max = 0;
+    for (let k = 0; k < vide.length; k++) {
+      if (!vide[k] || vu.has(k)) continue;
+      let n = 0;
+      const pile = [k];
+      vu.add(k);
+      while (pile.length) {
+        const c = pile.pop()!;
+        n++;
+        const [cx, cy] = [c % B, Math.floor(c / B)];
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+          const [nx, ny] = [cx + dx, cy + dy];
+          const nk = ny * B + nx;
+          if (nx >= 0 && ny >= 0 && nx < B && ny < B && vide[nk] && !vu.has(nk)) {
+            vu.add(nk);
+            pile.push(nk);
+          }
+        }
+      }
+      max = Math.max(max, n);
+    }
+    return max >= 4;
+  } catch {
+    return false;
+  }
+}
+
 /** Attend une promesse au plus jusqu'à `limite` (horodatage) ; sinon null. */
 function avant<T>(limite: number, p: Promise<T>): Promise<T | null> {
   const reste = limite - Date.now();
@@ -168,7 +218,11 @@ export async function controlerIllustrations(
   const grille = estCarre(story.style) ? grillePour(story.style) : null;
   const controler = async (url: string, scene: string, cast: ReturnType<typeof presentsSur>) => {
     const img = enRef(await fetchAsDataUrl(url, petit));
-    return img ? verifier(heros, cast, img, scene, grille) : { ok: true, fix: "" };
+    if (!img) return { ok: true, fix: "" };
+    if (grille && (await zoneVide(img))) {
+      return { ok: false, fix: "The picture has a blank, unpainted white area: paint the whole scene to every edge, no empty rectangle." };
+    }
+    return verifier(heros, cast, img, scene, grille);
   };
 
   const verdicts = await avant(
