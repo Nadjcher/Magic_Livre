@@ -222,7 +222,9 @@ export async function controlerIllustrations(
     if (grille && (await zoneVide(img))) {
       return { ok: false, fix: "The picture has a blank, unpainted white area: paint the whole scene to every edge, no empty rectangle." };
     }
-    return verifier(heros, cast, img, scene, grille);
+    const v = await verifier(heros, cast, img, scene, grille);
+    // Relecture impossible (délai, panne passagère) : un second essai avant de la compter « non vérifiée ».
+    return "nonVerifiee" in v && v.nonVerifiee ? verifier(heros, cast, img, scene, grille) : v;
   };
 
   const verdicts = await avant(
