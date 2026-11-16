@@ -45,9 +45,21 @@ export interface HistoireMaitresse {
   /** Série « Le vieux livre de contes » : numéro d'épisode et objet que l'enfant rapporte (page « ma collection »). */
   episode?: number;
   objet?: string;
+  /**
+   * Règles d'image propres à CETTE histoire (anglais) : personnages, objets,
+   * ce qu'il ne faut jamais montrer. Ajoutées à la fiche des personnages de
+   * chaque illustration du livre ; les règles communes restent dans bibleVisuelle.ts.
+   */
+  reglesImage?: string;
 }
 
 const TENUE = "soft yellow pyjamas with small orange moons, felt slippers";
+
+/** Série « Le vieux livre de contes » : le crayon blanc et ce que l'enfant dessine (tous les épisodes). */
+const REGLES_SERIE =
+  "THE WHITE PENCIL: a pure white pencil (white wood and white tip), never an ordinary yellow or wooden pencil. " +
+  "WHAT THE CHILD DRAWS: irregular lumpy white shapes of unequal sizes, each outlined by a shaky white pencil line, clearly different from the scenery; " +
+  "never a paved path, a road or regular shapes. While it is only drawn: outline only, empty inside. Once it has become real: a full solid shape with a slight golden glow.";
 
 export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
   {
@@ -66,6 +78,13 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
     faits:
       "Ce que {prenom} dessine au crayon blanc dans le livre de {parent} devient vrai, et rien n'apparaît tout seul. Le géant n'a jamais été vu, seulement entendu ronfler. Poucet garde dans sa poche un caillou dessiné par {prenom}.",
     tenueHeros: TENUE,
+    reglesImage:
+      REGLES_SERIE +
+      " Little Thumb (Poucet): clearly a little HUMAN BOY (a boy's face, short straight black hair cut above the ears, no fringe over the eyes), red knitted bonnet, brown jacket, a cheerful face, never animal ears; " +
+      "ALWAYS the same tiny size on every page: a toy-figurine-sized boy about 25 cm tall, his whole body fits between the ground and the child's knee, and even when the child crouches " +
+      "the top of his bonnet stays below the child's chest; next to the child he stands ON something (a mushroom, a stone, a leaf) so his tiny size is obvious; trousers patched, never ripped. " +
+      "PEBBLES drawn by the child: separate small crooked pebbles spaced apart, never a paved path, never stepping stones or flagstones. " +
+      "The giant: never shown, only suggested by a shadow or boots.",
     cast: [
       {
         nom: "Poucet",
@@ -176,6 +195,10 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
     faits:
       "Ce que {prenom} dessine au crayon blanc dans le livre de {parent} devient vrai. Les lutins Bobine, Poinçon et Dé ont cousu les souliers avec le fil d'or tordu de {prenom}, et réparé une botte immense dont on ne sait pas à qui elle appartient. {prenom} a rapporté un bout de ruban doré.",
     tenueHeros: TENUE,
+    reglesImage:
+      REGLES_SERIE +
+      " The three elves Bobine, Poinçon and Dé: TINY (teacup size), each exactly as described, never looks like the hero, never as big as the child. " +
+      "The owner of the immense boot: never shown, only suggested.",
     cast: [
       {
         nom: "Bobine",

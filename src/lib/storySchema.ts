@@ -69,7 +69,7 @@ export const storySchema = z.object({
       (v) => (v == null ? undefined : typeof v === "string" ? v : JSON.stringify(v)),
       z.string().optional(),
     )
-    .transform((v) => v?.slice(0, 1500))
+    .transform((v) => v?.slice(0, 3000))
     .optional(),
   // Distribution : personnages secondaires récurrents (fiches dessinées).
   cast: z

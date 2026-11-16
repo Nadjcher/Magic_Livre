@@ -1,7 +1,7 @@
 /**
  * La bible visuelle d'Encore une histoire, COMMUNE à tous les styles (décor plein
  * cadre, une lumière principale, héros fidèle à son portrait, doudou
- * reconnaissable, Poucet à l'échelle, dessin de l'enfant distinct, interdits),
+ * reconnaissable, petits personnages à l'échelle, interdits),
  * plus une fiche courte par style (technique, palette, interdits du style).
  * Donnée au générateur d'images (en anglais) et à la relectrice d'images.
  */
@@ -127,30 +127,19 @@ export function consigneHeros(nom: string | undefined, traits: string | undefine
   );
 }
 
-/** Personnages fixes (fiches identiques dans tous les livres). */
+/**
+ * Règles de personnages valables pour TOUTES les histoires. Ce qui est propre
+ * à une histoire (Poucet, le géant, le crayon blanc…) est dans sa fiche
+ * (histoiresMaitresses.ts, champ `reglesImage`), jamais ici.
+ */
 export const PERSONNAGES_FIXES =
   "FIXED CHARACTERS: a secondary character never looks like the hero. " +
-  "Little Thumb (Petit Poucet): clearly a little BOY (a boy's face, short straight black hair cut above the ears, no fringe over the eyes), red knitted bonnet, brown jacket, a cheerful face; ALWAYS the same tiny size on every page: " +
-  "a toy-figurine-sized boy about 25 cm tall: his whole body fits between the ground and the child's knee, and even when the child crouches, " +
-  "the top of his bonnet stays below the child's chest (never at waist or shoulder height); when he is next to the child he stands ON something " +
-  "(a mushroom, a stone, a leaf) so his tiny size is obvious; trousers patched, never ripped. " +
   "The child's cuddly toy: exactly the plush described in the character sheet (its species, colour and shape clearly readable: ears, muzzle, paws), " +
   "soft and cute, never a shapeless blob, no seams or patches, held in the child's arms, never alive. " +
-  "Tiny characters (Poucet, elves) keep their tiny size on EVERY page: never as big as the hero, never seated on full-size chairs. " +
-  "NEVER MIX TWO CHARACTERS: each one keeps its own head, face and body from its reference sheet; Poucet never has animal ears or an animal head, " +
+  "Characters described as tiny in the character sheet keep their tiny size on EVERY page: never as big as the hero, never seated on full-size chairs. " +
+  "NEVER MIX TWO CHARACTERS: each one keeps its own head, face and body from its reference sheet; a human character never has animal ears or an animal head, " +
   "the cuddly toy never wears clothes and never stands like a person; the cuddly toy appears ONCE in the picture (never two copies). " +
-  "The parent: an adult, clearly bigger than the child and never dressed like the child; only a hand, a silhouette from behind or a profile in shadow, never a detailed face. " +
-  "The giant: never shown, only suggested by a shadow or boots.";
-
-/** Objets fixes. */
-export const OBJETS_FIXES =
-  "THE WHITE PENCIL: a pure white pencil (white wood and white tip), never an ordinary yellow or wooden pencil. " +
-  "PEBBLES drawn by the child: separate small crooked pebbles spaced apart, never a paved path, never stepping stones or flagstones.";
-
-/** Le dessin de l'enfant : toujours distinct du décor peint. */
-export const DESSIN_ENFANT =
-  "WHAT THE CHILD DRAWS: irregular lumpy white shapes of unequal sizes, each outlined by a shaky white pencil line, " +
-  "clearly different from the scenery; never a paved path, a road or regular pebbles. While it is only drawn: outline only, empty inside. Once it has become real: a full solid shape with a slight golden glow.";
+  "The parent: an adult, clearly bigger than the child and never dressed like the child; only a hand, a silhouette from behind or a profile in shadow, never a detailed face.";
 
 /** Interdits. */
 export const INTERDITS_IMAGE =
@@ -178,8 +167,8 @@ export function grillePour(style: string | undefined): string[] {
     "The picture is painted to every edge: if ANY part of the image is blank, white, unpainted or looks like an empty rectangle, answer no.",
     "There is a single MAIN light source, the one named in the scene, lighting the hero's face; small distant lights are fine as long as they do not light the characters.",
     "CUDDLY TOY: if the cuddly toy appears, it is the SAME species and color as its reference sheet (a teddy bear stays a teddy bear: if it looks like a dog, a cat, a fox or another animal, answer no), a plush toy, not alive.",
-    "SCALE: tiny characters (Little Thumb / Poucet, elves) are TINY: the top of their hat is below the hero's knee when the hero stands, below the hero's chest when the hero crouches; if one is as big as the hero, reaches the hero's waist or shoulder, or sits on a full-size chair, answer no. Judge the character's OWN body height, not how high he stands: a mushroom or a stone under his feet raises him and is fine. The parent, if present, is clearly an ADULT, much bigger than the child and never dressed like the child; otherwise answer no.",
-    "The characters named in the scene are all present (the hero included), and the objects that matter to the story are there (ignore small props that are hard to see). Pebbles drawn by the child are separate, never a paved path or stepping stones.",
+    "SCALE: characters described as tiny in their description are TINY, exactly the size given there (e.g. the top of their hat below the hero's knee when the hero stands, below the hero's chest when the hero crouches); if one is as big as the hero, reaches the hero's waist or shoulder, or sits on a full-size chair, answer no. Judge the character's OWN body height, not how high he stands: a mushroom or a stone under his feet raises him and is fine. The parent, if present, is clearly an ADULT, much bigger than the child and never dressed like the child; otherwise answer no.",
+    "The characters named in the scene are all present (the hero included), and the objects that matter to the story are there (ignore small props that are hard to see), and they look as the scene describes them (e.g. if the scene asks for separate pebbles, a paved path or stepping stones is wrong).",
     "The image is free of everything forbidden: no letters or signs, no wrong hands, nothing frightening.",
     "The text area is calm and integrated into the scene (not a flat band or empty box).",
   ];

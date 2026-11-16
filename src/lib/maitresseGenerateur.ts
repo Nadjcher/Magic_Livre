@@ -119,7 +119,11 @@ export async function histoireDepuisMaitresse(h: HistoireMaitresse, req: StoryRe
     fiche,
     ...h.cast.map((c) => `${c.nom}: ${c.visuel}`),
     `${p.parent}: an ADULT ${p.parent === "Maman" || p.parent === "Mamie" ? "woman" : "man"}${p.parent === "Mamie" || p.parent === "Papi" ? " with grey hair" : ""}, twice the hero's height, in a dark green knitted sweater and beige trousers (never pyjamas, never dressed like the hero); only a hand, a silhouette from behind or a profile in shadow, never a detailed face.`,
-  ].join(" ");
+    // Règles propres à cette histoire (Poucet, le géant, le crayon blanc…) : jointes à chaque illustration.
+    h.reglesImage ? `STORY RULES: ${h.reglesImage}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
   // Dans les consignes d'image (en anglais), le doudou garde un nom (« Doudou » s'il n'en a pas).
   const pImage = { ...p, doudou: nomFiche };
   const scene = (t: string) => remplir(t, pImage, h);

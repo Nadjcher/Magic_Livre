@@ -41,8 +41,6 @@ export type StyleConfig = typeof STYLE_CONFIG;
  * devant la description de la scène. On garde un seul endroit pour les définir.
  */
 import {
-  DESSIN_ENFANT,
-  OBJETS_FIXES,
   INTERDITS_IMAGE,
   PERSONNAGES_FIXES,
   ZONE_TEXTE,
@@ -308,11 +306,9 @@ export function buildIllustrationPrompt(opts: {
         ? `CHARACTER SHEET (the hero always wears exactly this outfit; recurring characters drawn exactly as described, identical on every page): ${opts.recurringCharacters.trim()}`
         : "",
       PERSONNAGES_FIXES,
-      OBJETS_FIXES,
-      `SCENE: ${opts.scene}`,
+          `SCENE: ${opts.scene}`,
       ZONE_TEXTE,
-      DESSIN_ENFANT,
-      INTERDITS_IMAGE,
+          INTERDITS_IMAGE,
       "Each character appears only once.",
     ]
       .filter(Boolean)
