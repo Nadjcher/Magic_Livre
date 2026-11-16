@@ -214,7 +214,7 @@ export function jugerInventaire(
     if (estMinuscule(c.description) && x.size && x.size !== "tiny") {
       f.push(`${c.nom} must be TINY: the top of the head or hat below ${heros.nom}'s knee (size seen: ${x.size}).`);
     }
-    if (estHumain(c.description) && x.animal_ears_or_animal_head === true && !/\bears?\b/i.test(c.description)) {
+    if (estHumain(c.description) && x.animal_ears_or_animal_head === true && !/\belf\b/i.test(c.description)) {
       f.push(`${c.nom} is a human: no animal ears, no animal head.`);
     }
   }
