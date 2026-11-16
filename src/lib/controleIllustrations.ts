@@ -132,18 +132,21 @@ export async function verifier(
     'Reply with JSON only: {"ok": true|false, "fix": "if not ok: one short English instruction to correct the drawing, naming the character"}',
   );
   const images = [heros.image, ...cast.map((c) => c.image), page].map((r) => `data:${r.mime};base64,${r.base64}`);
+  const modeleChoisi = modeleImpose || modele();
+  // Chez fal, ces modèles n'acceptent qu'avec la réflexion activée.
+  const reflexion = /claude-(sonnet|opus)-5|gemini-2\.5-pro|gpt-5/i.test(modeleChoisi);
   try {
     const r = await falFetch("https://fal.run/openrouter/router/vision", {
       method: "POST",
       headers: { Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: modeleImpose || modele(),
+        model: modeleChoisi,
         system_prompt: SYSTEME,
         prompt: lignes.join("\n"),
         image_urls: images,
         // L'inventaire complet tient en ~600 jetons ; 400 coupaient la réponse, qui passait alors sans contrôle.
-        max_tokens: grille ? 1400 : 400,
-        temperature: 0,
+        // Les modèles récents réfléchissent d'abord (obligatoire chez fal) : place pour la réflexion en plus.
+        ...(reflexion ? { reasoning: true, max_tokens: 6000 } : { max_tokens: grille ? 1400 : 400, temperature: 0 }),
       }),
     }, grille ? 90_000 : 40_000);
     const j = (await r.json().catch(() => ({}))) as { output?: string; usage?: { cost?: number } };
