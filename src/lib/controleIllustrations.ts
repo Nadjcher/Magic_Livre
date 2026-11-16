@@ -73,17 +73,17 @@ interface Inventaire {
   frightening?: boolean;
 }
 
-const estPeluche = (d: string) => /plush|cuddly toy|never alive|soft toy/i.test(d);
+export const estPeluche = (d: string) => /plush|cuddly toy|never alive|soft toy/i.test(d);
 const estMinuscule = (d: string) => /\btiny\b|toy-figurine|figurine|teacup|egg cup|25 cm/i.test(d);
 const estHumain = (d: string) => /^(human|tiny elf|elf)\b|\bboy\b|\bgirl\b|\belf\b/i.test(d.trim()) && !estPeluche(d);
 /** Espèce attendue d'une peluche (« rabbit », « bear »…), lue dans sa fiche. */
-function especeAttendue(d: string): string | null {
+export function especeAttendue(d: string): string | null {
   const m = /\b(rabbit|bunny|bear|teddy|dog|puppy|cat|kitten|fox|elephant|giraffe|lion|tiger|monkey|unicorn|dinosaur|dragon|owl|penguin|panda|koala|mouse|sheep|lamb|cow|horse|pony|duck|frog|turtle|pig|deer|raccoon|hedgehog|squirrel|wolf|seal|whale|dolphin|octopus|bird|chick)\b/i.exec(d);
   if (!m) return null;
   const e = m[1]!.toLowerCase();
   return e === "bunny" ? "rabbit" : e === "teddy" ? "bear" : e === "puppy" ? "dog" : e === "kitten" ? "cat" : e === "lamb" ? "sheep" : e;
 }
-const memeEspece = (attendue: string, vue: string) => {
+export const memeEspece = (attendue: string, vue: string) => {
   const v = vue.toLowerCase();
   const synonymes: Record<string, string[]> = { rabbit: ["rabbit", "bunny", "hare"], bear: ["bear", "teddy"], dog: ["dog", "puppy"], cat: ["cat", "kitten"], sheep: ["sheep", "lamb"] };
   return (synonymes[attendue] ?? [attendue]).some((x) => v.includes(x));
@@ -181,7 +181,7 @@ export async function verifier(
 
 /** Échelle des couleurs de cheveux : deux crans d'écart (blond → châtain) ou roux d'un côté seulement = différent. */
 const CHEVEUX = ["blond", "light brown", "chestnut", "dark brown", "black"];
-function cheveuxDifferents(ref?: string, vu?: string): boolean {
+export function cheveuxDifferents(ref?: string, vu?: string): boolean {
   const r = (ref ?? "").toLowerCase().trim();
   const v = (vu ?? "").toLowerCase().trim();
   if (!r || !v) return false;
@@ -337,6 +337,11 @@ export async function controlerIllustrations(
   req: StoryRequest,
   limite: number,
 ): Promise<{ story: Story; bilan: string }> {
+  // Livre fait à partir des planches validées : seules les retouches sont vérifiées (cheveux, doudou).
+  if (story.planches?.retouchees?.length) {
+    const { controlerRetouches } = await import("./planches");
+    return controlerRetouches(story, limite);
+  }
   const heroImg = enRef(await fetchAsDataUrl(story.fiches?.heros, petit));
   if (!heroImg) return { story, bilan: "contrôle impossible (pas de fiche du héros)" };
 

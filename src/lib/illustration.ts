@@ -542,3 +542,70 @@ export async function describeChildFromPhoto(
     return "";
   }
 }
+
+/**
+ * Retouche d'une planche validée (histoire toute prête) : seuls l'enfant
+ * (visage, cheveux, peau) et le doudou changent ; le décor, les autres
+ * personnages, la lumière et la composition restent identiques. Une image par
+ * page, au lieu de redessiner toute la scène (test du 16 nov. : scène intacte).
+ */
+export async function retoucherPlanche(opts: {
+  planche: { base64: string; mime: string };
+  /** Fiche du héros de ce livre (si l'enfant est sur la planche). */
+  heros?: { base64: string; mime: string };
+  /** Fiche du doudou de ce livre (si le doudou est sur la planche). */
+  doudou?: { base64: string; mime: string };
+  /** Correction demandée par la relectrice (nouvel essai). */
+  correction?: string;
+  seed: number;
+}): Promise<IllustrationResult> {
+  const key = env.falApiKey();
+  if (!key) return { imageUrl: null, error: "FAL_API_KEY absente" };
+  const reduire = async (r: { base64: string; mime: string }, maxPx: number) => {
+    const c = await compressImage(Buffer.from(r.base64, "base64"), r.mime, { maxPx, quality: 88 });
+    return `data:${c.mime};base64,${c.bytes.toString("base64")}`;
+  };
+  const images = [await reduire(opts.planche, 1024)];
+  const changements: string[] = [];
+  if (opts.heros) {
+    images.push(await reduire(opts.heros, 704));
+    changements.push(
+      `the big child's face, hair (exact color and cut) and skin tone become exactly those of the child in image ${images.length}, ` +
+        "same art style, SAME head size, same pose, same position, same pyjamas",
+    );
+  }
+  if (opts.doudou) {
+    images.push(await reduire(opts.doudou, 704));
+    changements.push(`the plush toy becomes exactly the plush toy of image ${images.length} (same species, colors and shape), at the same size and in the same place`);
+  }
+  if (!changements.length) return { imageUrl: null, error: "rien à retoucher" };
+  const prompt =
+    "Image 1 is a finished, approved book page. Edit it: keep EVERYTHING in image 1 exactly identical - the setting, every other character, " +
+    "their sizes and positions, the light, the colors, the composition and the 3D animated rendering. " +
+    `Change ONLY: ${changements.map((c, i) => `(${i + 1}) ${c}`).join("; ")}.` +
+    (opts.correction ? ` Correction requested: ${opts.correction}` : "") +
+    " No text, no letters.";
+  try {
+    const res = await falFetch(
+      `https://fal.run/${env.falImageModel().endsWith("/edit") ? env.falImageModel() : "fal-ai/flux-2-pro/edit"}`,
+      {
+        method: "POST",
+        headers: { Authorization: `Key ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, image_urls: images, image_size: "square_hd", output_format: "jpeg", seed: opts.seed }),
+      },
+      150_000,
+    );
+    const j = (await res.json().catch(() => ({}))) as { images?: { url?: string }[]; detail?: unknown };
+    if (!res.ok) return { imageUrl: null, error: `HTTP ${res.status} ${JSON.stringify(j.detail ?? j).slice(0, 160)}` };
+    await noterDepense(PRIX_ESTIMES.image);
+    const url = j.images?.[0]?.url;
+    if (!url) return { imageUrl: null, error: "pas d'image renvoyée" };
+    const dl = await fetchAllWithTimeout(url, {}, { timeoutMs: 30_000, maxBytes: 20_000_000 }).catch(() => null);
+    if (!dl?.ok || !dl.bytes) return { imageUrl: null, error: "téléchargement de l'image impossible" };
+    const base64 = dl.bytes.toString("base64");
+    const mime = dl.contentType || "image/jpeg";
+    return { imageUrl: await storeImage(base64, mime, opts.seed), base64, mime };
+  } catch (e) {
+    return { imageUrl: null, error: `réseau/délai : ${String(e).slice(0, 120)}` };
+  }
+}

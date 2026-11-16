@@ -189,6 +189,29 @@ export async function redrawPage(
     return { ok: false, message: "Cette page sera illustrée avec le livre complet." };
   }
 
+  // Histoire toute prête avec planches : on retouche à nouveau la planche validée (scène intacte).
+  if (story.planches) {
+    const { retoucherPage } = await import("@/lib/planches");
+    const url = await retoucherPage(story, index);
+    if (url) {
+      const frais = storySchema.safeParse((await prisma.book.findUnique({ where: { id: book.id }, select: { pages: true } }))?.pages);
+      const cible = frais.success ? frais.data : story;
+      await prisma.book.update({
+        where: { id: book.id },
+        data: {
+          pages: {
+            ...cible,
+            retouches: faites + 1,
+            couvertureUrl: index < 0 ? url : cible.couvertureUrl,
+            pages: cible.pages.map((p, i) => (i === index ? { ...p, imageUrl: url } : p)),
+          },
+        },
+      });
+      revalidatePath(`/bibliotheque/${book.id}`);
+      return { ok: true, message: "Nouvelle illustration prête !", restantes: RETOUCHES_MAX - faites - 1 };
+    }
+  }
+
   // Fiches de référence (héros + personnages secondaires présents).
   const versRef = async (u: string | null | undefined) => {
     const d = await fetchAsDataUrl(u, { maxPx: 1024, quality: 86 });

@@ -13,6 +13,7 @@ import type { Story } from "./storySchema";
 import type { StoryRequest } from "./storyPrompt";
 import { possessif, remplir, type HistoireMaitresse, type Personnalisation } from "./histoiresMaitresses";
 import { falFetch } from "./jetonsFal";
+import { lireDoudou, visuelDoudou } from "./doudous";
 
 interface Lecture {
   fille?: boolean;
@@ -65,13 +66,17 @@ export async function histoireDepuisMaitresse(h: HistoireMaitresse, req: StoryRe
   const doudouSaisi = [doudouExtra ? `${doudouExtra.name}${doudouExtra.appearance ? ` (${doudouExtra.appearance})` : ""}` : "", req.fiche?.objet ?? ""]
     .filter(Boolean)
     .join(" ; ");
-  const lu = await lirePersonnalisation(h, req, doudouSaisi);
+  // Doudou choisi dans la liste (espèce + couleur) : rien à deviner. L'IA ne sert plus
+  // qu'au doudou décrit librement, ou au genre quand le parent ne l'a pas indiqué.
+  const choisi = lireDoudou(doudouExtra?.appearance);
+  const lu = choisi && req.genre ? {} : await lirePersonnalisation(h, req, choisi ? "" : doudouSaisi);
 
   // Doudou : son nom s'il en a un, sinon « son lapin » ; « son doudou » si le parent n'en a pas parlé.
   const nomDoudou = propre(doudouExtra?.name, 30) || propre(lu.doudou?.nom, 30);
-  const son = doudouSaisi ? possessif(propre(lu.doudou?.son, 30) || "son doudou") : "son doudou";
-  const visuel =
-    propre(lu.doudou?.visuel, 220) || (doudouSaisi ? `a soft plush toy: ${doudouSaisi}` : "a soft light-brown plush teddy bear with round ears, a cream muzzle and small black eyes");
+  const son = choisi ? choisi.espece.son : doudouSaisi ? possessif(propre(lu.doudou?.son, 30) || "son doudou") : "son doudou";
+  const visuel = choisi
+    ? visuelDoudou(choisi)
+    : propre(lu.doudou?.visuel, 220) || (doudouSaisi ? `a soft plush toy: ${doudouSaisi}` : "a soft light-brown plush teddy bear with round ears, a cream muzzle and small black eyes");
   // Un seul lecteur dans l'histoire (le texte est au singulier) : Papa, sinon Maman, Mamie, Papi.
   const roles = (req.extras ?? []).map((e) => e.role);
   const parent: Personnalisation["parent"] = roles.includes("papa")
@@ -96,6 +101,20 @@ export async function histoireDepuisMaitresse(h: HistoireMaitresse, req: StoryRe
     parent,
     passages,
   };
+  return construireLivre(h, p, { style: req.style, age: req.childAge });
+}
+
+/** Variante de planche selon le parent lu dans l'histoire (homme : Papa, Papi ; femme : Maman, Mamie). */
+export function varianteParent(parent: Personnalisation["parent"]): "homme" | "femme" {
+  return parent === "Maman" || parent === "Mamie" ? "femme" : "homme";
+}
+
+/**
+ * Le livre d'une histoire toute prête pour une personnalisation donnée, sans
+ * aucun appel à l'IA. Sert aussi à dessiner les planches (enfant « neutre »).
+ */
+export function construireLivre(h: HistoireMaitresse, p: Personnalisation, opts: { style?: Story["style"]; age: number }): Story {
+  const visuel = p.doudouVisuel;
 
   const nomFiche = p.doudou || "Doudou";
   const fiche = `${nomFiche} (the child's cuddly toy, never alive): ${visuel}`;
@@ -131,8 +150,10 @@ export async function histoireDepuisMaitresse(h: HistoireMaitresse, req: StoryRe
     resume: remplir(h.resume, p, h),
     faits: remplir(h.faits, p, h),
     plan: { ritournelle: h.ritournelle, objet_cle: `${p.sonDoudou}${p.doudou ? ` ${p.doudou}` : ""}` },
-    style: req.style,
-    meta: { age: req.childAge, format: "album", themeId: h.themeId, mode: "theme", trame: h.id, modeles: [h.id] },
+    style: opts.style,
+    meta: { age: opts.age, format: "album", themeId: h.themeId, mode: "theme", trame: h.id, modeles: [h.id] },
+    // Les images partent des planches validées de cette histoire (si elles existent pour ce style).
+    planches: { histoire: h.id, variante: varianteParent(p.parent) },
     couvertureScene: remplir(h.couverture, pImage, h),
   };
 }

@@ -92,6 +92,11 @@ export const storySchema = z.object({
     .array(z.object({ orderId: z.string(), gelatoId: z.string(), creeLe: z.number() }))
     .optional()
     .catch(undefined),
+  // Histoire toute prête : planches validées utilisées (variante selon le parent) et pages retouchées.
+  planches: z
+    .object({ histoire: z.string(), variante: z.enum(["homme", "femme"]), retouchees: z.array(z.number()).optional() })
+    .optional()
+    .catch(undefined),
   // Livres imprimés payés, en attente de la validation du parent (rien n'est envoyé à l'imprimeur avant).
   impressionsAValider: z
     .array(z.object({ orderId: z.string(), depuis: z.number(), retouchesAuDebut: z.number(), relances: z.number().optional() }))

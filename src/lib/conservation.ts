@@ -78,7 +78,11 @@ function referencesImages(pages: unknown): string[] {
 
 /** Supprime du stockage les images de ces livres (best-effort). */
 export async function supprimerImages(livres: { pages: unknown }[]): Promise<number> {
-  const refs = livres.flatMap((l) => referencesImages(l.pages));
+  // Les planches des histoires toutes prêtes sont partagées entre les livres : jamais supprimées ici.
+  const planches = new Set(
+    (await prisma.$queryRaw<{ url: string }[]>`SELECT url FROM "Planche"`.catch(() => [])).map((p) => (p.url.startsWith("vblob:") ? p.url.slice("vblob:".length) : p.url)),
+  );
+  const refs = livres.flatMap((l) => referencesImages(l.pages)).filter((r) => !planches.has(r));
   let n = 0;
   for (let i = 0; i < refs.length; i += 100) {
     try {

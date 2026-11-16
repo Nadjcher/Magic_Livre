@@ -17,6 +17,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { flushSync } from "react-dom";
 import { findFormat, formatParDefaut, formatsPourAge } from "@/lib/bookFormats";
 import { ROLES_EXTRAS } from "@/lib/validation";
+import { COULEURS_DOUDOU, ESPECES_DOUDOU, codeDoudou } from "@/lib/doudous";
 import { groupePourAge } from "@/lib/ageGroups";
 import { useRouter } from "next/navigation";
 import { createBook } from "@/app/actions/books";
@@ -54,7 +55,7 @@ function lirePhotoReduite(file: File | undefined, done: (dataUrl: string) => voi
   reader.readAsDataURL(file);
 }
 
-type Extra = { name: string; role: string; photo: string };
+type Extra = { name: string; role: string; photo: string; espece?: string; couleur?: string };
 
 const ETAPES = ["Le héros", "L'histoire", "Les finitions"] as const;
 const LONGUEURS = [
@@ -717,13 +718,40 @@ export default function CreateBookForm({
                 >
                   Retirer
                 </button>
-                <div className="sm:col-span-3">
-                  <label className="inline-flex min-h-11 cursor-pointer items-center text-sm font-semibold text-magique-primaire underline-offset-4 hover:underline">
-                    {x.photo ? "✓ Photo ajoutée (changer)" : "Ajouter sa photo (pour qu'il lui ressemble)"}
-                    <input type="file" accept="image/*" className="sr-only" onChange={(e) => lirePhotoReduite(e.target.files?.[0], (d) => majExtra(i, { photo: d }))} />
-                  </label>
-                  <input type="hidden" name={`extra_${i}_photo`} value={x.photo} />
-                </div>
+                {x.role === "doudou" ? (
+                  // Doudou : choisi dans une liste (rien à deviner pour l'illustrateur).
+                  <div className="grid gap-3 sm:col-span-3 sm:grid-cols-2">
+                    <label className="block text-sm font-semibold">
+                      Quel animal ?
+                      <select value={x.espece ?? "lapin"} onChange={(e) => majExtra(i, { espece: e.target.value })} className="champ mt-1">
+                        {ESPECES_DOUDOU.map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="block text-sm font-semibold">
+                      De quelle couleur ?
+                      <select value={x.couleur ?? "marron"} onChange={(e) => majExtra(i, { couleur: e.target.value })} className="champ mt-1">
+                        {COULEURS_DOUDOU.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <input type="hidden" name={`extra_${i}_appearance`} value={codeDoudou(x.espece ?? "lapin", x.couleur ?? "marron")} />
+                  </div>
+                ) : (
+                  <div className="sm:col-span-3">
+                    <label className="inline-flex min-h-11 cursor-pointer items-center text-sm font-semibold text-magique-primaire underline-offset-4 hover:underline">
+                      {x.photo ? "✓ Photo ajoutée (changer)" : "Ajouter sa photo (pour qu'il lui ressemble)"}
+                      <input type="file" accept="image/*" className="sr-only" onChange={(e) => lirePhotoReduite(e.target.files?.[0], (d) => majExtra(i, { photo: d }))} />
+                    </label>
+                    <input type="hidden" name={`extra_${i}_photo`} value={x.photo} />
+                  </div>
+                )}
               </div>
             ))}
             {extras.length < 3 && (

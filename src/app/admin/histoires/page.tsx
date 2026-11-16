@@ -126,6 +126,11 @@ export default async function AtelierPage() {
     <div className="mx-auto max-w-3xl space-y-10">
       <header className="space-y-2">
         <h1 className="text-3xl">Atelier d'écriture</h1>
+        <p>
+          <a href="/admin/planches" className="underline">
+            → Planches des histoires toutes prêtes (dessiner, valider)
+          </a>
+        </p>
         <p className="text-magique-texteClair">
           À chaque histoire, l'IA reçoit 2 extraits modèles et une trame tirés de la bibliothèque ci-dessous, choisis selon
           l'âge, le type de livre et le thème. Plus vous y ajoutez de bons textes, plus les histoires prennent votre ton.

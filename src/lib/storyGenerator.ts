@@ -764,6 +764,16 @@ export async function illustrateStory(
   const debut = Date.now();
   const errors: string[] = [];
   // Reprise (livre sorti de la file d'attente) : les fiches existent, on ne dessine que ce qui manque.
+  // Histoire toute prête avec planches validées : une retouche par page (enfant et doudou seulement).
+  if (story.planches && illustrationsEnabled()) {
+    const { illustrerDepuisPlanches, controlerRetouches } = await import("./planches");
+    const depuis = await illustrerDepuisPlanches(story, req, portrait, errors, story.apercu ? PAGES_APERCU : null);
+    if (depuis) {
+      let s = depuis;
+      if (opts.controle !== false && controleActif()) s = (await controlerRetouches(s, debut + 268_000)).story;
+      return { story: s, imageReport: imageReportOf(s, errors) };
+    }
+  }
   let illustre = story.fiches?.heros ? await reparer(story, req, errors) : await addIllustrations(story, req, portrait, errors);
 
   const manquantes = () =>
@@ -790,6 +800,14 @@ export async function illustrateStory(
 export async function illustrerLivreComplet(story: Story, req: StoryRequest): Promise<{ story: Story; imageReport?: string }> {
   const debut = Date.now();
   const errors: string[] = [];
+  if (story.planches) {
+    const { illustrerDepuisPlanches, controlerRetouches } = await import("./planches");
+    const depuis = await illustrerDepuisPlanches({ ...story, apercu: false }, req, null, errors, null);
+    if (depuis) {
+      const s = controleActif() ? (await controlerRetouches(depuis, debut + 260_000)).story : depuis;
+      return { story: s, imageReport: imageReportOf(s, errors) };
+    }
+  }
   let complet = await reparer({ ...story, apercu: false }, req, errors);
   if (controleActif() && Date.now() - debut < 150_000) {
     const { story: controle, bilan } = await controlerIllustrations(complet, req, debut + 260_000);

@@ -5,6 +5,7 @@
  * la structure et le format JSON strict de sortie.
  */
 
+import { texteDoudou } from "./doudous";
 import type { LongueurKey } from "./validation";
 import { LONGUEURS } from "./validation";
 import { findThemeById } from "./themes";
@@ -362,7 +363,7 @@ export function buildUserMessage(req: StoryRequest, modeles = ""): string {
     );
     for (const e of req.extras) {
       lignes.push(
-        `- ${e.name} (${e.role})${e.appearance ? ` — apparence : ${e.appearance}` : ""}`,
+        `- ${e.name} (${e.role})${e.appearance ? ` — apparence : ${texteDoudou(e.appearance)}` : ""}`,
       );
     }
     lignes.push(
