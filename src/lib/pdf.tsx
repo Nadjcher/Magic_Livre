@@ -100,8 +100,17 @@ export function texteAlbum(largeurPage: number, hauteurUtile: number, caracteres
   const n = Math.max(caracteres, 60);
   const largeurMax = largeurPage * 0.8;
   // Surface d'un caractère en Nunito : ~0,52 × taille de large, 1,55 × taille de haut (interligne).
-  const taille = Math.max(15, Math.min(30, Math.sqrt((largeurMax * hauteurUtile) / (0.806 * n)) * 0.98));
-  // Environ 38 caractères (6 à 8 mots) par ligne.
+  // Place réellement disponible pour le texte : l'ornement et le titre de chapitre prennent ~70 pt.
+  const hauteurTexte = hauteurUtile - 70;
+  let taille = Math.min(30, Math.sqrt((largeurMax * hauteurTexte) / (0.806 * n)) * 0.98);
+  // Environ 38 caractères (6 à 8 mots) par ligne : avec cette largeur, le texte doit TENIR sur la page
+  // (sinon il déborde sur une page blanche). Marge de 20 % pour les retours à la ligne.
+  for (; taille > 11; taille -= 0.5) {
+    const largeur = Math.min(largeurMax, 38 * 0.52 * taille);
+    const parLigne = largeur / (0.52 * taille);
+    const lignes = Math.ceil((n / parLigne) * 1.2);
+    if (lignes * taille * 1.55 <= hauteurTexte) break;
+  }
   const largeur = Math.min(largeurMax, 38 * 0.52 * taille);
   return { taille: Math.round(taille * 10) / 10, largeur };
 }
@@ -220,10 +229,22 @@ export function buildStoryDocument(story: Story, childName?: string): JSX.Elemen
         </Text>
       </Page>
 
-      {/* L'histoire : illustration pleine page, puis le texte seul sur sa page */}
+      {/* L'histoire, comme un album ouvert : le texte à gauche, l'illustration en face */}
       {story.pages.flatMap((p, index) => {
         const { chapitre, corps } = separerChapitre(p.texte);
         const pages: JSX.Element[] = [];
+        pages.push(
+          <Page key={`t${index}`} size={PAGE} style={{ backgroundColor: PAPIER, paddingVertical: 50, alignItems: "center" }}>
+            <View style={{ flex: 1, width: album.largeur, justifyContent: "center", alignItems: "center" }}>
+              <Ornement />
+              {chapitre ? (
+                <Text style={{ fontFamily: f.titre, fontSize: 15, color: "#5B6598", marginBottom: 10, textAlign: "center" }}>{chapitre}</Text>
+              ) : null}
+              <Text style={{ fontFamily: f.texte, fontWeight: 500, fontSize: album.taille, lineHeight: 1.55, color: ENCRE, textAlign: "center" }}>{corps}</Text>
+            </View>
+            {numero(index + 1)}
+          </Page>,
+        );
         if (p.imageUrl) {
           pages.push(
             <Page key={`i${index}`} size={PAGE} style={{ backgroundColor: NUIT }}>
@@ -237,18 +258,6 @@ export function buildStoryDocument(story: Story, childName?: string): JSX.Elemen
             </Page>,
           );
         }
-        pages.push(
-          <Page key={`t${index}`} size={PAGE} style={{ backgroundColor: PAPIER, paddingVertical: 50, alignItems: "center" }}>
-            <View style={{ flex: 1, width: album.largeur, justifyContent: "center", alignItems: "center" }}>
-              <Ornement />
-              {chapitre ? (
-                <Text style={{ fontFamily: f.titre, fontSize: 15, color: "#5B6598", marginBottom: 10, textAlign: "center" }}>{chapitre}</Text>
-              ) : null}
-              <Text style={{ fontFamily: f.texte, fontWeight: 500, fontSize: album.taille, lineHeight: 1.55, color: ENCRE, textAlign: "center" }}>{corps}</Text>
-            </View>
-            {numero(index + 1)}
-          </Page>,
-        );
         return pages;
       })}
 
