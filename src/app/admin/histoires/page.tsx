@@ -7,6 +7,7 @@
 
 import type { Metadata } from "next";
 import EpreuveRelectrice from "@/components/EpreuveRelectrice";
+import EssaiPlanche from "@/components/EssaiPlanche";
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { estAdmin } from "@/lib/rateLimit";
@@ -152,6 +153,15 @@ export default async function AtelierPage() {
           la bonne raison, et des images réussies, à accepter. À lancer seulement après une modification de la relectrice.
         </p>
         <EpreuveRelectrice />
+      </section>
+
+      <section className="carte space-y-3">
+        <h2 className="text-2xl">Essai : planche validée, puis ajout de l'enfant</h2>
+        <p className="text-sm text-magique-texteClair">
+          Page 7 du Petit Poucet. La forêt, Poucet et le caillou sont dessinés une seule fois, sans l'enfant ; puis Léo et Caramel sont ajoutés
+          sans toucher au reste. Si le décor et Poucet ne bougent pas, cette méthode peut remplacer le dessin complet de chaque page.
+        </p>
+        <EssaiPlanche />
       </section>
 
       <section className="carte space-y-2">
