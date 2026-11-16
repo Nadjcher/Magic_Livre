@@ -1,12 +1,10 @@
 /**
  * Contrôle qualité des illustrations, comme un directeur artistique :
  * chaque page (et la couverture) est comparée aux fiches des personnages par
- * un modèle de vision. Erreurs recherchées, uniquement les graves :
- *  - le héros dessiné deux fois ;
- *  - un personnage qui change d'espèce ou de couleurs (un dragon devenu hippopotame) ;
- *  - un personnage récurrent en double, ou quelqu'un d'autre dans la tenue du héros.
- * Une page fautive est redessinée (2 essais au plus) avec la correction ; on
- * garde le nouveau dessin seulement s'il passe le contrôle.
+ * un modèle de vision, qui fait l'inventaire de ce qu'il voit (personnages,
+ * espèces, tailles, nombre de peluches…) ; le code applique les règles
+ * (jugerInventaire). Une page fautive est redessinée (2 essais) avec les
+ * corrections précises, puis en scène simplifiée en dernier recours.
  *
  * Tout est borné dans le temps et « best-effort » : en cas de souci, le livre
  * garde ses illustrations d'origine.
@@ -47,7 +45,52 @@ function enRef(dataUrl: string | null): Ref | null {
 
 const petit = { maxPx: 768, quality: 80 };
 
-/** Le verdict d'un contrôle : ok, ou la correction à apporter. */
+/** Ce que la relectrice dit VOIR (inventaire), le code décide ensuite. */
+interface Inventaire {
+  hero?: { count?: number; hair_same_color_as_reference?: boolean; hair_seen?: string; face_and_outfit_match_reference?: boolean };
+  characters?: {
+    name?: string;
+    count?: number;
+    species_seen?: string;
+    same_design_as_reference?: boolean;
+    size?: string;
+    animal_ears_or_animal_head?: boolean;
+  }[];
+  plush_toys_count?: number;
+  parent_is_adult?: boolean | null;
+  contradictions_with_scene?: string[];
+  unexpected_characters?: string[];
+  letters_or_text?: boolean;
+  blank_unpainted_area?: boolean;
+  style_consistent?: boolean;
+  frightening?: boolean;
+}
+
+const estPeluche = (d: string) => /plush|cuddly toy|never alive|soft toy/i.test(d);
+const estMinuscule = (d: string) => /\btiny\b|toy-figurine|figurine|teacup|egg cup|25 cm/i.test(d);
+const estHumain = (d: string) => /^(human|tiny elf|elf)\b|\bboy\b|\bgirl\b|\belf\b/i.test(d.trim()) && !estPeluche(d);
+/** Espèce attendue d'une peluche (« rabbit », « bear »…), lue dans sa fiche. */
+function especeAttendue(d: string): string | null {
+  const m = /\b(rabbit|bunny|bear|teddy|dog|puppy|cat|kitten|fox|elephant|giraffe|lion|tiger|monkey|unicorn|dinosaur|dragon|owl|penguin|panda|koala|mouse|sheep|lamb|cow|horse|pony|duck|frog|turtle|pig|deer|raccoon|hedgehog|squirrel|wolf|seal|whale|dolphin|octopus|bird|chick)\b/i.exec(d);
+  if (!m) return null;
+  const e = m[1]!.toLowerCase();
+  return e === "bunny" ? "rabbit" : e === "teddy" ? "bear" : e === "puppy" ? "dog" : e === "kitten" ? "cat" : e === "lamb" ? "sheep" : e;
+}
+const memeEspece = (attendue: string, vue: string) => {
+  const v = vue.toLowerCase();
+  const synonymes: Record<string, string[]> = { rabbit: ["rabbit", "bunny", "hare"], bear: ["bear", "teddy"], dog: ["dog", "puppy"], cat: ["cat", "kitten"], sheep: ["sheep", "lamb"] };
+  return (synonymes[attendue] ?? [attendue]).some((x) => v.includes(x));
+};
+
+/**
+ * Le verdict d'un contrôle : ok, ou la correction à apporter.
+ *
+ * Avec la grille (styles de la bible visuelle) : la relectrice ne juge pas,
+ * elle fait l'INVENTAIRE de ce qu'elle voit (combien de peluches, quelle
+ * espèce, quelle taille, oreilles d'animal…) et le code applique les règles.
+ * Une IA répond bien mieux à « combien de peluches ? » qu'à « l'image est-elle
+ * conforme ? » (jeu d'épreuve : 13/20 avec les questions générales).
+ */
 export async function verifier(
   heros: { nom: string; description: string; image: Ref },
   cast: { nom: string; description: string; image: Ref }[],
@@ -58,14 +101,20 @@ export async function verifier(
   const lignes = [`Image 1 is the reference sheet of the hero ${heros.nom} (${heros.description}).`];
   cast.forEach((c, k) => lignes.push(`Image ${k + 2} is the reference sheet of ${c.nom} (${c.description}).`));
   if (grille) {
-    // Style de la maison : la grille de la bible visuelle, question par question.
+    const style = grille.find((l) => l.startsWith("The rendering")) ?? "";
     lignes.push(
       `The LAST image is the book page to check. Scene requested: ${scene}`,
-      "Answer EACH question with yes or no and one short sentence describing what you SEE. A single \"no\" means the image must be redone.",
-      ...grille.map((q, i) => `${i + 1}. ${q}`),
-      'Reply with JSON only: {"answers": [{"n": 1, "yes": true, "seen": "…"}], "fix": "ONLY if at least one answer is no: one short English instruction listing what to correct; otherwise an empty string"}',
-      "Be consistent: if you see a real problem, answer no to the matching question.",
-      "Ignore small props entirely (a pencil, a lamp, a cup, a book on a table) and small pattern details on clothes (stars, moons, prints): never mention them, in the answers or in the fix.",
+      "Do NOT judge whether the picture is good. Only REPORT precisely what you SEE, as JSON:",
+      `- "hero": how many times ${heros.nom} appears ("count"); whether the hair color is the same as on the reference ("hair_same_color_as_reference", and "hair_seen": the color you see); whether face and outfit match the reference ("face_and_outfit_match_reference").`,
+      `- "characters": for EACH of these characters: ${cast.length ? cast.map((c) => c.nom).join(", ") : "(none)"}: "name", "count" (how many times it appears, 0 if absent), "species_seen" (what it looks like: rabbit, bear, dog, boy, elf…), "same_design_as_reference" (same species, colors and look as its reference sheet), "size" ("tiny" = the top of its head or hat is below ${heros.nom}'s knee, or below the chest if ${heros.nom} kneels or crouches; "small" = up to ${heros.nom}'s waist; "big" = taller; judge its OWN body, not what it stands on), "animal_ears_or_animal_head" (true if it has animal ears or an animal head).`,
+      '- "plush_toys_count": how many plush / cuddly toys are in the picture in total.',
+      '- "parent_is_adult": if a parent (or a parent\'s hand or silhouette) is in the picture, true if clearly an ADULT bigger than the hero and not dressed like the hero, false otherwise; null if no parent.',
+      '- "contradictions_with_scene": short list of what clearly contradicts the scene requested (e.g. "a paved path instead of separate pebbles", "the cuddly toy is missing"); [] if none.',
+      '- "unexpected_characters": people or creatures that are neither listed above nor mentioned in the scene; [] if none.',
+      '- "letters_or_text", "blank_unpainted_area" (a white or empty unpainted part), "frightening": true or false.',
+      `- "style_consistent": ${style || "the whole picture keeps one consistent rendering style"} (true or false).`,
+      "Ignore small props (a pencil, a lamp, a cup) and small patterns on clothes.",
+      'JSON only, exactly these keys: {"hero": {...}, "characters": [...], "plush_toys_count": 0, "parent_is_adult": null, "contradictions_with_scene": [], "unexpected_characters": [], "letters_or_text": false, "blank_unpainted_area": false, "style_consistent": true, "frightening": false}',
     );
   } else lignes.push(
     `The LAST image is the page illustration to check. Scene requested: ${scene}`,
@@ -86,8 +135,8 @@ export async function verifier(
         system_prompt: SYSTEME,
         prompt: lignes.join("\n"),
         image_urls: images,
-        // 9 réponses avec une phrase chacune : 400 jetons coupaient la réponse, qui passait alors sans contrôle.
-        max_tokens: grille ? 1600 : 400,
+        // L'inventaire complet tient en ~600 jetons ; 400 coupaient la réponse, qui passait alors sans contrôle.
+        max_tokens: grille ? 1400 : 400,
         temperature: 0,
       }),
     }, grille ? 90_000 : 40_000);
@@ -98,25 +147,74 @@ export async function verifier(
       console.error("[contrôle] vision indisponible :", r.status, JSON.stringify(j).slice(0, 160));
       return { ok: true, fix: "", nonVerifiee: true };
     }
-    let v: { ok?: unknown; fix?: unknown; answers?: { n?: number; yes?: boolean; seen?: string }[] };
+    let v: { ok?: unknown; fix?: unknown } & Inventaire;
     try {
       v = JSON.parse(json);
     } catch {
       console.error("[contrôle] réponse illisible :", (j.output ?? "").slice(0, 160));
       return { ok: true, fix: "", nonVerifiee: true };
     }
-    if (grille && !Array.isArray(v.answers)) return { ok: true, fix: "", nonVerifiee: true };
-    if (grille && Array.isArray(v.answers)) {
-      const non = v.answers.filter((a) => a.yes === false);
-      const corrige = typeof v.fix === "string" ? v.fix.trim() : "";
-      const fix = corrige || non.map((a) => `${grille[(a.n ?? 1) - 1] ?? ""} (${a.seen ?? ""})`).join("; ");
-      // Une correction proposée compte comme un « non » : la relectrice disait parfois « oui » tout en décrivant un défaut.
-      return { ok: non.length === 0 && corrige.length === 0, fix: fix.slice(0, 400) };
+    if (grille) {
+      if (!v.hero && !Array.isArray(v.characters)) return { ok: true, fix: "", nonVerifiee: true };
+      const fautes = jugerInventaire(v, heros, cast);
+      return { ok: fautes.length === 0, fix: fautes.join(" ").slice(0, 500) };
     }
     return { ok: v.ok !== false, fix: typeof v.fix === "string" ? v.fix.slice(0, 300) : "" };
   } catch {
     return { ok: true, fix: "", nonVerifiee: true }; // contrôle indisponible : on ne bloque jamais le livre, mais on le compte
   }
+}
+
+/** Les règles, appliquées par le code à l'inventaire (chaque faute devient une correction précise). */
+export function jugerInventaire(
+  v: Inventaire,
+  heros: { nom: string },
+  cast: { nom: string; description: string }[],
+): string[] {
+  const f: string[] = [];
+  const h = v.hero ?? {};
+  if ((h.count ?? 1) > 1) f.push(`Draw ${heros.nom} only ONCE.`);
+  if ((h.count ?? 1) >= 1) {
+    if (h.hair_same_color_as_reference === false) f.push(`${heros.nom}'s hair color must be exactly as on the reference (seen: ${h.hair_seen ?? "different"}).`);
+    if (h.face_and_outfit_match_reference === false) f.push(`${heros.nom}'s face and outfit must match the reference sheet.`);
+  }
+  const vus = v.characters ?? [];
+  let peluchesAttendues = 0;
+  for (const c of cast) {
+    const x = vus.find((y) => (y.name ?? "").toLowerCase() === c.nom.toLowerCase());
+    const peluche = estPeluche(c.description);
+    if (peluche) peluchesAttendues++;
+    if (!x || (x.count ?? 0) === 0) {
+      f.push(`${c.nom} is missing: draw ${c.nom} exactly as on the reference sheet.`);
+      continue;
+    }
+    if ((x.count ?? 1) > 1) f.push(`${c.nom} appears ${x.count} times: draw ${c.nom} only ONCE.`);
+    const attendue = peluche ? especeAttendue(c.description) : null;
+    const vue = x.species_seen ?? "";
+    if (attendue && vue && !memeEspece(attendue, vue)) {
+      f.push(`${c.nom} must be the plush ${attendue} of its reference sheet, not a ${vue}.`);
+    } else if (x.same_design_as_reference === false) {
+      f.push(`${c.nom} must look exactly like its reference sheet (seen: ${vue || "a different design"}).`);
+    }
+    if (estMinuscule(c.description) && x.size && x.size !== "tiny") {
+      f.push(`${c.nom} must be TINY: the top of the head or hat below ${heros.nom}'s knee (size seen: ${x.size}).`);
+    }
+    if (estHumain(c.description) && x.animal_ears_or_animal_head === true) {
+      f.push(`${c.nom} is a human: no animal ears, no animal head.`);
+    }
+  }
+  if (typeof v.plush_toys_count === "number" && v.plush_toys_count > Math.max(1, peluchesAttendues)) {
+    f.push(`Only ONE plush toy in the picture (seen: ${v.plush_toys_count}).`);
+  }
+  if (v.parent_is_adult === false) f.push("The parent must be an ADULT, clearly bigger than the child and not dressed like the child.");
+  for (const c of (v.contradictions_with_scene ?? []).slice(0, 3)) if (c?.trim()) f.push(`Follow the scene: ${c.trim()}.`);
+  const inattendus = (v.unexpected_characters ?? []).filter((x) => x?.trim());
+  if (inattendus.length) f.push(`Remove the characters that are not in the scene: ${inattendus.slice(0, 3).join(", ")}.`);
+  if (v.letters_or_text === true) f.push("No letters or text anywhere.");
+  if (v.blank_unpainted_area === true) f.push("The picture has a blank, white, unpainted area: paint the whole scene to every edge.");
+  if (v.style_consistent === false) f.push("Keep exactly the book's rendering style over the whole picture.");
+  if (v.frightening === true) f.push("Nothing frightening.");
+  return f;
 }
 
 /**
