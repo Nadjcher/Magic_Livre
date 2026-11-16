@@ -25,7 +25,9 @@ export const storyPageSchema = z.object({
 /** Personnage secondaire récurrent : nom + description visuelle (anglais). */
 export const castSchema = z.object({
   nom: z.string().min(1).max(40),
-  visuel: z.string().min(1).max(400),
+  // Tronquée plutôt que refusée : une fiche trop longue faisait disparaître TOUTE la distribution
+  // (plus aucune fiche de référence, le doudou changeait d'espèce d'une page à l'autre).
+  visuel: z.string().min(1).transform((v) => v.slice(0, 900)),
 });
 
 /** Une scène de la bande-annonce : clip animé (IA vidéo) + phrase lue. */

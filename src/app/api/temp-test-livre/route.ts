@@ -60,6 +60,10 @@ export async function POST(req: Request): Promise<Response> {
 export async function GET(req: Request): Promise<Response> {
   const u = new URL(req.url);
   if (!ok(u)) return new NextResponse("Non.", { status: 404 });
+  if (u.searchParams.get("a") === "depenses") {
+    const { depensesRecentes } = await import("@/lib/budget");
+    return NextResponse.json(await depensesRecentes());
+  }
   const id = u.searchParams.get("id") ?? "";
   const book = await prisma.book.findUnique({ where: { id }, select: { status: true, errorMessage: true, pages: true, title: true } });
   if (!book) return NextResponse.json({ err: "introuvable" });
