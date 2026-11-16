@@ -56,8 +56,11 @@ interface Inventaire {
     size?: string;
     animal_ears_or_animal_head?: boolean;
   }[];
+  plush_toys?: { animal?: string; color?: string }[];
   plush_toys_count?: number;
+  other_humans?: { adult_or_child?: string; dressed_like_hero?: boolean }[];
   parent_is_adult?: boolean | null;
+  explicit_rule_violations?: string[];
   contradictions_with_scene?: string[];
   unexpected_characters?: string[];
   letters_or_text?: boolean;
@@ -104,17 +107,17 @@ export async function verifier(
     const style = grille.find((l) => l.startsWith("The rendering")) ?? "";
     lignes.push(
       `The LAST image is the book page to check. Scene requested: ${scene}`,
-      "Do NOT judge whether the picture is good. Only REPORT precisely what you SEE, as JSON:",
+      "Do NOT judge whether the picture is good. Only REPORT precisely what you SEE, as JSON, in this order:",
+      '- "plush_toys": FIRST, before looking at the reference sheets, list EVERY plush / cuddly toy visible in the page, with the animal it ACTUALLY looks like (judge by its ears, muzzle, tail and shape: a dog has a long muzzle and floppy ears, a bear has small round ears and a short muzzle, a cat has pointed ears and whiskers, a rabbit has long ears) and its color. Do not assume what it should be.',
+      `- "other_humans": every person in the page other than ${heros.nom} and other than the tiny characters listed below, with "adult_or_child" (judge by size and body proportions) and "dressed_like_hero" (true if wearing the same pyjamas or outfit as ${heros.nom}). [] if none.`,
       `- "hero": how many times ${heros.nom} appears ("count"); whether the hair color is the same as on the reference ("hair_same_color_as_reference", and "hair_seen": the color you see); whether face and outfit match the reference ("face_and_outfit_match_reference").`,
       `- "characters": for EACH of these characters: ${cast.length ? cast.map((c) => c.nom).join(", ") : "(none)"}: "name", "count" (how many times it appears, 0 if absent), "species_seen" (what it looks like: rabbit, bear, dog, boy, elf…), "same_design_as_reference" (same species, colors and look as its reference sheet), "size" ("tiny" = the top of its head or hat is below ${heros.nom}'s knee, or below the chest if ${heros.nom} kneels or crouches; "small" = up to ${heros.nom}'s waist; "big" = taller; judge its OWN body, not what it stands on), "animal_ears_or_animal_head" (true if it has animal ears or an animal head).`,
-      '- "plush_toys_count": how many plush / cuddly toys are in the picture in total.',
-      '- "parent_is_adult": if a parent (or a parent\'s hand or silhouette) is in the picture, true if clearly an ADULT bigger than the hero and not dressed like the hero, false otherwise; null if no parent.',
-      '- "contradictions_with_scene": short list of what clearly contradicts the scene requested (e.g. "a paved path instead of separate pebbles", "the cuddly toy is missing"); [] if none.',
+      '- "explicit_rule_violations": ONLY the rules the scene states explicitly with "never", "no", "not", "only" or "exactly" (e.g. "never a paved path", "Poucet is the only small character") that the picture clearly breaks, quoting the rule; [] if none. Do NOT list differences of pose, action, props or details.',
       '- "unexpected_characters": people or creatures that are neither listed above nor mentioned in the scene; [] if none.',
       '- "letters_or_text", "blank_unpainted_area" (a white or empty unpainted part), "frightening": true or false.',
       `- "style_consistent": ${style || "the whole picture keeps one consistent rendering style"} (true or false).`,
       "Ignore small props (a pencil, a lamp, a cup) and small patterns on clothes.",
-      'JSON only, exactly these keys: {"hero": {...}, "characters": [...], "plush_toys_count": 0, "parent_is_adult": null, "contradictions_with_scene": [], "unexpected_characters": [], "letters_or_text": false, "blank_unpainted_area": false, "style_consistent": true, "frightening": false}',
+      'JSON only, exactly these keys: {"plush_toys": [{"animal": "", "color": ""}], "other_humans": [], "hero": {...}, "characters": [...], "explicit_rule_violations": [], "unexpected_characters": [], "letters_or_text": false, "blank_unpainted_area": false, "style_consistent": true, "frightening": false}',
     );
   } else lignes.push(
     `The LAST image is the page illustration to check. Scene requested: ${scene}`,
@@ -156,7 +159,7 @@ export async function verifier(
     }
     if (grille) {
       if (!v.hero && !Array.isArray(v.characters)) return { ok: true, fix: "", nonVerifiee: true };
-      const fautes = jugerInventaire(v, heros, cast);
+      const fautes = jugerInventaire(v, heros, cast, scene);
       return { ok: fautes.length === 0, fix: fautes.join(" ").slice(0, 500) };
     }
     return { ok: v.ok !== false, fix: typeof v.fix === "string" ? v.fix.slice(0, 300) : "" };
@@ -170,6 +173,7 @@ export function jugerInventaire(
   v: Inventaire,
   heros: { nom: string },
   cast: { nom: string; description: string }[],
+  scene = "",
 ): string[] {
   const f: string[] = [];
   const h = v.hero ?? {};
@@ -178,12 +182,22 @@ export function jugerInventaire(
     if (h.hair_same_color_as_reference === false) f.push(`${heros.nom}'s hair color must be exactly as on the reference (seen: ${h.hair_seen ?? "different"}).`);
     if (h.face_and_outfit_match_reference === false) f.push(`${heros.nom}'s face and outfit must match the reference sheet.`);
   }
+  // Peluches : l'inventaire « à l'aveugle » (fait avant de regarder les fiches) fait foi pour l'espèce.
+  const peluches = cast.filter((c) => estPeluche(c.description));
+  const vuesPeluches = (v.plush_toys ?? []).filter((x) => (x.animal ?? "").trim());
+  const nbPeluches = vuesPeluches.length || v.plush_toys_count || 0;
+  if (nbPeluches > Math.max(1, peluches.length)) f.push(`Only ONE plush toy in the picture (seen: ${nbPeluches}).`);
+  for (const c of peluches) {
+    const attendue = especeAttendue(c.description);
+    const fausse = attendue ? vuesPeluches.find((x) => !memeEspece(attendue, x.animal ?? "")) : undefined;
+    if (attendue && fausse && !vuesPeluches.some((x) => memeEspece(attendue, x.animal ?? ""))) {
+      f.push(`The plush toy ${c.nom} must be the plush ${attendue} of its reference sheet, not a ${fausse.animal}.`);
+    }
+  }
   const vus = v.characters ?? [];
-  let peluchesAttendues = 0;
   for (const c of cast) {
     const x = vus.find((y) => (y.name ?? "").toLowerCase() === c.nom.toLowerCase());
     const peluche = estPeluche(c.description);
-    if (peluche) peluchesAttendues++;
     if (!x || (x.count ?? 0) === 0) {
       f.push(`${c.nom} is missing: draw ${c.nom} exactly as on the reference sheet.`);
       continue;
@@ -191,23 +205,26 @@ export function jugerInventaire(
     if ((x.count ?? 1) > 1) f.push(`${c.nom} appears ${x.count} times: draw ${c.nom} only ONCE.`);
     const attendue = peluche ? especeAttendue(c.description) : null;
     const vue = x.species_seen ?? "";
-    if (attendue && vue && !memeEspece(attendue, vue)) {
-      f.push(`${c.nom} must be the plush ${attendue} of its reference sheet, not a ${vue}.`);
-    } else if (x.same_design_as_reference === false) {
+    if (attendue && vue && !memeEspece(attendue, vue) && !f.some((m) => m.includes(`plush toy ${c.nom}`))) {
+      f.push(`The plush toy ${c.nom} must be the plush ${attendue} of its reference sheet, not a ${vue}.`);
+    } else if (!peluche && !estHumain(c.description) && x.same_design_as_reference === false) {
+      // Les humains et lutins : la relectrice les dit « différents » pour un détail ; on juge leur taille et leurs oreilles.
       f.push(`${c.nom} must look exactly like its reference sheet (seen: ${vue || "a different design"}).`);
     }
     if (estMinuscule(c.description) && x.size && x.size !== "tiny") {
       f.push(`${c.nom} must be TINY: the top of the head or hat below ${heros.nom}'s knee (size seen: ${x.size}).`);
     }
-    if (estHumain(c.description) && x.animal_ears_or_animal_head === true) {
+    if (estHumain(c.description) && x.animal_ears_or_animal_head === true && !/\bears?\b/i.test(c.description)) {
       f.push(`${c.nom} is a human: no animal ears, no animal head.`);
     }
   }
-  if (typeof v.plush_toys_count === "number" && v.plush_toys_count > Math.max(1, peluchesAttendues)) {
-    f.push(`Only ONE plush toy in the picture (seen: ${v.plush_toys_count}).`);
+  // Le parent : un adulte, jamais habillé comme l'enfant.
+  const parentDemande = /\b(papa|maman|mamie|papi|parent|father|mother|dad|mum|mom|grand(?:ma|pa|mother|father))\b/i.test(scene);
+  const autres = v.other_humans ?? [];
+  if (v.parent_is_adult === false || (parentDemande && autres.some((x) => /child|kid|boy|girl/i.test(x.adult_or_child ?? "") || x.dressed_like_hero === true))) {
+    f.push("The parent must be an ADULT, clearly bigger than the child and never dressed like the child.");
   }
-  if (v.parent_is_adult === false) f.push("The parent must be an ADULT, clearly bigger than the child and not dressed like the child.");
-  for (const c of (v.contradictions_with_scene ?? []).slice(0, 3)) if (c?.trim()) f.push(`Follow the scene: ${c.trim()}.`);
+  for (const c of (v.explicit_rule_violations ?? []).slice(0, 3)) if (c?.trim()) f.push(`Follow the scene: ${c.trim()}.`);
   const inattendus = (v.unexpected_characters ?? []).filter((x) => x?.trim());
   if (inattendus.length) f.push(`Remove the characters that are not in the scene: ${inattendus.slice(0, 3).join(", ")}.`);
   if (v.letters_or_text === true) f.push("No letters or text anywhere.");
