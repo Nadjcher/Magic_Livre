@@ -207,6 +207,8 @@ export async function redrawPage(
           },
         },
       });
+      const { noterPageRefaite } = await import("@/lib/planches");
+      await noterPageRefaite(book.id, story, index);
       revalidatePath(`/bibliotheque/${book.id}`);
       return { ok: true, message: "Nouvelle illustration prête !", restantes: RETOUCHES_MAX - faites - 1 };
     }
@@ -256,6 +258,9 @@ export async function redrawPage(
     pages: cible.pages.map((p, i) => (i === index ? { ...p, imageUrl: r.imageUrl } : p)),
   };
   await prisma.book.update({ where: { id: book.id }, data: { pages: maj } });
+  // Boucle d'amélioration : on retient quelle page les parents font redessiner.
+  const { noterPageRefaite } = await import("@/lib/planches");
+  await noterPageRefaite(book.id, story, index);
   revalidatePath(`/bibliotheque/${book.id}`);
   return { ok: true, message: "Nouvelle illustration prête !", restantes: RETOUCHES_MAX - faites - 1 };
 }

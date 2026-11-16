@@ -9,7 +9,7 @@ import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { estAdmin } from "@/lib/rateLimit";
 import { HISTOIRES_MAITRESSES } from "@/lib/histoiresMaitresses";
-import { etatPlanches } from "@/lib/planches";
+import { etatPlanches, statsRefaites } from "@/lib/planches";
 import { STYLE_DEFAUT } from "@/lib/style_config";
 import { dessinerPlanchesAction, redessinerPlancheAction, validerPlancheAction } from "@/app/actions/planches";
 
@@ -22,7 +22,9 @@ export default async function PlanchesPage() {
   const user = await getCurrentUser();
   if (!user || !estAdmin(user.email)) notFound();
   const style = STYLE_DEFAUT;
-  const histoires = await Promise.all(HISTOIRES_MAITRESSES.map(async (h) => ({ h, etat: await etatPlanches(h, style) })));
+  const histoires = await Promise.all(
+    HISTOIRES_MAITRESSES.map(async (h) => ({ h, etat: await etatPlanches(h, style), stats: await statsRefaites(h.id, style) })),
+  );
 
   return (
     <div className="mx-auto max-w-5xl space-y-10">
@@ -35,7 +37,7 @@ export default async function PlanchesPage() {
         </p>
       </header>
 
-      {histoires.map(({ h, etat }) => (
+      {histoires.map(({ h, etat, stats }) => (
         <section key={h.id} className="carte space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -43,6 +45,7 @@ export default async function PlanchesPage() {
               <p className="text-sm text-magique-texteClair">
                 {etat.dessinees}/{etat.total} dessinées · {etat.validees}/{etat.total} validées
                 {etat.validees === etat.total ? " · prêtes : les livres utilisent les planches" : ""}
+                {stats.livres > 0 ? ` · ${stats.livres} livre${stats.livres > 1 ? "s" : ""} fait${stats.livres > 1 ? "s" : ""} avec ces planches` : ""}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -66,7 +69,7 @@ export default async function PlanchesPage() {
             </div>
           </div>
           <p className="text-xs text-magique-texteClair">
-            Le dessin se fait en arrière-plan (3 à 5 minutes) : rechargez la page. S'il en manque encore, relancez.
+            Une planche refaite par plus de 20 % des parents s'affiche en rouge : c'est elle qu'il faut redessiner. Le dessin se fait en arrière-plan (3 à 5 minutes) : rechargez la page. S'il en manque encore, relancez.
           </p>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {etat.planches.map((p) => (
@@ -87,6 +90,12 @@ export default async function PlanchesPage() {
                   <strong>{p.index === -1 ? "Couverture" : `Page ${p.index + 1}`}</strong>
                   {p.variante ? ` · parent ${p.variante}` : ""}
                   {!p.enfant && !p.doudou ? " · reprise telle quelle" : ""}
+                  {stats.parCle.get(p.cle) ? (
+                    <span className={`block ${stats.livres && (stats.parCle.get(p.cle) ?? 0) / stats.livres >= 0.2 ? "text-rose-300" : "text-magique-texteClair"}`}>
+                      Refaite par les parents : {stats.parCle.get(p.cle)} livre{(stats.parCle.get(p.cle) ?? 0) > 1 ? "s" : ""}
+                      {stats.livres ? ` (${Math.round(((stats.parCle.get(p.cle) ?? 0) / stats.livres) * 100)} %)` : ""}
+                    </span>
+                  ) : null}
                 </figcaption>
                 {p.url && (
                   <div className="flex gap-2">

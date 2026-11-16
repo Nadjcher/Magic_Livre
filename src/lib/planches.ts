@@ -429,3 +429,45 @@ export async function controlerRetouches(story: Story, limite: number): Promise<
     bilan: `contrôle des retouches : ${retouchees.length} vérifiées, ${refaites} refaites`,
   };
 }
+
+/* ─── Boucle d'amélioration : les pages que les parents font redessiner ─── */
+
+let pretRefaites: Promise<unknown> | null = null;
+function tableRefaites(): Promise<unknown> {
+  pretRefaites ??= prisma
+    .$executeRawUnsafe(
+      `CREATE TABLE IF NOT EXISTS "PageRefaite" (id SERIAL PRIMARY KEY, "bookId" TEXT NOT NULL, histoire TEXT, style TEXT, page INT NOT NULL, cle TEXT, "creeLe" TIMESTAMPTZ NOT NULL DEFAULT NOW())`,
+    )
+    .catch((e) => {
+      pretRefaites = null;
+      throw e;
+    });
+  return pretRefaites;
+}
+
+/** Un parent a fait redessiner une page (-1 : la couverture). Jamais bloquant. */
+export async function noterPageRefaite(bookId: string, story: Story, index: number): Promise<void> {
+  try {
+    await tableRefaites();
+    const h = histoireParId(story.planches?.histoire ?? story.meta?.trame);
+    const cle = h && story.planches ? clePour(h, index, story.planches.variante)?.cle ?? null : null;
+    await prisma.$executeRaw`
+      INSERT INTO "PageRefaite" ("bookId", histoire, style, page, cle) VALUES (${bookId}, ${h?.id ?? null}, ${story.style ?? null}, ${index}, ${cle})`;
+  } catch (e) {
+    console.error("[planches] page refaite non notée :", String(e).slice(0, 120));
+  }
+}
+
+/** Pour l'atelier : combien de livres de cette histoire, et combien de fois chaque planche a été refaite. */
+export async function statsRefaites(histoire: string, style: string): Promise<{ livres: number; parCle: Map<string, number> }> {
+  try {
+    await tableRefaites();
+    const [l] = await prisma.$queryRaw<{ n: bigint }[]>`
+      SELECT COUNT(*)::bigint AS n FROM "Book" WHERE "deletedAt" IS NULL AND pages->'planches'->>'histoire' = ${histoire} AND pages->>'style' = ${style}`;
+    const rows = await prisma.$queryRaw<{ cle: string; n: bigint }[]>`
+      SELECT cle, COUNT(DISTINCT "bookId")::bigint AS n FROM "PageRefaite" WHERE histoire = ${histoire} AND style = ${style} AND cle IS NOT NULL GROUP BY cle`;
+    return { livres: Number(l?.n ?? 0), parCle: new Map(rows.map((r) => [r.cle, Number(r.n)])) };
+  } catch {
+    return { livres: 0, parCle: new Map() };
+  }
+}
