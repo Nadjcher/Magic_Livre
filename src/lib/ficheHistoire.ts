@@ -26,7 +26,7 @@ export interface ProblemeFiche {
 }
 
 /** Nombre maximal de personnages secondaires dessinés (au-delà, les images se mélangent). */
-export const CAST_MAX = 4;
+export const CAST_MAX = 5;
 
 /**
  * Caractères maximum d'une page de texte selon l'âge : au-delà, le texte ne

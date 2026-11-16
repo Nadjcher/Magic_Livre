@@ -51,6 +51,8 @@ export interface HistoireMaitresse {
    * chaque illustration du livre ; les règles communes restent dans bibleVisuelle.ts.
    */
   reglesImage?: string;
+  /** Doudou « neutre » des planches (anglais), si l'ours en peluche par défaut prêterait à confusion (histoire avec des ours). */
+  doudouNeutre?: string;
 }
 
 const TENUE = "soft yellow pyjamas with small orange moons, felt slippers";
@@ -302,6 +304,127 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         motsMax: 14,
       },
     },
+  },
+  {
+    id: "maitresse-boucle-d-or",
+    themeId: "boucle-d-or",
+    episode: 3,
+    objet: "une toute petite cuillère en bois",
+    // Écrite, pas encore proposée : texte à valider, puis planches à dessiner et valider.
+    ouverte: false,
+    ageMin: 4,
+    ageMax: 8,
+    titre: "La chaise tordue {de_prenom}",
+    ritournelle: "« Juste comme il faut ! »",
+    resume:
+      "Dans le vieux livre de contes de {parent}, Boucle d'or a cassé la petite chaise de Petit Ours, et les trois ours rentrent déjà ! Avec son crayon blanc et {doudou}, {prenom} entre dans la maison des ours pour l'aider à réparer… et à demander pardon.",
+    faits:
+      "Ce que {prenom} dessine au crayon blanc dans le livre de {parent} devient vrai. Cette fois, Boucle d'or ne s'est pas enfuie : elle a réparé et demandé pardon. La petite chaise de Petit Ours a un pied tordu dessiné par {prenom}. {prenom} a rapporté une toute petite cuillère en bois.",
+    tenueHeros: TENUE,
+    doudouNeutre: "a plain soft white plush rabbit with long ears",
+    reglesImage:
+      REGLES_SERIE +
+      " Boucle d'or: a HUMAN GIRL about the child's age and height, long bouncy golden curls, a sky-blue dress with a white collar, brown boots; never in pyjamas, never looks like the child. " +
+      "The three bears are REAL LIVING BEARS who walk on two legs and wear clothes (Papa Ours: the biggest, green knitted waistcoat; Maman Ourse: blue apron with white dots; Petit Ours: a small cub about the child's height with a red scarf); " +
+      "they are never plush toys and are never held in arms. The child's cuddly toy is the ONLY plush toy, in the child's arms or right next to the child. " +
+      "A cosy wooden cottage in the woods: three bowls, three chairs and three beds of three sizes. Nothing frightening: the bears are kind and surprised, never angry, never showing teeth or claws.",
+    cast: [
+      {
+        nom: "Boucle d'or",
+        visuel:
+          "HUMAN GIRL: a little girl about the hero's age and height, long bouncy golden curls, rosy cheeks, a sky-blue dress with a white collar, brown boots; clearly a girl, never in pyjamas, never looks like the hero.",
+      },
+      {
+        nom: "Petit Ours",
+        visuel:
+          "BEAR CUB: a small friendly brown bear cub walking on two legs, about the hero's height, round ears, a red knitted scarf; a real living cub, never a plush toy, never held in arms.",
+      },
+      {
+        nom: "Papa Ours",
+        visuel:
+          "BEAR: a big friendly dark-brown bear walking on two legs, twice the hero's height, a green knitted waistcoat; a real living bear, never a plush toy.",
+      },
+      {
+        nom: "Maman Ourse",
+        visuel:
+          "BEAR: a friendly light-brown bear walking on two legs, a little smaller than Papa Ours, a blue apron with white dots; a real living bear, never a plush toy.",
+      },
+    ],
+    couverture:
+      "Book cover, medium shot: inside a cosy wooden cottage in the woods full of warm golden light, {prenom} kneels beside a tiny wooden chair and draws a new crooked chair leg with a pure white pencil, the drawn leg just turning into real wood with a soft golden glow; Boucle d'or, a little HUMAN GIRL with long golden curls in a sky-blue dress, kneels beside {prenom}, watching with wonder; {doudou} sits on the floor right next to {prenom}, the ONLY plush toy in the picture; three bowls of three sizes on the table behind; a calm warm wooden wall in the upper third; no bears in this picture.",
+    pages: [
+      {
+        texte:
+          "Ce soir-là, {parent} rouvrit le vieux livre de contes. Sur la page, une petite maison au fond des bois avait la porte grande ouverte. « C'est la maison des trois ours », chuchota {parent}. {prenom} se blottit contre {son_doudou} {doudou}. Sur la table de nuit, le crayon blanc attendait, comme toujours.",
+        scene:
+          "A cosy child's bedroom at night lit by a warm bedside lamp: {prenom} sits in bed under the duvet hugging {doudou} (the ONLY plush toy); {parent} (seen from behind, face not shown) sits on the edge of the bed holding an old storybook open; a pure white pencil lies on the bedside table; no other characters.",
+        presents: [],
+      },
+      {
+        texte:
+          "Dans l'image, il y avait trois bols, trois chaises et trois lits. Mais la toute petite chaise était cassée, un pied tombé par terre. À côté, une fillette aux boucles dorées pleurait tout bas. « C'est Boucle d'or, {dit_parent}. Elle a fait une bêtise. » Au loin, sur le chemin, on entendait déjà : boum, boum, boum.",
+        scene:
+          "In the lamp-lit bedroom, {prenom} leans over the open old storybook on the duvet with a worried face, holding {doudou} in one arm; the open page shows a little wooden cottage with three bowls on a table and a tiny broken chair (no letters on the page); no other characters in the room.",
+        presents: [],
+      },
+      {
+        texte:
+          "{parent} alla chercher un verre d'eau. {prenom} prit le crayon blanc et toucha la petite chaise du bout de la mine. Hop ! {Il} glissa dans la maison des ours, {doudou} serré dans ses bras. Ça sentait le bois chaud et la bouillie à la cannelle.",
+        scene:
+          "Close-up on the duvet: {prenom}'s small hand touches a tiny broken chair drawn on the page of the open old storybook with the tip of a pure white pencil; a soft golden light rises from the page; {prenom}'s other arm holds {doudou} tight; dim bedroom; no other characters.",
+        presents: [],
+      },
+      {
+        texte:
+          "Boucle d'or sursauta. « Je voulais juste goûter, m'asseoir, me reposer. Mais tout était trop chaud, trop dur, trop grand… sauf ce qui était à Petit Ours. Et maintenant, sa chaise est cassée ! » Elle regarda la fenêtre. « Dans le livre, je m'enfuis toujours par là. »",
+        scene:
+          "Inside a cosy wooden cottage in the woods: Boucle d'or, a little HUMAN GIRL with long golden curls in a sky-blue dress, stands by a tiny broken wooden chair whose leg lies on the floor, sad, glancing at the open window; {prenom} stands in front of her holding {doudou} in both arms, listening; on the table three bowls of three sizes; warm light from the window; no bears in this picture.",
+        presents: ["Boucle d'or"],
+      },
+      {
+        texte:
+          "« Et si, cette fois, on réparait ? » proposa {prenom}. Boucle d'or ouvrit de grands yeux. {prenom} s'accroupit près de la chaise et, la langue entre les dents, dessina un pied tout neuf. Il sortit un peu tordu. Le trait frémit, se gonfla… et le pied devint du vrai bois !",
+        scene:
+          "Inside the cottage: {prenom} crouches by the tiny broken chair and draws a new crooked chair leg with a pure white pencil, tongue between the teeth; the drawn leg is a shaky white outline just turning into real wood with a slight golden glow; Boucle d'or (little HUMAN GIRL, golden curls, sky-blue dress) kneels beside, amazed; {doudou} sits on the floor next to {prenom}, the ONLY plush toy; no bears in this picture.",
+        presents: ["Boucle d'or"],
+      },
+      {
+        texte:
+          "Boum, boum, boum. Les pas se rapprochaient. Boucle d'or tremblait comme une feuille. {prenom} lui tendit {doudou} : « Tiens. On a moins peur quand on serre quelqu'un. » Ensemble, ils posèrent la petite chaise bien droite, à sa place, au bout de la table.",
+        scene:
+          "Inside the cottage near the closed wooden door: Boucle d'or (little HUMAN GIRL, golden curls, sky-blue dress) hugs {doudou}, the ONLY plush toy, a little scared; {prenom} stands beside her with a reassuring smile, one hand on her shoulder; the repaired tiny chair stands straight at the end of the table; no bears visible, only big soft shadows of paws under the door.",
+        presents: ["Boucle d'or"],
+      },
+      {
+        texte:
+          "La porte grinça. Papa Ours, Maman Ourse et Petit Ours entrèrent, le museau tout rose de froid. Ils virent les bols vides, les coussins de travers… et deux enfants debout près de la table. Petit Ours fronça son petit nez : « Qui s'est assis sur ma chaise ? »",
+        scene:
+          "Seen from inside the cottage: the wooden door opens and the three bears stand in the doorway, surprised and kind, noses pink from the cold: Papa Ours (the biggest, dark brown, green knitted waistcoat), Maman Ourse (light brown, blue apron with white dots) and Petit Ours (a small cub with a red scarf); autumn woods behind them; no children and no plush toy in this picture.",
+        presents: ["Papa Ours", "Maman Ourse", "Petit Ours"],
+      },
+      {
+        texte:
+          "Boucle d'or rendit {doudou} et fit un pas en avant, toute rouge. « C'est moi. Pardon, Petit Ours. J'ai cassé ta chaise… alors on l'a réparée. » Petit Ours regarda le pied neuf, un peu tordu. Il s'assit dessus, gigota… et sourit : « Ni trop dur, ni trop mou. Juste comme il faut ! »",
+        scene:
+          "Inside the cottage: Petit Ours, a small brown bear cub with a red scarf, sits proudly on the tiny repaired wooden chair (one leg a little crooked), smiling; Boucle d'or (little HUMAN GIRL, golden curls, sky-blue dress) stands beside him, cheeks pink, saying sorry; {prenom} stands a step behind holding {doudou} in both arms, smiling; Papa Ours and Maman Ourse are not in this picture.",
+        presents: ["Petit Ours", "Boucle d'or"],
+      },
+      {
+        texte:
+          "Maman Ourse remit de la bouillie à chauffer, juste comme il faut, pour tout le monde. On mangea, on rit, on goûta trois fois. Au moment de partir, Petit Ours glissa dans la main de {prenom} une toute petite cuillère en bois. « Pour que tu reviennes goûter », dit-il.",
+        scene:
+          "A warm close scene at the wooden table of the cottage: Petit Ours (small brown cub, red scarf) places a tiny wooden spoon in {prenom}'s open hand; {prenom} holds {doudou} in the other arm; Boucle d'or (little HUMAN GIRL, golden curls, sky-blue dress) eats porridge from a bowl beside them, smiling; Papa Ours and Maman Ourse only seen from behind at the stove in the background; warm golden light.",
+        presents: ["Petit Ours", "Boucle d'or"],
+      },
+      {
+        texte:
+          "{prenom} était de nouveau dans son lit, {doudou} contre sa joue, la petite cuillère au creux de la main. {parent} revint et regarda le livre : sur la page, Boucle d'or et Petit Ours mangeaient côte à côte. « Tiens, je ne me souvenais pas de cette fin-là », murmura {parent}. {prenom} sourit et ferma les yeux.",
+        scene:
+          "A cosy child's bedroom at night: {prenom} drifts to sleep against the pillow with {doudou} against the cheek and a tiny wooden spoon in one hand; {parent}'s hand rests on the open old storybook, whose page shows a little girl with golden curls and a bear cub eating porridge side by side (no letters); the pure white pencil back on the bedside table; soft lamplight.",
+        presents: [],
+      },
+    ],
+    passages: {},
   },
 ];
 

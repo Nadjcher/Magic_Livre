@@ -37,13 +37,13 @@ const APPARENCE_NEUTRE = "a 5-year-old child with short tousled light-brown hair
 const DOUDOU_NEUTRE = "a plain soft beige plush teddy bear with round ears and a cream muzzle";
 const ENFANT = "the child";
 
-function persoNeutre(variante: Variante): Personnalisation {
+function persoNeutre(variante: Variante, h?: HistoireMaitresse): Personnalisation {
   return {
     prenom: ENFANT,
     fille: false,
     doudou: "Doudou",
     sonDoudou: "son doudou",
-    doudouVisuel: DOUDOU_NEUTRE,
+    doudouVisuel: h?.doudouNeutre ?? DOUDOU_NEUTRE,
     parent: variante === "femme" ? "Maman" : "Papa",
     passages: {},
   };
@@ -169,8 +169,8 @@ export async function dessinerPlanches(h: HistoireMaitresse, style: Illustration
   const erreurs: string[] = [];
   let dessinees = 0;
   const livres = {
-    homme: consoliderFiche(construireLivre(h, persoNeutre("homme"), { style, age: h.ageMin })),
-    femme: consoliderFiche(construireLivre(h, persoNeutre("femme"), { style, age: h.ageMin })),
+    homme: consoliderFiche(construireLivre(h, persoNeutre("homme", h), { style, age: h.ageMin })),
+    femme: consoliderFiche(construireLivre(h, persoNeutre("femme", h), { style, age: h.ageMin })),
   };
   const commun = { style, heroName: ENFANT, appearance: APPARENCE_NEUTRE, carre: true };
 
@@ -220,7 +220,12 @@ export async function dessinerPlanches(h: HistoireMaitresse, style: Illustration
     const scene = page
       ? page.scene_illustration
       : `Book cover illustration for the story "${livre.titre.replace(ENFANT, "").trim()}": ${livre.couvertureScene ?? ""}. ${CONSIGNE_COUVERTURE}`;
-    const refs = page ? presents(page, fiches) : [...fiches.entries()].slice(0, 3).map(([name, f]) => ({ name, ...f }));
+    const refs = page
+      ? presents(page, fiches)
+      : [...fiches.entries()]
+          .filter(([name]) => (livre.couvertureScene ?? "").toLowerCase().includes(name.toLowerCase()))
+          .slice(0, 3)
+          .map(([name, f]) => ({ name, ...f }));
     const r = await generateIllustration({
       ...commun,
       recurringCharacters: livre.personnages,
