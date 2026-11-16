@@ -8,7 +8,7 @@ const bon = {
   hero: { count: 1, hair_same_color_as_reference: true, face_and_outfit_match_reference: true },
   characters: [
     { name: "Pompon", count: 1, species_seen: "grey rabbit", same_design_as_reference: true, size: "small", animal_ears_or_animal_head: true },
-    { name: "Poucet", count: 1, species_seen: "boy", same_design_as_reference: true, size: "tiny", animal_ears_or_animal_head: false },
+    { name: "Poucet", count: 1, species_seen: "boy", same_design_as_reference: true, top_reaches: "below knee", animal_ears_or_animal_head: false },
   ],
   plush_toys: [{ animal: "rabbit", color: "grey" }],
   other_humans: [],
@@ -26,7 +26,7 @@ describe("jugerInventaire", () => {
   });
   it("Poucet remplacé par un 2e lapin (page 8) : refusé", () => {
     const f = jugerInventaire(
-      { ...bon, plush_toys: [{ animal: "rabbit" }, { animal: "rabbit" }], characters: [bon.characters[0]!, { name: "Poucet", count: 1, species_seen: "rabbit", same_design_as_reference: false, size: "small", animal_ears_or_animal_head: true }] },
+      { ...bon, plush_toys: [{ animal: "rabbit" }, { animal: "rabbit" }], characters: [bon.characters[0]!, { name: "Poucet", count: 1, species_seen: "rabbit", same_design_as_reference: false, top_reaches: "knee to chest", animal_ears_or_animal_head: true }] },
       heros,
       [pompon, poucet],
     ).join(" ");
@@ -38,12 +38,18 @@ describe("jugerInventaire", () => {
     const f = jugerInventaire({ ...bon, plush_toys: [{ animal: "bear", color: "brown" }], characters: [{ ...bon.characters[0]!, species_seen: "rabbit" }, bon.characters[1]!] }, heros, [pompon, poucet]).join(" ");
     expect(f).toContain("must be the plush rabbit of its reference sheet, not a bear");
   });
+  it("Poucet à hauteur de poitrine d'un Léo accroupi : refusé ; sous la poitrine : accepté", () => {
+    const grand = { ...bon, hero: { ...bon.hero, pose: "crouching" }, characters: [bon.characters[0]!, { ...bon.characters[1]!, top_reaches: "chest or higher" }] };
+    expect(jugerInventaire(grand, heros, [pompon, poucet]).join(" ")).toContain("must be TINY");
+    const bien = { ...bon, hero: { ...bon.hero, pose: "crouching" }, characters: [bon.characters[0]!, { ...bon.characters[1]!, top_reaches: "knee to chest" }] };
+    expect(jugerInventaire(bien, heros, [pompon, poucet])).toEqual([]);
+  });
   it("le parent dessiné comme un enfant en pyjama : refusé", () => {
     const f = jugerInventaire({ ...bon, other_humans: [{ adult_or_child: "child", dressed_like_hero: true }] }, heros, [pompon], "Papa sits on the bed").join(" ");
     expect(f).toContain("parent must be an ADULT");
   });
   it("cheveux d'une autre couleur, personnage absent, héros en double", () => {
-    const f = jugerInventaire({ ...bon, hero: { count: 2, hair_same_color_as_reference: false, hair_seen: "reddish" }, characters: [bon.characters[0]!] }, heros, [pompon, poucet]).join(" ");
+    const f = jugerInventaire({ ...bon, hero: { count: 2, hair_reference: "blond", hair_seen: "dark brown" }, characters: [bon.characters[0]!] }, heros, [pompon, poucet]).join(" ");
     expect(f).toContain("only ONCE");
     expect(f).toContain("hair color");
     expect(f).toContain("Poucet is missing");

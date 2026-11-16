@@ -47,13 +47,14 @@ const petit = { maxPx: 768, quality: 80 };
 
 /** Ce que la relectrice dit VOIR (inventaire), le code décide ensuite. */
 interface Inventaire {
-  hero?: { count?: number; hair_same_color_as_reference?: boolean; hair_seen?: string; face_and_outfit_match_reference?: boolean };
+  hero?: { count?: number; pose?: string; hair_reference?: string; hair_seen?: string; hair_same_color_as_reference?: boolean; face_and_outfit_match_reference?: boolean };
   characters?: {
     name?: string;
     count?: number;
     species_seen?: string;
     same_design_as_reference?: boolean;
     size?: string;
+    top_reaches?: string;
     animal_ears_or_animal_head?: boolean;
   }[];
   plush_toys?: { animal?: string; color?: string }[];
@@ -100,6 +101,8 @@ export async function verifier(
   page: Ref,
   scene: string,
   grille: string[] | null = null,
+  /** Modèle de vision imposé (essais de comparaison) ; sinon celui de la configuration. */
+  modeleImpose?: string,
 ): Promise<{ ok: boolean; fix: string; nonVerifiee?: boolean }> {
   const lignes = [`Image 1 is the reference sheet of the hero ${heros.nom} (${heros.description}).`];
   cast.forEach((c, k) => lignes.push(`Image ${k + 2} is the reference sheet of ${c.nom} (${c.description}).`));
@@ -110,13 +113,13 @@ export async function verifier(
       "Do NOT judge whether the picture is good. Only REPORT precisely what you SEE, as JSON, in this order:",
       '- "plush_toys": FIRST, before looking at the reference sheets, list EVERY plush / cuddly toy visible in the page, with the animal it ACTUALLY looks like (judge by its ears, muzzle, tail and shape: a dog has a long muzzle and floppy ears, a bear has small round ears and a short muzzle, a cat has pointed ears and whiskers, a rabbit has long ears) and its color. Do not assume what it should be.',
       `- "other_humans": every person in the page other than ${heros.nom} and other than the tiny characters listed below, with "adult_or_child" (judge by size and body proportions) and "dressed_like_hero" (true if wearing the same pyjamas or outfit as ${heros.nom}). [] if none.`,
-      `- "hero": how many times ${heros.nom} appears ("count"); whether the hair color is the same as on the reference ("hair_same_color_as_reference", and "hair_seen": the color you see); whether face and outfit match the reference ("face_and_outfit_match_reference").`,
-      `- "characters": for EACH of these characters: ${cast.length ? cast.map((c) => c.nom).join(", ") : "(none)"}: "name", "count" (how many times it appears, 0 if absent), "species_seen" (what it looks like: rabbit, bear, dog, boy, elf…), "same_design_as_reference" (same species, colors and look as its reference sheet), "size" ("tiny" = the top of its head or hat is below ${heros.nom}'s knee, or below the chest if ${heros.nom} kneels or crouches; "small" = up to ${heros.nom}'s waist; "big" = taller; judge its OWN body, not what it stands on), "animal_ears_or_animal_head" (true if it has animal ears or an animal head).`,
-      '- "explicit_rule_violations": ONLY the rules the scene states explicitly with "never", "no", "not", "only" or "exactly" (e.g. "never a paved path", "Poucet is the only small character") that the picture clearly breaks, quoting the rule; [] if none. Do NOT list differences of pose, action, props or details.',
+      `- "hero": how many times ${heros.nom} appears ("count"); his pose ("pose": "standing", "crouching", "kneeling" or "sitting"); the hair color on the REFERENCE sheet ("hair_reference") and on the PAGE ("hair_seen"), each one word among: blond, light brown, chestnut, dark brown, black, red, grey (look at the lit parts of the hair, not the shadows); whether face and outfit match the reference ("face_and_outfit_match_reference").`,
+      `- "characters": for EACH of these characters: ${cast.length ? cast.map((c) => c.nom).join(", ") : "(none)"}: "name", "count" (how many times it appears, 0 if absent), "species_seen" (what it looks like: rabbit, bear, dog, boy, elf…), "same_design_as_reference" (same species, colors and look as its reference sheet), "top_reaches" (where the top of its head or hat reaches on ${heros.nom}'s body as drawn: "below knee", "knee to chest" or "chest or higher"; judge its OWN body height, ignoring what it stands on: imagine it standing on the same ground as ${heros.nom}), "animal_ears_or_animal_head" (true if it has animal ears or an animal head).`,
+      '- "explicit_rule_violations": ONLY the rules the scene states explicitly with "never", "no", "not", "only" or "exactly" (e.g. "never a paved path", "Poucet is the only small character") that the picture clearly breaks, quoting the rule; [] if none. Do NOT list differences of pose, action, props or details. Descriptions of characters (in parentheses or after a name, e.g. "never alive") are not rules: a plush toy sitting, propped up or held is NOT alive. A picture INSIDE the picture (an open book, a drawing, a painting) is never checked against the scene rules.',
       '- "unexpected_characters": people or creatures that are neither listed above nor mentioned in the scene; [] if none.',
       '- "letters_or_text", "blank_unpainted_area" (a white or empty unpainted part), "frightening": true or false.',
       `- "style_consistent": ${style || "the whole picture keeps one consistent rendering style"} (true or false).`,
-      "Ignore small props (a pencil, a lamp, a cup) and small patterns on clothes.",
+      "Ignore small props (a pencil, a lamp, a cup), small patterns on clothes, and everything shown inside an open book or a picture on the wall.",
       'JSON only, exactly these keys: {"plush_toys": [{"animal": "", "color": ""}], "other_humans": [], "hero": {...}, "characters": [...], "explicit_rule_violations": [], "unexpected_characters": [], "letters_or_text": false, "blank_unpainted_area": false, "style_consistent": true, "frightening": false}',
     );
   } else lignes.push(
@@ -134,7 +137,7 @@ export async function verifier(
       method: "POST",
       headers: { Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: modele(),
+        model: modeleImpose || modele(),
         system_prompt: SYSTEME,
         prompt: lignes.join("\n"),
         image_urls: images,
@@ -168,6 +171,27 @@ export async function verifier(
   }
 }
 
+/** Échelle des couleurs de cheveux : deux crans d'écart (blond → châtain) ou roux d'un côté seulement = différent. */
+const CHEVEUX = ["blond", "light brown", "chestnut", "dark brown", "black"];
+function cheveuxDifferents(ref?: string, vu?: string): boolean {
+  const r = (ref ?? "").toLowerCase().trim();
+  const v = (vu ?? "").toLowerCase().trim();
+  if (!r || !v) return false;
+  if (r.includes("red") !== v.includes("red")) return true;
+  const i = CHEVEUX.findIndex((c) => r === c || r.includes(c));
+  const j = CHEVEUX.findIndex((c) => v === c || v.includes(c));
+  return i >= 0 && j >= 0 && Math.abs(i - j) >= 2;
+}
+
+/** Petit personnage trop grand, selon la pose du héros (accroupi : jusqu'à la poitrine). */
+function tropGrand(x: { size?: string; top_reaches?: string }, pose?: string): boolean {
+  const t = (x.top_reaches ?? "").toLowerCase();
+  if (!t) return Boolean(x.size && x.size !== "tiny");
+  if (t.includes("chest or higher")) return true;
+  const debout = !pose || /stand/i.test(pose);
+  return debout && t.includes("knee to chest");
+}
+
 /** Les règles, appliquées par le code à l'inventaire (chaque faute devient une correction précise). */
 export function jugerInventaire(
   v: Inventaire,
@@ -179,7 +203,9 @@ export function jugerInventaire(
   const h = v.hero ?? {};
   if ((h.count ?? 1) > 1) f.push(`Draw ${heros.nom} only ONCE.`);
   if ((h.count ?? 1) >= 1) {
-    if (h.hair_same_color_as_reference === false) f.push(`${heros.nom}'s hair color must be exactly as on the reference (seen: ${h.hair_seen ?? "different"}).`);
+    if (h.hair_same_color_as_reference === false || cheveuxDifferents(h.hair_reference, h.hair_seen)) {
+      f.push(`${heros.nom}'s hair color must be exactly as on the reference (${h.hair_reference ?? "reference"}), not ${h.hair_seen ?? "different"}.`);
+    }
     if (h.face_and_outfit_match_reference === false) f.push(`${heros.nom}'s face and outfit must match the reference sheet.`);
   }
   // Peluches : l'inventaire « à l'aveugle » (fait avant de regarder les fiches) fait foi pour l'espèce.
@@ -211,8 +237,8 @@ export function jugerInventaire(
       // Les humains et lutins : la relectrice les dit « différents » pour un détail ; on juge leur taille et leurs oreilles.
       f.push(`${c.nom} must look exactly like its reference sheet (seen: ${vue || "a different design"}).`);
     }
-    if (estMinuscule(c.description) && x.size && x.size !== "tiny") {
-      f.push(`${c.nom} must be TINY: the top of the head or hat below ${heros.nom}'s knee (size seen: ${x.size}).`);
+    if (estMinuscule(c.description) && tropGrand(x, h.pose)) {
+      f.push(`${c.nom} must be TINY: the top of the head or hat below ${heros.nom}'s knee (size seen: ${x.top_reaches ?? x.size}).`);
     }
     if (estHumain(c.description) && x.animal_ears_or_animal_head === true && !/\belf\b/i.test(c.description)) {
       f.push(`${c.nom} is a human: no animal ears, no animal head.`);

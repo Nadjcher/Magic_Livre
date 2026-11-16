@@ -44,8 +44,10 @@ export interface ResultatEpreuve {
 
 const lire = async (f: string) => ({ base64: (await readFile(path.join(DOSSIER, f))).toString("base64"), mime: "image/jpeg" });
 
-export async function lancerEpreuve(): Promise<{ resultats: ResultatEpreuve[]; reussie: boolean }> {
-  const cas = JSON.parse(await readFile(path.join(DOSSIER, "cas.json"), "utf8")) as Cas[];
+export async function lancerEpreuve(opts: { ids?: string[]; modele?: string } = {}): Promise<{ resultats: ResultatEpreuve[]; reussie: boolean }> {
+  const tous = JSON.parse(await readFile(path.join(DOSSIER, "cas.json"), "utf8")) as Cas[];
+  // Essai ciblé : seulement certains cas (et éventuellement un autre modèle de vision).
+  const cas = opts.ids?.length ? tous.filter((c) => opts.ids!.includes(c.id)) : tous;
   // Comme en production : au plus 4 relectures à la fois, et la zone vide détectée par le code.
   const resultats = await mapLimit(cas, 4, async (c): Promise<ResultatEpreuve> => {
       const image = await lire(c.image);
@@ -57,6 +59,7 @@ export async function lancerEpreuve(): Promise<{ resultats: ResultatEpreuve[]; r
         image,
         c.scene,
         grillePour(c.style),
+        opts.modele,
       );
       const verdict = "nonVerifiee" in v && v.nonVerifiee ? "non vérifiée" : v.ok ? "acceptée" : "refusée";
       const correction = v.fix.toLowerCase();
