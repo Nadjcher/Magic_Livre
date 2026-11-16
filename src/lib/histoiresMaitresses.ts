@@ -93,7 +93,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       },
     ],
     couverture:
-      "Book cover, medium shot: {prenom} seen from behind walks with tiny Poucet (toy-figurine size, his red bonnet below {prenom}'s knee) who rides standing on a little mushroom-shaped stone at {prenom}'s side, along a trail of separate small crooked glowing white pebbles of unequal sizes, spaced apart with grass between them (never a paved path, never stepping stones) into a soft storybook forest; {prenom} holds {doudou} under one arm and a pure white pencil (normal size, in one hand) in the other hand; there is ONE single plush toy in the whole picture, {doudou} under {prenom}'s arm, and the tiny figure on the mushroom-shaped stone is Poucet, a little HUMAN BOY with a red knitted bonnet and a brown jacket, never a plush toy; only five or six pebbles, each alone in the grass with wide gaps of grass between them, never touching, never forming a continuous line; warm golden light at the end of the path; calm dark-blue sky with stars in the upper third.",
+      "Book cover, medium shot: {prenom} seen from behind walks along a trail of five or six small crooked glowing white pebbles, each alone in the grass with wide gaps of grass between them (never touching, never a paved path, never stepping stones), into a soft storybook forest with a warm golden glow at the end of the path; {prenom} holds {doudou} in both arms against the chest (the ONLY plush toy in the picture); on the grass beside {prenom}'s feet walks tiny Poucet, a little HUMAN BOY with a red knitted bonnet and a brown jacket, the top of his bonnet below {prenom}'s knee, never a plush toy; no stones with faces, no objects in {prenom}'s hands other than {doudou}; calm dark-blue sky with stars in the upper third.",
     pages: [
       {
         texte:
@@ -118,7 +118,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "Dans le livre, les arbres sentaient l'encre, et la mousse le vieux papier. Un garçon haut comme une botte fouillait sous les fougères : Poucet ! « Mes cailloux se sont effacés, je ne sais pas pourquoi. — Je peux t'aider, dit {prenom}. — Pas besoin, je trouve toujours le chemin. » Au loin, le géant ronflait, et le bord de la page s'assombrit.",
         scene:
-          "Inside a soft storybook forest: {prenom}, holding {doudou} in one arm and a normal-size pure white pencil (as long as a child's hand) in the other hand, offers help to Poucet. In the FOREGROUND, Poucet stands alone ON A MUSHROOM: a tiny boy (his bonnet below {prenom}'s knee) wearing a bright RED KNITTED BONNET, brown jacket, chin raised proudly, searching under the ferns. Poucet is the only small character in this picture. Nothing is drawn on the ground in this scene (no white drawings, no pebbles yet). The edges of the scene slightly darker, the leaves trembling as if from a distant snore.",
+          "Inside a soft storybook forest at night: {prenom} stands holding {doudou} tight against the chest in one arm and a normal-size pure white pencil (as long as a child's hand) in the other hand, looking down kindly at Poucet. A few steps away, ALONE on a plain flat grey stone (no mushroom, no face on the stone), stands tiny Poucet: a little HUMAN BOY (his red bonnet below {prenom}'s knee) with a bright RED KNITTED BONNET and a brown jacket, chin raised proudly. ONE single plush toy in the picture, {doudou} in {prenom}'s arm; nothing else near Poucet. Nothing is drawn on the ground (no pebbles yet). The edges of the scene slightly darker.",
         presents: ["Poucet"],
       },
       {
@@ -132,7 +132,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "{prenom} ouvrit la main et posa son caillou par terre. Il brilla, [[comparaison]]. « Petit caillou blanc, montre-nous le chemin », murmura {prenom}. Mais un seul caillou ne faisait pas un chemin. Le ronflement s'arrêta net, et {prenom} retint son souffle. Puis le géant se remit à ronfler. Ouf !",
         scene:
-          "On the dim forest path, {prenom} kneels to place one small glowing white stone on the ground, holding their breath with wide eyes; Poucet, a tiny HUMAN BOY with a red knitted bonnet and a brown jacket (his bonnet below {prenom}'s chest as {prenom} kneels), stands beside {prenom}, listening, empty-handed; {doudou}, the ONLY plush toy in the picture, sits on the ground between them; a single pool of white light around the lonely stone, dark edges all around.",
+          "On the dim forest path, {prenom} kneels to place one small glowing white stone on the ground, holding their breath with wide eyes; Poucet, a tiny HUMAN BOY with a red knitted bonnet and a brown jacket (his bonnet below {prenom}'s chest as {prenom} kneels), stands beside {prenom}, listening, empty-handed; no plush toy in this picture; a single pool of white light around the lonely stone, dark edges all around.",
         presents: ["Poucet"],
       },
       {
