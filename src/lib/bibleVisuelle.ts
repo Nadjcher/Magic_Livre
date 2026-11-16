@@ -137,6 +137,8 @@ export const PERSONNAGES_FIXES =
   "The child's cuddly toy: exactly the plush described in the character sheet (its species, colour and shape clearly readable: ears, muzzle, paws), " +
   "soft and cute, never a shapeless blob, no seams or patches, held in the child's arms, never alive. " +
   "Tiny characters (Poucet, elves) keep their tiny size on EVERY page: never as big as the hero, never seated on full-size chairs. " +
+  "NEVER MIX TWO CHARACTERS: each one keeps its own head, face and body from its reference sheet; Poucet never has animal ears or an animal head, " +
+  "the cuddly toy never wears clothes and never stands like a person; the cuddly toy appears ONCE in the picture (never two copies). " +
   "The parent: an adult, clearly bigger than the child and never dressed like the child; only a hand, a silhouette from behind or a profile in shadow, never a detailed face. " +
   "The giant: never shown, only suggested by a shadow or boots.";
 
