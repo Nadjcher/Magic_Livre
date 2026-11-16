@@ -93,7 +93,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       },
     ],
     couverture:
-      "Book cover, medium shot: {prenom} seen from behind walks with tiny Poucet (toy-figurine size, his red bonnet below {prenom}'s knee) who rides standing on a little mushroom-shaped stone at {prenom}'s side, along a trail of separate small crooked glowing white pebbles of unequal sizes, spaced apart with grass between them (never a paved path, never stepping stones) into a soft storybook forest; {prenom} holds {doudou} under one arm and a white pencil in the other hand; warm golden light at the end of the path; calm dark-blue sky with stars in the upper third.",
+      "Book cover, medium shot: {prenom} seen from behind walks with tiny Poucet (toy-figurine size, his red bonnet below {prenom}'s knee) who rides standing on a little mushroom-shaped stone at {prenom}'s side, along a trail of separate small crooked glowing white pebbles of unequal sizes, spaced apart with grass between them (never a paved path, never stepping stones) into a soft storybook forest; {prenom} holds {doudou} under one arm and a pure white pencil (normal size, in one hand) in the other hand; there is ONE single plush toy in the whole picture, {doudou} under {prenom}'s arm, and the tiny figure on the mushroom-shaped stone is Poucet, a little HUMAN BOY with a red knitted bonnet and a brown jacket, never a plush toy; only five or six pebbles, each alone in the grass with wide gaps of grass between them, never touching, never forming a continuous line; warm golden light at the end of the path; calm dark-blue sky with stars in the upper third.",
     pages: [
       {
         texte:
@@ -112,13 +112,13 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "{parent} descendit à la cuisine chercher un verre d'eau. Sur la page, un seul caillou blanc luisait encore, minuscule. {prenom} attrapa le crayon blanc posé sur sa table de nuit. Du bout du doigt, {il} toucha la petite lueur. Hop ! {prenom} glissa dans la forêt du livre, {doudou} sous le bras. Le caillou brillait au creux de sa main.",
         scene:
-          "Close-up of the open old storybook on the duvet: on the forest page one single tiny white stone glows softly; {prenom}'s small hand reaches down to touch the glow while the other hand holds a white pencil; {doudou} peeks at the edge; a gentle light rises from the page in the dim room.",
+          "Close-up of the open old storybook on the duvet: on the forest page one single tiny white stone glows softly; {prenom}'s small hand reaches down to touch the glow while the other hand holds a pure white pencil (white wood, white tip); no plush toy in this picture; a gentle light rises from the page in the dim room.",
       },
       {
         texte:
           "Dans le livre, les arbres sentaient l'encre, et la mousse le vieux papier. Un garçon haut comme une botte fouillait sous les fougères : Poucet ! « Mes cailloux se sont effacés, je ne sais pas pourquoi. — Je peux t'aider, dit {prenom}. — Pas besoin, je trouve toujours le chemin. » Au loin, le géant ronflait, et le bord de la page s'assombrit.",
         scene:
-          "Inside a soft storybook forest: {prenom}, holding {doudou} and a white pencil, offers help to Poucet. In the FOREGROUND, Poucet stands alone ON A MUSHROOM: a tiny boy (his bonnet below {prenom}'s knee) wearing a bright RED KNITTED BONNET, brown jacket, chin raised proudly, searching under the ferns. Poucet is the only small character in this picture. Nothing is drawn on the ground in this scene (no white drawings, no pebbles yet). The edges of the scene slightly darker, the leaves trembling as if from a distant snore.",
+          "Inside a soft storybook forest: {prenom}, holding {doudou} in one arm and a normal-size pure white pencil (as long as a child's hand) in the other hand, offers help to Poucet. In the FOREGROUND, Poucet stands alone ON A MUSHROOM: a tiny boy (his bonnet below {prenom}'s knee) wearing a bright RED KNITTED BONNET, brown jacket, chin raised proudly, searching under the ferns. Poucet is the only small character in this picture. Nothing is drawn on the ground in this scene (no white drawings, no pebbles yet). The edges of the scene slightly darker, the leaves trembling as if from a distant snore.",
         presents: ["Poucet"],
       },
       {
@@ -132,7 +132,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "{prenom} ouvrit la main et posa son caillou par terre. Il brilla, [[comparaison]]. « Petit caillou blanc, montre-nous le chemin », murmura {prenom}. Mais un seul caillou ne faisait pas un chemin. Le ronflement s'arrêta net, et {prenom} retint son souffle. Puis le géant se remit à ronfler. Ouf !",
         scene:
-          "On the dim forest path, {prenom} kneels to place one small glowing white stone on the ground, holding their breath with wide eyes; Poucet stands beside, listening, still holding {doudou}; a single pool of white light around the lonely stone, dark edges all around.",
+          "On the dim forest path, {prenom} kneels to place one small glowing white stone on the ground, holding their breath with wide eyes; Poucet, a tiny HUMAN BOY with a red knitted bonnet and a brown jacket (his bonnet below {prenom}'s chest as {prenom} kneels), stands beside {prenom}, listening, empty-handed; {doudou}, the ONLY plush toy in the picture, sits on the ground between them; a single pool of white light around the lonely stone, dark edges all around.",
         presents: ["Poucet"],
       },
       {
@@ -153,7 +153,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "Au bout du chemin tordu, une petite maison avait sa fenêtre allumée. Les frères de Poucet coururent vers la porte en riant. Poucet glissa un caillou dessiné dans sa poche. « Merci, {prenom} », dit-il. Tout autour, la page redevint claire.",
         scene:
-          "At the end of a trail of separate small crooked glowing white pebbles of unequal sizes, spaced apart with grass between them (never a paved path, never stepping stones), a small cottage with a warmly lit window stands in a forest turning bright again; Poucet's six tiny brothers run laughing toward the door; Poucet slips a white stone into his pocket with rosy cheeks, smiling at {prenom}, who stands proudly holding {doudou} and the white pencil; soft golden light.",
+          "At the end of a trail of separate small crooked glowing white pebbles of unequal sizes, spaced apart with grass between them (never a paved path, never stepping stones), a small cottage with a warmly lit window stands in a forest turning bright again; Poucet's six tiny brothers run laughing toward the door; Poucet slips a white stone into his pocket with rosy cheeks, smiling at {prenom}, who stands proudly holding {doudou} and the white pencil; ONE single plush toy in the picture, {doudou} in {prenom}'s arms; Poucet and his brothers are tiny HUMAN BOYS (Poucet in his red knitted bonnet and brown jacket), never plush toys, never animal heads; soft golden light.",
         presents: ["Poucet"],
       },
       {
