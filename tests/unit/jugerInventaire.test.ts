@@ -10,6 +10,8 @@ const bon = {
     { name: "Pompon", count: 1, species_seen: "grey rabbit", same_design_as_reference: true, size: "small", animal_ears_or_animal_head: true },
     { name: "Poucet", count: 1, species_seen: "boy", same_design_as_reference: true, top_reaches: "below knee", animal_ears_or_animal_head: false },
   ],
+  page_hair: "chestnut",
+  heights: [{ who: "tiny boy in red bonnet", fraction: 0.2 }],
   plush_toys: [{ animal: "rabbit", color: "grey" }],
   other_humans: [],
   explicit_rule_violations: [],
@@ -43,6 +45,14 @@ describe("jugerInventaire", () => {
     expect(jugerInventaire(grand, heros, [pompon, poucet]).join(" ")).toContain("must be TINY");
     const bien = { ...bon, hero: { ...bon.hero, pose: "crouching" }, characters: [bon.characters[0]!, { ...bon.characters[1]!, top_reaches: "knee to chest" }] };
     expect(jugerInventaire(bien, heros, [pompon, poucet])).toEqual([]);
+  });
+  it("cheveux vus à l'aveugle d'une autre couleur que la fiche : refusé", () => {
+    const f = jugerInventaire({ ...bon, page_hair: "black", hero: { ...bon.hero, hair_reference: "blond", hair_seen: "blond" } }, heros, [pompon, poucet]).join(" ");
+    expect(f).toContain("hair color");
+  });
+  it("Poucet mesuré à la moitié de la taille de Léo : refusé", () => {
+    const f = jugerInventaire({ ...bon, heights: [{ who: "boy in red bonnet", fraction: 0.5 }] }, heros, [pompon, poucet]).join(" ");
+    expect(f).toContain("must be TINY");
   });
   it("le parent dessiné comme un enfant en pyjama : refusé", () => {
     const f = jugerInventaire({ ...bon, other_humans: [{ adult_or_child: "child", dressed_like_hero: true }] }, heros, [pompon], "Papa sits on the bed").join(" ");

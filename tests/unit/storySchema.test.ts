@@ -17,8 +17,9 @@ describe("validation JSON de l'histoire", () => {
     expect(res.success).toBe(true);
   });
 
-  it("refuse moins de 8 pages", () => {
-    expect(storySchema.safeParse(histoireValide(7)).success).toBe(false);
+  it("refuse moins de 4 pages", () => {
+    expect(storySchema.safeParse(histoireValide(3)).success).toBe(false);
+    expect(storySchema.safeParse(histoireValide(4)).success).toBe(true);
   });
 
   it("refuse plus de 12 pages", () => {

@@ -31,7 +31,8 @@ function modele(): string {
   // Gemini Flash : ~0,05 centime par contrôle (15× moins cher que Sonnet) ;
   // il a repéré les mêmes erreurs sur notre jeu de test.
   // Claude Sonnet : Gemini Flash validait des images fautives (test du 11 nov.).
-  return process.env.QA_VISION_MODEL || "anthropic/claude-sonnet-4.5";
+  // Claude Sonnet 5.5 (avec réflexion) : a vu le doudou devenu chien que Sonnet 4.5 laissait passer (16 nov.).
+  return process.env.QA_VISION_MODEL || "anthropic/claude-sonnet-5.5";
 }
 
 export function controleActif(): boolean {
@@ -57,6 +58,8 @@ interface Inventaire {
     top_reaches?: string;
     animal_ears_or_animal_head?: boolean;
   }[];
+  page_hair?: string;
+  heights?: { who?: string; fraction?: number }[];
   plush_toys?: { animal?: string; color?: string }[];
   plush_toys_count?: number;
   other_humans?: { adult_or_child?: string; dressed_like_hero?: boolean }[];
@@ -111,7 +114,9 @@ export async function verifier(
     lignes.push(
       `The LAST image is the book page to check. Scene requested: ${scene}`,
       "Do NOT judge whether the picture is good. Only REPORT precisely what you SEE, as JSON, in this order:",
-      '- "plush_toys": FIRST, before looking at the reference sheets, list EVERY plush / cuddly toy visible in the page, with the animal it ACTUALLY looks like (judge by its ears, muzzle, tail and shape: a dog has a long muzzle and floppy ears, a bear has small round ears and a short muzzle, a cat has pointed ears and whiskers, a rabbit has long ears) and its color. Do not assume what it should be.',
+      `- "page_hair": FIRST, before looking at any reference sheet, the hair color of ${heros.nom} on the PAGE, one word among: blond, light brown, chestnut, dark brown, black, red, grey (look at the lit parts of the hair, not the shadows).`,
+      `- "heights": also BEFORE the reference sheets, for every character other than ${heros.nom} that is clearly smaller than him, its height as a fraction of ${heros.nom}'s height if both stood on the same ground (e.g. 0.25 = a quarter of his height; ignore what it stands on): [{"who": "short description", "fraction": 0.25}].`,
+      '- "plush_toys": also before looking at the reference sheets, list EVERY plush / cuddly toy visible in the page, with the animal it ACTUALLY looks like (judge by its ears, muzzle, tail and shape: a dog has a long muzzle and floppy ears, a bear has small round ears and a short muzzle, a cat has pointed ears and whiskers, a rabbit has long ears) and its color. Do not assume what it should be.',
       `- "other_humans": every person in the page other than ${heros.nom} and other than the tiny characters listed below, with "adult_or_child" (judge by size and body proportions) and "dressed_like_hero" (true if wearing the same pyjamas or outfit as ${heros.nom}). [] if none.`,
       `- "hero": how many times ${heros.nom} appears ("count"); his pose ("pose": "standing", "crouching", "kneeling" or "sitting"); the hair color on the REFERENCE sheet ("hair_reference") and on the PAGE ("hair_seen"), each one word among: blond, light brown, chestnut, dark brown, black, red, grey (look at the lit parts of the hair, not the shadows); whether face and outfit match the reference ("face_and_outfit_match_reference").`,
       `- "characters": for EACH of these characters: ${cast.length ? cast.map((c) => c.nom).join(", ") : "(none)"}: "name", "count" (how many times it appears, 0 if absent), "species_seen" (what it looks like: rabbit, bear, dog, boy, elf…), "same_design_as_reference" (same species, colors and look as its reference sheet), "top_reaches" (where the top of its head or hat reaches on ${heros.nom}'s body as drawn: "below knee", "knee to chest" or "chest or higher"; judge its OWN body height, ignoring what it stands on: imagine it standing on the same ground as ${heros.nom}), "animal_ears_or_animal_head" (true if it has animal ears or an animal head).`,
@@ -120,7 +125,7 @@ export async function verifier(
       '- "letters_or_text", "blank_unpainted_area" (a white or empty unpainted part), "frightening": true or false.',
       `- "style_consistent": ${style || "the whole picture keeps one consistent rendering style"} (true or false).`,
       "Ignore small props (a pencil, a lamp, a cup), small patterns on clothes, and everything shown inside an open book or a picture on the wall.",
-      'JSON only, exactly these keys: {"plush_toys": [{"animal": "", "color": ""}], "other_humans": [], "hero": {...}, "characters": [...], "explicit_rule_violations": [], "unexpected_characters": [], "letters_or_text": false, "blank_unpainted_area": false, "style_consistent": true, "frightening": false}',
+      'JSON only, exactly these keys: {"page_hair": "", "heights": [], "plush_toys": [{"animal": "", "color": ""}], "other_humans": [], "hero": {...}, "characters": [...], "explicit_rule_violations": [], "unexpected_characters": [], "letters_or_text": false, "blank_unpainted_area": false, "style_consistent": true, "frightening": false}',
     );
   } else lignes.push(
     `The LAST image is the page illustration to check. Scene requested: ${scene}`,
@@ -206,8 +211,9 @@ export function jugerInventaire(
   const h = v.hero ?? {};
   if ((h.count ?? 1) > 1) f.push(`Draw ${heros.nom} only ONCE.`);
   if ((h.count ?? 1) >= 1) {
-    if (h.hair_same_color_as_reference === false || cheveuxDifferents(h.hair_reference, h.hair_seen)) {
-      f.push(`${heros.nom}'s hair color must be exactly as on the reference (${h.hair_reference ?? "reference"}), not ${h.hair_seen ?? "different"}.`);
+    const vue = v.page_hair || h.hair_seen;
+    if (h.hair_same_color_as_reference === false || cheveuxDifferents(h.hair_reference, h.hair_seen) || cheveuxDifferents(h.hair_reference, vue)) {
+      f.push(`${heros.nom}'s hair color must be exactly as on the reference (${h.hair_reference ?? "reference"}), not ${vue ?? "different"}.`);
     }
     if (h.face_and_outfit_match_reference === false) f.push(`${heros.nom}'s face and outfit must match the reference sheet.`);
   }
@@ -224,6 +230,8 @@ export function jugerInventaire(
     }
   }
   const vus = v.characters ?? [];
+  // Hauteurs mesurées à l'aveugle (fraction de la taille du héros) : un « minuscule » dépasse rarement 0,3.
+  const petits = (v.heights ?? []).map((x) => x.fraction).filter((n): n is number => typeof n === "number" && n > 0 && n < 1.5);
   for (const c of cast) {
     const x = vus.find((y) => (y.name ?? "").toLowerCase() === c.nom.toLowerCase());
     const peluche = estPeluche(c.description);
@@ -240,7 +248,7 @@ export function jugerInventaire(
       // Les humains et lutins : la relectrice les dit « différents » pour un détail ; on juge leur taille et leurs oreilles.
       f.push(`${c.nom} must look exactly like its reference sheet (seen: ${vue || "a different design"}).`);
     }
-    if (estMinuscule(c.description) && tropGrand(x, h.pose)) {
+    if (estMinuscule(c.description) && (tropGrand(x, h.pose) || (petits.length > 0 && petits.every((p) => p > 0.35)))) {
       f.push(`${c.nom} must be TINY: the top of the head or hat below ${heros.nom}'s knee (size seen: ${x.top_reaches ?? x.size}).`);
     }
     if (estHumain(c.description) && x.animal_ears_or_animal_head === true && !/\belf\b/i.test(c.description)) {

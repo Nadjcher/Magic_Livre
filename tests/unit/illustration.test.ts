@@ -3,11 +3,12 @@ import {
   buildIllustrationPrompt,
   ILLUSTRATION_STYLES,
 } from "@/lib/style_config";
+import { consigneStylePour } from "@/lib/bibleVisuelle";
 
 describe("construction du prompt d'illustration", () => {
-  it("inclut le fragment de style choisi", () => {
+  it("inclut la fiche du style choisi (bible visuelle)", () => {
     const p = buildIllustrationPrompt({ style: "manga", scene: "un renard court" });
-    expect(p).toContain(ILLUSTRATION_STYLES.manga.prompt);
+    expect(p).toContain(consigneStylePour("manga"));
     expect(p.toLowerCase()).toContain("scene: un renard court");
   });
 
@@ -25,7 +26,8 @@ describe("construction du prompt d'illustration", () => {
   it("ajoute toujours le socle de sécurité enfant", () => {
     const p = buildIllustrationPrompt({ style: "feerique", scene: "une forêt" });
     expect(p).toContain("no text");
-    expect(p).toContain("child-safe");
+    expect(p).toContain("FORBIDDEN");
+    expect(p).toContain("anything frightening");
   });
 
   it("construit une fiche personnage cohérente et la réutilise", () => {
@@ -35,8 +37,9 @@ describe("construction du prompt d'illustration", () => {
       heroName: "Lila",
       appearance: "renarde orange",
     });
-    expect(p).toContain("same consistent character design");
     expect(p).toContain("Lila");
+    expect(p).toContain("renarde orange");
+    expect(p).toContain("NEVER MIX TWO CHARACTERS");
   });
 
   it("propose le catalogue de styles attendu", () => {
@@ -48,6 +51,7 @@ describe("construction du prompt d'illustration", () => {
       "classique",
       "crayon",
       "feerique",
+      "maison",
       "manga",
       "papier",
       "pastel",
