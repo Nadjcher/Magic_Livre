@@ -27,7 +27,8 @@ import { ILLUSTRATION_STYLES } from "./style_config";
 import { findFormat } from "./bookFormats";
 import { fetchAsDataUrl } from "./imageFetch";
 import { controleActif, controlerIllustrations } from "./controleIllustrations";
-import { blocModeles, exemplesParIds, exemplesPour, type Exemple } from "./bibliotheque";
+import { correctionsFiche, verifierFiche } from "./ficheHistoire";
+import { blocModeles, blocTrames, tramesPour, exemplesParIds, exemplesPour, type Exemple } from "./bibliotheque";
 import { PRIX_ESTIMES, noterDepense } from "./budget";
 import { BIBLE, GRILLE, SEUIL_ACCEPTATION, criteresPetits, reglesAge } from "./bible";
 import { CONSIGNE_COUVERTURE, estCarre } from "./bibleVisuelle";
@@ -164,6 +165,9 @@ async function callModel(
   return response.choices[0]?.message?.content?.trim() ?? "";
 }
 
+/** Réécritures après la relecture (une seule : la fiche est déjà contrôlée par le code). */
+const REECRITURES_MAX = 1;
+
 /** Prompt de la relectrice (éditrice jeunesse) : document « Bible féerique et grille de relecture ». */
 const RELECTRICE_SYSTEM = `Tu es éditeur jeunesse exigeant pour Encore une histoire.
 Tu n'as pas écrit ce texte et tu ne cherches pas à le défendre.
@@ -203,10 +207,10 @@ type Verdict = {
 
 /**
  * Étape 3 : la relecture. Une deuxième IA (qui ne voit pas la conversation de
- * l'autrice) note l'histoire avec la grille. Acceptée à 32/40, sans critère
- * sous 3 et sans motif éliminatoire ; sinon l'autrice réécrit les pages citées,
- * deux fois au maximum. Après deux échecs, l'histoire part en file de relecture
- * humaine (on garde la meilleure version). Borné dans le temps, jamais bloquant.
+ * l'autrice) note l'histoire avec la grille, et le code contrôle la fiche
+ * (ficheHistoire.ts). Acceptée à 32/40, sans critère sous 3, sans motif
+ * éliminatoire ni erreur de fiche ; sinon l'autrice réécrit UNE fois les pages
+ * citées (on garde la meilleure version). Borné dans le temps, jamais bloquant.
  */
 async function relireEtAmeliorer(
   client: OpenAI,
@@ -263,23 +267,30 @@ async function relireEtAmeliorer(
     return { total, max, accepte, elim, problemes, notes: v.notes, justifications: v.justifications, invalide: sansJustif.length > 0 || petitsManquants };
   };
 
+  // Contrôle de la fiche par le code (gratuit) : ses erreurs graves s'ajoutent
+  // aux corrections de la relectrice et empêchent l'acceptation.
+  const avecFiche = (x: ReturnType<typeof bilan>, s: Story) => {
+    const pb = correctionsFiche(verifierFiche(s, { age: req.childAge, prenom: req.childFirstName }));
+    return pb.length ? { ...x, accepte: false, problemes: [...pb, ...x.problemes] } : x;
+  };
   let actuelle = story;
   let verdict = await juger(actuelle);
   if (!verdict) return story;
-  let b = bilan(verdict);
+  let b = avecFiche(bilan(verdict), actuelle);
   // Relecture incomplète (notes sans justification) : c'est la relectrice qui recommence, pas l'autrice.
   if (b.invalide) {
     const nouveau = await juger(actuelle);
     if (nouveau) {
       verdict = nouveau;
-      b = bilan(verdict);
+      b = avecFiche(bilan(verdict), actuelle);
     }
   }
   let meilleure = { story: actuelle, b };
   let essais = 0;
   console.log("[relecture] total", b.total, b.accepte ? "accepté" : "à réécrire");
 
-  while (!b.accepte && essais < 2 && Date.now() - debut < 190_000) {
+  // Une seule réécriture, ciblée sur les pages signalées (coût et délai divisés par deux).
+  while (!b.accepte && essais < REECRITURES_MAX && Date.now() - debut < 190_000) {
     essais++;
     try {
       const raw = await callModel(
@@ -319,7 +330,7 @@ async function relireEtAmeliorer(
     }
     verdict = await juger(actuelle);
     if (!verdict) break;
-    b = bilan(verdict);
+    b = avecFiche(bilan(verdict), actuelle);
     console.log("[relecture] réécriture", essais, "total", b.total, b.accepte ? "accepté" : "refusé");
     if (b.accepte || b.total >= meilleure.b.total) meilleure = { story: actuelle, b };
   }
@@ -338,8 +349,8 @@ async function relireEtAmeliorer(
       eliminatoire: finale.b.elim,
       reecrit: essais > 0,
       essais,
-      // Après deux réécritures refusées : file de relecture humaine.
-      aRevoir: !finale.b.accepte && essais >= 2,
+      // Réécriture refusée : signalée dans l'atelier (aucun livre n'attend une relecture humaine).
+      aRevoir: !finale.b.accepte && essais >= REECRITURES_MAX,
     },
   };
 }
@@ -447,7 +458,15 @@ export async function generateStory(
     const [imposee] = await exemplesParIds([req.trameId]);
     if (imposee) modeles.trame = imposee;
   }
-  let userMessage = buildUserMessage(req, blocModeles(modeles, { prenom: req.childFirstName, parent: req.parent, objet: req.fiche?.objet }));
+  // Idée libre : au lieu d'une trame tirée au hasard, l'autrice choisit parmi toutes
+  // les trames éprouvées de cet âge celle qui sert l'idée de l'enfant (même appel, aucun coût de plus).
+  const variablesTrame = { prenom: req.childFirstName, parent: req.parent, objet: req.fiche?.objet };
+  const trames = req.mode === "libre" && !longue && !req.trameId ? await tramesPour(req.childAge) : [];
+  if (trames.length) modeles.trame = null;
+  let userMessage = buildUserMessage(
+    req,
+    [blocModeles(modeles, variablesTrame), blocTrames(trames, variablesTrame)].filter(Boolean).join("\n\n"),
+  );
   const usees = await comparaisonsUsees(req.childId);
   if (usees.length) {
     userMessage += `\n\nComparaisons déjà utilisées dans les histoires précédentes de cet enfant (n'en reprends AUCUNE) : ${usees.map((c) => `« ${c} »`).join(", ")}.`;
@@ -527,6 +546,9 @@ export async function generateStory(
     let base: Story = polished ?? parsed.story;
     // Relecture notée par une deuxième IA ; réécriture si la note est basse.
     if (info.viaFal && relire) base = await relireEtAmeliorer(client, model, base, req, debut, blocModeles(modeles));
+    // La trame retenue (choisie par l'autrice pour une idée libre), transmise à la relectrice.
+    const choix = (base.plan?.trame ?? "").toLowerCase().replace(/[«»"]/g, "").trim();
+    const trameChoisie = modeles.trame ?? trames.find((t) => choix && (t.titre.toLowerCase().includes(choix) || choix.includes(t.titre.toLowerCase()))) ?? null;
     base = {
       ...base,
       meta: {
@@ -534,9 +556,9 @@ export async function generateStory(
         format: req.format,
         themeId: req.mode === "theme" ? req.themeId : undefined,
         mode: req.mode,
-        trame: modeles.trame?.id,
+        trame: trameChoisie?.id,
         prompt: req.prompt?.slice(0, 400),
-        modeles: [...modeles.extraits.map((e) => e.id), ...(modeles.trame ? [modeles.trame.id] : [])],
+        modeles: [...modeles.extraits.map((e) => e.id), ...(trameChoisie ? [trameChoisie.id] : [])],
       },
     };
 

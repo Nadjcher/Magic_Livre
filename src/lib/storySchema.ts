@@ -101,6 +101,8 @@ export const storySchema = z.object({
   plan: z
     .object({
       objet_cle: z.string().optional(),
+      /** Idée libre : la trame éprouvée choisie par l'autrice. */
+      trame: z.string().optional(),
       compagnon: z.string().optional(),
       ritournelle: z.string().optional(),
       emotion_depart: z.string().optional(),

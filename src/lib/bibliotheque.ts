@@ -161,6 +161,31 @@ export function blocModeles(
   return lignes.join("\n\n");
 }
 
+/**
+ * Idée libre : toutes les trames de cet âge, pour que l'autrice choisisse celle
+ * qui sert le mieux l'idée de l'enfant (une seule écriture, aucun appel de plus).
+ */
+export async function tramesPour(age: number): Promise<Exemple[]> {
+  try {
+    await assurerTable();
+    const t = await prisma.$queryRaw<Exemple[]>`
+      SELECT * FROM "Exemple" WHERE actif AND type = 'trame' AND "ageMin" <= ${age} AND "ageMax" >= ${age} ORDER BY titre`;
+    // Les trames « imposées » sont réservées à leur conte (Petit Poucet…).
+    return t.filter((e) => !e.texte.startsWith("TRAME IMPOSÉE"));
+  } catch {
+    return [];
+  }
+}
+
+/** Le bloc « choisis ta trame », pour une idée libre. */
+export function blocTrames(trames: Exemple[], variables: { prenom?: string; parent?: string; objet?: string } = {}): string {
+  if (!trames.length) return "";
+  return [
+    "TRAMES ÉPROUVÉES (structures d'histoires qui marchent pour cet âge). CHOISIS celle qui sert le mieux l'idée de l'enfant, et SUIS-LA étape par étape en l'habillant entièrement avec cette idée (décor, personnages, objet). Écris son nom exact dans \"plan.trame\".",
+    ...trames.map((t) => `- « ${t.titre} » : ${remplirTrame(t.texte, variables)}`),
+  ].join("\n");
+}
+
 /** Les exemples donnés à l'autrice (pour que la relectrice puisse repérer une copie). */
 export async function exemplesParIds(ids: string[]): Promise<Exemple[]> {
   try {
