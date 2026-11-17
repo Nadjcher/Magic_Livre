@@ -31,3 +31,20 @@ describe("doudou choisi dans la liste", () => {
     expect(lireDoudou("un lapin tout doux")).toBeNull();
   });
 });
+
+import { adapterNoms, remplir } from "@/lib/histoiresMaitresses";
+describe("personnages du conte et prénom de l'enfant", () => {
+  it("un enfant qui s'appelle Malo ne rencontre pas Malo", () => {
+    const h = HISTOIRES_MAITRESSES.find((x) => x.id === "maitresse-rentree")!;
+    const a = adapterNoms(h, "Malo");
+    expect(JSON.stringify(a)).not.toContain("Malo");
+    expect(a.cast[0]!.nom).toBe("Noé");
+    expect(adapterNoms(h, "Léo")).toBe(h);
+  });
+  it("« l'oreille d'Oscar », « de son lapin »", () => {
+    const h = HISTOIRES_MAITRESSES[0]!;
+    const p = { prenom: "Léo", fille: false, doudou: "Oscar", sonDoudou: "son ours", doudouVisuel: "", parent: "Papa" as const, passages: {} };
+    expect(remplir("l'oreille {de_doudou}", p, h)).toBe("l'oreille d'Oscar");
+    expect(remplir("l'oreille {de_doudou}", { ...p, doudou: "" }, h)).toBe("l'oreille de son ours");
+  });
+});

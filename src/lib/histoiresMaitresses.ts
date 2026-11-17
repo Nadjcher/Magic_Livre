@@ -53,6 +53,8 @@ export interface HistoireMaitresse {
    * chaque illustration du livre ; les règles communes restent dans bibleVisuelle.ts.
    */
   reglesImage?: string;
+  /** Personnage du conte à renommer si l'enfant porte le même prénom (ex. { Malo: "Noé" }). */
+  remplacants?: Record<string, string>;
   /** Doudou « neutre » des planches (anglais), si l'ours en peluche par défaut prêterait à confusion (histoire avec des ours). */
   doudouNeutre?: string;
 }
@@ -671,9 +673,9 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         presents: [],
       },
       {
-        texte: "La couronne était un peu tordue, avec une étoile de travers. {prenom} la trouva très belle quand même. {Il} la cacha derrière son dos et poussa la porte du jardin.",
+        texte: "La couronne était un peu tordue, mais très belle. « Garde le secret », souffla {prenom} à l'oreille {de_doudou}. {Il} cacha la couronne dans son dos et ouvrit la porte du jardin.",
         scene:
-          "{prenom}, seen from behind at the garden door, hides a little crooked yellow paper crown with one crooked star behind the back, {doudou} tucked under the other arm; the door opening onto the bright garden; no other characters.",
+          "{prenom}, at the garden door, whispers into the ear of {doudou} held in one arm, a little crooked yellow paper crown with one crooked star hidden behind the back; the door opening onto the bright garden; no other characters.",
         presents: [],
       },
       {
@@ -683,7 +685,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         presents: [],
       },
       {
-        texte: "« C'est pour ça qu'on se cachait toute la journée ! », {dit_parent} en riant. {prenom} sortit la couronne de son dos. « Moi aussi, j'ai une surprise ! » Et {il} la posa sur la tête de {parent}.",
+        texte: "« C'est pour ça qu'on se cachait toute la journée ! », dit {parent} en riant. {prenom} sortit la couronne de son dos. « Moi aussi, j'ai une surprise ! » Et {il} la posa sur la tête de {parent}.",
         scene:
           "In the decorated garden: {prenom} stands on tiptoe and places the crooked yellow paper crown on the head of {parent} (seen in profile, face in soft shadow, not detailed), who laughs; {doudou} sits on the grass right next to {prenom}; balloons around; no other characters in the foreground.",
         presents: [],
@@ -695,7 +697,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         presents: [],
       },
       {
-        texte: "Le soir, dans son lit, {prenom} serra {doudou}. Sur la table de nuit, la couronne tordue brillait encore un peu. Son vœu ? Chut… un vœu, ça ne se dit pas.",
+        texte: "Le soir, dans son lit, {prenom} serra {doudou}. {parent} posa la couronne tordue sur la table de nuit. Son vœu ? Chut… un vœu, ça ne se dit pas.",
         scene:
           "A cosy bedroom at night in warm lamplight: {prenom} lies in bed hugging {doudou}, smiling with closed eyes; on the bedside table, the little crooked yellow paper crown; a balloon floating near the ceiling; no other characters.",
         presents: [],
@@ -718,6 +720,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
     faits:
       "Le code secret de {parent} et {prenom} : serrer la main trois fois, « Un, deux, trois : je pense à toi ». {prenom} l'a appris à Malo, son premier copain d'école. {doudou} vient à l'école caché dans le cartable.",
     tenueHeros: "a blue sweatshirt with a small yellow star, red trousers, white sneakers, a small green backpack",
+    remplacants: { Malo: "Noé" },
     reglesImage:
       "A bright cheerful nursery school: a colourful classroom with cushions, crayons and a goldfish bowl; a playground with a big tree and a slide; sunny daytime. " +
       "The teacher: a kind adult woman with round glasses and a soft cardigan. Other children only in the background, small, faces not detailed, never dressed like the child. " +
@@ -726,16 +729,16 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       {
         nom: "Malo",
         visuel:
-          "HUMAN BOY: a little boy about the hero's age and height, very curly dark hair, a yellow raincoat, red boots; never looks like the hero.",
+          "HUMAN BOY: a little boy about the hero's age and height, straight black hair, a yellow cap and a yellow sweatshirt, red sneakers; never looks like the hero.",
       },
     ],
     couverture:
       "Book cover, medium shot: in front of a bright cheerful school gate on a sunny morning, {prenom} with a small green backpack, {doudou} peeking out of the backpack (the ONLY plush toy), holds the hand of {parent} (only the adult's arm and hand visible) and looks ahead with a brave little smile; a big tree and colourful school windows behind (no letters); a calm sky in the upper third.",
     pages: [
       {
-        texte: "Ce matin, {prenom} avait le ventre tout noué. C'était le premier jour d'école ! Dans son cartable, {il} glissa {son_doudou} {doudou} tout au fond, pour le courage.",
+        texte: "Ce matin, {prenom} avait le ventre tout noué. C'était le premier jour d'école ! Dans son cartable, {il} glissa {son_doudou} {doudou}, pour le courage. {doudou} dépassait juste un peu.",
         scene:
-          "A bedroom in the morning: {prenom}, dressed for school, slips {doudou} into a small green backpack, half hidden, with a nervous little smile; bright morning light; no other characters.",
+          "A bedroom in the morning: {prenom}, dressed for school, slips {doudou} into a small green backpack, {doudou}'s head peeking out, with a nervous little smile; bright morning light; no other characters.",
         presents: [],
       },
       {
@@ -757,27 +760,27 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         presents: [],
       },
       {
-        texte: "À la récréation, {prenom} ouvrit un tout petit peu son cartable. {doudou} était là, bien au chaud. {prenom} lui fit un bisou en cachette. Ça allait déjà mieux.",
+        texte: "À la récréation, {doudou} dépassait toujours du cartable. {prenom} lui fit un bisou en cachette. Ça allait déjà mieux.",
         scene:
-          "A corner of the sunny playground: {prenom} crouches by the green backpack, opening it a little, and gives a secret kiss to {doudou} inside; a soft smile; the big tree behind; no other characters close by.",
+          "A corner of the sunny playground: {prenom} crouches by the green backpack, {doudou} peeking out of it, and gives {doudou} a secret kiss; a soft smile; the big tree behind; no other characters close by.",
         presents: [],
       },
       {
-        texte: "Près du grand arbre, un garçon aux cheveux tout bouclés pleurait. Il s'appelait Malo, et sa maman lui manquait très fort.",
+        texte: "Près du grand arbre, un garçon à la casquette jaune pleurait. Il s'appelait Malo, et sa maman lui manquait très fort.",
         scene:
-          "Under the big tree of the playground: Malo, a little HUMAN BOY with very curly dark hair and a yellow raincoat, sits against the trunk crying; {prenom} watches him from a few steps away, holding the green backpack strap; sunny day; no other children close by.",
+          "Under the big tree of the playground: Malo, a little HUMAN BOY with straight black hair, a yellow cap and a yellow sweatshirt, sits against the trunk crying; {prenom} watches him from a few steps away, holding the green backpack strap; sunny day; no other children close by.",
         presents: ["Malo"],
       },
       {
         texte: "{prenom} s'approcha. « Tu veux connaître un code secret ? » {Il} prit la main de Malo et la serra trois fois. « Un, deux, trois : je pense à toi. Ça marche même à l'école. »",
         scene:
-          "Under the big tree: {prenom} kneels next to Malo (little HUMAN BOY, very curly dark hair, yellow raincoat) and squeezes his hand, smiling kindly; Malo looks up, his tears drying; the green backpack with {doudou} peeking out lies beside them.",
+          "Under the big tree: {prenom} kneels next to Malo (little HUMAN BOY, straight black hair, yellow cap, yellow sweatshirt) and squeezes his hand, smiling kindly; Malo looks up, his tears drying; the green backpack with {doudou} peeking out lies beside them.",
         presents: ["Malo"],
       },
       {
         texte: "Malo renifla… et sourit. Ensemble, ils jouèrent au toboggan, au ballon, puis aux pirates du bac à sable. La récréation passa beaucoup trop vite.",
         scene:
-          "The sunny playground: {prenom} and Malo (little HUMAN BOY, very curly dark hair, yellow raincoat) laugh together at the bottom of a colourful slide; a ball nearby; other children far in the background, faces not detailed; {doudou} not in this picture.",
+          "The sunny playground: {prenom} and Malo (little HUMAN BOY, straight black hair, yellow cap, yellow sweatshirt) laugh together at the bottom of a colourful slide; a ball nearby; other children far in the background, faces not detailed; {doudou} not in this picture.",
         presents: ["Malo"],
       },
       {
@@ -829,6 +832,7 @@ export function remplir(texte: string, p: Personnalisation, h: HistoireMaitresse
     .replaceAll("{il}", p.fille ? "elle" : "il")
     // Doudou sans nom : « son lapin » partout (et « son doudou » si l'enfant n'en a pas décrit).
     .replaceAll("{son_doudou} {doudou}", nomme ? `${p.sonDoudou} ${nomme}` : p.sonDoudou)
+    .replaceAll("{de_doudou}", nomme ? `${elision(nomme) ? "d'" : "de "}${nomme}` : `de ${p.sonDoudou}`)
     .replaceAll("{son_doudou}", p.sonDoudou)
     .replaceAll("{doudou}", nomme || p.sonDoudou)
     .replaceAll("{parent}", p.parent)
@@ -836,6 +840,18 @@ export function remplir(texte: string, p: Personnalisation, h: HistoireMaitresse
     .replaceAll("{petit_parent}", feminin ? "petite" : "petit")
     // Doudou sans nom en début de phrase : « Son doudou était là », pas « son doudou ».
     .replace(/(^|[.!?…]\s+|«\s)(son|sa) /g, (_, avant: string, mot: string) => `${avant}${mot[0]!.toUpperCase()}${mot.slice(1)} `);
+}
+
+/** Sans accents ni majuscules, pour comparer deux prénoms. */
+const normal = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
+/** L'histoire, avec ses personnages renommés si l'un porte le prénom de l'enfant (« Malo aide Malo »). */
+export function adapterNoms(h: HistoireMaitresse, prenom: string): HistoireMaitresse {
+  const doublons = Object.entries(h.remplacants ?? {}).filter(([nom]) => normal(nom) === normal(prenom));
+  if (!doublons.length) return h;
+  let json = JSON.stringify(h);
+  for (const [nom, autre] of doublons) json = json.replaceAll(nom, autre);
+  return JSON.parse(json) as HistoireMaitresse;
 }
 
 /** « son lapin », « sa girafe », mais « son amie » devant une voyelle ou un h muet. */

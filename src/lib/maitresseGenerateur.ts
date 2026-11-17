@@ -11,7 +11,7 @@ import { env } from "./env";
 import { noterDepense, PRIX_ESTIMES } from "./budget";
 import type { Story } from "./storySchema";
 import type { StoryRequest } from "./storyPrompt";
-import { possessif, remplir, type HistoireMaitresse, type Personnalisation } from "./histoiresMaitresses";
+import { adapterNoms, possessif, remplir, type HistoireMaitresse, type Personnalisation } from "./histoiresMaitresses";
 import { falFetch } from "./jetonsFal";
 import { lireDoudou, visuelDoudou } from "./doudous";
 
@@ -114,6 +114,7 @@ export function varianteParent(parent: Personnalisation["parent"]): "homme" | "f
  * aucun appel à l'IA. Sert aussi à dessiner les planches (enfant « neutre »).
  */
 export function construireLivre(h: HistoireMaitresse, p: Personnalisation, opts: { style?: Story["style"]; age: number }): Story {
+  h = adapterNoms(h, p.prenom);
   const visuel = p.doudouVisuel;
 
   const nomFiche = p.doudou || "Doudou";
