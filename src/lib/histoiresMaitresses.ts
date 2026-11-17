@@ -100,7 +100,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       },
     ],
     couverture:
-      "Book cover, medium shot, in a soft storybook forest at night with a warm golden glow at the end of a path: {prenom} stands on the LEFT side of the picture, FACING the viewer with a big warm smile, face brightly lit, holding {doudou} hugged tight in both arms against the chest, the plush toy clearly visible with nothing in front of it (the ONLY plush toy in the picture); far away on the RIGHT side of the picture, alone on a plain flat grey stone, stands tiny Poucet, a little HUMAN BOY with a bright red knitted bonnet and a brown jacket (his bonnet below {prenom}'s knee), waving; between them, five or six small crooked glowing white pebbles, each alone in the grass with wide gaps, leading toward the golden glow; calm dark-blue sky with stars in the upper third.",
+      "Book cover, medium shot: {prenom} seen from behind walks along a trail of five or six small crooked glowing white pebbles, each alone in the grass with wide gaps of grass between them (never touching, never a paved path, never stepping stones), into a soft storybook forest with a warm golden glow at the end of the path; {prenom} holds {doudou} in both arms against the chest (the ONLY plush toy in the picture); on the grass beside {prenom}'s feet walks tiny Poucet, a little HUMAN BOY with a red knitted bonnet and a brown jacket, the top of his bonnet below {prenom}'s knee, never a plush toy; no stones with faces, no objects in {prenom}'s hands other than {doudou}; calm dark-blue sky with stars in the upper third.",
     pages: [
       {
         texte:
