@@ -563,6 +563,8 @@ export async function retoucherPlanche(opts: {
   doudouAvant?: string;
   /** Apparence de l'enfant (anglais), pour garder la même teinte de cheveux sur toutes les pages. */
   apparence?: string;
+  /** L'enfant est vu de dos sur la planche : ne changer que les cheveux, sans jamais montrer le visage. */
+  deDos?: boolean;
   seed: number;
 }): Promise<IllustrationResult> {
   const key = env.falApiKey();
@@ -573,7 +575,14 @@ export async function retoucherPlanche(opts: {
   };
   const images = [await reduire(opts.planche, 1024)];
   const changements: string[] = [];
-  if (opts.heros) {
+  if (opts.heros && opts.deDos) {
+    images.push(await reduire(opts.heros, 704));
+    changements.push(
+      `the big child is seen FROM BEHIND: keep the exact same pose and the head turned away like the body (never show the face, never turn the head); ` +
+        `change ONLY the hair (exact color, cut and length) to match the child in image ${images.length}` +
+        (opts.apparence ? ` (${opts.apparence})` : ""),
+    );
+  } else if (opts.heros) {
     images.push(await reduire(opts.heros, 704));
     changements.push(
       `the big child's face, hair (exact color and cut) and skin tone become exactly those of the child in image ${images.length}` +

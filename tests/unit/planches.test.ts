@@ -48,3 +48,12 @@ describe("personnages du conte et prénom de l'enfant", () => {
     expect(remplir("l'oreille {de_doudou}", { ...p, doudou: "" }, h)).toBe("l'oreille de son ours");
   });
 });
+
+describe("enfant vu de dos", () => {
+  it("la couverture et la page 8 du Petit Poucet sont marquées « de dos »", () => {
+    const h = HISTOIRES_MAITRESSES.find((x) => x.id === "maitresse-petit-poucet")!;
+    expect(clePour(h, -1, "homme")?.deDos).toBe(true);
+    expect(clePour(h, 7, "homme")?.deDos).toBe(true);
+    expect(clePour(h, 3, "homme")?.deDos).toBe(false);
+  });
+});

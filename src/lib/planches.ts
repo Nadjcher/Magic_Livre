@@ -55,6 +55,8 @@ export function histoireParId(id: string | undefined): HistoireMaitresse | undef
 
 export interface ClePlanche {
   cle: string;
+  /** L'enfant est vu de dos : la retouche ne change que les cheveux, sans jamais tourner la tête. */
+  deDos?: boolean;
   /** -1 : couverture ; sinon index de page (0 = première page). */
   index: number;
   variante: Variante | null;
@@ -71,7 +73,7 @@ export function clesPlanches(h: HistoireMaitresse): ClePlanche[] {
   const sources = [{ index: -1, scene: h.couverture }, ...h.pages.map((p, i) => ({ index: i, scene: p.scene }))];
   return sources.flatMap(({ index, scene }): ClePlanche[] => {
     const base = index === -1 ? "couverture" : `p${index + 1}`;
-    const commun = { index, enfant: avecEnfant(scene), doudou: avecDoudou(scene) };
+    const commun = { index, enfant: avecEnfant(scene), doudou: avecDoudou(scene), deDos: /from behind/i.test(scene) && avecEnfant(scene) };
     return avecParent(scene)
       ? (["homme", "femme"] as const).map((v) => ({ ...commun, cle: `${base}:${v}`, variante: v }))
       : [{ ...commun, cle: base, variante: null }];
@@ -323,6 +325,7 @@ export async function illustrerDepuisPlanches(
     const r = await retoucherPlanche({
       planche: ref,
       heros: k.enfant ? herosRef : undefined,
+      deDos: k.deDos,
       doudou: k.doudou && doudouRef ? doudouRef : undefined,
       garder: autresPersonnages(h, i).map((c) => `${c.nom} (${c.description})`),
       doudouAvant: doudouDesPlanches(h),
@@ -362,6 +365,7 @@ export async function retoucherPage(story: Story, index: number): Promise<string
   const r = await retoucherPlanche({
     planche: ref,
     heros: k.enfant ? heros : undefined,
+    deDos: k.deDos,
     doudou: k.doudou && dd ? dd : undefined,
     garder: autresPersonnages(h, index).map((c) => `${c.nom} (${c.description})`),
     doudouAvant: doudouDesPlanches(h),
@@ -379,6 +383,7 @@ interface Inspection {
   plush_animal?: string;
   plush_count?: number;
   present?: Record<string, boolean>;
+  head_twisted?: boolean;
   hair_reference?: string;
   hair_length_reference?: string;
 }
@@ -392,8 +397,9 @@ async function inspecter(heros: Ref, doudou: Ref | null, page: Ref, attendus: { 
     attendus.length
       ? `"present": for each of these characters, true if it is clearly visible in image 1, false otherwise: ${attendus.map((c) => `"${c.nom}" (${c.description})`).join(", ")}.`
       : '"present": {}.',
+    `"head_twisted": true if the big child's head faces a different way than the body (for example the face looks at us while the back, the heels or the walking legs show the child is seen from behind), false otherwise.`,
     '"hair_reference" and "hair_length_reference": then, the same two answers for the child in image 2.',
-    'JSON: {"hair_page": "", "hair_length_page": "", "plush_animal": "", "plush_count": 0, "present": {}, "hair_reference": "", "hair_length_reference": ""}',
+    'JSON: {"hair_page": "", "hair_length_page": "", "plush_animal": "", "plush_count": 0, "present": {}, "head_twisted": false, "hair_reference": "", "hair_length_reference": ""}',
   ].join("\n");
   try {
     const r = await falFetch(
@@ -449,6 +455,9 @@ export async function controlerRetouches(story: Story, limite: number): Promise<
     }
     if (k?.doudou && espece && v.plush_animal && !memeEspece(espece, v.plush_animal)) fautes.push(`the plush toy must be a ${espece}, not a ${v.plush_animal}`);
     if (typeof v.plush_count === "number" && v.plush_count > 1) fautes.push("only ONE plush toy, the child's");
+    if (k?.enfant && v.head_twisted === true) {
+      fautes.push(k.deDos ? "the child is seen from behind: keep the head turned away exactly like the body, show only the back of the hair, no face" : "the child's head must face the same way as the body, never twisted");
+    }
     for (const c of attendus) if (v.present?.[c.nom] === false) fautes.push(`${c.nom} (${c.description}) must stay exactly as on the original page, never replaced by the plush toy`);
     if (!fautes.length || !h || !k) return;
     const m = await lirePlanches(h.id, story.style ?? "anim3d");
@@ -457,6 +466,7 @@ export async function controlerRetouches(story: Story, limite: number): Promise<
     const r = await retoucherPlanche({
       planche,
       heros: k.enfant ? heros : undefined,
+      deDos: k.deDos,
       doudou: k.doudou && doudouRef ? doudouRef : undefined,
       correction: fautes.join("; "),
       garder: autresPersonnages(h, i).map((c) => `${c.nom} (${c.description})`),
