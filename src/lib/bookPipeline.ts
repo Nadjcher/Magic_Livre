@@ -19,6 +19,7 @@ import { storySchema, type Story } from "./storySchema";
 import { PAGES_APERCU, illustrateStory, illustrerEpisode } from "./storyGenerator";
 import type { StoryRequest } from "./storyPrompt";
 import { controleActif, controlerIllustrations } from "./controleIllustrations";
+import { EN_RELECTURE_IMAGES } from "./illustrationStatus";
 import { illustrationsEnabled } from "./illustration";
 import { alerterAdmin, notifierLivrePret } from "./notifications";
 
@@ -150,6 +151,24 @@ export async function controlerLivre({ bookId, req, imageReport }: EtapeControle
 
 /** Livre prêt : enregistré, parent prévenu, livres en attente relancés. */
 async function terminerLivre(bookId: string, story: Story, imageReport: string | null, episode: boolean): Promise<void> {
+  // Garde-fou : une illustration restée fautive après son 2e essai (doudou de silhouette trop
+  // différente de l'ours neutre de la planche) n'est JAMAIS envoyée telle quelle. Le livre attend
+  // un regard dans l'atelier (file « Illustrations à relire »), et le parent est prévenu (sous 48 h).
+  // Les aperçus gratuits ne sont pas bloqués (la page sera reprise au déblocage complet).
+  if (!story.apercu && (story.imagesARevoir?.length ?? 0) > 0) {
+    await prisma.book.update({
+      where: { id: bookId },
+      data: { status: "draft", title: story.titre, pages: story, errorMessage: EN_RELECTURE_IMAGES },
+    });
+    const { reserver } = await import("./idempotence");
+    const { notifierRelecture } = await import("./notifications");
+    if (await reserver(`relecture-email:${bookId}`)) await notifierRelecture(bookId).catch(() => undefined);
+    await alerterAdmin(
+      "une illustration reste à revoir avant l'envoi",
+      `Livre ${bookId} : ${imageReport ?? "doudou à vérifier sur la couverture"}. Ouvrez l'atelier : ${getAppUrl()}/admin/histoires`,
+    );
+    return;
+  }
   await prisma.book.update({
     where: { id: bookId },
     data: { status: "ready", title: story.titre, pages: story, errorMessage: imageReport },
