@@ -617,6 +617,184 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
     ],
     passages: {},
   },
+  {
+    id: "maitresse-anniversaire",
+    themeId: "anniversaire",
+    // Écrite le 17 nov. 2026, texte à valider. Fermée aux parents jusqu'à la validation de ses planches.
+    ouverte: false,
+    // Phrases courtes : dès 3 ans.
+    ageMin: 3,
+    ageMax: 8,
+    titre: "La surprise {de_prenom}",
+    ritournelle: "« Surprise ! »",
+    resume:
+      "Le jour de son anniversaire, {prenom} se réveille tout excité… mais personne ne dit rien ! On chuchote, on cache des choses, on ferme les portes. Alors, avec {doudou}, {prenom} décide de préparer une surprise. Mais qui va surprendre qui ?",
+    faits:
+      "Le jour de son anniversaire, {prenom} a fabriqué une couronne en papier un peu tordue pour {parent}. Toute la famille cachait une fête dans le jardin. Le vœu {de_prenom} est un secret.",
+    tenueHeros: "a cheerful orange t-shirt with a small yellow star, blue trousers, white sneakers",
+    reglesImage:
+      "A bright cosy family house with a garden. The birthday party: colourful balloons, a garland in the tree, confetti, a big birthday cake with lit candles; NO numbers or letters anywhere (not on the cake, the candles, the balloons or a banner). " +
+      "Friends and family guests: only a few, at the edges of the picture or seen from behind, faces not detailed, never dressed like the child. " +
+      "The paper crown: a handmade yellow paper crown, a little crooked, with one crooked star. Faces always clearly lit.",
+    cast: [],
+    couverture:
+      "Book cover, medium shot: in a sunny garden decorated with colourful balloons and a garland in the tree, {prenom} stands in the middle, arms wide open with delight under falling confetti, holding {doudou} in one hand (the ONLY plush toy); a big birthday cake with lit candles on a garden table beside (no numbers, no letters); a calm sky in the upper third; no other characters in the foreground.",
+    pages: [
+      {
+        texte: "Ce matin-là, {prenom} ouvrit les yeux d'un coup. C'était le jour de son anniversaire ! {Il} sauta du lit avec {doudou} et courut à la cuisine.",
+        scene:
+          "Sunny morning in the hallway of a cosy family house: {prenom} runs toward the kitchen with a huge smile, holding {doudou} in one arm; bright morning light; no other characters.",
+        presents: [],
+      },
+      {
+        texte: "Mais {parent} buvait son café sans lever les yeux. « Bonjour, mon trésor. » C'est tout. Pas de bisou d'anniversaire, pas de chanson, rien du tout.",
+        scene:
+          "A bright kitchen in the morning: {parent} (seen from behind or in profile in soft shadow, face not detailed) sits at the table with a cup of coffee, busy; {prenom} stands in the doorway holding {doudou}, the smile fading into surprise; no other characters.",
+        presents: [],
+      },
+      {
+        texte: "Toute la journée, ce fut pareil. On chuchotait derrière les portes. On cachait des choses. Et quand {prenom} arrivait… plus personne ne disait rien.",
+        scene:
+          "Inside the house: {prenom}, holding {doudou}, looks puzzled at a door left ajar, behind which only colourful hints are visible (the corner of a balloon, a ribbon); nobody visible; bright daylight.",
+        presents: [],
+      },
+      {
+        texte: "Le soir, {prenom} s'assit sur les marches, {doudou} sur les genoux. « Ils ont oublié », murmura {prenom}. Une grosse larme roula sur sa joue.",
+        scene:
+          "Golden late-afternoon light on the steps of the house: {prenom} sits on a step with {doudou} on the knees, looking sad, one big tear on the cheek; face clearly lit; no other characters.",
+        presents: [],
+      },
+      {
+        texte: "Puis {prenom} renifla et se releva. « Tant pis. Moi, je vais leur faire une surprise. » Avec du papier, de la colle et des crayons, {il} fabriqua une couronne pour {parent}.",
+        scene:
+          "At a small table by the window: {prenom} makes a yellow paper crown with paper, glue and coloured pencils, tongue between the teeth, determined; {doudou} sits on the table watching; warm light; no other characters.",
+        presents: [],
+      },
+      {
+        texte: "La couronne était un peu tordue, avec une étoile de travers. {prenom} la trouva très belle quand même. {Il} la cacha derrière son dos et poussa la porte du jardin.",
+        scene:
+          "{prenom}, seen from behind at the garden door, hides a little crooked yellow paper crown with one crooked star behind the back, {doudou} tucked under the other arm; the door opening onto the bright garden; no other characters.",
+        presents: [],
+      },
+      {
+        texte: "SURPRISE ! Des ballons partout, une guirlande dans l'arbre, des amis qui riaient, et {parent} avec un énorme gâteau. « Joyeux anniversaire, {prenom} ! »",
+        scene:
+          "The garden bursting with a surprise party: colourful balloons everywhere, a garland in the tree, confetti in the air; {prenom} in front, mouth wide open with joy, holding {doudou}; {parent} (face in soft shadow, not detailed) carries a big birthday cake with lit candles (no numbers, no letters); a few laughing friends at the edges, seen from behind.",
+        presents: [],
+      },
+      {
+        texte: "« C'est pour ça qu'on se cachait toute la journée ! », {dit_parent} en riant. {prenom} sortit la couronne de son dos. « Moi aussi, j'ai une surprise ! » Et {il} la posa sur la tête de {parent}.",
+        scene:
+          "In the decorated garden: {prenom} stands on tiptoe and places the crooked yellow paper crown on the head of {parent} (seen in profile, face in soft shadow, not detailed), who laughs; {doudou} sits on the grass right next to {prenom}; balloons around; no other characters in the foreground.",
+        presents: [],
+      },
+      {
+        texte: "Sur le gâteau, les bougies brillaient. {prenom} ferma les yeux, fit un vœu très fort et souffla. Pfff ! Toutes les bougies s'éteignirent d'un coup. Tout le monde applaudit.",
+        scene:
+          "Close-up at the garden table: {prenom}, cheeks puffed, blows out the lit candles on a big birthday cake (no numbers, no letters on the cake or candles), eyes closed; {doudou} sits on the table beside the cake; hands of guests clapping at the edges; warm evening light.",
+        presents: [],
+      },
+      {
+        texte: "Le soir, dans son lit, {prenom} serra {doudou}. Sur la table de nuit, la couronne tordue brillait encore un peu. Son vœu ? Chut… un vœu, ça ne se dit pas.",
+        scene:
+          "A cosy bedroom at night in warm lamplight: {prenom} lies in bed hugging {doudou}, smiling with closed eyes; on the bedside table, the little crooked yellow paper crown; a balloon floating near the ceiling; no other characters.",
+        presents: [],
+      },
+    ],
+    passages: {},
+  },
+  {
+    id: "maitresse-rentree",
+    themeId: "rentree",
+    // Écrite le 17 nov. 2026, texte à valider. Fermée aux parents jusqu'à la validation de ses planches.
+    ouverte: false,
+    // Phrases courtes : dès 3 ans (entrée en maternelle).
+    ageMin: 3,
+    ageMax: 6,
+    titre: "Le code secret {de_prenom}",
+    ritournelle: "« Un, deux, trois : je pense à toi. »",
+    resume:
+      "C'est le premier jour d'école, et {prenom} a le ventre tout noué. Heureusement, {doudou} est caché dans le cartable, et {parent} a un code secret : un, deux, trois… À la récréation, {prenom} va s'en servir pour aider quelqu'un.",
+    faits:
+      "Le code secret de {parent} et {prenom} : serrer la main trois fois, « Un, deux, trois : je pense à toi ». {prenom} l'a appris à Malo, son premier copain d'école. {doudou} vient à l'école caché dans le cartable.",
+    tenueHeros: "a blue sweatshirt with a small yellow star, red trousers, white sneakers, a small green backpack",
+    reglesImage:
+      "A bright cheerful nursery school: a colourful classroom with cushions, crayons and a goldfish bowl; a playground with a big tree and a slide; sunny daytime. " +
+      "The teacher: a kind adult woman with round glasses and a soft cardigan. Other children only in the background, small, faces not detailed, never dressed like the child. " +
+      "NO letters or numbers anywhere (no alphabet on the walls, no writing on the school, no hopscotch numbers). The child's cuddly toy is the ONLY plush toy, usually peeking out of the green backpack.",
+    cast: [
+      {
+        nom: "Malo",
+        visuel:
+          "HUMAN BOY: a little boy about the hero's age and height, very curly dark hair, a yellow raincoat, red boots; never looks like the hero.",
+      },
+    ],
+    couverture:
+      "Book cover, medium shot: in front of a bright cheerful school gate on a sunny morning, {prenom} with a small green backpack, {doudou} peeking out of the backpack (the ONLY plush toy), holds the hand of {parent} (only the adult's arm and hand visible) and looks ahead with a brave little smile; a big tree and colourful school windows behind (no letters); a calm sky in the upper third.",
+    pages: [
+      {
+        texte: "Ce matin, {prenom} avait le ventre tout noué. C'était le premier jour d'école ! Dans son cartable, {il} glissa {son_doudou} {doudou} tout au fond, pour le courage.",
+        scene:
+          "A bedroom in the morning: {prenom}, dressed for school, slips {doudou} into a small green backpack, half hidden, with a nervous little smile; bright morning light; no other characters.",
+        presents: [],
+      },
+      {
+        texte: "Devant l'école, il y avait beaucoup d'enfants et beaucoup de bruit. {prenom} serra très fort la main de {parent}. « Et si personne ne veut jouer avec moi ? »",
+        scene:
+          "In front of the school gate on a sunny morning: {prenom}, the green backpack on the back with {doudou} peeking out, holds tight the hand of {parent} (only the adult's arm and hand, or a silhouette from behind); busy children in the background, small and blurred; no letters on the school.",
+        presents: [],
+      },
+      {
+        texte: "{parent} s'accroupit. « Tu connais notre code secret ? » Et {parent} serra sa main trois fois : un, deux, trois. « Un, deux, trois : je pense à toi. Même quand je ne suis pas là. »",
+        scene:
+          "At the school gate: {parent} (crouching, seen from behind or in soft profile, face not detailed) squeezes {prenom}'s hand; close-up on the two joined hands in the foreground; {prenom} listens with big eyes, {doudou} peeking out of the green backpack; warm morning light.",
+        presents: [],
+      },
+      {
+        texte: "Dans la classe, la maîtresse avait des lunettes rondes et une voix toute douce. Il y avait des crayons de toutes les couleurs et un poisson rouge. Mais {parent} n'était plus là.",
+        scene:
+          "A colourful nursery classroom: the teacher, a kind adult woman with round glasses, smiles gently; {prenom} stands near a table with crayons and a goldfish bowl, looking a little lost, the green backpack hanging nearby with {doudou} peeking out; a few children in the background, faces not detailed; no letters or numbers on the walls.",
+        presents: [],
+      },
+      {
+        texte: "À la récréation, {prenom} ouvrit un tout petit peu son cartable. {doudou} était là, bien au chaud. {prenom} lui fit un bisou en cachette. Ça allait déjà mieux.",
+        scene:
+          "A corner of the sunny playground: {prenom} crouches by the green backpack, opening it a little, and gives a secret kiss to {doudou} inside; a soft smile; the big tree behind; no other characters close by.",
+        presents: [],
+      },
+      {
+        texte: "Près du grand arbre, un garçon aux cheveux tout bouclés pleurait. Il s'appelait Malo, et sa maman lui manquait très fort.",
+        scene:
+          "Under the big tree of the playground: Malo, a little HUMAN BOY with very curly dark hair and a yellow raincoat, sits against the trunk crying; {prenom} watches him from a few steps away, holding the green backpack strap; sunny day; no other children close by.",
+        presents: ["Malo"],
+      },
+      {
+        texte: "{prenom} s'approcha. « Tu veux connaître un code secret ? » {Il} prit la main de Malo et la serra trois fois. « Un, deux, trois : je pense à toi. Ça marche même à l'école. »",
+        scene:
+          "Under the big tree: {prenom} kneels next to Malo (little HUMAN BOY, very curly dark hair, yellow raincoat) and squeezes his hand, smiling kindly; Malo looks up, his tears drying; the green backpack with {doudou} peeking out lies beside them.",
+        presents: ["Malo"],
+      },
+      {
+        texte: "Malo renifla… et sourit. Ensemble, ils jouèrent au toboggan, au ballon, puis aux pirates du bac à sable. La récréation passa beaucoup trop vite.",
+        scene:
+          "The sunny playground: {prenom} and Malo (little HUMAN BOY, very curly dark hair, yellow raincoat) laugh together at the bottom of a colourful slide; a ball nearby; other children far in the background, faces not detailed; {doudou} not in this picture.",
+        presents: ["Malo"],
+      },
+      {
+        texte: "À la sortie, {parent} attendait au portail. {prenom} courut et sauta dans ses bras. Puis {prenom} serra sa main trois fois : « J'ai un copain. Il s'appelle Malo ! »",
+        scene:
+          "At the school gate in the afternoon: {prenom} jumps into the arms of {parent} (seen from behind, face not shown), the green backpack bouncing with {doudou} peeking out; warm golden afternoon light; children far in the background.",
+        presents: [],
+      },
+      {
+        texte: "Le soir, {prenom} rangea {doudou} dans le cartable, pour demain. Puis {il} chuchota, les yeux qui se fermaient : « Un, deux, trois… vivement l'école ! »",
+        scene:
+          "A cosy bedroom at night in warm lamplight: {prenom} in bed, eyes closing with a smile; the green backpack by the bed with {doudou} peeking out of it, ready for tomorrow; no other characters.",
+        presents: [],
+      },
+    ],
+    passages: {},
+  },
 ];
 
 /** L'histoire maîtresse d'un thème, si elle existe pour cet âge. */
@@ -655,7 +833,9 @@ export function remplir(texte: string, p: Personnalisation, h: HistoireMaitresse
     .replaceAll("{doudou}", nomme || p.sonDoudou)
     .replaceAll("{parent}", p.parent)
     .replaceAll("{dit_parent}", feminin ? "dit-elle" : "dit-il")
-    .replaceAll("{petit_parent}", feminin ? "petite" : "petit");
+    .replaceAll("{petit_parent}", feminin ? "petite" : "petit")
+    // Doudou sans nom en début de phrase : « Son doudou était là », pas « son doudou ».
+    .replace(/(^|[.!?…]\s+|«\s)(son|sa) /g, (_, avant: string, mot: string) => `${avant}${mot[0]!.toUpperCase()}${mot.slice(1)} `);
 }
 
 /** « son lapin », « sa girafe », mais « son amie » devant une voyelle ou un h muet. */
