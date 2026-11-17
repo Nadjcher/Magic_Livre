@@ -6,7 +6,7 @@ import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/session";
 import { estAdmin } from "@/lib/rateLimit";
-import { dessinerPlanches, effacerPlanche, histoireParId, validerPlanche, clesPlanches } from "@/lib/planches";
+import { dessinerPlanches, effacerPlanche, histoireParId, validerPlanche, clesPlanches, utiliserCandidate, revenirAncienne } from "@/lib/planches";
 import { STYLE_DEFAUT, type IllustrationStyle } from "@/lib/style_config";
 
 async function admin(): Promise<boolean> {
@@ -49,5 +49,27 @@ export async function redessinerPlancheAction(formData: FormData): Promise<void>
   const cle = String(formData.get("cle") ?? "");
   if (!histoireParId(histoire) || !cle) return;
   await effacerPlanche(histoire, style, cle);
+  revalidatePath("/admin/planches");
+}
+
+/** Met la planche candidate en service (échange atomique, déjà validée, ancienne gardée de côté). */
+export async function utiliserCandidateAction(formData: FormData): Promise<void> {
+  if (!(await admin())) return;
+  const histoire = String(formData.get("histoire") ?? "");
+  const style = String(formData.get("style") ?? "") || STYLE_DEFAUT;
+  const cle = String(formData.get("cle") ?? "");
+  if (!histoireParId(histoire) || !cle) return;
+  await utiliserCandidate(histoire, style, cle, formData.get("sens") === "dos");
+  revalidatePath("/admin/planches");
+}
+
+/** Remet la planche gardée de côté, en un clic. */
+export async function revenirAncienneAction(formData: FormData): Promise<void> {
+  if (!(await admin())) return;
+  const histoire = String(formData.get("histoire") ?? "");
+  const style = String(formData.get("style") ?? "") || STYLE_DEFAUT;
+  const cle = String(formData.get("cle") ?? "");
+  if (!histoireParId(histoire) || !cle) return;
+  await revenirAncienne(histoire, style, cle);
   revalidatePath("/admin/planches");
 }

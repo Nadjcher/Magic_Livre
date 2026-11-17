@@ -102,6 +102,8 @@ function table(): Promise<unknown> {
     .$executeRawUnsafe(
       `CREATE TABLE IF NOT EXISTS "Planche" (histoire TEXT NOT NULL, style TEXT NOT NULL, cle TEXT NOT NULL, url TEXT NOT NULL, valide BOOLEAN NOT NULL DEFAULT FALSE, "creeLe" TIMESTAMPTZ NOT NULL DEFAULT NOW(), PRIMARY KEY (histoire, style, cle))`,
     )
+    // L'enfant vu de dos sur CETTE image (sinon : d'après la scène écrite). Permet d'échanger une planche sans redéployer.
+    .then(() => prisma.$executeRawUnsafe(`ALTER TABLE "Planche" ADD COLUMN IF NOT EXISTS "deDos" BOOLEAN`))
     .catch((e) => {
       pret = null;
       throw e;
@@ -109,12 +111,19 @@ function table(): Promise<unknown> {
   return pret;
 }
 
-export async function lirePlanches(histoire: string, style: string): Promise<Map<string, { url: string; valide: boolean }>> {
+export interface LignePlanche {
+  url: string;
+  valide: boolean;
+  /** null : on suit la scène écrite. */
+  deDos: boolean | null;
+}
+
+export async function lirePlanches(histoire: string, style: string): Promise<Map<string, LignePlanche>> {
   try {
     await table();
-    const rows = await prisma.$queryRaw<{ cle: string; url: string; valide: boolean }[]>`
-      SELECT cle, url, valide FROM "Planche" WHERE histoire = ${histoire} AND style = ${style}`;
-    return new Map(rows.map((r) => [r.cle, { url: r.url, valide: r.valide }]));
+    const rows = await prisma.$queryRaw<{ cle: string; url: string; valide: boolean; deDos: boolean | null }[]>`
+      SELECT cle, url, valide, "deDos" FROM "Planche" WHERE histoire = ${histoire} AND style = ${style}`;
+    return new Map(rows.map((r) => [r.cle, { url: r.url, valide: r.valide, deDos: r.deDos }]));
   } catch {
     return new Map();
   }
@@ -125,6 +134,40 @@ export async function enregistrer(histoire: string, style: string, cle: string, 
   await prisma.$executeRaw`
     INSERT INTO "Planche" (histoire, style, cle, url, valide) VALUES (${histoire}, ${style}, ${cle}, ${url}, FALSE)
     ON CONFLICT (histoire, style, cle) DO UPDATE SET url = EXCLUDED.url, valide = FALSE, "creeLe" = NOW()`;
+}
+
+/**
+ * Met une planche candidate (« <clé>:candidat ») en service, en une seule
+ * transaction : l'ancienne est gardée sous « <clé>:ancienne », la nouvelle
+ * prend sa place déjà validée, avec son sens (de face / de dos). Aucun livre
+ * ne retombe sur l'ancien dessin entre les deux.
+ */
+export async function utiliserCandidate(histoire: string, style: string, cle: string, deDos: boolean): Promise<boolean> {
+  await table();
+  const [c] = await prisma.$queryRaw<{ url: string }[]>`
+    SELECT url FROM "Planche" WHERE histoire = ${histoire} AND style = ${style} AND cle = ${`${cle}:candidat`}`;
+  if (!c) return false;
+  await prisma.$transaction([
+    prisma.$executeRaw`
+      INSERT INTO "Planche" (histoire, style, cle, url, valide, "deDos")
+      SELECT histoire, style, ${`${cle}:ancienne`}, url, valide, "deDos" FROM "Planche" WHERE histoire = ${histoire} AND style = ${style} AND cle = ${cle}
+      ON CONFLICT (histoire, style, cle) DO UPDATE SET url = EXCLUDED.url, valide = EXCLUDED.valide, "deDos" = EXCLUDED."deDos", "creeLe" = NOW()`,
+    prisma.$executeRaw`
+      INSERT INTO "Planche" (histoire, style, cle, url, valide, "deDos") VALUES (${histoire}, ${style}, ${cle}, ${c.url}, TRUE, ${deDos})
+      ON CONFLICT (histoire, style, cle) DO UPDATE SET url = EXCLUDED.url, valide = TRUE, "deDos" = EXCLUDED."deDos", "creeLe" = NOW()`,
+  ]);
+  return true;
+}
+
+/** Revient à la planche gardée de côté (« <clé>:ancienne »), validée, en une seule transaction. */
+export async function revenirAncienne(histoire: string, style: string, cle: string): Promise<boolean> {
+  await table();
+  const [a] = await prisma.$queryRaw<{ url: string; deDos: boolean | null }[]>`
+    SELECT url, "deDos" FROM "Planche" WHERE histoire = ${histoire} AND style = ${style} AND cle = ${`${cle}:ancienne`}`;
+  if (!a) return false;
+  await prisma.$executeRaw`
+    UPDATE "Planche" SET url = ${a.url}, valide = TRUE, "deDos" = ${a.deDos}, "creeLe" = NOW() WHERE histoire = ${histoire} AND style = ${style} AND cle = ${cle}`;
+  return true;
 }
 
 export async function validerPlanche(histoire: string, style: string, cle: string, valide: boolean): Promise<void> {
@@ -151,7 +194,15 @@ export async function etatPlanches(h: HistoireMaitresse, style: string) {
     total: cles.length,
     dessinees: cles.filter((k) => m.has(k.cle)).length,
     validees: cles.filter((k) => m.get(k.cle)?.valide).length,
-    planches: cles.map((k) => ({ ...k, url: m.get(k.cle)?.url ?? null, valide: Boolean(m.get(k.cle)?.valide) })),
+    planches: cles.map((k) => ({
+      ...k,
+      url: m.get(k.cle)?.url ?? null,
+      valide: Boolean(m.get(k.cle)?.valide),
+      // Sens réellement utilisé à la retouche (la planche l'emporte sur la scène écrite).
+      deDosEffectif: m.get(k.cle)?.deDos ?? Boolean(k.deDos),
+      candidat: m.has(`${k.cle}:candidat`),
+      ancienne: m.has(`${k.cle}:ancienne`),
+    })),
   };
 }
 
@@ -209,7 +260,7 @@ export async function dessinerPlanches(h: HistoireMaitresse, style: Illustration
         await enregistrer(h.id, style, f.cle, r.imageUrl);
         // Les fiches ne se valident pas une à une : elles servent seulement de référence.
         await validerPlanche(h.id, style, f.cle, true);
-        existantes.set(f.cle, { url: r.imageUrl, valide: true });
+        existantes.set(f.cle, { url: r.imageUrl, valide: true, deDos: null });
         dessinees++;
       } else erreurs.push(`${f.cle} : ${r.error ?? "échec"}`);
     },
@@ -325,7 +376,7 @@ export async function illustrerDepuisPlanches(
     const r = await retoucherPlanche({
       planche: ref,
       heros: k.enfant ? herosRef : undefined,
-      deDos: k.deDos,
+      deDos: planche.deDos ?? k.deDos,
       doudou: k.doudou && doudouRef ? doudouRef : undefined,
       garder: autresPersonnages(h, i).map((c) => `${c.nom} (${c.description})`),
       doudouAvant: doudouDesPlanches(h),
@@ -365,7 +416,7 @@ export async function retoucherPage(story: Story, index: number): Promise<string
   const r = await retoucherPlanche({
     planche: ref,
     heros: k.enfant ? heros : undefined,
-    deDos: k.deDos,
+    deDos: planche.deDos ?? k.deDos,
     doudou: k.doudou && dd ? dd : undefined,
     garder: autresPersonnages(h, index).map((c) => `${c.nom} (${c.description})`),
     doudouAvant: doudouDesPlanches(h),
@@ -434,6 +485,7 @@ export async function controlerRetouches(story: Story, limite: number): Promise<
   const doudouRef = doudou ? await lireRef(story.fiches?.cast?.[doudou.nom]) : null;
   const espece = doudou ? especeAttendue(doudou.visuel) : null;
   const h = histoireParId(story.planches?.histoire);
+  const m0 = h ? await lirePlanches(h.id, story.style ?? "anim3d") : new Map<string, LignePlanche>();
 
   let refaites = 0;
   const nouvelles = new Map<number, string>();
@@ -456,17 +508,18 @@ export async function controlerRetouches(story: Story, limite: number): Promise<
     if (k?.doudou && espece && v.plush_animal && !memeEspece(espece, v.plush_animal)) fautes.push(`the plush toy must be a ${espece}, not a ${v.plush_animal}`);
     if (typeof v.plush_count === "number" && v.plush_count > 1) fautes.push("only ONE plush toy, the child's");
     if (k?.enfant && v.head_twisted === true) {
-      fautes.push(k.deDos ? "the child is seen from behind: keep the head turned away exactly like the body, show only the back of the hair, no face" : "the child's head must face the same way as the body, never twisted");
+      fautes.push((m0.get(k.cle)?.deDos ?? k.deDos) ? "the child is seen from behind: keep the head turned away exactly like the body, show only the back of the hair, no face" : "the child's head must face the same way as the body, never twisted");
     }
     for (const c of attendus) if (v.present?.[c.nom] === false) fautes.push(`${c.nom} (${c.description}) must stay exactly as on the original page, never replaced by the plush toy`);
     if (!fautes.length || !h || !k) return;
-    const m = await lirePlanches(h.id, story.style ?? "anim3d");
-    const planche = await lireRef(m.get(k.cle)?.url);
+    const ligne = m0.get(k.cle);
+    const deDos = ligne?.deDos ?? k.deDos;
+    const planche = await lireRef(ligne?.url);
     if (!planche) return;
     const r = await retoucherPlanche({
       planche,
       heros: k.enfant ? heros : undefined,
-      deDos: k.deDos,
+      deDos,
       doudou: k.doudou && doudouRef ? doudouRef : undefined,
       correction: fautes.join("; "),
       garder: autresPersonnages(h, i).map((c) => `${c.nom} (${c.description})`),
@@ -529,5 +582,17 @@ export async function statsRefaites(histoire: string, style: string): Promise<{ 
     return { livres: Number(l?.n ?? 0), parCle: new Map(rows.map((r) => [r.cle, Number(r.n)])) };
   } catch {
     return { livres: 0, parCle: new Map() };
+  }
+}
+
+/** Les derniers livres faits avec les planches d'une histoire (vérifications de l'atelier). */
+export async function derniersLivres(histoire: string, heures = 48): Promise<{ id: string; creeLe: Date; status: string }[]> {
+  try {
+    return await prisma.$queryRaw<{ id: string; creeLe: Date; status: string }[]>`
+      SELECT id, "createdAt" AS "creeLe", status::text AS status FROM "Book"
+      WHERE "deletedAt" IS NULL AND pages->'planches'->>'histoire' = ${histoire} AND "createdAt" > NOW() - make_interval(hours => ${heures})
+      ORDER BY "createdAt" DESC LIMIT 20`;
+  } catch {
+    return [];
   }
 }
