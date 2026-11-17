@@ -586,7 +586,8 @@ export async function retoucherPlanche(opts: {
     images.push(await reduire(opts.doudou, 704));
     changements.push(
       `${opts.doudouAvant ? `the plush toy held by or next to the big child (${opts.doudouAvant})` : "the plush toy"} becomes exactly the plush toy of image ${images.length} ` +
-        "(same species, colors and shape), at the same size and in the same place; nothing else becomes a plush toy",
+        "(same species, colors and shape), EXACTLY the same size, held or placed EXACTLY the same way as the plush on the original page; " +
+        "it stays a small soft toy that never stands or walks on its own, never as big as the child; nothing else becomes a plush toy",
     );
   }
   if (!changements.length) return { imageUrl: null, error: "rien à retoucher" };
