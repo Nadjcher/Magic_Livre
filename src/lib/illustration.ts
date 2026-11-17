@@ -557,6 +557,10 @@ export async function retoucherPlanche(opts: {
   doudou?: { base64: string; mime: string };
   /** Correction demandée par la relectrice (nouvel essai). */
   correction?: string;
+  /** Les autres personnages de la planche, à garder tels quels (sinon la retouche peut les remplacer par le doudou). */
+  garder?: string[];
+  /** Le doudou « neutre » dessiné sur la planche : c'est lui, et lui seul, qu'il faut remplacer. */
+  doudouAvant?: string;
   seed: number;
 }): Promise<IllustrationResult> {
   const key = env.falApiKey();
@@ -576,13 +580,19 @@ export async function retoucherPlanche(opts: {
   }
   if (opts.doudou) {
     images.push(await reduire(opts.doudou, 704));
-    changements.push(`the plush toy becomes exactly the plush toy of image ${images.length} (same species, colors and shape), at the same size and in the same place`);
+    changements.push(
+      `${opts.doudouAvant ? `the plush toy held by or next to the big child (${opts.doudouAvant})` : "the plush toy"} becomes exactly the plush toy of image ${images.length} ` +
+        "(same species, colors and shape), at the same size and in the same place; nothing else becomes a plush toy",
+    );
   }
   if (!changements.length) return { imageUrl: null, error: "rien à retoucher" };
   const prompt =
     "Image 1 is a finished, approved book page. Edit it: keep EVERYTHING in image 1 exactly identical - the setting, every other character, " +
     "their sizes and positions, the light, the colors, the composition and the 3D animated rendering. " +
     `Change ONLY: ${changements.map((c, i) => `(${i + 1}) ${c}`).join("; ")}.` +
+    (opts.garder?.length
+      ? ` KEEP EXACTLY, unchanged and in the same place: ${opts.garder.join("; ")}; never replace or remove them.`
+      : "") +
     (opts.correction ? ` Correction requested: ${opts.correction}` : "") +
     " No text, no letters.";
   try {

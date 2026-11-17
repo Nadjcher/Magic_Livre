@@ -21,7 +21,7 @@ import { fetchAsDataUrl } from "./imageFetch";
 import { generateIllustration, retoucherPlanche } from "./illustration";
 import { HISTOIRES_MAITRESSES, type HistoireMaitresse, type Personnalisation } from "./histoiresMaitresses";
 import { construireLivre } from "./maitresseGenerateur";
-import { consoliderFiche } from "./ficheHistoire";
+import { consoliderFiche, signature } from "./ficheHistoire";
 import { CONSIGNE_COUVERTURE } from "./bibleVisuelle";
 import { cheveuxDifferents, especeAttendue, estPeluche, memeEspece } from "./controleIllustrations";
 import { mapLimit } from "./parallele";
@@ -77,6 +77,15 @@ export function clesPlanches(h: HistoireMaitresse): ClePlanche[] {
       : [{ ...commun, cle: base, variante: null }];
   });
 }
+
+/** Les personnages du conte présents sur une planche (à garder tels quels lors de la retouche). */
+export function autresPersonnages(h: HistoireMaitresse, index: number): { nom: string; description: string }[] {
+  const noms = index >= 0 ? h.pages[index]?.presents ?? [] : h.cast.filter((c) => h.couverture.includes(c.nom)).map((c) => c.nom);
+  return h.cast.filter((c) => noms.includes(c.nom)).map((c) => ({ nom: c.nom, description: signature(c.visuel) }));
+}
+
+/** Le doudou dessiné sur les planches de cette histoire. */
+export const doudouDesPlanches = (h: HistoireMaitresse) => h.doudouNeutre ?? DOUDOU_NEUTRE;
 
 /** La planche à utiliser pour une page et une variante. */
 export function clePour(h: HistoireMaitresse, index: number, variante: Variante): ClePlanche | undefined {
@@ -315,6 +324,8 @@ export async function illustrerDepuisPlanches(
       planche: ref,
       heros: k.enfant ? herosRef : undefined,
       doudou: k.doudou && doudouRef ? doudouRef : undefined,
+      garder: autresPersonnages(h, i).map((c) => `${c.nom} (${c.description})`),
+      doudouAvant: doudouDesPlanches(h),
       seed: 8_000 + i * 37 + (Date.now() % 997),
     });
     if (r.error) errors.push(r.error);
@@ -347,20 +358,40 @@ export async function retoucherPage(story: Story, index: number): Promise<string
     doudou ? lireRef(story.fiches?.cast?.[doudou.nom]) : Promise.resolve(null),
   ]);
   if (!ref || !heros) return null;
-  const r = await retoucherPlanche({ planche: ref, heros: k.enfant ? heros : undefined, doudou: k.doudou && dd ? dd : undefined, seed: Date.now() % 1_000_000 });
+  const r = await retoucherPlanche({
+    planche: ref,
+    heros: k.enfant ? heros : undefined,
+    doudou: k.doudou && dd ? dd : undefined,
+    garder: autresPersonnages(h, index).map((c) => `${c.nom} (${c.description})`),
+    doudouAvant: doudouDesPlanches(h),
+    seed: Date.now() % 1_000_000,
+  });
   return r.imageUrl;
 }
 
 /* ─── Relecture des retouches : deux questions seulement ─── */
 
-async function inspecter(heros: Ref, doudou: Ref | null, page: Ref): Promise<{ hair_page?: string; hair_reference?: string; plush_animal?: string } | null> {
+interface Inspection {
+  hair_page?: string;
+  hair_length_page?: string;
+  plush_animal?: string;
+  plush_count?: number;
+  present?: Record<string, boolean>;
+  hair_reference?: string;
+  hair_length_reference?: string;
+}
+
+async function inspecter(heros: Ref, doudou: Ref | null, page: Ref, attendus: { nom: string; description: string }[]): Promise<Inspection | null> {
   const images = [page, heros, ...(doudou ? [doudou] : [])].map((r) => `data:${r.mime};base64,${r.base64}`);
   const prompt = [
     "Image 1 is a book page. Answer in JSON only.",
-    '"hair_page": FIRST, looking only at image 1, the hair color of the big child, one word among: blond, light brown, chestnut, dark brown, black, red, grey (lit parts, not shadows).',
-    '"plush_animal": looking only at image 1, the animal the plush toy ACTUALLY looks like (ears, muzzle, tail), "" if there is no plush toy.',
-    '"hair_reference": then, the hair color of the child in image 2, same word list.',
-    'JSON: {"hair_page": "", "plush_animal": "", "hair_reference": ""}',
+    '"hair_page": FIRST, looking only at image 1, the hair color of the big child, one word among: blond, light brown, chestnut, dark brown, black, red, grey (lit parts, not shadows); "hair_length_page": short, medium (chin to shoulders) or long (below the shoulders).',
+    '"plush_animal": looking only at image 1, the animal the plush toy ACTUALLY looks like (ears, muzzle, tail), "" if there is no plush toy; "plush_count": how many plush toys in image 1.',
+    attendus.length
+      ? `"present": for each of these characters, true if it is clearly visible in image 1, false otherwise: ${attendus.map((c) => `"${c.nom}" (${c.description})`).join(", ")}.`
+      : '"present": {}.',
+    '"hair_reference" and "hair_length_reference": then, the same two answers for the child in image 2.',
+    'JSON: {"hair_page": "", "hair_length_page": "", "plush_animal": "", "plush_count": 0, "present": {}, "hair_reference": "", "hair_length_reference": ""}',
   ].join("\n");
   try {
     const r = await falFetch(
@@ -369,7 +400,7 @@ async function inspecter(heros: Ref, doudou: Ref | null, page: Ref): Promise<{ h
         method: "POST",
         headers: { Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" },
         // Deux questions simples : un modèle sans réflexion suffit (quelques dixièmes de centime).
-        body: JSON.stringify({ model: process.env.QA_RETOUCHE_MODEL || "anthropic/claude-sonnet-4.5", prompt, image_urls: images, max_tokens: 200, temperature: 0 }),
+        body: JSON.stringify({ model: process.env.QA_RETOUCHE_MODEL || "anthropic/claude-sonnet-4.5", prompt, image_urls: images, max_tokens: 300, temperature: 0 }),
       },
       40_000,
     );
@@ -383,7 +414,8 @@ async function inspecter(heros: Ref, doudou: Ref | null, page: Ref): Promise<{ h
 }
 
 /**
- * Contrôle des pages retouchées : couleur des cheveux et animal du doudou.
+ * Contrôle des pages retouchées : cheveux (couleur, longueur), animal du doudou
+ * (un seul), et les personnages du conte toujours là (Poucet remplacé par le doudou).
  * Une seule reprise par page fautive ; ensuite, le bouton « redessiner » du parent.
  */
 export async function controlerRetouches(story: Story, limite: number): Promise<{ story: Story; bilan: string }> {
@@ -402,12 +434,20 @@ export async function controlerRetouches(story: Story, limite: number): Promise<
     const url = i === -1 ? story.couvertureUrl : story.pages[i]?.imageUrl;
     const page = await lireRef(url);
     if (!page) return;
-    const v = await inspecter(heros, doudouRef, page);
+    const attendus = h ? autresPersonnages(h, i) : [];
+    const v = await inspecter(heros, doudouRef, page, attendus);
     if (!v) return;
     const k = h && story.planches ? clePour(h, i, story.planches.variante) : undefined;
     const fautes: string[] = [];
     if (k?.enfant && cheveuxDifferents(v.hair_reference, v.hair_page)) fautes.push(`the child's hair must be ${v.hair_reference}, not ${v.hair_page}`);
+    const court = (t?: string) => /short/i.test(t ?? "");
+    const long = (t?: string) => /long/i.test(t ?? "");
+    if (k?.enfant && ((court(v.hair_length_page) && long(v.hair_length_reference)) || (long(v.hair_length_page) && court(v.hair_length_reference)))) {
+      fautes.push(`the child's hair must be ${v.hair_length_reference} like on the reference, not ${v.hair_length_page}`);
+    }
     if (k?.doudou && espece && v.plush_animal && !memeEspece(espece, v.plush_animal)) fautes.push(`the plush toy must be a ${espece}, not a ${v.plush_animal}`);
+    if (typeof v.plush_count === "number" && v.plush_count > 1) fautes.push("only ONE plush toy, the child's");
+    for (const c of attendus) if (v.present?.[c.nom] === false) fautes.push(`${c.nom} (${c.description}) must stay exactly as on the original page, never replaced by the plush toy`);
     if (!fautes.length || !h || !k) return;
     const m = await lirePlanches(h.id, story.style ?? "anim3d");
     const planche = await lireRef(m.get(k.cle)?.url);
@@ -417,6 +457,8 @@ export async function controlerRetouches(story: Story, limite: number): Promise<
       heros: k.enfant ? heros : undefined,
       doudou: k.doudou && doudouRef ? doudouRef : undefined,
       correction: fautes.join("; "),
+      garder: autresPersonnages(h, i).map((c) => `${c.nom} (${c.description})`),
+      doudouAvant: doudouDesPlanches(h),
       seed: 9_000 + i * 41 + (Date.now() % 997),
     });
     if (r.imageUrl) {
