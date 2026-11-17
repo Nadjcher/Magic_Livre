@@ -312,7 +312,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
     themeId: "boucle-d-or",
     episode: 3,
     objet: "une toute petite cuillère en bois",
-    // Écrite, pas encore proposée : texte à valider, puis planches à dessiner et valider.
+    // Texte validé le 17 nov. 2026. Fermée aux parents jusqu'à la validation de ses planches.
     ouverte: false,
     ageMin: 4,
     ageMax: 8,
@@ -431,7 +431,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
   {
     id: "maitresse-peur-du-noir",
     themeId: "peur-du-noir",
-    // Écrite, pas encore proposée : texte à valider, puis planches à dessiner et valider.
+    // Texte validé le 17 nov. 2026. Fermée aux parents jusqu'à la validation de ses planches.
     ouverte: false,
     // Phrases courtes : dès 3 ans.
     ageMin: 3,
@@ -518,7 +518,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
   {
     id: "maitresse-petite-souris",
     themeId: "petite-souris",
-    // Écrite, pas encore proposée : texte à valider, puis planches à dessiner et valider.
+    // Texte validé le 17 nov. 2026. Fermée aux parents jusqu'à la validation de ses planches.
     ouverte: false,
     ageMin: 4,
     ageMax: 8,
