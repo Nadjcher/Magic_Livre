@@ -489,6 +489,10 @@ export async function controlerRetouches(story: Story, limite: number): Promise<
 
   let refaites = 0;
   const nouvelles = new Map<number, string>();
+  // Pages où le doudou reste d'une espèce structurellement différente de l'ours neutre de la planche
+  // (girafe, éléphant…) : la retouche ne sait pas re-sculpter une telle silhouette. Après ce 2e essai,
+  // la page part en relecture humaine (file « Illustrations à relire ») plutôt que d'être envoyée fausse.
+  const aRevoir = new Map<number, string>();
   await mapLimit(retouchees, 4, async (i) => {
     if (Date.now() > limite) return;
     const url = i === -1 ? story.couvertureUrl : story.pages[i]?.imageUrl;
@@ -505,7 +509,11 @@ export async function controlerRetouches(story: Story, limite: number): Promise<
     if (k?.enfant && ((court(v.hair_length_page) && long(v.hair_length_reference)) || (long(v.hair_length_page) && court(v.hair_length_reference)))) {
       fautes.push(`the child's hair must be ${v.hair_length_reference} like on the reference, not ${v.hair_length_page}`);
     }
-    if (k?.doudou && espece && v.plush_animal && !memeEspece(espece, v.plush_animal)) fautes.push(`the plush toy must be a ${espece}, not a ${v.plush_animal}`);
+    const doudouFaux = Boolean(k?.doudou && espece && v.plush_animal && !memeEspece(espece, v.plush_animal));
+    if (doudouFaux) {
+      fautes.push(`the plush toy must be a ${espece}, not a ${v.plush_animal}`);
+      aRevoir.set(i, `${i === -1 ? "couverture" : `p${i + 1}`} : doudou vu « ${v.plush_animal} », attendu « ${espece} »`);
+    }
     if (typeof v.plush_count === "number" && v.plush_count > 1) fautes.push("only ONE plush toy, the child's");
     if (k?.enfant && v.head_twisted === true) {
       fautes.push((m0.get(k.cle)?.deDos ?? k.deDos) ? "the child is seen from behind: keep the head turned away exactly like the body, show only the back of the hair, no face" : "the child's head must face the same way as the body, never twisted");
@@ -538,8 +546,11 @@ export async function controlerRetouches(story: Story, limite: number): Promise<
       couvertureUrl: nouvelles.get(-1) ?? story.couvertureUrl,
       pages: story.pages.map((p, i) => (nouvelles.has(i) ? { ...p, imageUrl: nouvelles.get(i)! } : p)),
       controleImages: { verifiees: retouchees.length, refaites, nonVerifiees: 0 },
+      imagesARevoir: aRevoir.size ? [...aRevoir.keys()] : undefined,
     },
-    bilan: `contrôle des retouches : ${retouchees.length} vérifiées, ${refaites} refaites`,
+    bilan:
+      `contrôle des retouches : ${retouchees.length} vérifiées, ${refaites} refaites` +
+      (aRevoir.size ? ` — à revoir avant envoi : ${[...aRevoir.values()].join(" ; ")}` : ""),
   };
 }
 
