@@ -71,6 +71,8 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
   {
     id: "maitresse-petit-poucet",
     episode: 1,
+    // Fermée le 17 nov. 2026 : la retouche des pages 4, 8 et de la couverture doit être vérifiée avant de rouvrir.
+    ouverte: false,
     // L'enfant ne rapporte rien du conte : la collection commence par le crayon blanc.
     objet: "le crayon blanc",
     themeId: "petit-poucet",
@@ -124,7 +126,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "Dans le livre, les arbres sentaient l'encre, et la mousse le vieux papier. Un garçon haut comme une botte fouillait sous les fougères : Poucet ! « Mes cailloux se sont effacés, je ne sais pas pourquoi. — Je peux t'aider, dit {prenom}. — Pas besoin, je trouve toujours le chemin. » Au loin, le géant ronflait, et le bord de la page s'assombrit.",
         scene:
-          "Inside a soft storybook forest at night: {prenom} stands holding {doudou} tight against the chest in one arm and a normal-size pure white pencil (as long as a child's hand) in the other hand, looking down kindly at Poucet. A few steps away, ALONE on a plain flat grey stone (no mushroom, no face on the stone), stands tiny Poucet: a little HUMAN BOY (his red bonnet below {prenom}'s knee) with a bright RED KNITTED BONNET and a brown jacket, chin raised proudly. ONE single plush toy in the picture, {doudou} in {prenom}'s arm; nothing else near Poucet. Nothing is drawn on the ground (no pebbles yet). The edges of the scene slightly darker.",
+          "Inside a soft storybook forest at night: {prenom} stands holding a normal-size pure white pencil (as long as a child's hand) in one hand, the other hand open in a friendly gesture, looking down kindly at Poucet. A few steps away, ALONE on a plain flat grey stone (no mushroom, no face on the stone), stands tiny Poucet: a little HUMAN BOY (his red bonnet below {prenom}'s knee) with a bright RED KNITTED BONNET and a brown jacket, chin raised proudly. NO plush toy in this picture; nothing else near Poucet. Nothing is drawn on the ground (no pebbles yet). The edges of the scene slightly darker.",
         presents: ["Poucet"],
       },
       {
@@ -152,7 +154,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "{prenom} dessina, et Poucet montra où aller. « Par là, après la souche ! Ici, près du ruisseau ! » Les cailloux étaient un peu tordus, mais ils brillaient tous. Alors {prenom} et Poucet dirent ensemble : « Petit caillou blanc, montre-nous le chemin. » Et le chemin s'allongea entre les arbres, caillou après caillou.",
         scene:
-          "Seen from behind, {prenom} walks holding {doudou} under one arm ({doudou} is the ONLY plush toy in the picture); beside {prenom}, tiny Poucet, a little HUMAN BOY with a bright RED KNITTED BONNET and a brown jacket (toy-figurine size, his bonnet below {prenom}'s knee), stands ON A FLAT STONE and points the way; they are on a grassy forest floor where only a few small crooked glowing white pebbles (four to six) lie far apart from each other, like breadcrumbs, each one alone in the green grass with a big gap of grass between two pebbles (no path, no paving, no stepping stones, no continuous white line), leading into the storybook forest, past a tree stump and a little stream; hopeful warm glow.",
+          "Seen from behind, {prenom} walks with empty hands (NO plush toy in this picture); beside {prenom}, tiny Poucet, a little HUMAN BOY with a bright RED KNITTED BONNET and a brown jacket (toy-figurine size, his bonnet below {prenom}'s knee), stands ON A FLAT STONE and points the way; they are on a grassy forest floor where only a few small crooked glowing white pebbles (four to six) lie far apart from each other, like breadcrumbs, each one alone in the green grass with a big gap of grass between two pebbles (no path, no paving, no stepping stones, no continuous white line), leading into the storybook forest, past a tree stump and a little stream; hopeful warm glow.",
         presents: ["Poucet"],
       },
       {
