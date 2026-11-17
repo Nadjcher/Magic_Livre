@@ -35,6 +35,14 @@ export type Variante = "homme" | "femme";
 /** L'enfant et le doudou « neutres » des planches (remplacés à chaque livre). */
 export const APPARENCE_NEUTRE = "a 5-year-old child with short tousled light-brown hair, brown eyes and light skin";
 const DOUDOU_NEUTRE = "a plain soft beige plush teddy bear with round ears and a cream muzzle";
+/**
+ * Cadrage du doudou neutre sur les planches : il sera remplacé à chaque livre par le doudou
+ * de l'enfant, qui peut être n'importe quel animal (girafe, éléphant…). Par-dessus l'épaule
+ * ou dans le dos, la retouche n'arrive pas à changer sa silhouette (couverture d'Inès).
+ */
+const CADRAGE_DOUDOU =
+  "PLUSH TOY FRAMING: the plush toy is held in the child's arms or placed right next to the child, seen from the front or three-quarter, " +
+  "never over the shoulder and never behind the back; leave a little free space above its head, so a cuddly toy with a longer neck or longer ears would still fit.";
 const ENFANT = "the child";
 
 export function persoNeutre(variante: Variante, h?: HistoireMaitresse): Personnalisation {
@@ -291,7 +299,7 @@ export async function dessinerPlanches(h: HistoireMaitresse, style: Illustration
     const r = await generateIllustration({
       ...commun,
       recurringCharacters: livre.personnages,
-      scene,
+      scene: k.doudou ? `${scene} ${CADRAGE_DOUDOU}` : scene,
       anchorImage: ancre ?? undefined,
       castRefs: refs,
       seed: 91_000 + n + Math.floor(Math.random() * 500),
