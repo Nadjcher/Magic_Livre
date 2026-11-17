@@ -595,7 +595,9 @@ export async function retoucherPlanche(opts: {
     images.push(await reduire(opts.doudou, 704));
     changements.push(
       `${opts.doudouAvant ? `the plush toy held by or next to the big child (${opts.doudouAvant})` : "the plush toy"} becomes exactly the plush toy of image ${images.length} ` +
-        "(same species, colors and shape), EXACTLY the same size, held or placed EXACTLY the same way as the plush on the original page; " +
+        "(same species, colors and shape: if it is a different animal from the plush on the original page, draw ITS OWN full silhouette, " +
+        "e.g. a giraffe keeps its long neck and little horns, an elephant its trunk, never the old plush's head or ears), " +
+        "about the same size, held or placed the same way as the plush on the original page; " +
         "it stays a small soft toy that never stands or walks on its own, never as big as the child; nothing else becomes a plush toy",
     );
   }
