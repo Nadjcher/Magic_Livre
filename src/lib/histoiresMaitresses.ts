@@ -195,7 +195,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
     resume:
       "Dans le vieux livre de contes de {parent}, c'est la veille de Noël, et les lutins du cordonnier n'ont plus un seul brin de fil d'or ! Avec son crayon blanc et {doudou}, {prenom} entre dans l'atelier pour que les souliers soient prêts avant le matin.",
     faits:
-      "Ce que {prenom} dessine au crayon blanc dans le livre de {parent} devient vrai. Les lutins Bobine, Poinçon et Dé ont cousu les souliers avec le fil d'or tordu de {prenom}, et réparé une botte immense dont on ne sait pas à qui elle appartient. {prenom} a rapporté un bout de ruban doré.",
+      "Ce que {prenom} dessine au crayon blanc dans le livre de {parent} devient vrai. Les lutins Bobine, Poinçon et Dé ont cousu les souliers avec le fil d'or tordu {de_prenom}, et réparé une botte immense dont on ne sait pas à qui elle appartient. {prenom} a rapporté un bout de ruban doré.",
     tenueHeros: TENUE,
     reglesImage:
       REGLES_SERIE +
@@ -369,7 +369,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       },
       {
         texte:
-          "{parent} alla chercher un verre d'eau. {prenom} prit le crayon blanc et toucha la petite chaise du bout de la mine. Hop ! {Il} glissa dans la maison des ours, {doudou} serré dans ses bras. Ça sentait le bois chaud et la bouillie à la cannelle.",
+          "{parent} alla chercher un verre d'eau. {prenom} prit le crayon blanc et toucha la petite chaise du bout de la mine. Hop ! {Il} glissa dans la maison des ours, {doudou} dans les bras. Ça sentait le bois chaud et la bouillie à la cannelle.",
         scene:
           "Close-up on the duvet: {prenom}'s small hand touches a tiny broken chair drawn on the page of the open old storybook with the tip of a pure white pencil; a soft golden light rises from the page; {prenom}'s other arm holds {doudou} tight; dim bedroom; no other characters.",
         presents: [],
@@ -411,7 +411,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       },
       {
         texte:
-          "Maman Ourse remit de la bouillie à chauffer, juste comme il faut, pour tout le monde. On mangea, on rit, on goûta trois fois. Au moment de partir, Petit Ours glissa dans la main de {prenom} une toute petite cuillère en bois. « Pour que tu reviennes goûter », dit-il.",
+          "Maman Ourse remit de la bouillie à chauffer, juste comme il faut, pour tout le monde. On mangea, on rit, on goûta trois fois. Au moment de partir, Petit Ours glissa dans la main {de_prenom} une toute petite cuillère en bois. « Pour que tu reviennes goûter », dit-il.",
         scene:
           "A warm close scene at the wooden table of the cottage: Petit Ours (small brown cub, red scarf) places a tiny wooden spoon in {prenom}'s open hand; {prenom} holds {doudou} in the other arm; Boucle d'or (little HUMAN GIRL, golden curls, sky-blue dress) eats porridge from a bowl beside them, smiling; Papa Ours and Maman Ourse only seen from behind at the stove in the background; warm golden light.",
         presents: ["Petit Ours", "Boucle d'or"],
@@ -444,6 +444,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
     reglesImage:
       "THE SAME cosy child's bedroom on every page: a bed with a blue duvet, a door left slightly open with a thin line of warm hallway light, a soft pink dressing gown hanging on the back of the door, a white radiator under the window, glow-in-the-dark star stickers on the ceiling. " +
       "THE TORCH: a small yellow pocket torch with a round warm beam. Night lighting, calm and soft, NEVER scary: shadows are soft and round, no monster, no eyes, no face in any shadow. " +
+      "LUMINOUS NIGHT on every page: warm light from the half-open door and the torch beam; the child's face and the cuddly toy are always clearly and brightly lit, never a dark muddy picture. " +
       "The only characters are the child, the child's cuddly toy and, on some pages, the parent; nobody else.",
     cast: [],
     couverture:
@@ -462,7 +463,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         presents: [],
       },
       {
-        texte: "Sous l'oreiller, il y avait la lampe de poche. {prenom} la prit et compta tout bas : « Un, deux, trois… lumière ! »",
+        texte: "Sous l'oreiller, il y avait la lampe de poche. {prenom} la prit et partit à la chasse aux ombres. {Il} compta tout bas : « Un, deux, trois… lumière ! »",
         scene:
           "In bed in the dark, {prenom} pulls a small yellow pocket torch from under the pillow and switches it on, whispering, {doudou} tucked under one arm; only a little warm light from the half-open door; calm and cosy; no other characters.",
         presents: [],
@@ -482,7 +483,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       {
         texte: "Tout là-haut, dans le coin, deux petits points verts brillaient. Deux points tout ronds, qui ne bougeaient pas. {prenom} leva sa lampe. « Un, deux, trois… lumière ! »",
         scene:
-          "The dark bedroom: near the ceiling in the far corner, two small round green glowing dots shine softly; {prenom}, sitting in bed, points the yellow pocket torch toward them, curious, {doudou} under one arm; nothing scary, no eyes, no face; no other characters.",
+          "The dark bedroom: near the ceiling in the far corner, two tiny round dots of soft green light shine (they are small star stickers seen from far: plain round dots, never eyes, no face around them); {prenom}, sitting in bed, points the yellow pocket torch toward them, curious, {doudou} under one arm; nothing scary, no eyes, no face; no other characters.",
         presents: [],
       },
       {
@@ -498,7 +499,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         presents: [],
       },
       {
-        texte: "{parent} passa la tête par la porte. « Tout va bien ? » {prenom} sourit : « Oui. Le noir, c'est juste la nuit qui garde nos rêves au chaud. » Et {il} éteignit sa lampe tout seul.",
+        texte: "{parent} passa la tête par la porte. « Tout va bien ? » {prenom} sourit : « Oui. Le noir, c'est juste la chambre qui dort. » Et {il} éteignit sa lampe, sans aide.",
         scene:
           "{parent} (face in soft shadow, not detailed) peeks through the half-open door with warm hallway light behind; {prenom}, sitting in bed hugging {doudou}, smiles proudly and switches off the yellow pocket torch; cosy bedroom.",
         presents: [],
@@ -507,6 +508,108 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte: "Dans le noir tout doux, la robe de chambre dormait, le radiateur chantait, les étoiles veillaient. {prenom} ferma les yeux, {doudou} contre sa joue. Un, deux, trois… dodo.",
         scene:
           "The calm dark bedroom: {prenom} asleep in bed under the blue duvet with {doudou} against the cheek, the yellow pocket torch switched off on the bedside table; the pink dressing gown on the door, the white radiator under the window and the glowing star stickers on the ceiling; peaceful soft night colours; no other characters.",
+        presents: [],
+      },
+    ],
+    passages: {},
+  },
+  {
+    id: "maitresse-petite-souris",
+    themeId: "petite-souris",
+    // Écrite, pas encore proposée : texte à valider, puis planches à dessiner et valider.
+    ouverte: false,
+    ageMin: 4,
+    ageMax: 8,
+    titre: "La première dent {de_prenom}",
+    ritournelle: "« Chut, c'est un secret. »",
+    resume:
+      "Ce soir, {prenom} a perdu sa première dent. Sous l'oreiller, la petite boîte attend la petite souris… mais la petite souris n'arrive pas à la prendre ! Avec {doudou}, {prenom} va l'aider, et découvrir ce qu'elle fait de toutes les dents du monde.",
+    faits:
+      "La petite souris porte une cape violette et une lanterne grande comme un dé à coudre. Elle construit un château avec les dents tombées ; la première dent {de_prenom} est tout en haut de la plus haute tour. Le trou de souris est derrière la plinthe de la chambre. C'est un secret.",
+    tenueHeros: TENUE,
+    reglesImage:
+      "THE SAME cosy child's bedroom: a bed with a blue duvet and a white pillow, a bedside lamp, a small wooden tooth box, a little mouse hole in the skirting board near the bed. " +
+      "LUMINOUS NIGHT on every page: warm light from the bedside lamp, the mouse's tiny lantern or the moon; faces and characters always clearly and brightly lit, never a dark muddy picture. " +
+      "Petite Souris: a real living grey mouse walking on two legs, a lavender velvet cape, round pink ears, long whiskers, a tiny glowing lantern; never a plush toy. The child's cuddly toy is the ONLY plush toy. " +
+      "The tooth castle: walls of small shiny white pearl-like stones (the teeth), cute and magical, never creepy; never show a mouth, gums or blood. Nothing frightening.",
+    cast: [
+      {
+        nom: "Petite Souris",
+        visuel:
+          "MOUSE: a real living little grey mouse walking on two legs, round pink ears, long whiskers, a lavender velvet cape, a tiny glowing lantern in one paw; about the size of the child's hand, except when the scene says the child has become tiny; never a plush toy.",
+      },
+    ],
+    couverture:
+      "Book cover, medium shot: a cosy child's bedroom at night in warm lamplight; {prenom} lies in bed, head on the white pillow, eyes half open with a delighted smile, holding {doudou} (the ONLY plush toy); at the edge of the pillow stands Petite Souris, a little grey mouse in a lavender cape holding a tiny glowing lantern, looking at {prenom} with a finger on her lips; the faces clearly lit; a calm dark-blue wall area in the upper third.",
+    pages: [
+      {
+        texte:
+          "Ce soir, {prenom} tenait dans sa main une toute petite dent : sa première dent tombée ! {parent} la rangea dans une petite boîte en bois, sous l'oreiller. « Cette nuit, la petite souris va passer », {dit_parent}.",
+        scene:
+          "A cosy child's bedroom at night in warm lamplight: {prenom} sits in bed, proudly showing a tiny white tooth in an open palm, with a little gap in the smile; {parent} (seen from behind, face not shown) slips a small wooden box under the white pillow; {doudou} on the duvet next to {prenom}; faces clearly lit.",
+        presents: [],
+      },
+      {
+        texte:
+          "{prenom} voulait la voir, la petite souris. Alors, sous la couette, {il} fit semblant de dormir, {doudou} contre son cœur, une oreille aux aguets.",
+        scene:
+          "In bed under the blue duvet, {prenom} pretends to sleep but peeks with one eye open, hugging {doudou} close; the bedside lamp dimmed to a soft warm glow that keeps the face clearly lit; no other characters.",
+        presents: [],
+      },
+      {
+        texte:
+          "Tic, tic, tic. Une toute petite lumière traversa la chambre. Au bord du lit, une souris grise, avec une cape violette et une lanterne grande comme un dé à coudre, regardait l'oreiller. « Oh là là, soupira-t-elle. Pile dessus ! »",
+        scene:
+          "At the edge of the bed: Petite Souris, a little grey mouse in a lavender cape holding a tiny glowing lantern, stands on the duvet looking at the white pillow with a worried face; {prenom}'s head rests on the pillow, one eye peeking, {doudou} in the arms; the lantern lights the scene warmly.",
+        presents: ["Petite Souris"],
+      },
+      {
+        texte:
+          "La petite souris tira, poussa, se faufila. Rien à faire : l'oreiller ne bougeait pas d'un poil. {prenom} ne put s'empêcher de chuchoter : « Je peux t'aider ? » La petite souris fit un bond. « Tu ne dors pas ? »",
+        scene:
+          "Petite Souris (little grey mouse, lavender cape) pushes with all her strength against the corner of the white pillow, her tiny lantern set down on the duvet; {prenom} lifts the head and whispers to her with a smile, {doudou} in one arm; the mouse jumps with surprise; warm light.",
+        presents: ["Petite Souris"],
+      },
+      {
+        texte:
+          "« Chut, c'est un secret », dit {prenom}. {Il} souleva l'oreiller tout doucement et tendit la petite boîte. La petite souris ouvrit le couvercle, et ses moustaches tremblèrent de joie : « Une première dent ! La plus précieuse de toutes ! »",
+        scene:
+          "{prenom}, sitting up in bed, holds out the small open wooden box with a tiny white tooth inside; Petite Souris (little grey mouse, lavender cape) looks into the box with sparkling eyes and trembling whiskers; {doudou} on the duvet beside {prenom}; warm lantern and lamp light.",
+        presents: ["Petite Souris"],
+      },
+      {
+        texte:
+          "« Qu'est-ce que tu en fais, des dents ? » demanda {prenom}. La petite souris cligna de l'œil : « Viens voir. Mais pas plus d'une minute ! » Elle toucha le nez {de_prenom} avec sa lanterne… et hop ! {prenom} se retrouva de la taille d'une noisette, {doudou} dans les bras.",
+        scene:
+          "Magical moment on the duvet: {prenom} has just become TINY, no bigger than a hazelnut, standing on the blue duvet and holding a tiny {doudou} in the arms; next to {prenom}, Petite Souris (grey mouse, lavender cape) now looks as tall as {prenom}, touching {prenom}'s nose with her glowing lantern; sparkles of golden light; the huge pillow and folds of the duvet all around.",
+        presents: ["Petite Souris"],
+      },
+      {
+        texte:
+          "Derrière la plinthe, il y avait un trou de souris. Et derrière le trou, un château ! Ses murs étaient faits de petites dents blanches, qui brillaient comme des perles au clair de lune.",
+        scene:
+          "Inside the mouse hole behind the skirting board: a magical little castle whose walls are made of small shiny white pearl-like stones, glowing softly in moonlight; tiny {prenom} (the same size as the mouse) stands in wonder at the entrance, holding {doudou}; Petite Souris (grey mouse, lavender cape) leads the way with her glowing lantern; cute and magical, never creepy.",
+        presents: ["Petite Souris"],
+      },
+      {
+        texte:
+          "« Chaque dent tombée est une pierre de mon château, expliqua la petite souris. Et la tienne, je la garde pour la plus haute tour. » Elle posa la dent tout en haut. La tour se mit à briller plus fort que toutes les autres.",
+        scene:
+          "At the top of the pearl-white castle: Petite Souris (grey mouse, lavender cape) places one small shiny white stone on the very top of the highest tower, which glows brighter than all the others; tiny {prenom} watches from a balcony below, holding {doudou}, amazed; soft moonlight and lantern glow.",
+        presents: ["Petite Souris"],
+      },
+      {
+        texte:
+          "« Merci de m'avoir aidée », dit la petite souris. Elle glissa une pièce dorée dans la boîte, puis toucha encore le nez {de_prenom}. Hop ! {prenom} était de retour dans son lit, à sa vraie taille, {doudou} contre sa joue.",
+        scene:
+          "Back in the bedroom: {prenom}, at normal size again, lies in bed with {doudou} against the cheek, smiling sleepily; on the duvet, Petite Souris (little grey mouse, lavender cape) slips a shiny golden coin into the small wooden box and waves goodbye; warm lamplight.",
+        presents: ["Petite Souris"],
+      },
+      {
+        texte:
+          "Au matin, {prenom} ouvrit la boîte : à la place de la dent, il y avait une pièce dorée. {parent} sourit : « Alors, tu l'as vue ? » {prenom} montra le petit trou derrière la plinthe, posa un doigt sur ses lèvres et chuchota : « Chut, c'est un secret. »",
+        scene:
+          "Sunny morning in the bedroom: {prenom} sits in bed holding the open wooden box with a shiny golden coin inside, a finger on the lips with a mischievous smile; {doudou} on the pillow; {parent} (seen from behind, face not shown) at the door; the little mouse hole in the skirting board is visible near the bed; bright morning light.",
         presents: [],
       },
     ],
