@@ -33,11 +33,11 @@ type Ref = { base64: string; mime: string };
 export type Variante = "homme" | "femme";
 
 /** L'enfant et le doudou « neutres » des planches (remplacés à chaque livre). */
-const APPARENCE_NEUTRE = "a 5-year-old child with short tousled light-brown hair, brown eyes and light skin";
+export const APPARENCE_NEUTRE = "a 5-year-old child with short tousled light-brown hair, brown eyes and light skin";
 const DOUDOU_NEUTRE = "a plain soft beige plush teddy bear with round ears and a cream muzzle";
 const ENFANT = "the child";
 
-function persoNeutre(variante: Variante, h?: HistoireMaitresse): Personnalisation {
+export function persoNeutre(variante: Variante, h?: HistoireMaitresse): Personnalisation {
   return {
     prenom: ENFANT,
     fille: false,
@@ -120,7 +120,7 @@ export async function lirePlanches(histoire: string, style: string): Promise<Map
   }
 }
 
-async function enregistrer(histoire: string, style: string, cle: string, url: string): Promise<void> {
+export async function enregistrer(histoire: string, style: string, cle: string, url: string): Promise<void> {
   await table();
   await prisma.$executeRaw`
     INSERT INTO "Planche" (histoire, style, cle, url, valide) VALUES (${histoire}, ${style}, ${cle}, ${url}, FALSE)
@@ -157,11 +157,11 @@ export async function etatPlanches(h: HistoireMaitresse, style: string) {
 
 /* ─── Dessin des planches (une fois par histoire, payant) ─── */
 
-const enRef = (d: string | null): Ref | null => {
+export const enRef = (d: string | null): Ref | null => {
   const m = d ? /^data:([^;]+);base64,(.+)$/.exec(d) : null;
   return m ? { mime: m[1]!, base64: m[2]! } : null;
 };
-const lireRef = async (url: string | null | undefined) => enRef(await fetchAsDataUrl(url, { maxPx: 1024, quality: 88 }));
+export const lireRef = async (url: string | null | undefined) => enRef(await fetchAsDataUrl(url, { maxPx: 1024, quality: 88 }));
 
 /** Personnages présents sur une page (déclarés, sinon nommés dans la scène), avec leur fiche. */
 function presents(p: Story["pages"][number], fiches: Map<string, Ref>): { name: string; base64: string; mime: string }[] {
