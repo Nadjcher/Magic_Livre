@@ -71,8 +71,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
   {
     id: "maitresse-petit-poucet",
     episode: 1,
-    // Fermée le 17 nov. 2026 : la retouche des pages 4, 8 et de la couverture doit être vérifiée avant de rouvrir.
-    ouverte: false,
+    // Rouverte le 17 nov. 2026 : livre de contrôle (Inès, girafe, Maman) vérifié, 13 planches validées.
     // L'enfant ne rapporte rien du conte : la collection commence par le crayon blanc.
     objet: "le crayon blanc",
     themeId: "petit-poucet",
