@@ -6,7 +6,18 @@
 /** « de Léo » ou « d'Emma » (élision devant une voyelle ou un h). */
 export function dePrenom(prenom: string): { de: string; nom: string } {
   const nom = prenom.trim();
-  return { de: /^[aeiouyhàâäéèêëîïôöûùü]/i.test(nom) ? "d’" : "de ", nom };
+  return { de: elision(nom) ? "d’" : "de ", nom };
+}
+
+/**
+ * « d' » devant ce prénom ? Voyelle ou h muet : oui (d'Inès, d'Hugo, d'Éloïse,
+ * d'Anne-Sophie). Y suivi d'une voyelle se prononce comme une consonne :
+ * « de Yann », « de Yasmine » ; mais « d'Yves ».
+ */
+export function elision(prenom: string): boolean {
+  const n = prenom.trim().toLowerCase();
+  if (/^y[aeiouàâäéèêëîïôöûù]/.test(n)) return false;
+  return /^[aeiouyhàâäéèêëîïôöûùü]/.test(n);
 }
 
 /** Titre de couverture d'un thème, tourné pour accueillir « de Prénom ». */

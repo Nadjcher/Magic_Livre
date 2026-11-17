@@ -16,6 +16,8 @@
  *   [[cle]]             passage personnalisé (voir `passages`), sinon texte par défaut
  */
 
+import { elision } from "./titrePrenom";
+
 export interface PassagePerso {
   /** Ce que le passage doit faire dans l'intrigue (consigne pour l'IA). */
   consigne: string;
@@ -325,7 +327,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
     reglesImage:
       REGLES_SERIE +
       " Boucle d'or: a HUMAN GIRL about the child's age and height, long bouncy golden curls, a sky-blue dress with a white collar, brown boots; never in pyjamas, never looks like the child. " +
-      "The three bears are REAL LIVING BEARS who walk on two legs and wear clothes (Papa Ours: the biggest, green knitted waistcoat; Maman Ourse: blue apron with white dots; Petit Ours: a small cub about the child's height with a red scarf); " +
+      "The three bears are REAL LIVING BEARS with realistic fur who walk on two legs and ALWAYS wear their clothes, so that none of them could ever look like a teddy bear (Papa Ours: the biggest, green knitted waistcoat; Maman Ourse: blue apron with white dots; Petit Ours: a small cub about the child's height with a red scarf); " +
       "they are never plush toys and are never held in arms. The child's cuddly toy is the ONLY plush toy, in the child's arms or right next to the child. " +
       "A cosy wooden cottage in the woods: three bowls, three chairs and three beds of three sizes. Nothing frightening: the bears are kind and surprised, never angry, never showing teeth or claws.",
     cast: [
@@ -546,14 +548,14 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "Ce soir, {prenom} tenait dans sa main une toute petite dent : sa première dent tombée ! {parent} la rangea dans une petite boîte en bois, sous l'oreiller. « Cette nuit, la petite souris va passer », {dit_parent}.",
         scene:
-          "A cosy child's bedroom at night in warm lamplight: {prenom} sits in bed, proudly showing a tiny white tooth in an open palm, with a little gap in the smile; {parent} (seen from behind, face not shown) slips a small wooden box under the white pillow; {doudou} on the duvet next to {prenom}; faces clearly lit.",
+          "A cosy child's bedroom at night in warm lamplight: {prenom} sits in bed, proudly showing a tiny white tooth in an open palm, with a little gap in the smile; {parent} (seen from behind, face not shown) slips a small wooden box under the white pillow; {doudou} on the duvet next to {prenom}; the little mouse hole in the skirting board near the bed is clearly visible; faces clearly lit.",
         presents: [],
       },
       {
         texte:
           "{prenom} voulait la voir, la petite souris. Alors, sous la couette, {il} fit semblant de dormir, {doudou} contre son cœur, une oreille aux aguets.",
         scene:
-          "In bed under the blue duvet, {prenom} pretends to sleep but peeks with one eye open, hugging {doudou} close; the bedside lamp dimmed to a soft warm glow that keeps the face clearly lit; no other characters.",
+          "In bed under the blue duvet, {prenom} pretends to sleep but peeks with one eye open, hugging {doudou} close; the bedside lamp dimmed to a soft warm glow that keeps the face clearly lit; the little mouse hole in the skirting board near the bed is visible; no other characters.",
         presents: [],
       },
       {
@@ -579,9 +581,9 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       },
       {
         texte:
-          "« Qu'est-ce que tu en fais, des dents ? » demanda {prenom}. La petite souris cligna de l'œil : « Viens voir. Mais pas plus d'une minute ! » Elle toucha le nez {de_prenom} avec sa lanterne… et hop ! {prenom} se retrouva de la taille d'une noisette, {doudou} dans les bras.",
+          "« Qu'est-ce que tu en fais, des dents ? » demanda {prenom}. La petite souris cligna de l'œil : « Viens voir ! » Elle toucha le nez {de_prenom} avec sa lanterne… et hop ! {prenom} se retrouva de la taille d'une souris, {doudou} dans les bras.",
         scene:
-          "Magical moment on the duvet: {prenom} has just become TINY, no bigger than a hazelnut, standing on the blue duvet and holding a tiny {doudou} in the arms; next to {prenom}, Petite Souris (grey mouse, lavender cape) now looks as tall as {prenom}, touching {prenom}'s nose with her glowing lantern; sparkles of golden light; the huge pillow and folds of the duvet all around.",
+          "Magical moment on the duvet: {prenom} has just become TINY, the size of a mouse, standing on the blue duvet and holding a tiny {doudou} in the arms; next to {prenom}, Petite Souris (grey mouse, lavender cape) now looks as tall as {prenom}, touching {prenom}'s nose with her glowing lantern; sparkles of golden light; the huge pillow and folds of the duvet all around.",
         presents: ["Petite Souris"],
       },
       {
@@ -640,7 +642,7 @@ export interface Personnalisation {
 export function remplir(texte: string, p: Personnalisation, h: HistoireMaitresse): string {
   const feminin = p.parent === "Maman" || p.parent === "Mamie";
   const nomme = p.doudou.trim();
-  const de = /^[aeiouyhàâäéèêëîïôöûùü]/i.test(p.prenom.trim()) ? "d'" : "de ";
+  const de = elision(p.prenom) ? "d'" : "de ";
   return texte
     .replace(/\[\[(\w+)\]\]/g, (_, cle: string) => p.passages[cle] ?? h.passages[cle]?.defaut ?? "")
     .replaceAll("{de_prenom}", `${de}${p.prenom}`)
