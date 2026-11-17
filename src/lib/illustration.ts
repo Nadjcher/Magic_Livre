@@ -561,6 +561,8 @@ export async function retoucherPlanche(opts: {
   garder?: string[];
   /** Le doudou « neutre » dessiné sur la planche : c'est lui, et lui seul, qu'il faut remplacer. */
   doudouAvant?: string;
+  /** Apparence de l'enfant (anglais), pour garder la même teinte de cheveux sur toutes les pages. */
+  apparence?: string;
   seed: number;
 }): Promise<IllustrationResult> {
   const key = env.falApiKey();
@@ -574,7 +576,9 @@ export async function retoucherPlanche(opts: {
   if (opts.heros) {
     images.push(await reduire(opts.heros, 704));
     changements.push(
-      `the big child's face, hair (exact color and cut) and skin tone become exactly those of the child in image ${images.length}, ` +
+      `the big child's face, hair (exact color and cut) and skin tone become exactly those of the child in image ${images.length}` +
+        (opts.apparence ? ` (${opts.apparence}; the SAME hair shade on every page)` : "") +
+        ", " +
         "same art style, SAME head size, same pose, same position, same pyjamas",
     );
   }

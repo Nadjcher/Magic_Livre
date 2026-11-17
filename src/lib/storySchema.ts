@@ -94,7 +94,13 @@ export const storySchema = z.object({
     .catch(undefined),
   // Histoire toute prête : planches validées utilisées (variante selon le parent) et pages retouchées.
   planches: z
-    .object({ histoire: z.string(), variante: z.enum(["homme", "femme"]), retouchees: z.array(z.number()).optional() })
+    .object({
+      histoire: z.string(),
+      variante: z.enum(["homme", "femme"]),
+      retouchees: z.array(z.number()).optional(),
+      /** Apparence de l'enfant (anglais), rappelée à chaque retouche : même teinte de cheveux sur toutes les pages. */
+      apparence: z.string().max(400).optional(),
+    })
     .optional()
     .catch(undefined),
   // Livres imprimés payés, en attente de la validation du parent (rien n'est envoyé à l'imprimeur avant).

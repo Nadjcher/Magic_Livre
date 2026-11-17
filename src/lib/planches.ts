@@ -326,6 +326,7 @@ export async function illustrerDepuisPlanches(
       doudou: k.doudou && doudouRef ? doudouRef : undefined,
       garder: autresPersonnages(h, i).map((c) => `${c.nom} (${c.description})`),
       doudouAvant: doudouDesPlanches(h),
+      apparence: story.planches?.apparence ?? req.appearance,
       seed: 8_000 + i * 37 + (Date.now() % 997),
     });
     if (r.error) errors.push(r.error);
@@ -338,7 +339,7 @@ export async function illustrerDepuisPlanches(
     couvertureUrl: story.couvertureUrl ?? par.get(-1) ?? null,
     pages: story.pages.map((p, i) => (p.imageUrl ? p : { ...p, imageUrl: par.get(i) ?? null })),
     fiches: { heros: herosUrl, cast: { ...(story.fiches?.cast ?? {}), ...(doudou && doudouUrl ? { [doudou.nom]: doudouUrl } : {}) } },
-    planches: { ...story.planches, retouchees: [...retouchees] },
+    planches: { ...story.planches, retouchees: [...retouchees], apparence: story.planches.apparence ?? req.appearance?.slice(0, 400) },
   };
 }
 
@@ -364,6 +365,7 @@ export async function retoucherPage(story: Story, index: number): Promise<string
     doudou: k.doudou && dd ? dd : undefined,
     garder: autresPersonnages(h, index).map((c) => `${c.nom} (${c.description})`),
     doudouAvant: doudouDesPlanches(h),
+    apparence: story.planches?.apparence,
     seed: Date.now() % 1_000_000,
   });
   return r.imageUrl;
@@ -459,6 +461,7 @@ export async function controlerRetouches(story: Story, limite: number): Promise<
       correction: fautes.join("; "),
       garder: autresPersonnages(h, i).map((c) => `${c.nom} (${c.description})`),
       doudouAvant: doudouDesPlanches(h),
+      apparence: story.planches?.apparence,
       seed: 9_000 + i * 41 + (Date.now() % 997),
     });
     if (r.imageUrl) {
