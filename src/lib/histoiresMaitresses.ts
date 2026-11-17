@@ -362,7 +362,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       },
       {
         texte:
-          "Dans l'image, il y avait trois bols, trois chaises et trois lits. Mais la toute petite chaise était cassée, un pied tombé par terre. À côté, une fillette aux boucles dorées pleurait tout bas. « C'est Boucle d'or, {dit_parent}. Elle a fait une bêtise. » Au loin, sur le chemin, on entendait déjà : boum, boum, boum.",
+          "Dans l'image, il y avait trois bols, trois chaises et trois lits. Mais la toute petite chaise était cassée, un pied tombé par terre. À côté, une fillette aux boucles dorées pleurait tout bas. « C'est Boucle d'or, dit {parent}. Elle a fait une bêtise. » Au loin, sur le chemin, on entendait déjà : boum, boum, boum.",
         scene:
           "In the lamp-lit bedroom, {prenom} leans over the open old storybook on the duvet with a worried face, holding {doudou} in one arm; the open page shows a little wooden cottage with three bowls on a table and a tiny broken chair (no letters on the page); no other characters in the room.",
         presents: [],
@@ -404,7 +404,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       },
       {
         texte:
-          "Boucle d'or rendit {doudou} et fit un pas en avant, toute rouge. « C'est moi. Pardon, Petit Ours. J'ai cassé ta chaise… alors on l'a réparée. » Petit Ours regarda le pied neuf, un peu tordu. Il s'assit dessus, gigota… et sourit : « Ni trop dur, ni trop mou. Juste comme il faut ! »",
+          "Boucle d'or rendit {doudou} et fit un pas en avant, toute rouge. « C'est moi. Pardon, Petit Ours. J'ai mangé ta bouillie et cassé ta chaise… alors on l'a réparée. » Petit Ours regarda le pied neuf, un peu tordu. Il s'assit dessus, gigota… et sourit : « Ni trop dur, ni trop mou. Juste comme il faut ! »",
         scene:
           "Inside the cottage: Petit Ours, a small brown bear cub with a red scarf, sits proudly on the tiny repaired wooden chair (one leg a little crooked), smiling; Boucle d'or (little HUMAN GIRL, golden curls, sky-blue dress) stands beside him, cheeks pink, saying sorry; {prenom} stands a step behind holding {doudou} in both arms, smiling; Papa Ours and Maman Ourse are not in this picture.",
         presents: ["Petit Ours", "Boucle d'or"],
@@ -421,6 +421,92 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
           "{prenom} était de nouveau dans son lit, {doudou} contre sa joue, la petite cuillère au creux de la main. {parent} revint et regarda le livre : sur la page, Boucle d'or et Petit Ours mangeaient côte à côte. « Tiens, je ne me souvenais pas de cette fin-là », murmura {parent}. {prenom} sourit et ferma les yeux.",
         scene:
           "A cosy child's bedroom at night: {prenom} drifts to sleep against the pillow with {doudou} against the cheek and a tiny wooden spoon in one hand; {parent}'s hand rests on the open old storybook, whose page shows a little girl with golden curls and a bear cub eating porridge side by side (no letters); the pure white pencil back on the bedside table; soft lamplight.",
+        presents: [],
+      },
+    ],
+    passages: {},
+  },
+  {
+    id: "maitresse-peur-du-noir",
+    themeId: "peur-du-noir",
+    // Écrite, pas encore proposée : texte à valider, puis planches à dessiner et valider.
+    ouverte: false,
+    // Phrases courtes : dès 3 ans.
+    ageMin: 3,
+    ageMax: 7,
+    titre: "La chasse aux ombres {de_prenom}",
+    ritournelle: "« Un, deux, trois… lumière ! »",
+    resume:
+      "Ce soir, dans le noir, une drôle d'ombre bouge sur le mur, un bruit fait glou-glou et deux petits points brillent tout là-haut… Avec sa lampe de poche et {doudou}, {prenom} part à la chasse aux ombres. Un, deux, trois… lumière !",
+    faits:
+      "{prenom} n'a plus peur du noir : chaque ombre était une chose gentille de sa chambre (la robe de chambre de {parent}, le radiateur qui chante, les étoiles du plafond). {prenom} sait faire un oiseau d'ombre avec ses mains.",
+    tenueHeros: TENUE,
+    reglesImage:
+      "THE SAME cosy child's bedroom on every page: a bed with a blue duvet, a door left slightly open with a thin line of warm hallway light, a soft pink dressing gown hanging on the back of the door, a white radiator under the window, glow-in-the-dark star stickers on the ceiling. " +
+      "THE TORCH: a small yellow pocket torch with a round warm beam. Night lighting, calm and soft, NEVER scary: shadows are soft and round, no monster, no eyes, no face in any shadow. " +
+      "The only characters are the child, the child's cuddly toy and, on some pages, the parent; nobody else.",
+    cast: [],
+    couverture:
+      "Book cover, medium shot: in a cosy dark bedroom, {prenom} sits up in bed under a blue duvet, holding {doudou} in one arm (the ONLY plush toy) and a small yellow pocket torch in the other hand; the round warm beam lights up glow-in-the-dark star stickers on the ceiling; wonder and calm, nothing scary; a calm dark-blue wall area in the upper third; no other characters.",
+    pages: [
+      {
+        texte: "Ce soir, {parent} éteignit la grande lumière. « Bonne nuit, mon trésor. » La porte resta un peu ouverte. Dans le noir, {prenom} serra {son_doudou} {doudou} très fort.",
+        scene:
+          "A cosy child's bedroom at night: {parent} (seen from behind, face not shown) stands at the door, a hand on the light switch, the big light going off; {prenom} lies in bed under the blue duvet hugging {doudou}; the door slightly open with a thin line of warm hallway light; a soft pink dressing gown hangs on the back of the door.",
+        presents: [],
+      },
+      {
+        texte: "Sur le mur, une grande ombre bougeait. Elle avait deux bras tout mous… et pas de tête ! {prenom} ne bougeait plus. {Il} retenait son souffle.",
+        scene:
+          "The dark bedroom seen from the bed: on the wall, a big soft shadow with two floppy arms and no head (the shadow of a dressing gown, which we do not see clearly); {prenom}, in bed under the blue duvet, holds {doudou} tight with wide eyes; soft calm night colours, nothing scary, no face in the shadow; no other characters.",
+        presents: [],
+      },
+      {
+        texte: "Sous l'oreiller, il y avait la lampe de poche. {prenom} la prit et compta tout bas : « Un, deux, trois… lumière ! »",
+        scene:
+          "In bed in the dark, {prenom} pulls a small yellow pocket torch from under the pillow and switches it on, whispering, {doudou} tucked under one arm; only a little warm light from the half-open door; calm and cosy; no other characters.",
+        presents: [],
+      },
+      {
+        texte: "Le rond de lumière monta sur le mur… C'était la robe de chambre de {parent}, pendue à la porte ! Ses manches pendaient, toutes molles. {prenom} pouffa de rire.",
+        scene:
+          "{prenom} sits up in bed shining the yellow pocket torch at the door: the round warm beam lights up a soft pink dressing gown hanging on the door, its empty sleeves dangling; {prenom} giggles, {doudou} in the other arm; cosy dark bedroom; no other characters.",
+        presents: [],
+      },
+      {
+        texte: "Glou, glou, tic ! Un drôle de bruit. {prenom} serra {doudou}. « Un, deux, trois… lumière ! » C'était le radiateur, qui chantait tout bas en se réchauffant.",
+        scene:
+          "{prenom} kneels on the bed shining the yellow pocket torch at the white radiator under the window; a few soft curls of warm air rise above it; {prenom} holds {doudou} close, smiling with relief; cosy dark bedroom; no other characters.",
+        presents: [],
+      },
+      {
+        texte: "Tout là-haut, dans le coin, deux petits points verts brillaient. Deux points tout ronds, qui ne bougeaient pas. {prenom} leva sa lampe. « Un, deux, trois… lumière ! »",
+        scene:
+          "The dark bedroom: near the ceiling in the far corner, two small round green glowing dots shine softly; {prenom}, sitting in bed, points the yellow pocket torch toward them, curious, {doudou} under one arm; nothing scary, no eyes, no face; no other characters.",
+        presents: [],
+      },
+      {
+        texte: "C'étaient les étoiles collées au plafond ! Elles avaient gardé un peu de soleil pour la nuit. Elles brillaient encore, rien que pour {prenom}.",
+        scene:
+          "The torch beam reveals glow-in-the-dark star stickers on the ceiling, softly glowing green; {prenom} lies back on the pillow with {doudou}, gazing up at them with wonder; cosy dark bedroom; no other characters.",
+        presents: [],
+      },
+      {
+        texte: "Alors {prenom} eut une idée. {Il} posa la lampe sur le lit et croisa ses deux mains devant la lumière. Sur le mur, un grand oiseau ouvrit ses ailes !",
+        scene:
+          "{prenom} sits in bed with {doudou} beside on the pillow; the yellow pocket torch lies on the duvet pointing at the wall; {prenom}'s two crossed hands in front of the beam make a big soft bird-shaped shadow with open wings on the wall; delight; no other characters.",
+        presents: [],
+      },
+      {
+        texte: "{parent} passa la tête par la porte. « Tout va bien ? » {prenom} sourit : « Oui. Le noir, c'est juste la nuit qui garde nos rêves au chaud. » Et {il} éteignit sa lampe tout seul.",
+        scene:
+          "{parent} (face in soft shadow, not detailed) peeks through the half-open door with warm hallway light behind; {prenom}, sitting in bed hugging {doudou}, smiles proudly and switches off the yellow pocket torch; cosy bedroom.",
+        presents: [],
+      },
+      {
+        texte: "Dans le noir tout doux, la robe de chambre dormait, le radiateur chantait, les étoiles veillaient. {prenom} ferma les yeux, {doudou} contre sa joue. Un, deux, trois… dodo.",
+        scene:
+          "The calm dark bedroom: {prenom} asleep in bed under the blue duvet with {doudou} against the cheek, the yellow pocket torch switched off on the bedside table; the pink dressing gown on the door, the white radiator under the window and the glowing star stickers on the ceiling; peaceful soft night colours; no other characters.",
         presents: [],
       },
     ],
