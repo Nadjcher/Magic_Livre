@@ -802,7 +802,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
   {
     id: "maitresse-tour-du-monde",
     themeId: "tour-du-monde",
-    // « La bibliothèque des aventuriers » (9-12 ans), épisode 1. Texte validé le 18 nov. 2026 (planches pas encore faites).
+    // « La bibliothèque des aventuriers » (9-12 ans), épisode 1. Retouché le 18 nov. 2026 : texte à relire par la propriétaire avant toute planche.
     ouverte: false,
     ageMin: 9,
     ageMax: 12,
@@ -818,6 +818,8 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       "THE ERA: 1872, the Victorian age: steamships, steam trains, gas lamps, top hats; never anything modern. The child wears modern simple clothes and stands out a little. " +
       "THE TRAVEL NOTEBOOK: a small worn brown leather notebook, always with the child. When a line written in it becomes real, the new thing glows faintly golden and looks a little crooked. " +
       "Phileas Fogg: always calm, black top hat, dark grey frock coat, silver pocket watch. Passepartout: round-faced Frenchman, red waistcoat. Inspector Fix: comic, never scary, bowler hat and big moustache. " +
+      "AT MOST THREE characters in each picture, the child included: no crowds, no extras, no background people unless the scene names them. " +
+      "Only things from Jules Verne's novel: NO hot-air balloon anywhere. " +
       "Nothing frightening; NO letters or numbers anywhere (newspapers, signs, tickets and clocks without writing).",
     cast: [
       {
@@ -862,7 +864,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "Chapitre 3 — Le pari de Phileas Fogg\nDans un club tout en velours, un homme très calme regardait sa montre. C'était Phileas Fogg. « Je parie vingt mille livres que je ferai le tour du monde en quatre-vingts jours », annonça-t-il. Tout le monde éclata de rire. Lui ne riait pas. Son domestique, Passepartout, attrapait déjà les valises. Fogg remarqua {prenom} et le carnet. « Vous venez ? Le train part à huit heures quarante-cinq. Pas une minute de plus. »",
         scene:
-          "Inside an elegant Victorian gentlemen's club with red velvet armchairs: Phileas Fogg (tall slim English gentleman, black top hat, dark grey frock coat) stands calmly, looking at his silver pocket watch; next to him, Passepartout (cheerful round-faced Frenchman, red waistcoat) grabs two suitcases; {prenom} stands near them holding the leather notebook; warm lamplight; no letters anywhere.",
+          "Inside an elegant Victorian gentlemen's club with red velvet armchairs: Phileas Fogg (tall slim English gentleman, black top hat, dark grey frock coat) stands calmly, looking at his silver pocket watch; next to him, Passepartout (cheerful round-faced Frenchman, red waistcoat) grabs two suitcases; {prenom} stands near them holding the leather notebook; warm lamplight; nobody else in the room, the armchairs are empty; no letters anywhere.",
         presents: ["Phileas Fogg", "Passepartout"],
       },
       {
@@ -911,7 +913,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "Chapitre 10 — Le traîneau à voile\nEn Amérique, la neige bloqua le train au milieu des grandes plaines. Un homme proposa un drôle d'engin : un traîneau avec une voile, qui glissait sur la neige comme un bateau. Personne n'y croyait. « Moi, j'y crois », dit {prenom}. Le vent gonfla la voile. Le traîneau fila à travers la plaine blanche si vite que Passepartout dut tenir son chapeau à deux mains en criant de joie. Ce soir-là, {prenom} traça encore un trait au dos du carnet.",
         scene:
-          "A snowy American prairie in winter: a wooden sledge with a big white sail glides at full speed over the snow; {prenom} sits at the front, laughing, hair in the wind; Passepartout (round-faced Frenchman, red waistcoat) holds his hat with both hands behind; Phileas Fogg (black top hat) sits calmly at the back; sparkling snow and blue sky.",
+          "A snowy American prairie in winter: a wooden sledge with a big white sail glides at full speed over the snow; {prenom} sits at the front, laughing, hair in the wind; Passepartout (round-faced Frenchman, red waistcoat) holds his hat with both hands behind; Phileas Fogg (black top hat) sits calmly at the back; nobody else on the sledge or in the picture; sparkling snow and blue sky.",
         presents: ["Passepartout", "Phileas Fogg"],
       },
       {

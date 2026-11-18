@@ -140,6 +140,7 @@ export default function CreateBookForm({
   const majExtra = (i: number, patch: Partial<Extra>) => setExtras((xs) => xs.map((x, k) => (k === i ? { ...x, ...patch } : x)));
   const groupe = groupePourAge(age);
   const classiqueChoisi = mode === "theme" && estClassique(findThemeById(themeId));
+  const sansDoudou = mode === "theme" && Boolean(findThemeById(themeId)?.sansDoudou);
   const stylesAge: IllustrationStyle[] = classiqueChoisi
     ? [STYLE_DEFAUT]
     : [STYLE_DEFAUT, ...groupe.styles.filter((k) => k !== STYLE_DEFAUT && stylesPourAge(age).includes(k)), ...stylesPourAge(age).filter((k) => k !== STYLE_DEFAUT && !groupe.styles.includes(k))];
@@ -683,9 +684,10 @@ export default function CreateBookForm({
         <details className="carte" open={extras.length > 0}>
           <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3">
             <span className="font-serif text-xl">D'autres personnages ? <span className="text-base text-magique-texteClair">(facultatif)</span></span>
-            <span className="hidden text-sm text-magique-primaire sm:inline">Frère, sœur, parent, doudou…</span>
+            <span className="hidden text-sm text-magique-primaire sm:inline">{sansDoudou ? "Frère, sœur, parent…" : "Frère, sœur, parent, doudou…"}</span>
           </summary>
           <div className="mt-4 space-y-4">
+            {sansDoudou && <p className="text-sm text-magique-texteClair">Pas de doudou dans cette série : l'histoire est écrite pour les grands.</p>}
             {extras.map((x, i) => (
               <div key={i} className="grid gap-3 rounded-2xl border border-magique-trait p-4 sm:grid-cols-[1fr_1fr_auto]">
                 <label className="block text-sm font-semibold">
@@ -703,7 +705,7 @@ export default function CreateBookForm({
                 <label className="block text-sm font-semibold">
                   C'est…
                   <select name={`extra_${i}_role`} value={x.role} onChange={(e) => majExtra(i, { role: e.target.value })} className="champ mt-1">
-                    {ROLES_EXTRAS.map((r) => (
+                    {ROLES_EXTRAS.filter((r) => !sansDoudou || r !== "doudou" || x.role === "doudou").map((r) => (
                       <option key={r} value={r}>
                         {r.charAt(0).toUpperCase() + r.slice(1)}
                       </option>
@@ -718,6 +720,9 @@ export default function CreateBookForm({
                 >
                   Retirer
                 </button>
+                {sansDoudou && x.role === "doudou" && (
+                  <p className="text-sm font-semibold text-red-300 sm:col-span-3">Pas de doudou dans cette série : il n'apparaîtra pas dans le livre. Choisissez un autre rôle ou retirez-le.</p>
+                )}
                 {x.role === "doudou" ? (
                   // Doudou : choisi dans une liste (rien à deviner pour l'illustrateur).
                   <div className="grid gap-3 sm:col-span-3 sm:grid-cols-2">
