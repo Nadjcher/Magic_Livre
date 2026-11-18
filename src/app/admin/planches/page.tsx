@@ -173,7 +173,7 @@ export default async function PlanchesPage() {
                   ) : null}
                 </figcaption>
                 {p.url && (
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <form action={validerPlancheAction}>
                       <input type="hidden" name="histoire" value={h.id} />
                       <input type="hidden" name="style" value={style} />
@@ -181,12 +181,17 @@ export default async function PlanchesPage() {
                       <input type="hidden" name="valide" value={p.valide ? "non" : "oui"} />
                       <button className="rounded-full border border-magique-trait px-3 py-1 text-xs">{p.valide ? "✓ Validée" : "Valider"}</button>
                     </form>
-                    <form action={redessinerPlancheAction}>
-                      <input type="hidden" name="histoire" value={h.id} />
-                      <input type="hidden" name="style" value={style} />
-                      <input type="hidden" name="cle" value={p.cle} />
-                      <button className="rounded-full border border-magique-trait px-3 py-1 text-xs">Redessiner</button>
-                    </form>
+                    {/* Effacer une planche se confirme : un toucher par erreur ne doit pas la supprimer. */}
+                    <details className="text-xs">
+                      <summary className="cursor-pointer list-none rounded-full border border-magique-trait px-3 py-1">Redessiner…</summary>
+                      <form action={redessinerPlancheAction} className="mt-2 space-y-1">
+                        <input type="hidden" name="histoire" value={h.id} />
+                        <input type="hidden" name="style" value={style} />
+                        <input type="hidden" name="cle" value={p.cle} />
+                        <p className="text-magique-texteClair">La planche est effacée tout de suite, puis redessinée (payant).</p>
+                        <button className="rounded-full border border-rose-300 px-3 py-1 text-rose-300">Oui, effacer cette planche</button>
+                      </form>
+                    </details>
                   </div>
                 )}
               </figure>
