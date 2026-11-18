@@ -802,7 +802,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
   {
     id: "maitresse-tour-du-monde",
     themeId: "tour-du-monde",
-    // « La bibliothèque des aventuriers » (9-12 ans), épisode 1. Écrite le 18 nov. 2026, texte à valider.
+    // « La bibliothèque des aventuriers » (9-12 ans), épisode 1. Texte validé le 18 nov. 2026 (planches pas encore faites).
     ouverte: false,
     ageMin: 9,
     ageMax: 12,
@@ -867,7 +867,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       },
       {
         texte:
-          "Chapitre 4 — Un drôle de policier\nSur le paquebot qui filait vers l'Égypte, {prenom} remarqua un homme à moustache caché derrière un journal. Il les suivait partout. « C'est l'inspecteur Fix, chuchota Passepartout. Il croit que Monsieur Fogg a volé une banque ! » {prenom} nota dans un coin de sa tête : un inspecteur, une moustache, un journal à l'envers. Chaque soir, {prenom} traçait un petit trait au dos du carnet, pour compter les jours. La mer brillait comme une route sans fin.",
+          "Chapitre 4 — Un drôle de policier\nSur le paquebot qui filait vers l'Égypte, {prenom} remarqua un homme à moustache caché derrière un journal tenu à l'envers. Il les suivait partout. « C'est l'inspecteur Fix, chuchota Passepartout. Il croit que Monsieur Fogg a volé une banque ! » {prenom} nota dans un coin de sa tête : un inspecteur, une moustache, un journal à l'envers. Chaque soir, {prenom} traçait un petit trait au dos du carnet, pour compter les jours. La mer brillait comme une route sans fin.",
         scene:
           "On the deck of a Victorian steamship crossing a sparkling sea: {prenom} leans on the railing next to Passepartout (round-faced Frenchman, red waistcoat), both glancing at Inspector Fix (thin man, bowler hat, big moustache, long brown overcoat) who hides comically behind an upside-down newspaper with no letters on it; sunny day; seagulls.",
         presents: ["Passepartout", "Fix"],
@@ -909,7 +909,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       },
       {
         texte:
-          "Chapitre 10 — Le traîneau à voile\nEn Amérique, la neige bloqua le train au milieu des grandes plaines. Un homme proposa un drôle d'engin : un traîneau avec une voile, qui glissait sur la neige comme un bateau. Personne n'y croyait. « Moi, j'y crois », dit {prenom}. Le vent gonfla la voile. Le traîneau fila à travers la plaine blanche si vite que Passepartout dut tenir son chapeau à deux mains en criant de joie.",
+          "Chapitre 10 — Le traîneau à voile\nEn Amérique, la neige bloqua le train au milieu des grandes plaines. Un homme proposa un drôle d'engin : un traîneau avec une voile, qui glissait sur la neige comme un bateau. Personne n'y croyait. « Moi, j'y crois », dit {prenom}. Le vent gonfla la voile. Le traîneau fila à travers la plaine blanche si vite que Passepartout dut tenir son chapeau à deux mains en criant de joie. Ce soir-là, {prenom} traça encore un trait au dos du carnet.",
         scene:
           "A snowy American prairie in winter: a wooden sledge with a big white sail glides at full speed over the snow; {prenom} sits at the front, laughing, hair in the wind; Passepartout (round-faced Frenchman, red waistcoat) holds his hat with both hands behind; Phileas Fogg (black top hat) sits calmly at the back; sparkling snow and blue sky.",
         presents: ["Passepartout", "Phileas Fogg"],
