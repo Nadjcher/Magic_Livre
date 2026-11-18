@@ -160,7 +160,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "Au bout du chemin tordu, une petite maison avait sa fenêtre allumée. Les frères de Poucet coururent vers la porte en riant. Poucet glissa un caillou dessiné dans sa poche. « Merci, {prenom} », dit-il. Tout autour, la page redevint claire.",
         scene:
-          "At the end of a trail of separate small crooked glowing white pebbles of unequal sizes, spaced apart with grass between them (never a paved path, never stepping stones), a small cottage with a warmly lit window stands in a forest turning bright again; Poucet's six tiny brothers run laughing toward the door; Poucet slips a white stone into his pocket with rosy cheeks, smiling at {prenom}, who stands proudly holding {doudou} and the white pencil; ONE single plush toy in the picture, {doudou} in {prenom}'s arms; Poucet and his brothers are tiny HUMAN BOYS (Poucet in his red knitted bonnet and brown jacket), never plush toys, never animal heads; soft golden light.",
+          "Medium close-up at dusk in front of a small forest cottage whose door stands open, warm golden light spilling out; Poucet's brothers have already run inside, so NO other children are in the picture. In the foreground, Poucet, a tiny HUMAN BOY in his red knitted bonnet and brown jacket, with rosy cheeks, slips a small white stone into his jacket pocket and smiles up at {prenom}; {prenom} stands proudly beside him holding {doudou} and the white pencil; just two or three small crooked glowing white pebbles lie in the grass at their feet, no trail; ONE single plush toy in the picture, {doudou} in {prenom}'s arms; Poucet is never a plush toy, never an animal head; soft golden light.",
         presents: ["Poucet"],
       },
       {
