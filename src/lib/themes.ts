@@ -127,6 +127,9 @@ const CLASSIQUES: Theme[] = [
   { id: "robin-des-bois", titre: "Robin des bois", emoji: "🏹", categorie: "classiques", style: "aventure",
     accroche: "La forêt de Sherwood, un arc, et des amis qui aident les plus pauvres.",
     brief: classique("la légende de Robin des bois", "la forêt de Sherwood, l'arc et la flèche, les joyeux compagnons, le tournoi de tir à l'arc, partager avec ceux qui n'ont rien", "L'enfant est un jeune archer du groupe ; le shérif est un grincheux qui finit par se montrer généreux.") },
+  { id: "tour-du-monde", titre: "Le tour du monde en 80 jours", emoji: "🌍", categorie: "classiques", style: "anim3d",
+    accroche: "Un pari fou, un gentleman pressé, et quatre-vingts jours pour faire le tour de la Terre.",
+    brief: classique("Le Tour du monde en quatre-vingts jours de Jules Verne", "le pari de Phileas Fogg, Passepartout, les trains, les paquebots, l'éléphant, l'inspecteur Fix, le jour gagné en voyageant vers l'est", "L'enfant entre dans le roman avec son carnet de voyage et aide Phileas Fogg à gagner son pari.") },
 ];
 
 

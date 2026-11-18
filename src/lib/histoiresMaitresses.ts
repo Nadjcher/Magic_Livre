@@ -799,6 +799,145 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
     ],
     passages: {},
   },
+  {
+    id: "maitresse-tour-du-monde",
+    themeId: "tour-du-monde",
+    // « La bibliothèque des aventuriers » (9-12 ans), épisode 1. Écrite le 18 nov. 2026, texte à valider.
+    ouverte: false,
+    ageMin: 9,
+    ageMax: 12,
+    objet: "un billet de train de 1872",
+    titre: "Le tour du monde {de_prenom}",
+    ritournelle: "« Pas une minute de plus. »",
+    resume:
+      "Dans le vieux livre de {parent}, Phileas Fogg a parié qu'il ferait le tour du monde en quatre-vingts jours. Avec un carnet de voyage où l'on n'a droit qu'à quatre lignes, {prenom} entre dans le roman de Jules Verne : trains, paquebots, éléphant, tempête… et un inspecteur qui les suit partout.",
+    faits:
+      "Le carnet de voyage de {parent} : ce que l'on y écrit devient vrai, quatre lignes en tout. {prenom} a aidé Phileas Fogg à gagner son pari : un pont de lianes, des voiles qui tiennent, et le jour gagné en voyageant vers l'est. {prenom} a rapporté un billet de train de 1872. Une ligne du carnet reste à écrire.",
+    tenueHeros: "a dark blue sweater, beige trousers, brown boots, a small worn leather travel notebook",
+    reglesImage:
+      "THE ERA: 1872, the Victorian age: steamships, steam trains, gas lamps, top hats; never anything modern. The child wears modern simple clothes and stands out a little. " +
+      "THE TRAVEL NOTEBOOK: a small worn brown leather notebook, always with the child. When a line written in it becomes real, the new thing glows faintly golden and looks a little crooked. " +
+      "Phileas Fogg: always calm, black top hat, dark grey frock coat, silver pocket watch. Passepartout: round-faced Frenchman, red waistcoat. Inspector Fix: comic, never scary, bowler hat and big moustache. " +
+      "Nothing frightening; NO letters or numbers anywhere (newspapers, signs, tickets and clocks without writing).",
+    cast: [
+      {
+        nom: "Phileas Fogg",
+        visuel:
+          "HUMAN MAN: a tall slim English gentleman of about forty, very calm, neat light-brown hair and sideburns, a black top hat, a dark grey frock coat, a silver pocket watch on a chain; Victorian era.",
+      },
+      {
+        nom: "Passepartout",
+        visuel:
+          "HUMAN MAN: a cheerful round-faced Frenchman of about thirty, curly black hair, a red waistcoat over a white shirt, brown trousers; lively and kind; Victorian era.",
+      },
+      {
+        nom: "Fix",
+        visuel:
+          "HUMAN MAN: a thin police inspector with a big brown moustache, a bowler hat and a long brown overcoat, comic and suspicious, never scary; Victorian era.",
+      },
+      {
+        nom: "Kiouni",
+        visuel:
+          "ELEPHANT: a huge gentle Indian elephant with kind eyes and a colourful embroidered red and gold blanket on its back; a real living animal.",
+      },
+    ],
+    couverture:
+      "Book cover, medium shot: {prenom} sits proudly on the back of Kiouni, a huge gentle Indian elephant with a colourful embroidered blanket, facing the viewer with a big smile and holding up a small leather travel notebook; Phileas Fogg (tall gentleman, black top hat, grey frock coat) walks beside the elephant checking his silver pocket watch; in the background, a steam train and a steamship under a golden sunrise sky; calm sky in the upper third; no letters anywhere.",
+    pages: [
+      {
+        texte:
+          "Chapitre 1 — Le vieux livre de {parent}\nCe soir-là, {parent} posa sur le lit un gros livre à la couverture de cuir usé : Le Tour du monde en quatre-vingts jours. Dedans, glissé entre deux pages, il y avait un petit carnet de voyage. « C'était à moi quand j'avais ton âge, {dit_parent}. Une seule règle : quatre lignes, pas une de plus. » Puis {parent} éteignit la grande lumière en souriant, comme quelqu'un qui garde un secret.",
+        scene:
+          "A cosy bedroom at night lit by a warm bedside lamp: {parent} (seen from behind, face not shown) places a big old leather-bound adventure book on the bed; a small worn leather travel notebook peeks out from between its pages; {prenom}, sitting up in bed, looks at it with curiosity; no other characters.",
+        presents: [],
+      },
+      {
+        texte:
+          "Chapitre 2 — Une ligne dans le carnet\n{prenom} ouvrit le carnet. Sur la première page, d'une écriture ancienne : « Écris où tu veux aller. » {prenom} prit un crayon et écrivit : « Je pars avec Phileas Fogg. » Les lettres se mirent à briller. Le lit disparut, la lampe aussi. Une odeur de pluie et de charbon remplaça tout le reste. {prenom} se tenait debout dans une rue de Londres, en 1872, le carnet serré contre la poitrine.",
+        scene:
+          "A foggy London street in 1872 at dusk: gas lamps glowing, horse-drawn carriages, brick houses; {prenom} stands in the middle of the pavement in a dark blue sweater, beige trousers and brown boots, holding a small worn leather travel notebook against the chest, amazed; passers-by far in the background, faces not detailed; no letters on shop signs.",
+        presents: [],
+      },
+      {
+        texte:
+          "Chapitre 3 — Le pari de Phileas Fogg\nDans un club tout en velours, un homme très calme regardait sa montre. C'était Phileas Fogg. « Je parie vingt mille livres que je ferai le tour du monde en quatre-vingts jours », annonça-t-il. Tout le monde éclata de rire. Lui ne riait pas. Son domestique, Passepartout, attrapait déjà les valises. Fogg remarqua {prenom} et le carnet. « Vous venez ? Le train part à huit heures quarante-cinq. Pas une minute de plus. »",
+        scene:
+          "Inside an elegant Victorian gentlemen's club with red velvet armchairs: Phileas Fogg (tall slim English gentleman, black top hat, dark grey frock coat) stands calmly, looking at his silver pocket watch; next to him, Passepartout (cheerful round-faced Frenchman, red waistcoat) grabs two suitcases; {prenom} stands near them holding the leather notebook; warm lamplight; no letters anywhere.",
+        presents: ["Phileas Fogg", "Passepartout"],
+      },
+      {
+        texte:
+          "Chapitre 4 — Un drôle de policier\nSur le paquebot qui filait vers l'Égypte, {prenom} remarqua un homme à moustache caché derrière un journal. Il les suivait partout. « C'est l'inspecteur Fix, chuchota Passepartout. Il croit que Monsieur Fogg a volé une banque ! » {prenom} nota dans un coin de sa tête : un inspecteur, une moustache, un journal à l'envers. Chaque soir, {prenom} traçait un petit trait au dos du carnet, pour compter les jours. La mer brillait comme une route sans fin.",
+        scene:
+          "On the deck of a Victorian steamship crossing a sparkling sea: {prenom} leans on the railing next to Passepartout (round-faced Frenchman, red waistcoat), both glancing at Inspector Fix (thin man, bowler hat, big moustache, long brown overcoat) who hides comically behind an upside-down newspaper with no letters on it; sunny day; seagulls.",
+        presents: ["Passepartout", "Fix"],
+      },
+      {
+        texte:
+          "Chapitre 5 — La voie ferrée s'arrête\nEn Inde, le train s'arrêta brusquement au milieu de la jungle. Les rails s'arrêtaient là, tout simplement. « Il manque cinquante miles de voie », expliqua le conducteur. Les voyageurs râlaient, s'éventaient, abandonnaient. Phileas Fogg sortit sa montre, la regarda, la rangea. « Bien. Nous trouverons un autre moyen. » {prenom} admira son calme. Mais dans la jungle, il n'y avait ni route ni cheval.",
+        scene:
+          "In the Indian jungle in 1872: a steam train stopped where the railway tracks suddenly end among tall trees and vines; Phileas Fogg (tall gentleman, black top hat, grey frock coat) checks his silver pocket watch, perfectly calm; {prenom} stands next to him holding the leather notebook, looking at the end of the rails; lush green light.",
+        presents: ["Phileas Fogg"],
+      },
+      {
+        texte:
+          "Chapitre 6 — L'éléphant qui boitait\nDerrière un village, ils trouvèrent un éléphant immense, couvert d'une couverture brodée. Il s'appelait Kiouni. Mais il boitait, et personne n'osait l'approcher. {prenom} s'avança doucement, la main tendue. Dans la patte de Kiouni, une grosse épine était plantée. {prenom} la retira d'un coup sec. L'éléphant souffla, puis enroula sa trompe autour de son bras, comme pour dire merci. Il voulait bien les porter.",
+        scene:
+          "At the edge of an Indian village: Kiouni, a huge gentle Indian elephant with a colourful embroidered blanket on its back, lifts one front foot; {prenom} kneels beside the foot, carefully pulling out a big thorn; the elephant's trunk gently curls around {prenom}'s arm; warm golden afternoon light; no other characters.",
+        presents: ["Kiouni"],
+      },
+      {
+        texte:
+          "Chapitre 7 — Le fleuve en colère\nAprès deux jours de jungle, un fleuve gonflé par la pluie leur barra la route. Le pont avait été emporté. Kiouni recula en barrissant. Phileas Fogg regarda sa montre. Alors {prenom} ouvrit le carnet et écrivit sa deuxième ligne : « Un pont de lianes, solide comme le fer. » Sur l'eau, des lianes se tressèrent toutes seules, un peu tordues, mais bien solides. Kiouni posa une patte, puis une autre.",
+        scene:
+          "A wide swollen jungle river after the rain: a crooked bridge of braided vines, glowing faintly golden as it has just become real, stretches across the water; Kiouni (huge gentle elephant with a colourful embroidered blanket) carefully steps onto it; {prenom} sits on Kiouni's back holding the open leather notebook, Phileas Fogg (black top hat, grey frock coat) seated behind; dramatic but hopeful light.",
+        presents: ["Kiouni", "Phileas Fogg"],
+      },
+      {
+        texte:
+          "Chapitre 8 — Passepartout a disparu\nÀ Hong Kong, la veille du départ, Passepartout disparut. Le paquebot partait à l'aube. {prenom} réfléchit : la veille, l'inspecteur Fix avait offert à Passepartout un thé très fort, un thé qui fait dormir. Le journal à l'envers, la moustache… {prenom} suivit l'odeur du thé jusqu'à une petite maison du port. Passepartout ronflait sur un banc. {prenom} le secoua, et ils coururent jusqu'au quai, juste à temps.",
+        scene:
+          "A lantern-lit harbour street of old Hong Kong at night: {prenom} pulls a sleepy Passepartout (round-faced Frenchman, red waistcoat) by the arm toward the docks where a steamship waits; Inspector Fix (bowler hat, big moustache, brown overcoat) peeks out of a tea house doorway, annoyed; red paper lanterns; no letters or characters on signs.",
+        presents: ["Passepartout", "Fix"],
+      },
+      {
+        texte:
+          "Chapitre 9 — La tempête du Pacifique\nAu milieu du Pacifique, une tempête secoua le navire. Les vagues montaient plus haut que les mâts. Le capitaine voulait faire demi-tour. « Impossible, dit Fogg. Nous perdrions trois jours. » {prenom} sentait le carnet trembler dans sa poche. {Il} écrivit sa troisième ligne : « Les voiles tiennent jusqu'au matin. » Toute la nuit, le vent hurla. Mais au lever du soleil, les voiles étaient toujours là.",
+        scene:
+          "A Victorian steamship with sails in a stormy Pacific Ocean: huge waves, dark clouds, a little glowing light around the sails that hold firm; on the deck, {prenom} holds onto a rope with one hand and the leather notebook with the other; Phileas Fogg (black top hat, grey frock coat) stands steady at the railing; dramatic, but not frightening.",
+        presents: ["Phileas Fogg"],
+      },
+      {
+        texte:
+          "Chapitre 10 — Le traîneau à voile\nEn Amérique, la neige bloqua le train au milieu des grandes plaines. Un homme proposa un drôle d'engin : un traîneau avec une voile, qui glissait sur la neige comme un bateau. Personne n'y croyait. « Moi, j'y crois », dit {prenom}. Le vent gonfla la voile. Le traîneau fila à travers la plaine blanche si vite que Passepartout dut tenir son chapeau à deux mains en criant de joie.",
+        scene:
+          "A snowy American prairie in winter: a wooden sledge with a big white sail glides at full speed over the snow; {prenom} sits at the front, laughing, hair in the wind; Passepartout (round-faced Frenchman, red waistcoat) holds his hat with both hands behind; Phileas Fogg (black top hat) sits calmly at the back; sparkling snow and blue sky.",
+        presents: ["Passepartout", "Phileas Fogg"],
+      },
+      {
+        texte:
+          "Chapitre 11 — Cinq minutes de trop\nÀ Londres, le dernier train arriva avec cinq minutes de retard. Quatre-vingts jours, et cinq minutes de trop. L'inspecteur Fix arrêta même Phileas Fogg, avant de découvrir que le vrai voleur avait été pris depuis longtemps. Trop tard. Fogg rentra chez lui sans un mot. Passepartout pleurait. {prenom} regarda son carnet. Il n'y restait qu'une seule ligne, la toute dernière.",
+        scene:
+          "A rainy London evening in 1872: Phileas Fogg (black top hat, grey frock coat) walks slowly away under the rain, shoulders low; Passepartout (red waistcoat) wipes a tear; {prenom} stands on the wet pavement, looking down at the open leather notebook; gas lamps glowing; melancholic but gentle; no letters anywhere.",
+        presents: ["Phileas Fogg", "Passepartout"],
+      },
+      {
+        texte:
+          "Chapitre 12 — Le jour gagné\nAlors {prenom} compta les petits traits au dos du carnet, un par soir. Il y en avait un de moins que de jours au calendrier ! En voyageant vers l'est, ils avaient gagné une journée entière. Ce n'était pas le dernier jour : c'était l'avant-dernier ! {prenom} courut chez Fogg. « Monsieur, nous sommes en avance ! » Ils foncèrent au club. Il restait une seconde quand Phileas Fogg poussa la porte.",
+        scene:
+          "Inside the velvet gentlemen's club: Phileas Fogg (tall gentleman, black top hat, grey frock coat) bursts through the door, perfectly calm, holding his silver pocket watch; {prenom} right behind him, out of breath, holding up the open leather notebook with a huge smile; Passepartout (red waistcoat) cheering; a big round wall clock (no numbers, only hands) shows the very last second; golden light.",
+        presents: ["Phileas Fogg", "Passepartout"],
+      },
+      {
+        texte:
+          "Chapitre 13 — Le billet de 1872\n{prenom} se réveilla dans son lit, le carnet sur la poitrine. Entre deux pages, il y avait un vieux billet de train, daté de 1872. {parent} entra. « Alors, tu sais comment Fogg a gagné son pari ? » {prenom} sourit. « Grâce à un jour gagné en voyageant vers l'est. » Puis {il} montra la dernière ligne du carnet, qui n'avait pas servi. « Et celle-là, je la garde pour le prochain livre. »",
+        scene:
+          "Morning in the cosy bedroom: {prenom} sits in bed holding an old yellowed train ticket and the small leather notebook, smiling; the big leather-bound adventure book lies on the duvet; {parent} (seen from behind, face not shown) at the door; soft morning light; no letters on the ticket.",
+        presents: [],
+      },
+    ],
+    passages: {},
+  },
 ];
 
 /** L'histoire maîtresse d'un thème, si elle existe pour cet âge. */

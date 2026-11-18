@@ -61,7 +61,8 @@ export const storySchema = z.object({
   pages: z
     .array(storyPageSchema)
     .min(4, "L'histoire doit contenir au moins 4 pages.")
-    .max(12, "L'histoire ne doit pas dépasser 12 pages."),
+    // 13 : le maximum qui tient dans le livre imprimé de 30 pages (romans de « La bibliothèque des aventuriers »).
+    .max(13, "L'histoire ne doit pas dépasser 13 pages."),
   // Fiche visuelle (en anglais) des personnages secondaires récurrents, reprise
   // à l'identique dans chaque illustration pour qu'ils ne changent pas.
   personnages: z

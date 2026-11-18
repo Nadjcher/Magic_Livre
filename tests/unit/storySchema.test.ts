@@ -22,8 +22,8 @@ describe("validation JSON de l'histoire", () => {
     expect(storySchema.safeParse(histoireValide(4)).success).toBe(true);
   });
 
-  it("refuse plus de 12 pages", () => {
-    expect(storySchema.safeParse(histoireValide(13)).success).toBe(false);
+  it("refuse plus de 13 pages", () => {
+    expect(storySchema.safeParse(histoireValide(14)).success).toBe(false);
   });
 
   it("parse du JSON brut valide", () => {
