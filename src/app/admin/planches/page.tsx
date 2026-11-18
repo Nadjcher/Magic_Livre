@@ -9,6 +9,7 @@ import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { estAdmin } from "@/lib/rateLimit";
 import { HISTOIRES_MAITRESSES } from "@/lib/histoiresMaitresses";
+import { findThemeById } from "@/lib/themes";
 import { derniersLivres, etatPlanches, statsRefaites } from "@/lib/planches";
 import { STYLE_DEFAUT } from "@/lib/style_config";
 import { dessinerPlanchesAction, redessinerPlancheAction, revenirAncienneAction, utiliserCandidateAction, validerPlancheAction, verifierPlanchesAction } from "@/app/actions/planches";
@@ -41,7 +42,9 @@ export default async function PlanchesPage() {
         <section key={h.id} className="carte space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-2xl">{h.titre.replace(" {de_prenom}", "")}</h2>
+              <h2 className="text-2xl">
+                {findThemeById(h.themeId)?.titre ?? h.themeId} — <span className="italic">{h.titre.replace(" {de_prenom}", "")}</span>
+              </h2>
               <p className="text-sm text-magique-texteClair">
                 {etat.dessinees}/{etat.total} dessinées · {etat.validees}/{etat.total} validées
                 {etat.validees === etat.total ? " · prêtes : les livres utilisent les planches" : ""}
