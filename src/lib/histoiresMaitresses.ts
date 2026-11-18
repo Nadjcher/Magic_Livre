@@ -923,7 +923,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
       },
       {
         texte:
-          "Chapitre 12 — Le jour gagné\nAlors {prenom} compta les petits traits au dos du carnet, un par soir. Il y en avait un de moins que de jours au calendrier ! En voyageant vers l'est, ils avaient gagné une journée entière. Ce n'était pas le dernier jour : c'était l'avant-dernier ! {prenom} courut chez Fogg. « Monsieur, nous sommes en avance ! » Ils foncèrent au club. Il restait une seconde quand Phileas Fogg poussa la porte.",
+          "Chapitre 12 — Le jour gagné\nAlors {prenom} compta les petits traits au dos du carnet, un par soir. Il y en avait un de plus que de jours passés au calendrier ! En voyageant vers l'est, ils avaient gagné une journée entière. Ce n'était pas le dernier jour : c'était l'avant-dernier ! {prenom} courut chez Fogg. « Monsieur, nous sommes en avance ! » Ils foncèrent au club. Il restait une seconde quand Phileas Fogg poussa la porte.",
         scene:
           "Inside the velvet gentlemen's club: Phileas Fogg (tall gentleman, black top hat, grey frock coat) bursts through the door, perfectly calm, holding his silver pocket watch; {prenom} right behind him, out of breath, holding up the open leather notebook with a huge smile; Passepartout (red waistcoat) cheering; a big round wall clock (no numbers, only hands) shows the very last second; golden light.",
         presents: ["Phileas Fogg", "Passepartout"],
