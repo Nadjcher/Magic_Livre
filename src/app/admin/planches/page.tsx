@@ -11,7 +11,7 @@ import { estAdmin } from "@/lib/rateLimit";
 import { HISTOIRES_MAITRESSES } from "@/lib/histoiresMaitresses";
 import { derniersLivres, etatPlanches, statsRefaites } from "@/lib/planches";
 import { STYLE_DEFAUT } from "@/lib/style_config";
-import { dessinerPlanchesAction, redessinerPlancheAction, revenirAncienneAction, utiliserCandidateAction, validerPlancheAction } from "@/app/actions/planches";
+import { dessinerPlanchesAction, redessinerPlancheAction, revenirAncienneAction, utiliserCandidateAction, validerPlancheAction, verifierPlanchesAction } from "@/app/actions/planches";
 
 export const metadata: Metadata = { title: "Planches", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -55,6 +55,16 @@ export default async function PlanchesPage() {
                   <input type="hidden" name="style" value={style} />
                   <button className="btn-primaire">
                     Dessiner les {etat.total - etat.dessinees} planches manquantes (~{((etat.total - etat.dessinees) * 0.05 + 0.15).toFixed(2)} $)
+                  </button>
+                </form>
+              )}
+              {etat.planches.some((p) => p.url && p.verdict === null) && (
+                <form action={verifierPlanchesAction}>
+                  <input type="hidden" name="histoire" value={h.id} />
+                  <input type="hidden" name="style" value={style} />
+                  <button className="btn-secondaire">
+                    Faire vérifier par l'agent ({etat.planches.filter((p) => p.url && p.verdict === null).length} planches, ~
+                    {(etat.planches.filter((p) => p.url && p.verdict === null).length * 0.03).toFixed(2)} $)
                   </button>
                 </form>
               )}
@@ -149,6 +159,9 @@ export default async function PlanchesPage() {
                   <strong>{p.index === -1 ? "Couverture" : `Page ${p.index + 1}`}</strong>
                   {p.variante ? ` · parent ${p.variante}` : ""}
                   {!p.enfant && !p.doudou ? " · reprise telle quelle" : ""}
+                  {p.url && p.verdict === "" ? <span className="block text-emerald-300">Agent : rien à signaler</span> : null}
+                  {p.url && p.verdict ? <span className="block text-rose-300">Agent : {p.verdict}</span> : null}
+                  {p.url && p.verdict === null ? <span className="block text-magique-texteClair">Agent : pas encore vérifiée</span> : null}
                   {stats.parCle.get(p.cle) ? (
                     <span className={`block ${stats.livres && (stats.parCle.get(p.cle) ?? 0) / stats.livres >= 0.2 ? "text-rose-300" : "text-magique-texteClair"}`}>
                       Refaite par les parents : {stats.parCle.get(p.cle)} livre{(stats.parCle.get(p.cle) ?? 0) > 1 ? "s" : ""}

@@ -6,7 +6,7 @@ import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/session";
 import { estAdmin } from "@/lib/rateLimit";
-import { dessinerPlanches, effacerPlanche, histoireParId, validerPlanche, clesPlanches, utiliserCandidate, revenirAncienne } from "@/lib/planches";
+import { dessinerPlanches, effacerPlanche, histoireParId, validerPlanche, clesPlanches, utiliserCandidate, revenirAncienne, verifierPlanches } from "@/lib/planches";
 import { STYLE_DEFAUT, type IllustrationStyle } from "@/lib/style_config";
 
 async function admin(): Promise<boolean> {
@@ -71,5 +71,19 @@ export async function revenirAncienneAction(formData: FormData): Promise<void> {
   const cle = String(formData.get("cle") ?? "");
   if (!histoireParId(histoire) || !cle) return;
   await revenirAncienne(histoire, style, cle);
+  revalidatePath("/admin/planches");
+}
+
+/** L'agent regarde les planches dessinées pas encore vérifiées (payant : environ 0,03 $ par planche). */
+export async function verifierPlanchesAction(formData: FormData): Promise<void> {
+  if (!(await admin())) return;
+  const h = histoireParId(String(formData.get("histoire") ?? ""));
+  if (!h) return;
+  const style = (String(formData.get("style") ?? "") || STYLE_DEFAUT) as IllustrationStyle;
+  waitUntil(
+    verifierPlanches(h, style, Date.now() + 250_000, formData.get("toutes") === "oui")
+      .then((n) => console.log("[planches] agent :", h.id, n, "vérifiées"))
+      .catch((e) => console.error("[planches] agent", String(e).slice(0, 200))),
+  );
   revalidatePath("/admin/planches");
 }

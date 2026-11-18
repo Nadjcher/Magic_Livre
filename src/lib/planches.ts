@@ -22,8 +22,8 @@ import { generateIllustration, retoucherPlanche } from "./illustration";
 import { HISTOIRES_MAITRESSES, type HistoireMaitresse, type Personnalisation } from "./histoiresMaitresses";
 import { construireLivre } from "./maitresseGenerateur";
 import { consoliderFiche, signature } from "./ficheHistoire";
-import { CONSIGNE_COUVERTURE } from "./bibleVisuelle";
-import { cheveuxDifferents, especeAttendue, estPeluche, memeEspece } from "./controleIllustrations";
+import { CONSIGNE_COUVERTURE, grillePour } from "./bibleVisuelle";
+import { cheveuxDifferents, especeAttendue, estPeluche, memeEspece, verifier } from "./controleIllustrations";
 import { mapLimit } from "./parallele";
 import type { Story } from "./storySchema";
 import type { StoryRequest } from "./storyPrompt";
@@ -104,6 +104,8 @@ function table(): Promise<unknown> {
     )
     // L'enfant vu de dos sur CETTE image (sinon : d'après la scène écrite). Permet d'échanger une planche sans redéployer.
     .then(() => prisma.$executeRawUnsafe(`ALTER TABLE "Planche" ADD COLUMN IF NOT EXISTS "deDos" BOOLEAN`))
+    // L'avis de l'agent de vérification : "" = rien à signaler, sinon les défauts vus ; NULL = pas encore vérifiée.
+    .then(() => prisma.$executeRawUnsafe(`ALTER TABLE "Planche" ADD COLUMN IF NOT EXISTS verdict TEXT`))
     .catch((e) => {
       pret = null;
       throw e;
@@ -116,14 +118,16 @@ export interface LignePlanche {
   valide: boolean;
   /** null : on suit la scène écrite. */
   deDos: boolean | null;
+  /** Avis de l'agent : "" rien à signaler, sinon les défauts ; null = pas vérifiée. */
+  verdict: string | null;
 }
 
 export async function lirePlanches(histoire: string, style: string): Promise<Map<string, LignePlanche>> {
   try {
     await table();
-    const rows = await prisma.$queryRaw<{ cle: string; url: string; valide: boolean; deDos: boolean | null }[]>`
-      SELECT cle, url, valide, "deDos" FROM "Planche" WHERE histoire = ${histoire} AND style = ${style}`;
-    return new Map(rows.map((r) => [r.cle, { url: r.url, valide: r.valide, deDos: r.deDos }]));
+    const rows = await prisma.$queryRaw<{ cle: string; url: string; valide: boolean; deDos: boolean | null; verdict: string | null }[]>`
+      SELECT cle, url, valide, "deDos", verdict FROM "Planche" WHERE histoire = ${histoire} AND style = ${style}`;
+    return new Map(rows.map((r) => [r.cle, { url: r.url, valide: r.valide, deDos: r.deDos, verdict: r.verdict }]));
   } catch {
     return new Map();
   }
@@ -133,7 +137,11 @@ export async function enregistrer(histoire: string, style: string, cle: string, 
   await table();
   await prisma.$executeRaw`
     INSERT INTO "Planche" (histoire, style, cle, url, valide) VALUES (${histoire}, ${style}, ${cle}, ${url}, FALSE)
-    ON CONFLICT (histoire, style, cle) DO UPDATE SET url = EXCLUDED.url, valide = FALSE, "creeLe" = NOW()`;
+    ON CONFLICT (histoire, style, cle) DO UPDATE SET url = EXCLUDED.url, valide = FALSE, verdict = NULL, "creeLe" = NOW()`;
+}
+
+async function noterVerdict(histoire: string, style: string, cle: string, verdict: string): Promise<void> {
+  await prisma.$executeRaw`UPDATE "Planche" SET verdict = ${verdict.slice(0, 600)} WHERE histoire = ${histoire} AND style = ${style} AND cle = ${cle}`;
 }
 
 /**
@@ -200,6 +208,7 @@ export async function etatPlanches(h: HistoireMaitresse, style: string) {
       valide: Boolean(m.get(k.cle)?.valide),
       // Sens réellement utilisé à la retouche (la planche l'emporte sur la scène écrite).
       deDosEffectif: m.get(k.cle)?.deDos ?? Boolean(k.deDos),
+      verdict: m.get(k.cle)?.verdict ?? null,
       candidat: m.has(`${k.cle}:candidat`),
       ancienne: m.has(`${k.cle}:ancienne`),
     })),
@@ -260,7 +269,7 @@ export async function dessinerPlanches(h: HistoireMaitresse, style: Illustration
         await enregistrer(h.id, style, f.cle, r.imageUrl);
         // Les fiches ne se valident pas une à une : elles servent seulement de référence.
         await validerPlanche(h.id, style, f.cle, true);
-        existantes.set(f.cle, { url: r.imageUrl, valide: true, deDos: null });
+        existantes.set(f.cle, { url: r.imageUrl, valide: true, deDos: null, verdict: null });
         dessinees++;
       } else erreurs.push(`${f.cle} : ${r.error ?? "échec"}`);
     },
@@ -288,20 +297,97 @@ export async function dessinerPlanches(h: HistoireMaitresse, style: Illustration
           .filter(([name]) => (livre.couvertureScene ?? "").toLowerCase().includes(name.toLowerCase()))
           .slice(0, 3)
           .map(([name, f]) => ({ name, ...f }));
-    const r = await generateIllustration({
-      ...commun,
-      recurringCharacters: livre.personnages,
-      scene,
-      anchorImage: ancre ?? undefined,
-      castRefs: refs,
-      seed: 91_000 + n + Math.floor(Math.random() * 500),
-    });
-    if (r.imageUrl) {
-      await enregistrer(h.id, style, k.cle, r.imageUrl);
-      dessinees++;
-    } else erreurs.push(`${k.cle} : ${r.error ?? "échec"}`);
+    const dessiner = (consigne: string) =>
+      generateIllustration({
+        ...commun,
+        recurringCharacters: livre.personnages,
+        scene: consigne,
+        anchorImage: ancre ?? undefined,
+        castRefs: refs,
+        seed: 91_000 + n + Math.floor(Math.random() * 500),
+      });
+    let r = await dessiner(scene);
+    if (!r.imageUrl) {
+      erreurs.push(`${k.cle} : ${r.error ?? "échec"}`);
+      return;
+    }
+    // L'agent regarde la planche ; si elle a un défaut, UN second dessin avec la correction (jamais un troisième).
+    let avis = ancre ? await agentPlanche(livre, refs, ancre, r, scene, style) : null;
+    if (avis && !avis.ok && Date.now() < limite) {
+      const r2 = await dessiner(`${scene}. IMPORTANT CORRECTION: ${avis.fix}`);
+      if (r2.imageUrl) {
+        r = r2;
+        avis = await agentPlanche(livre, refs, ancre!, r, scene, style);
+      }
+    }
+    await enregistrer(h.id, style, k.cle, r.imageUrl!);
+    if (avis) await noterVerdict(h.id, style, k.cle, avis.ok ? "" : avis.fix || "défaut non précisé");
+    dessinees++;
   });
   return { dessinees, erreurs };
+}
+
+/* ─── L'agent de vérification des planches ─── */
+
+/**
+ * Regarde une planche comme un directeur artistique (même relectrice que les
+ * livres : inventaire de ce qu'elle voit, règles appliquées par le code) :
+ * personnages présents et à la bonne taille, une seule peluche, règles de la
+ * scène (jamais un chemin pavé…), pas de lettres. Une aide : la validation
+ * reste humaine.
+ */
+async function agentPlanche(
+  livre: Story,
+  refs: { name: string; base64: string; mime: string }[],
+  ancre: Ref,
+  image: { base64?: string; mime?: string; imageUrl: string | null },
+  scene: string,
+  style: string,
+): Promise<{ ok: boolean; fix: string } | null> {
+  const page = image.base64 ? { base64: image.base64, mime: image.mime ?? "image/jpeg" } : await lireRef(image.imageUrl);
+  if (!page) return null;
+  const visuels = new Map((livre.cast ?? []).map((c) => [c.nom, c.visuel]));
+  const v = await verifier(
+    { nom: ENFANT, description: livre.personnages?.split(/\.\s|;/)[0]?.slice(0, 220) ?? "the child", image: ancre },
+    refs.map((c) => ({ nom: c.name, description: visuels.get(c.name) ?? c.name, image: { base64: c.base64, mime: c.mime } })),
+    page,
+    scene,
+    grillePour(style),
+  );
+  if ("nonVerifiee" in v && v.nonVerifiee) return null;
+  return { ok: v.ok, fix: v.fix };
+}
+
+/** Fait vérifier par l'agent les planches dessinées qui n'ont pas encore d'avis (jusqu'à `limite`). */
+export async function verifierPlanches(h: HistoireMaitresse, style: IllustrationStyle, limite: number, toutes = false): Promise<number> {
+  const m = await lirePlanches(h.id, style);
+  const ancre = await lireRef(m.get("fiche:enfant")?.url);
+  if (!ancre) return 0;
+  const livres = {
+    homme: consoliderFiche(construireLivre(h, persoNeutre("homme", h), { style, age: h.ageMin })),
+    femme: consoliderFiche(construireLivre(h, persoNeutre("femme", h), { style, age: h.ageMin })),
+  };
+  const fiches = new Map<string, Ref>();
+  for (const c of livres.homme.cast ?? []) {
+    const r = await lireRef(m.get(`fiche:${c.nom}`)?.url);
+    if (r) fiches.set(c.nom, r);
+  }
+  let n = 0;
+  const cibles = clesPlanches(h).filter((k) => m.has(k.cle) && (toutes || m.get(k.cle)!.verdict === null));
+  await mapLimit(cibles, 4, async (k) => {
+    if (Date.now() > limite) return;
+    const livre = livres[k.variante ?? "homme"];
+    const page = k.index >= 0 ? livre.pages[k.index] : null;
+    const scene = page ? page.scene_illustration : `Book cover: ${livre.couvertureScene ?? ""}`;
+    const refs = page
+      ? presents(page, fiches)
+      : [...fiches.entries()].filter(([name]) => (livre.couvertureScene ?? "").toLowerCase().includes(name.toLowerCase())).slice(0, 3).map(([name, f]) => ({ name, ...f }));
+    const avis = await agentPlanche(livre, refs, ancre, { imageUrl: m.get(k.cle)!.url }, scene, style);
+    if (!avis) return;
+    await noterVerdict(h.id, style, k.cle, avis.ok ? "" : avis.fix || "défaut non précisé");
+    n++;
+  });
+  return n;
 }
 
 /* ─── Un livre à partir des planches ─── */
