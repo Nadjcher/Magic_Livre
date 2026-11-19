@@ -14,7 +14,7 @@ import { signer, lancerIllustrations } from "./bookPipeline";
 import { generateStory, relireHistoire } from "./storyGenerator";
 import { EN_RELECTURE } from "./illustrationStatus";
 import { reserver } from "./idempotence";
-import { consoliderFiche } from "./ficheHistoire";
+import { cadrerScenes, consoliderFiche } from "./ficheHistoire";
 import type { Story } from "./storySchema";
 import type { StoryRequest } from "./storyPrompt";
 
@@ -34,7 +34,9 @@ function eliminee(story: Story): boolean {
 /** Enregistre et illustre, ou relance, ou renonce poliment. */
 export async function livrer(l: Livraison, story: Story): Promise<void> {
   // Fiche consolidée par le code (gratuit) : chaque scène décrit ses personnages, présents à jour.
-  const complete = consoliderFiche({ ...story, ...l.complement } as Story);
+  const consolidee = consoliderFiche({ ...story, ...l.complement } as Story);
+  // Idée libre et thèmes écrits par l'IA : chaque image cadrée par le code (les histoires toutes prêtes ont leurs scènes validées).
+  const complete = consolidee.meta?.trame?.startsWith("maitresse-") ? consolidee : cadrerScenes(consolidee);
   if (!eliminee(complete)) {
     await prisma.book.update({ where: { id: l.bookId }, data: { title: complete.titre, pages: complete } });
     await lancerIllustrations({ bookId: l.bookId, req: l.req, portrait: l.portrait });

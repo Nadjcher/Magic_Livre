@@ -85,6 +85,36 @@ export function consoliderFiche(story: Story): Story {
   return { ...story, cast: story.cast ? cast : undefined, pages };
 }
 
+/** Personnages secondaires visibles au plus sur une image d'idée libre (le héros en plus). */
+export const PRESENTS_MAX = 2;
+
+const PELUCHE = /\b(plush|teddy|cuddly toy|stuffed)\b/i;
+
+/**
+ * Idée libre : chaque image est cadrée par le code, comme une planche validée.
+ * Au plus deux personnages secondaires (ceux que la scène nomme d'abord), la
+ * liste exacte de ce qui est visible, ni foule ni figurants, et une seule
+ * peluche. Le dessinateur confond au-delà de trois personnages : on ne lui
+ * laisse plus le choix. (Pas pour les histoires toutes prêtes : leurs scènes
+ * sont déjà validées une à une.)
+ */
+export function cadrerScenes(story: Story): Story {
+  const cast = story.cast ?? [];
+  const peluches = cast.some((c) => PELUCHE.test(c.visuel));
+  const pages = story.pages.map((p) => {
+    const presents = p.presents ?? [];
+    const nommes = presents.filter((n) => nomDans(n, p.scene_illustration));
+    const gardes = [...new Set([...nommes, ...presents])].slice(0, PRESENTS_MAX);
+    const visibles = ["the hero (once)", ...gardes].join(", ");
+    const regle =
+      `ONLY these characters are visible: ${visibles}. No other people, animals or creatures, no crowd, no background figures.` +
+      (peluches ? " At most ONE plush toy in the picture." : "");
+    const scene = `${p.scene_illustration.trim().replace(/[.\s]+$/, "")}. ${regle}`;
+    return { ...p, presents: p.presents ? gardes : p.presents, scene_illustration: scene };
+  });
+  return { ...story, pages };
+}
+
 /** Ce que l'IA doit corriger avant les images (et les simples signalements). */
 export function verifierFiche(story: Story, opts: { age: number; prenom: string }): ProblemeFiche[] {
   const problemes: ProblemeFiche[] = [];
@@ -107,6 +137,9 @@ export function verifierFiche(story: Story, opts: { age: number; prenom: string 
     if (proteges.length) problemes.push({ page, grave: true, message: `Personnage ou marque protégés (${proteges.join(", ")}) : les remplacer par une invention.` });
     if (p.scene_illustration.trim().length < 40) {
       problemes.push({ page, grave: true, message: "La scène à dessiner est vide ou trop vague : décrire le décor, les personnages présents et l'action." });
+    }
+    if ((p.presents?.length ?? 0) > PRESENTS_MAX) {
+      problemes.push({ page, grave: false, message: `Trop de personnages sur l'image (${p.presents!.length}) : ${PRESENTS_MAX} au plus, le héros en plus.` });
     }
     // Un personnage du texte absent de l'image : le lecteur ne le verra pas (signalement).
     for (const c of story.cast ?? []) {

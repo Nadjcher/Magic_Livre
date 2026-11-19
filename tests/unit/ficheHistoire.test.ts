@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { consoliderFiche, signature, verifierFiche, correctionsFiche } from "@/lib/ficheHistoire";
+import { cadrerScenes, consoliderFiche, signature, verifierFiche, correctionsFiche } from "@/lib/ficheHistoire";
 import { HISTOIRES_MAITRESSES, remplir, type Personnalisation } from "@/lib/histoiresMaitresses";
 import type { Story } from "@/lib/storySchema";
 
@@ -86,4 +86,27 @@ describe("histoires toutes prêtes", () => {
       expect(graves.map((p) => `${p.page ?? "-"} ${p.message}`)).toEqual([]);
     });
   }
+});
+
+describe("cadrerScenes (idée libre)", () => {
+  const zephyr = { nom: "Zéphyr", visuel: "DRAGON: a small green dragon" };
+  it("garde au plus deux personnages secondaires, ceux que la scène nomme d'abord", () => {
+    const s = cadrerScenes(livre([{ scene_illustration: "Léo and Zéphyr fly over the sea.", presents: ["Pompon", "Poucet", "Zéphyr"] }], [pompon, poucet, zephyr]));
+    expect(s.pages[0]!.presents).toEqual(["Zéphyr", "Pompon"]);
+    expect(s.pages[0]!.scene_illustration).toContain("ONLY these characters are visible: the hero (once), Zéphyr, Pompon.");
+    expect(s.pages[0]!.scene_illustration).toContain("no crowd");
+  });
+  it("une seule peluche quand le doudou fait partie de l'histoire", () => {
+    const s = cadrerScenes(livre([{ presents: ["Pompon"] }]));
+    expect(s.pages[0]!.scene_illustration).toContain("At most ONE plush toy");
+  });
+  it("sans personnage secondaire : le héros seul", () => {
+    const s = cadrerScenes(livre([{ presents: [] }], [zephyr]));
+    expect(s.pages[0]!.scene_illustration).toContain("ONLY these characters are visible: the hero (once).");
+    expect(s.pages[0]!.scene_illustration).not.toContain("plush");
+  });
+  it("signale (sans bloquer) une page à plus de deux personnages", () => {
+    const p = verifierFiche(livre([{ texte: "Léo rit.", presents: ["Pompon", "Poucet", "Zéphyr"] }], [pompon, poucet, zephyr]), { age: 5, prenom: "Léo" });
+    expect(p.some((x) => !x.grave && /Trop de personnages/.test(x.message))).toBe(true);
+  });
 });
