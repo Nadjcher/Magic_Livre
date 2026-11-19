@@ -159,3 +159,12 @@ export function vol(x: number, y: number, tx: number, ty: number, n: number): vo
     });
   }
 }
+
+/** Un rideau d'étincelles le long d'une ligne verticale (la reliure, le bord d'une page). */
+export function ligne(x: number, y0: number, y1: number, n: number, sens: -1 | 1 = -1): void {
+  for (let i = 0; i < n; i++) {
+    etincelle(x + (Math.random() - 0.5) * 10, y0 + Math.random() * (y1 - y0), {
+      vx: sens * (1 + Math.random() * 3.5), vy: -Math.random() * 1.2, life: 40 + Math.random() * 40, r: 1 + Math.random() * 2.4, g: 0.02,
+    });
+  }
+}

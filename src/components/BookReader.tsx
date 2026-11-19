@@ -5,9 +5,16 @@
  *
  * Fonctions : navigation précédent/suivant, navigation au clavier (flèches),
  * lecture à voix haute (Web Speech API) avec choix de la voix, pause et arrêt.
+ *
+ * Magie : la page tourne en deux temps (elle part, la suivante arrive), un
+ * rideau d'étincelles longe le bord de la page, un feu d'artifice salue la
+ * « Fin », et pendant la lecture à voix haute le mot lu s'illumine. Avec le
+ * réglage « réduire les animations » : pages instantanées, sans étincelles
+ * (le mot lu reste surligné, il aide à suivre).
  */
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { gerbe, ligne, mouvementReduit } from "@/components/magie/etincelles";
 import { estCarre } from "@/lib/bibleVisuelle";
 import { separerChapitre } from "@/lib/chapitre";
 import { useRouter } from "next/navigation";
@@ -77,6 +84,34 @@ export default function BookReader({
     return story.pages[index - 1]?.texte ?? "";
   }, [index, story]);
 
+  // Le corps de la page, mot à mot, avec la position de chaque mot dans le texte lu à voix haute.
+  const { chapitre, mots } = useMemo(() => {
+    const { chapitre, corps } = separerChapitre(texteCourant);
+    const decalage = Math.max(0, texteCourant.lastIndexOf(corps));
+    const liste: { t: string; debut: number }[] = [];
+    for (const m of corps.matchAll(/\S+/g)) liste.push({ t: m[0], debut: decalage + (m.index ?? 0) });
+    return { chapitre, mots: liste };
+  }, [texteCourant]);
+  const corpsLongueur = useMemo(() => mots.reduce((n, m) => n + m.t.length + 1, 0), [mots]);
+
+  /** Le mot en train d'être lu (-1 : aucun). */
+  const [motLu, setMotLu] = useState(-1);
+  const minuteurMots = useRef<number | null>(null);
+  const stopMinuteur = () => {
+    if (minuteurMots.current) window.clearInterval(minuteurMots.current);
+    minuteurMots.current = null;
+  };
+
+  // Tourne-page en deux temps : la page part (300 ms), puis la suivante arrive.
+  const [phase, setPhase] = useState<"repos" | "sortie" | "entree">("repos");
+  const [sens, setSens] = useState<1 | -1>(1);
+  const indexRef = useRef(0);
+  const minuteurPage = useRef<number | null>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    indexRef.current = index;
+  }, [index]);
+
   useEffect(() => {
     if (!voixDisponible) return;
     const charger = () => {
@@ -94,6 +129,8 @@ export default function BookReader({
   }, [voixDisponible, voiceURI]);
 
   const arreter = useCallback(() => {
+    stopMinuteur();
+    setMotLu(-1);
     if (!voixDisponible) return;
     window.speechSynthesis.cancel();
     setEnLecture(false);
@@ -107,27 +144,85 @@ export default function BookReader({
     if (voix) u.voice = voix;
     u.lang = voix?.lang ?? "fr-FR";
     u.rate = 0.95;
-    u.onend = () => setEnLecture(false);
-    u.onerror = () => setEnLecture(false);
+    // Le mot lu s'illumine : la voix dit où elle en est (onboundary) ;
+    // sinon (certaines voix ne le disent pas), un mot toutes les 330 ms.
+    let signale = false;
+    stopMinuteur();
+    setMotLu(-1);
+    u.onboundary = (e) => {
+      if (e.name && e.name !== "word") return;
+      signale = true;
+      stopMinuteur();
+      let k = -1;
+      for (let i = 0; i < mots.length && mots[i]!.debut <= e.charIndex; i++) k = i;
+      setMotLu(k);
+    };
+    u.onstart = () => {
+      window.setTimeout(() => {
+        if (signale || !mots.length || !window.speechSynthesis.speaking) return;
+        let k = 0;
+        setMotLu(0);
+        minuteurMots.current = window.setInterval(() => {
+          k++;
+          if (k >= mots.length) stopMinuteur();
+          else setMotLu(k);
+        }, 330);
+      }, 700);
+    };
+    const fin = () => {
+      stopMinuteur();
+      setMotLu(-1);
+      setEnLecture(false);
+    };
+    u.onend = fin;
+    u.onerror = fin;
     setEnLecture(true);
     window.speechSynthesis.speak(u);
-  }, [voixDisponible, texteCourant, voices, voiceURI]);
+  }, [voixDisponible, texteCourant, voices, voiceURI, mots]);
 
   const pause = useCallback(() => {
     if (!voixDisponible) return;
     window.speechSynthesis.pause();
+    stopMinuteur();
     setEnLecture(false);
   }, [voixDisponible]);
 
-  const precedent = useCallback(() => {
-    arreter();
-    setIndex((i) => Math.max(0, i - 1));
-  }, [arreter]);
+  const allerA = useCallback(
+    (n: number) => {
+      arreter();
+      const cible = Math.max(0, Math.min(totalEcrans - 1, n));
+      if (cible === indexRef.current) return;
+      if (minuteurPage.current) window.clearTimeout(minuteurPage.current);
+      if (mouvementReduit()) {
+        setIndex(cible);
+        return;
+      }
+      setSens(cible > indexRef.current ? 1 : -1);
+      setPhase("sortie");
+      minuteurPage.current = window.setTimeout(() => {
+        indexRef.current = cible;
+        setIndex(cible);
+        setPhase("entree");
+        const r = pageRef.current?.getBoundingClientRect();
+        if (!r) return;
+        // Rideau d'étincelles le long du bord de la page.
+        ligne(r.left + 4, r.top + 12, r.bottom - 12, 34);
+        // La « Fin » : un petit feu d'artifice.
+        if (cible === totalEcrans - 1) {
+          for (let k = 0; k < 6; k++) {
+            window.setTimeout(() => gerbe(r.left + r.width * (0.15 + Math.random() * 0.7), r.top + r.height * (0.15 + Math.random() * 0.45), 40, { s: 1.2, big: k % 2 === 0 }), 250 + k * 260);
+          }
+        }
+      }, 300);
+    },
+    [arreter, totalEcrans],
+  );
+  useEffect(() => () => {
+    if (minuteurPage.current) window.clearTimeout(minuteurPage.current);
+  }, []);
 
-  const suivant = useCallback(() => {
-    arreter();
-    setIndex((i) => Math.min(totalEcrans - 1, i + 1));
-  }, [arreter, totalEcrans]);
+  const precedent = useCallback(() => allerA(indexRef.current - 1), [allerA]);
+  const suivant = useCallback(() => allerA(indexRef.current + 1), [allerA]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -149,10 +244,11 @@ export default function BookReader({
   return (
     <div className="space-y-5">
       {/* ─── La page du livre ─── */}
-      <div className="relative overflow-hidden rounded-3xl border border-magique-trait bg-gradient-to-b from-white/[0.12] to-white/[0.04] shadow-conte backdrop-blur-md">
+      <div ref={pageRef} className="relative overflow-hidden rounded-3xl border border-magique-trait bg-gradient-to-b from-white/[0.12] to-white/[0.04] shadow-conte backdrop-blur-md [perspective:1400px]">
         <div
           key={index}
-          className="anim-page flex min-h-[360px] flex-col items-center justify-center px-6 py-10 text-center sm:px-12"
+          className={`flex min-h-[360px] flex-col items-center justify-center px-6 py-10 text-center sm:px-12 ${phase === "sortie" ? "page-sortie" : phase === "entree" ? "page-entree" : ""}`}
+          style={{ ["--sens" as string]: sens, transformOrigin: sens === 1 ? "left center" : "right center" }}
         >
           {estFin ? (
             <>
@@ -164,7 +260,7 @@ export default function BookReader({
               </p>
               {suite ?? (
                 <div className="mt-7 flex flex-wrap justify-center gap-3">
-                  <button type="button" onClick={() => setIndex(0)} className="btn-secondaire">
+                  <button type="button" onClick={() => allerA(0)} className="btn-secondaire">
                     Relire depuis le début
                   </button>
                   <Link href="/creer" className="btn-primaire">
@@ -197,17 +293,15 @@ export default function BookReader({
                   }`}
                 />
               )}
-              {(() => {
-                const { chapitre, corps } = separerChapitre(texteCourant);
-                return (
-                  <>
-                    {chapitre && <p className="mb-3 font-serif text-lg font-semibold text-magique-primaire">{chapitre}</p>}
-                    <p className={`max-w-[46ch] leading-relaxed text-magique-texte ${corps.length > 450 ? "text-lg" : corps.length > 250 ? "text-xl" : "text-2xl"}`}>
-                      {corps}
-                    </p>
-                  </>
-                );
-              })()}
+              {chapitre && <p className="mb-3 font-serif text-lg font-semibold text-magique-primaire">{chapitre}</p>}
+              <p className={`max-w-[46ch] leading-relaxed text-magique-texte ${corpsLongueur > 450 ? "text-lg" : corpsLongueur > 250 ? "text-xl" : "text-2xl"}`}>
+                {mots.map((m, k) => (
+                  <Fragment key={k}>
+                    {k > 0 ? " " : null}
+                    <span className={k === motLu ? "mot-lu" : undefined}>{m.t}</span>
+                  </Fragment>
+                ))}
+              </p>
               {!pageCourante?.imageUrl &&
                 (story.apercu ? (
                   <p className="mt-6 rounded-full border border-magique-trait bg-white/[0.05] px-4 py-1.5 text-xs text-magique-texteClair">
@@ -264,7 +358,7 @@ export default function BookReader({
             <span
               key={k}
               className={`h-2 rounded-full transition-[width,background-color] duration-200 ${
-                k === index ? "w-6 bg-or" : "w-2 bg-magique-trait"
+                k === index ? "w-6 bg-[#ff9fd6] shadow-[0_0_10px_2px_rgba(255,159,214,.55)]" : "w-2 bg-magique-trait"
               }`}
             />
           ))}
