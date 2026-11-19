@@ -182,8 +182,8 @@ export default async function AccueilPage() {
             <LivreQuiSAnime />
           </div>
           <div className="md:col-start-1 md:row-start-1" style={{ animation: "monter .6s .05s both" }}>
-            <h1 className="text-[2rem] leading-[1.08] text-white sm:text-[3.4rem]">
-              Il ouvre le livre… et c'est lui dedans.
+            <h1 data-titre-magie className="text-[2rem] leading-[1.08] text-white sm:text-[3.4rem]">
+              <span className="titre-mot" style={{ ["--delai" as string]: "0.1s" }}>Il</span> <span className="titre-mot" style={{ ["--delai" as string]: "0.22s" }}>ouvre</span> <span className="titre-mot" style={{ ["--delai" as string]: "0.34s" }}>le</span> <span className="titre-mot" style={{ ["--delai" as string]: "0.46s" }}>livre…</span> <span className="titre-mot" style={{ ["--delai" as string]: "0.9s" }}>et</span> <span className="titre-mot" style={{ ["--delai" as string]: "1.02s" }}>c'est</span> <span className="titre-mot" style={{ ["--delai" as string]: "1.25s" }}><span className="titre-lui">lui</span></span> <span className="titre-mot" style={{ ["--delai" as string]: "1.4s" }}>dedans.</span>
             </h1>
             <p className="mt-4 max-w-[44ch] text-base leading-relaxed text-magique-texteClair sm:mt-5 sm:text-lg">
               Une photo suffit : nous le dessinons, vous dites «&nbsp;oui, c'est lui&nbsp;», et une histoire

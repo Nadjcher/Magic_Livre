@@ -10,6 +10,7 @@ import { failStaleBooks } from "@/lib/bookMaintenance";
 import { storySchema } from "@/lib/storySchema";
 import { lightenStory, migrateBookImagesToBlob } from "@/lib/bookImages";
 import BookReader from "@/components/BookReader";
+import RevelationLivre from "@/components/RevelationLivre";
 import DeleteBookButton from "@/components/DeleteBookButton";
 import AutoRefresh from "@/components/AutoRefresh";
 import Notice from "@/components/Notice";
@@ -205,6 +206,10 @@ export default async function LivrePage(
         (() => {
           return (
             <>
+              {/* Première ouverture d'un livre complet et récent : la révélation. */}
+              {!story.apercu && Date.now() - book.createdAt.getTime() < 3 * 86_400_000 && (
+                <RevelationLivre bookId={book.id} prenom={book.child.firstName} titre={book.title} couverture={story.couvertureUrl ?? undefined} />
+              )}
               <BookReader
                 story={story}
                 prenom={book.child.firstName}
