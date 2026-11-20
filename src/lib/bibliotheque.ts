@@ -13,7 +13,7 @@ import "server-only";
 import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
 import { BIBLIOTHEQUE_DEPART, DEPART_RETIRES, type Ton, type TypeExemple } from "./bibliothequeDepart";
-import { findThemeById } from "./themes";
+import { THEMES, findThemeById } from "./themes";
 
 export interface Exemple {
   id: string;
@@ -82,6 +82,18 @@ const TONS_CATEGORIE: Record<string, Ton[]> = {
  * Les modèles pour une demande : 2 extraits (ton) + 1 trame (structure),
  * choisis parmi les plus proches, avec un peu de hasard pour varier.
  */
+/**
+ * Un exemple attaché à un conte précis (le Petit Poucet…) ne sert QUE ce conte :
+ * sinon l'autrice réécrit le Poucet pour « Jack et le haricot magique ».
+ * Une trame « imposée » n'est jamais donnée à un autre thème.
+ */
+export function pourCeTheme(e: Pick<Exemple, "themes" | "texte" | "type">, themeId: string | undefined): boolean {
+  const contes = e.themes.filter((t) => THEMES.some((x) => x.id === t));
+  if (contes.length && !(themeId && contes.includes(themeId))) return false;
+  if (e.type === "trame" && e.texte.startsWith("TRAME IMPOSÉE") && !(themeId && e.themes.includes(themeId))) return false;
+  return true;
+}
+
 export async function exemplesPour(demande: {
   age: number;
   format?: string;
@@ -107,8 +119,9 @@ export async function exemplesPour(demande: {
     const candidats = await prisma.$queryRaw<Exemple[]>`
       SELECT * FROM "Exemple" WHERE actif AND "ageMin" - 1 <= ${demande.age} AND "ageMax" + 1 >= ${demande.age}`;
     // Les extraits déjà lus par l'enfant passent en dernier (les trames peuvent revenir).
-    const frais = candidats.filter((e) => e.type === "trame" || !deja.has(e.id));
-    const tous = frais.filter((e) => e.type === "extrait").length >= 2 ? frais : candidats;
+    const permis = candidats.filter((e) => pourCeTheme(e, demande.themeId));
+    const frais = permis.filter((e) => e.type === "trame" || !deja.has(e.id));
+    const tous = frais.filter((e) => e.type === "extrait").length >= 2 ? frais : permis;
     const theme = findThemeById(demande.themeId);
     const tonsVoulus = new Set<string>(theme ? TONS_CATEGORIE[theme.categorie] ?? [] : ["drole", "aventure"]);
     const score = (e: Exemple) =>
