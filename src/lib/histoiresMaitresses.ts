@@ -78,7 +78,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
     // Passé simple, ton du conte : à partir de 4 ans.
     ageMin: 4,
     ageMax: 8,
-    titre: "Les cailloux tordus {de_prenom}",
+    titre: "{prenom} au pays du Petit Poucet",
     ritournelle: "« Petit caillou blanc, montre-nous le chemin. »",
     resume:
       "Ce soir, {parent} ouvre le vieux livre de contes de son enfance. Mais à la page du Petit Poucet, les cailloux blancs ont disparu ! Avec un crayon blanc et {doudou}, {prenom} entre dans la forêt du livre pour ramener Poucet et ses frères à la maison.",

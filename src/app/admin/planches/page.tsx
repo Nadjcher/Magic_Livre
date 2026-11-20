@@ -43,7 +43,7 @@ export default async function PlanchesPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-2xl">
-                {findThemeById(h.themeId)?.titre ?? h.themeId} — <span className="italic">{h.titre.replace(" {de_prenom}", "")}</span>
+                {findThemeById(h.themeId)?.titre ?? h.themeId} — <span className="italic">{h.titre.replace(" {de_prenom}", "").replace("{prenom}", "…")}</span>
               </h2>
               <p className="text-sm text-magique-texteClair">
                 {etat.dessinees}/{etat.total} dessinées · {etat.validees}/{etat.total} validées
