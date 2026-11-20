@@ -100,7 +100,7 @@ export async function dessinerPortrait(
   photo: Ref,
   traits: string,
   style: IllustrationStyle,
-): Promise<{ imageUrl: string; ref: Ref } | { erreur: string }> {
+): Promise<{ imageUrl: string; ref: Ref } | { erreur: string; detail?: string }> {
   // 1. Ressemblance (PuLID) ; s'il tarde (démarrage à froid), on part de la photo.
   let identite: Ref | undefined;
   if (faceIdentityEnabled()) {
@@ -123,7 +123,7 @@ export async function dessinerPortrait(
     seed: Date.now() % 1_000_000,
   });
   if (!r.imageUrl || !r.base64) {
-    return { erreur: /content_policy|flagged|checker/i.test(r.error ?? "") ? "filtre" : "indisponible" };
+    return { erreur: /content_policy|flagged|checker/i.test(r.error ?? "") ? "filtre" : "indisponible", detail: (r.error ?? "aucune image renvoyée").slice(0, 300) };
   }
   return { imageUrl: r.imageUrl, ref: { base64: r.base64, mime: r.mime ?? "image/jpeg" } };
 }

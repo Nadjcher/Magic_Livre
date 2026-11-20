@@ -65,13 +65,19 @@ export async function preparerHeros(formData: FormData): Promise<PortraitResulta
 
   const r = await dessinerPortrait(photo, traits, style);
   if ("erreur" in r) {
-    return {
-      ok: false,
-      message:
-        r.erreur === "filtre"
-          ? "Le service de dessin a refusé cette photo (filtre de sécurité automatique). Essayez une autre photo, de face, en lumière du jour, ou continuez avec une description."
-          : "Le portrait n'a pas pu être dessiné pour l'instant. Réessayez dans un moment, ou continuez avec une description.",
-    };
+    console.error("[portrait] échec :", r.erreur, r.detail ?? "");
+    // Crédit de dessin épuisé : l'administrateur est prévenu tout de suite (une fois par heure).
+    const { falBloque } = await import("@/lib/attenteIllustrations");
+    if (falBloque(r.detail)) {
+      const { alerterAdmin } = await import("@/lib/notifications");
+      await alerterAdmin("crédit fal épuisé — les portraits ne se dessinent plus", `Rechargez le compte sur fal.ai (Billing). Détail : ${r.detail}`).catch(() => undefined);
+    }
+    const message =
+      r.erreur === "filtre"
+        ? "Le service de dessin a refusé cette photo (filtre de sécurité automatique). Essayez une autre photo, de face, en lumière du jour, ou continuez avec une description."
+        : "Le portrait n'a pas pu être dessiné pour l'instant. Réessayez dans un moment, ou continuez avec une description.";
+    // L'administrateur voit la cause exacte (crédit, clé, service en panne…).
+    return { ok: false, message: admin && r.detail ? `${message} [Admin : ${r.detail}]` : message };
   }
   const herosId = await enregistrerHeros({ userId: user.id, childId: enfant?.id ?? null, style, portrait: r.imageUrl, traits, essais });
   return { ok: true, herosId, image: `data:${r.ref.mime};base64,${r.ref.base64}`, traits, lumiere, essais };
