@@ -22,7 +22,7 @@ import { groupePourAge } from "@/lib/ageGroups";
 import { useRouter } from "next/navigation";
 import { createBook } from "@/app/actions/books";
 import { preparerHeros, type PortraitResultat } from "@/app/actions/heros";
-import { THEMES, THEME_CATEGORIES, estClassique, findThemeById, reserveClub, themeOuvert, type ThemeCategory } from "@/lib/themes";
+import { THEMES, THEME_CATEGORIES, aMaitresse, estClassique, findThemeById, reserveClub, themeOuvert, type ThemeCategory } from "@/lib/themes";
 import type { ChildView } from "./ChildrenManager";
 import { ILLUSTRATION_STYLES, STYLE_DEFAUT, styleOuvert, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
 import Notice from "./Notice";
@@ -176,6 +176,8 @@ export default function CreateBookForm({
   const groupe = groupePourAge(age);
   const classiqueChoisi = mode === "theme" && estClassique(findThemeById(themeId));
   const sansDoudou = mode === "theme" && Boolean(findThemeById(themeId)?.sansDoudou);
+  // Histoire toute prête : ses images partent des planches validées, où seuls l'enfant et son doudou changent.
+  const histoirePrete = mode === "theme" && aMaitresse(themeId);
   const stylesAge: IllustrationStyle[] = classiqueChoisi
     ? [STYLE_DEFAUT]
     : [STYLE_DEFAUT, ...groupe.styles.filter((k) => k !== STYLE_DEFAUT && stylesPourAge(age).includes(k)), ...stylesPourAge(age).filter((k) => k !== STYLE_DEFAUT && !groupe.styles.includes(k))];
@@ -734,12 +736,26 @@ export default function CreateBookForm({
           </div>
         )}
 
-        <details className="carte" open={extras.length > 0}>
+        <details className="carte" open={extras.length > 0 || !histoirePrete}>
           <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3">
-            <span className="font-serif text-xl">D'autres personnages ? <span className="text-base text-magique-texteClair">(facultatif)</span></span>
-            <span className="hidden text-sm text-magique-primaire sm:inline">{sansDoudou ? "Frère, sœur, parent…" : "Frère, sœur, parent, doudou…"}</span>
+            <span className="font-serif text-xl">
+              {histoirePrete ? "Son doudou" : "Sa famille dans le livre"} <span className="text-base text-magique-texteClair">(facultatif)</span>
+            </span>
+            <span className="hidden text-sm text-magique-primaire sm:inline">
+              {histoirePrete ? "Choisi dans la liste" : sansDoudou ? "Jusqu'à 3 personnes, avec leur photo" : "Jusqu'à 3 personnes ou doudou, avec leur photo"}
+            </span>
           </summary>
           <div className="mt-4 space-y-4">
+            {histoirePrete ? (
+              <p className="text-sm text-magique-texteClair">
+                Dans cette histoire toute prête, seuls {prenom || "votre enfant"} et son doudou sont dessinés. Pour un livre avec son frère, sa
+                sœur ou ses parents en photo, choisissez un autre thème ou « Mon idée à moi ».
+              </p>
+            ) : (
+              <p className="text-sm text-magique-texteClair">
+                Frère, sœur, parent, grand-parent : ajoutez leur photo, nous les dessinons à leur ressemblance, à côté de {prenom || "votre enfant"}.
+              </p>
+            )}
             {sansDoudou && <p className="text-sm text-magique-texteClair">Pas de doudou dans cette série : l'histoire est écrite pour les grands.</p>}
             {extras.map((x, i) => (
               <div key={i} className="grid gap-3 rounded-2xl border border-magique-trait p-4 sm:grid-cols-[1fr_1fr_auto]">
@@ -758,7 +774,7 @@ export default function CreateBookForm({
                 <label className="block text-sm font-semibold">
                   C'est…
                   <select name={`extra_${i}_role`} value={x.role} onChange={(e) => majExtra(i, { role: e.target.value })} className="champ mt-1">
-                    {ROLES_EXTRAS.filter((r) => !sansDoudou || r !== "doudou" || x.role === "doudou").map((r) => (
+                    {ROLES_EXTRAS.filter((r) => (histoirePrete ? r === "doudou" || r === x.role : !sansDoudou || r !== "doudou" || x.role === "doudou")).map((r) => (
                       <option key={r} value={r}>
                         {r.charAt(0).toUpperCase() + r.slice(1)}
                       </option>
@@ -812,9 +828,9 @@ export default function CreateBookForm({
                 )}
               </div>
             ))}
-            {extras.length < 3 && (
-              <button type="button" className="btn-secondaire px-4 py-2 text-sm" onClick={() => setExtras((xs) => [...xs, { name: "", role: "frère", photo: "" }])}>
-                + Ajouter un personnage
+            {extras.length < (histoirePrete ? 1 : 3) && (
+              <button type="button" className="btn-secondaire px-4 py-2 text-sm" onClick={() => setExtras((xs) => [...xs, { name: "", role: histoirePrete ? "doudou" : "frère", photo: "" }])}>
+                {histoirePrete ? "+ Ajouter son doudou" : "+ Ajouter une personne"}
               </button>
             )}
             <p className="text-xs text-magique-texteClair">Les photos servent seulement à dessiner les personnages et ne sont jamais conservées.</p>

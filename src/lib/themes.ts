@@ -52,16 +52,20 @@ export function aMaitresse(id: string | undefined): boolean {
 }
 
 /**
- * Thèmes proposés : seulement ceux qui ont une histoire maîtresse validée (les
- * autres sont « Bientôt »), plus ceux ouverts par NEXT_PUBLIC_THEMES_OUVERTS
- * (liste d'identifiants, ou « * » pour tout rouvrir), puis redéploiement.
+ * Thèmes proposés :
+ * - un thème avec une histoire toute prête suit cette histoire : ouvert
+ *   seulement quand elle est validée (ouverte) et pour sa tranche d'âge ;
+ *   sinon « Bientôt » (jamais une histoire non validée, jamais l'IA à sa place) ;
+ * - un thème sans histoire toute prête est écrit par l'IA, avec les mêmes
+ *   contrôles que l'idée libre (scènes cadrées, relecture, personnages maison) :
+ *   ouvert à tous les âges.
  */
-const THEMES_FORCES = (process.env.NEXT_PUBLIC_THEMES_OUVERTS ?? "").split(",").map((x) => x.trim()).filter(Boolean);
 export function themeOuvert(id: string | undefined, age?: number): boolean {
-  if (!id) return false;
-  if (THEMES_FORCES.includes("*") || THEMES_FORCES.includes(id)) return true;
+  if (!id || !THEMES.some((t) => t.id === id)) return false;
+  const histoires = HISTOIRES_MAITRESSES.filter((h) => h.themeId === id);
   // Une histoire maîtresse a sa tranche d'âge (ex. le Petit Poucet : 4 à 8 ans).
-  return HISTOIRES_MAITRESSES.some((h) => h.themeId === id && h.ouverte !== false && (age === undefined || (age >= h.ageMin && age <= h.ageMax)));
+  if (histoires.length) return histoires.some((h) => h.ouverte !== false && (age === undefined || (age >= h.ageMin && age <= h.ageMax)));
+  return true;
 }
 
 /** Réservé au Club : un classique sans histoire maîtresse (celles-ci sont ouvertes à tous). */
