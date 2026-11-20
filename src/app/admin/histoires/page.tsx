@@ -131,6 +131,11 @@ export default async function AtelierPage() {
             → Planches des histoires toutes prêtes (dessiner, valider)
           </a>
         </p>
+        <p>
+          <a href="/admin/personnages" className="underline">
+            → Personnages maison des idées libres (dessiner, valider)
+          </a>
+        </p>
         <p className="text-magique-texteClair">
           À chaque histoire, l'IA reçoit 2 extraits modèles et une trame tirés de la bibliothèque ci-dessous, choisis selon
           l'âge, le type de livre et le thème. Plus vous y ajoutez de bons textes, plus les histoires prennent votre ton.

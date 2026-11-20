@@ -28,6 +28,7 @@ import { findFormat } from "./bookFormats";
 import { fetchAsDataUrl } from "./imageFetch";
 import { controleActif, controlerIllustrations } from "./controleIllustrations";
 import { correctionsFiche, verifierFiche } from "./ficheHistoire";
+import { blocMaison, HISTOIRE_MAISON } from "./personnagesMaison";
 import { blocModeles, blocTrames, tramesPour, exemplesParIds, exemplesPour, type Exemple } from "./bibliotheque";
 import { PRIX_ESTIMES, noterDepense } from "./budget";
 import { BIBLE, GRILLE, SEUIL_ACCEPTATION, criteresPetits, reglesAge } from "./bible";
@@ -517,6 +518,9 @@ export async function generateStory(
     req,
     [blocModeles(modeles, variablesTrame), blocTrames(trames, variablesTrame)].filter(Boolean).join("\n\n"),
   );
+  // Personnages « maison » validés dans ce style : l'autrice les préfère (le dessin est déjà sûr).
+  const maison = await blocMaison(req.style ?? "feerique");
+  if (maison) userMessage += `\n\n${maison}`;
   const usees = await comparaisonsUsees(req.childId);
   if (usees.length) {
     userMessage += `\n\nComparaisons déjà utilisées dans les histoires précédentes de cet enfant (n'en reprends AUCUNE) : ${usees.map((c) => `« ${c} »`).join(", ")}.`;
@@ -712,7 +716,17 @@ async function addIllustrations(
 
   // 1. Fiches de référence (en parallèle, non stockées).
   // Jusqu'à 4 fiches (le doudou et trois lutins, par exemple).
-  const cast = (story.cast ?? []).filter((c) => c.nom.toLowerCase() !== heroName.toLowerCase()).slice(0, 4);
+  const tousCast = (story.cast ?? []).filter((c) => c.nom.toLowerCase() !== heroName.toLowerCase()).slice(0, 4);
+  // Personnages « maison » : leur fiche validée est reprise telle quelle (rien à dessiner, rien à deviner).
+  const fichesMaison = new Map<string, { base64: string; mime: string; url: string }>();
+  const { lirePlanches, lireRef } = await import("./planches");
+  const lignesMaison = tousCast.some((c) => c.maison) ? await lirePlanches(HISTOIRE_MAISON, style).catch(() => new Map<string, { url: string; valide: boolean }>()) : new Map<string, { url: string; valide: boolean }>();
+  for (const c of tousCast) {
+    const l = c.maison ? lignesMaison.get(c.maison) : undefined;
+    const ref = l?.valide ? await lireRef(l.url) : undefined;
+    if (ref && l) fichesMaison.set(c.nom, { ...ref, url: l.url });
+  }
+  const cast = tousCast.filter((c) => !fichesMaison.has(c.nom));
   const [ficheHeros, ...fichesCast] = await Promise.all([
     generateIllustration({
       ...commun,
@@ -744,6 +758,7 @@ async function addIllustrations(
   fichesCast.forEach((f, k) => {
     if (f.base64) fiches.set(cast[k]!.nom, { base64: f.base64, mime: f.mime ?? "image/jpeg" });
   });
+  for (const [nom, f] of fichesMaison) fiches.set(nom, { base64: f.base64, mime: f.mime });
 
   // 2. Couverture + pages, toutes ancrées sur les fiches, en parallèle.
   const pageCentrale = story.pages[Math.floor(story.pages.length / 2)];
@@ -790,6 +805,7 @@ async function addIllustrations(
   fichesCast.forEach((f, k) => {
     if (f.imageUrl) fichesUrls[cast[k]!.nom] = f.imageUrl;
   });
+  for (const [nom, f] of fichesMaison) fichesUrls[nom] = f.url;
   return {
     ...story,
     pages,
