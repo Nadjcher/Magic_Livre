@@ -139,7 +139,8 @@ export const PERSONNAGES_FIXES =
   "Characters described as tiny in the character sheet keep their tiny size on EVERY page: never as big as the hero, never seated on full-size chairs. " +
   "NEVER MIX TWO CHARACTERS: each one keeps its own head, face and body from its reference sheet; a human character never has animal ears or an animal head, " +
   "the cuddly toy never wears clothes and never stands like a person; the cuddly toy appears ONCE in the picture (never two copies). " +
-  "The parent: an adult, clearly bigger than the child and never dressed like the child; only a hand, a silhouette from behind or a profile in shadow, never a detailed face.";
+  "The parent: an adult, clearly bigger than the child and never dressed like the child; a parent WITHOUT a reference sheet is only a hand, a silhouette from behind or a profile in shadow, never a detailed face. " +
+  "A family member WITH a reference sheet (mother, father, sister, grandparent…) is drawn fully, face visible, exactly like the sheet.";
 
 /** Interdits. */
 export const INTERDITS_IMAGE =
