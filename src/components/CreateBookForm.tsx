@@ -57,6 +57,41 @@ function lirePhotoReduite(file: File | undefined, done: (dataUrl: string) => voi
 
 type Extra = { name: string; role: string; photo: string; espece?: string; couleur?: string };
 
+/**
+ * Idées qui donnent les plus beaux livres (un lieu, un petit problème, un
+ * compagnon) : un toucher les met dans le champ, que le parent modifie à
+ * sa guise. Le parent reste libre ; il est seulement guidé.
+ */
+const IDEES: { max: number; idees: string[] }[] = [
+  {
+    max: 4,
+    idees: [
+      "{p} cherche son doudou caché quelque part dans la maison.",
+      "La lune ne veut pas se coucher : {p} l'aide à trouver le sommeil.",
+      "{p} fait un pique-nique avec un petit hérisson qui a perdu sa maman.",
+      "Un nuage tout doux descend jouer avec {p} dans le jardin.",
+    ],
+  },
+  {
+    max: 7,
+    idees: [
+      "{p} trouve un œuf de dragon dans le jardin et doit le ramener chez lui.",
+      "Le phare du port s'est éteint : {p} et une mouette rieuse partent le rallumer.",
+      "{p} rétrécit et visite le potager à dos de coccinelle.",
+      "La boulangerie du village a perdu sa recette magique : {p} mène l'enquête.",
+    ],
+  },
+  {
+    max: 99,
+    idees: [
+      "{p} découvre une carte au trésor dans un vieux livre de la bibliothèque.",
+      "Un petit robot tombé du ciel demande à {p} de l'aider à rentrer chez lui.",
+      "{p} doit réparer l'horloge du village avant que le temps ne s'arrête.",
+      "Sur une île où les animaux parlent, {p} aide un renard à retrouver son étoile.",
+    ],
+  },
+];
+
 const ETAPES = ["Le héros", "L'histoire", "Les finitions"] as const;
 const LONGUEURS = [
   { id: "courte", label: "Courte", detail: "8-9 pages" },
@@ -561,6 +596,24 @@ export default function CreateBookForm({
                 className="champ mt-2"
               />
               <p className="mt-1 text-right text-xs text-magique-texteClair">{prompt.length}/300</p>
+              <p className="mt-3 text-sm text-magique-texteClair">
+                Les plus beaux livres naissent d'un lieu, d'un petit problème et d'un compagnon. Besoin d'une étincelle ?
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {(IDEES.find((g) => age <= g.max) ?? IDEES[IDEES.length - 1]!).idees.map((idee) => {
+                  const texte = idee.replaceAll("{p}", prenom || "Mon enfant");
+                  return (
+                    <button
+                      key={idee}
+                      type="button"
+                      onClick={() => setPrompt(texte)}
+                      className="min-h-11 rounded-2xl border border-magique-trait bg-white/[0.06] px-3 py-2 text-left text-sm hover:border-magique-primaire"
+                    >
+                      {texte}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

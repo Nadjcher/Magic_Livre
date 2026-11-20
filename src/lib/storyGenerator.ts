@@ -360,7 +360,8 @@ async function relireEtAmeliorer(
  * exécution : la relectrice reçoit les mêmes extraits que l'autrice.
  */
 export async function relireHistoire(story: Story, req: StoryRequest): Promise<Story> {
-  if (req.childAge >= AGE_CONSIGNE_LONGUE) return story; // relecture suspendue pour les histoires longues
+  // Histoires longues (7 ans et plus) : pas de relectrice (trop long), mais le code vérifie la fiche.
+  if (req.childAge >= AGE_CONSIGNE_LONGUE) return corrigerFiche(story, req);
   const client = createClient();
   const model = req.premium ? env.groqModelPremium() : env.groqModel();
   const ids = story.meta?.modeles ?? [];
@@ -370,6 +371,55 @@ export async function relireHistoire(story: Story, req: StoryRequest): Promise<S
     { prenom: req.childFirstName, parent: req.parent, objet: req.fiche?.objet },
   );
   return relireEtAmeliorer(client, model, story, req, Date.now(), extraits);
+}
+
+/**
+ * 7 ans et plus : le code contrôle la fiche (gratuit) ; s'il trouve un problème
+ * grave (page trop longue, prénom absent, marqueur oublié, personnage
+ * protégé…), UNE réécriture ciblée des seules pages fautives. On ne garde la
+ * réécriture que si elle a moins de problèmes graves. Jamais bloquant.
+ */
+async function corrigerFiche(story: Story, req: StoryRequest): Promise<Story> {
+  const graves = (s: Story) => correctionsFiche(verifierFiche(s, { age: req.childAge, prenom: req.childFirstName }));
+  const avant = graves(story);
+  if (!avant.length) return story;
+  console.log("[fiche 7+] à corriger :", avant.join(" | ").slice(0, 300));
+  try {
+    const client = createClient();
+    const model = req.premium ? env.groqModelPremium() : env.groqModel();
+    const raw = await callModel(
+      client,
+      model,
+      REECRITURE_SYSTEM,
+      `Âge de l'enfant : ${req.childAge} ans. Prénom du héros : ${req.childFirstName}.\nRègles de longueur : ${reglesAge(req.childAge)}\n\nCORRECTIONS\n- ${avant.join("\n- ")}\n\nHISTOIRE\n${JSON.stringify({ titre: story.titre, pages: story.pages.map((p, i) => ({ page: i + 1, texte: p.texte, scene_illustration: p.scene_illustration })) })}`,
+      0.5,
+      req.premium,
+      undefined,
+      { delaiMs: 120_000 },
+    );
+    const json = JSON.parse(/\{[\s\S]*\}/.exec(raw)?.[0] ?? "null") as { titre?: string; pages?: { page?: number; texte?: string; scene_illustration?: string }[] } | null;
+    const corrigees = (json?.pages ?? []).filter(
+      (p) => typeof p.page === "number" && p.page >= 1 && p.page <= story.pages.length && typeof p.texte === "string" && p.texte.trim().length > 0,
+    );
+    if (!corrigees.length) return story;
+    const candidate: Story = {
+      ...story,
+      titre: json?.titre?.trim() || story.titre,
+      pages: story.pages.map((p, i) => {
+        const c = corrigees.find((x) => x.page === i + 1);
+        return c ? { ...p, texte: c.texte!.trim(), scene_illustration: c.scene_illustration?.trim() || p.scene_illustration } : p;
+      }),
+    };
+    if (texteEnAnglais(candidate) || !filterStory(candidate).ok) return story;
+    const texte = [candidate.titre, ...candidate.pages.map((p) => `${p.texte} ${p.scene_illustration}`)].join(" ");
+    if (findProtectedNames(texte).length > 0) return story;
+    const apres = graves(candidate);
+    console.log("[fiche 7+] après correction :", apres.length, "problème(s) grave(s) au lieu de", avant.length);
+    return apres.length < avant.length ? candidate : story;
+  } catch (e) {
+    console.error("[fiche 7+] correction impossible :", String(e).slice(0, 160));
+    return story;
+  }
 }
 
 /** Prompt « éditeur » : réécrit une histoire pour la clarifier et l'adapter à l'âge. */
