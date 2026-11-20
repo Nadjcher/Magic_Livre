@@ -754,6 +754,9 @@ async function addIllustrations(
     ficheHeros.base64 !== undefined
       ? { base64: ficheHeros.base64, mime: ficheHeros.mime ?? "image/jpeg" }
       : portrait ?? undefined;
+  // Le portrait validé (visage en gros plan) accompagne chaque image : la fiche en pied
+  // seule laisse filer la ressemblance (visage trop petit). Sans fiche, l'ancre EST le portrait.
+  const visage = portrait && ancre !== portrait ? portrait : undefined;
   const fiches = new Map<string, { base64: string; mime: string }>();
   fichesCast.forEach((f, k) => {
     if (f.base64) fiches.set(cast[k]!.nom, { base64: f.base64, mime: f.mime ?? "image/jpeg" });
@@ -779,7 +782,7 @@ async function addIllustrations(
         ", rich setting, inviting composition, full body or medium shot, NOT a plain portrait" +
         (estCarre(style) ? `. ${CONSIGNE_COUVERTURE}` : ""),
       // Sans fiche du héros (échec), la photo garde la ressemblance.
-      referenceImage: ancre ? undefined : req.photo,
+      referenceImage: visage ?? (ancre ? undefined : req.photo),
       anchorImage: ancre,
       castRefs: couvertureFiches,
       seed: base,
@@ -790,7 +793,7 @@ async function addIllustrations(
       const { imageUrl, error } = await generateIllustration({
         ...commun,
         scene: indiceFormat ? `${p.scene_illustration}. ${indiceFormat}` : p.scene_illustration,
-        referenceImage: ancre ? undefined : req.photo,
+        referenceImage: visage ?? (ancre ? undefined : req.photo),
         anchorImage: ancre,
         castRefs: fichesPresentes(p, fiches),
         seed: base + i + 1,

@@ -470,6 +470,7 @@ export async function illustrerDepuisPlanches(
     const r = await retoucherPlanche({
       planche: ref,
       heros: k.enfant ? herosRef : undefined,
+      visage: k.enfant && portrait ? portrait : undefined,
       deDos: planche.deDos ?? k.deDos,
       doudou: k.doudou && doudouRef ? doudouRef : undefined,
       garder: autresPersonnages(h, i).map((c) => `${c.nom} (${c.description})`),

@@ -553,6 +553,8 @@ export async function retoucherPlanche(opts: {
   planche: { base64: string; mime: string };
   /** Fiche du héros de ce livre (si l'enfant est sur la planche). */
   heros?: { base64: string; mime: string };
+  /** Portrait validé par le parent (visage en gros plan) : la ressemblance, en plus de la fiche en pied. */
+  visage?: { base64: string; mime: string };
   /** Fiche du doudou de ce livre (si le doudou est sur la planche). */
   doudou?: { base64: string; mime: string };
   /** Correction demandée par la relectrice (nouvel essai). */
@@ -584,8 +586,14 @@ export async function retoucherPlanche(opts: {
     );
   } else if (opts.heros) {
     images.push(await reduire(opts.heros, 704));
+    const fiche = images.length;
+    // Le portrait validé (gros plan du visage) : c'est lui qui porte la ressemblance.
+    if (opts.visage) images.push(await reduire(opts.visage, 704));
     changements.push(
-      `the big child's face, hair (exact color and cut) and skin tone become exactly those of the child in image ${images.length}` +
+      (opts.visage
+        ? `the big child's face becomes exactly the face of the close-up portrait in image ${images.length} (same face shape, eyes, nose, mouth, eyebrows, skin tone), ` +
+          `and the hair (exact color and cut) that of the child in image ${fiche}`
+        : `the big child's face, hair (exact color and cut) and skin tone become exactly those of the child in image ${fiche}`) +
         (opts.apparence ? ` (${opts.apparence}; the SAME hair shade on every page)` : "") +
         ", " +
         "same art style, SAME head size, same pose, same position, same pyjamas",
