@@ -225,7 +225,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
         "Victimes de notre succès : tous les livres gratuits du jour sont partis ! Revenez demain matin, ou rejoignez le Club pour créer vos livres tout de suite.",
     };
   }
-  if (input.mode === "theme" && reserveClub(findThemeById(input.themeId)) && !abonnement.actif) {
+  if (input.mode === "theme" && reserveClub(findThemeById(input.themeId)) && !abonnement.actif && !estAdmin(user.email)) {
     return { ok: false, message: "Les grands classiques revisités sont réservés aux membres du Club." };
   }
 

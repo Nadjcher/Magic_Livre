@@ -113,6 +113,7 @@ export default function CreateBookForm({
   prixStandard,
   prixPremium,
   abonnement,
+  admin = false,
   consentRequis,
   termsVersion,
 }: {
@@ -125,6 +126,8 @@ export default function CreateBookForm({
   prixPremium: string;
   /** Abonnement Club (livres inclus restants, accès aux classiques). */
   abonnement: { actif: boolean; label: string; restants: number; quota: number; premium: boolean };
+  /** Administrateur : peut tout tester, classiques compris. */
+  admin?: boolean;
   /** Consentement parental pas encore donné : case à cocher avant de créer. */
   consentRequis: boolean;
   termsVersion: string;
@@ -146,12 +149,16 @@ export default function CreateBookForm({
   const prenom = nouveau ? nouveauPrenom.trim() : enfant?.firstName ?? "";
 
   // ─── Étape 2 : l'histoire ───
-  // Sans abonnement, on n'ouvre jamais sur les grands classiques (réservés au Club).
+  // Le thème demandé (lien du catalogue) est TOUJOURS celui affiché s'il existe : réservé au Club,
+  // il apparaît avec son cadenas et l'explication, jamais remplacé en silence par une autre histoire.
+  const clubOk = abonnement.actif || admin;
   const initial = findThemeById(initialThemeId);
   const themeInitial =
-    initial && themeOuvert(initial.id) && (abonnement.actif || !reserveClub(initial))
+    initial && themeOuvert(initial.id)
       ? initial
       : THEMES.find((t) => t.saison && themeOuvert(t.id)) ?? THEMES.find((t) => themeOuvert(t.id) && !reserveClub(t)) ?? THEMES[0]!;
+  // Thème demandé mais pas encore disponible : on le dit.
+  const themeIndispo = initial && !themeOuvert(initial.id) ? initial.titre : null;
   const [mode, setMode] = useState<"theme" | "libre">("theme");
   const [themeId, setThemeId] = useState(themeInitial.id);
   const [categorie, setCategorie] = useState<ThemeCategory>(themeInitial.categorie);
@@ -161,7 +168,7 @@ export default function CreateBookForm({
   const formats = formatsPourAge(age);
   const formatValide = formats.some((f) => f.id === formatId) ? formatId : formatParDefaut(age).id;
   const format = findFormat(formatValide);
-  const classiqueVerrouille = mode === "theme" && reserveClub(findThemeById(themeId)) && !abonnement.actif;
+  const classiqueVerrouille = mode === "theme" && reserveClub(findThemeById(themeId)) && !clubOk;
 
   // ─── Étape 3 : les finitions ───
   // Style 3D par défaut, comme sur la page d'accueil (le parent peut en choisir un autre, sauf pour les grands classiques).
@@ -549,7 +556,10 @@ export default function CreateBookForm({
                   </button>
                 </p>
               )}
-              {categorie === "classiques" && !abonnement.actif && THEMES.some((t) => t.categorie === "classiques" && themeOuvert(t.id) && reserveClub(t)) && (
+              {themeIndispo && (
+                <p className="rounded-2xl bg-white/[0.06] p-4 text-sm">« {themeIndispo} » arrive bientôt. Choisissez une autre histoire ci-dessous, ou racontez votre idée.</p>
+              )}
+              {categorie === "classiques" && !clubOk && THEMES.some((t) => t.categorie === "classiques" && themeOuvert(t.id) && reserveClub(t)) && (
                 <p className="text-sm text-magique-texteClair">
                   Les grands classiques sont réservés aux membres du{" "}
                   <Link href="/club" className="font-semibold text-magique-primaire underline">
@@ -561,7 +571,7 @@ export default function CreateBookForm({
               <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Thèmes">
                 {THEMES.filter((t) => t.categorie === categorie && themeOuvert(t.id, age)).map((t) => {
                   const actif = t.id === themeId;
-                  const verrou = reserveClub(t) && !abonnement.actif;
+                  const verrou = reserveClub(t) && !clubOk;
                   return (
                     <button key={t.id} type="button" role="radio" aria-checked={actif} onClick={() => choisirTheme(t.id)} className={`${tuile(actif)} flex items-start gap-3 p-3 ${verrou ? "opacity-70" : ""}`}>
                       {couvertureTheme(t.id) ? (

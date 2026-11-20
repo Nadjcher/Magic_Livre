@@ -531,10 +531,20 @@ interface Inspection {
   head_twisted?: boolean;
   hair_reference?: string;
   hair_length_reference?: string;
+  /** Même scène que la planche d'origine (décor, poses, cadrage) : sinon la retouche a renvoyé autre chose. */
+  same_scene?: boolean;
+  /** Cadre, bordure ou vignette arrondie autour de l'image. */
+  frame?: boolean;
 }
 
-async function inspecter(heros: Ref, doudou: Ref | null, page: Ref, attendus: { nom: string; description: string }[]): Promise<Inspection | null> {
-  const images = [page, heros, ...(doudou ? [doudou] : [])].map((r) => `data:${r.mime};base64,${r.base64}`);
+async function inspecter(
+  heros: Ref,
+  doudou: Ref | null,
+  page: Ref,
+  attendus: { nom: string; description: string }[],
+  origine: Ref | null = null,
+): Promise<Inspection | null> {
+  const images = [page, heros, ...(doudou ? [doudou] : []), ...(origine ? [origine] : [])].map((r) => `data:${r.mime};base64,${r.base64}`);
   const prompt = [
     "Image 1 is a book page. Answer in JSON only.",
     '"hair_page": FIRST, looking only at image 1, the hair color of the big child, one word among: blond, light brown, chestnut, dark brown, black, red, grey (lit parts, not shadows); "hair_length_page": short, medium (chin to shoulders) or long (below the shoulders).',
@@ -544,7 +554,11 @@ async function inspecter(heros: Ref, doudou: Ref | null, page: Ref, attendus: { 
       : '"present": {}.',
     `"head_twisted": true if the big child's head faces a different way than the body (for example the face looks at us while the back, the heels or the walking legs show the child is seen from behind), false otherwise.`,
     '"hair_reference" and "hair_length_reference": then, the same two answers for the child in image 2.',
-    'JSON: {"hair_page": "", "hair_length_page": "", "plush_animal": "", "plush_count": 0, "present": {}, "head_twisted": false, "hair_reference": "", "hair_length_reference": ""}',
+    '"frame": true if image 1 has a border, a frame, a margin or a rounded vignette around the picture instead of filling the whole image, false otherwise.',
+    origine
+      ? `"same_scene": the LAST image (image ${images.length}) is the original page before the child was retouched. true if image 1 shows the same scene (same setting, same poses, same framing, same other characters; only the child's face, hair or clothes and the plush toy may differ), false if image 1 shows a different scene, pose or framing (for example the child standing alone like a character sheet).`
+      : '"same_scene": true.',
+    'JSON: {"hair_page": "", "hair_length_page": "", "plush_animal": "", "plush_count": 0, "present": {}, "head_twisted": false, "hair_reference": "", "hair_length_reference": "", "frame": false, "same_scene": true}',
   ].join("\n");
   try {
     const r = await falFetch(
@@ -593,10 +607,19 @@ export async function controlerRetouches(story: Story, limite: number): Promise<
     const page = await lireRef(url);
     if (!page) return;
     const attendus = h ? autresPersonnages(h, i) : [];
-    const v = await inspecter(heros, doudouRef, page, attendus);
-    if (!v) return;
     const k = h && story.planches ? clePour(h, i, story.planches.variante) : undefined;
+    const ligne = k ? m0.get(k.cle) : undefined;
+    const planche = await lireRef(ligne?.url);
+    // La planche d'origine est montrée aussi : la retouche doit garder SA scène (pas la fiche de l'enfant debout).
+    const v = await inspecter(heros, doudouRef, page, attendus, planche ?? null);
+    if (!v) return;
     const fautes: string[] = [];
+    if (v.same_scene === false) fautes.push("keep EXACTLY the scene of the original page: same setting, same poses, same framing, same other characters; only the child (and the plush toy) change");
+    if (v.frame === true) fautes.push("full-bleed picture filling the whole image: no border, no frame, no rounded vignette");
+    if (k && !k.doudou && typeof v.plush_count === "number" && v.plush_count > 0) {
+      fautes.push("no plush toy at all in this picture");
+      aRevoir.set(i, `${i === -1 ? "couverture" : `p${i + 1}`} : une peluche alors que la scène n'en a pas (vérifier la planche)`);
+    }
     if (k?.enfant && cheveuxDifferents(v.hair_reference, v.hair_page)) fautes.push(`the child's hair must be ${v.hair_reference}, not ${v.hair_page}`);
     const court = (t?: string) => /short/i.test(t ?? "");
     const long = (t?: string) => /long/i.test(t ?? "");
@@ -614,9 +637,7 @@ export async function controlerRetouches(story: Story, limite: number): Promise<
     }
     for (const c of attendus) if (v.present?.[c.nom] === false) fautes.push(`${c.nom} (${c.description}) must stay exactly as on the original page, never replaced by the plush toy`);
     if (!fautes.length || !h || !k) return;
-    const ligne = m0.get(k.cle);
     const deDos = ligne?.deDos ?? k.deDos;
-    const planche = await lireRef(ligne?.url);
     if (!planche) return;
     const r = await retoucherPlanche({
       planche,

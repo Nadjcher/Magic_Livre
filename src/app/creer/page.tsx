@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 
 import { redirect } from "next/navigation";
 import { getCurrentUser, hasParentalConsent } from "@/lib/session";
+import { estAdmin } from "@/lib/rateLimit";
 import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import CreateBookForm from "@/components/CreateBookForm";
@@ -79,6 +80,7 @@ export default async function CreerPage(
         prixStandard={euros(env.bookPriceCents())}
         prixPremium={euros(env.bookPricePremiumCents())}
         abonnement={{ actif: ab.actif, label: ab.label, restants: ab.restants, quota: ab.quota, premium: ab.premium }}
+        admin={estAdmin(user.email)}
         consentRequis={!hasParentalConsent(user)}
         termsVersion={env.termsVersion()}
       />
