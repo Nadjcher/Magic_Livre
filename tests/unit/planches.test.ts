@@ -57,3 +57,13 @@ describe("enfant vu de dos", () => {
     expect(clePour(h, 3, "homme")?.deDos).toBe(false);
   });
 });
+
+describe("enfant vu de dos", () => {
+  it("le parent de dos ne met pas l'enfant de dos (page 1 du Poucet)", async () => {
+    const { enfantDeDos } = await import("@/lib/planches");
+    expect(enfantDeDos("{prenom} sits in bed hugging {doudou}; {parent} (seen from behind, face not shown) opens a book")).toBe(false);
+    expect(enfantDeDos("Seen from behind, {prenom} walks with empty hands")).toBe(true);
+    expect(enfantDeDos("{prenom} stands facing the viewer (never a back view, never the head twisted)")).toBe(false);
+    expect(enfantDeDos("{prenom} eats; Papa Ours only seen from behind at the stove")).toBe(false);
+  });
+});

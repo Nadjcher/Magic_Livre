@@ -68,6 +68,19 @@ export function themeOuvert(id: string | undefined, age?: number): boolean {
   return true;
 }
 
+/**
+ * Le thème sur lequel s'ouvre le formulaire : celui demandé (lien du catalogue)
+ * s'il est ouvert, même réservé au Club (le formulaire montre alors le cadenas),
+ * jamais remplacé en silence ; sinon un thème ouvert, et le titre demandé est
+ * renvoyé pour dire qu'il arrive bientôt.
+ */
+export function themeDeDepart(initialId: string | undefined): { theme: Theme; indispo: string | null } {
+  const initial = findThemeById(initialId);
+  if (initial && themeOuvert(initial.id)) return { theme: initial, indispo: null };
+  const repli = THEMES.find((t) => t.saison && themeOuvert(t.id)) ?? THEMES.find((t) => themeOuvert(t.id) && !reserveClub(t)) ?? THEMES[0]!;
+  return { theme: repli, indispo: initial ? initial.titre : null };
+}
+
 /** Réservé au Club : un classique sans histoire maîtresse (celles-ci sont ouvertes à tous). */
 export function reserveClub(t: Theme | undefined): boolean {
   return estClassique(t) && !aMaitresse(t?.id);

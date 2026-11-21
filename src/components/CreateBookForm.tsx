@@ -22,7 +22,7 @@ import { groupePourAge } from "@/lib/ageGroups";
 import { useRouter } from "next/navigation";
 import { createBook } from "@/app/actions/books";
 import { preparerHeros, type PortraitResultat } from "@/app/actions/heros";
-import { THEMES, THEME_CATEGORIES, aMaitresse, estClassique, findThemeById, reserveClub, themeOuvert, type ThemeCategory } from "@/lib/themes";
+import { THEMES, THEME_CATEGORIES, aMaitresse, estClassique, findThemeById, reserveClub, themeDeDepart, themeOuvert, type ThemeCategory } from "@/lib/themes";
 import type { ChildView } from "./ChildrenManager";
 import { ILLUSTRATION_STYLES, STYLE_DEFAUT, styleOuvert, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
 import Notice from "./Notice";
@@ -152,13 +152,7 @@ export default function CreateBookForm({
   // Le thème demandé (lien du catalogue) est TOUJOURS celui affiché s'il existe : réservé au Club,
   // il apparaît avec son cadenas et l'explication, jamais remplacé en silence par une autre histoire.
   const clubOk = abonnement.actif || admin;
-  const initial = findThemeById(initialThemeId);
-  const themeInitial =
-    initial && themeOuvert(initial.id)
-      ? initial
-      : THEMES.find((t) => t.saison && themeOuvert(t.id)) ?? THEMES.find((t) => themeOuvert(t.id) && !reserveClub(t)) ?? THEMES[0]!;
-  // Thème demandé mais pas encore disponible : on le dit.
-  const themeIndispo = initial && !themeOuvert(initial.id) ? initial.titre : null;
+  const { theme: themeInitial, indispo: themeIndispo } = themeDeDepart(initialThemeId);
   const [mode, setMode] = useState<"theme" | "libre">("theme");
   const [themeId, setThemeId] = useState(themeInitial.id);
   const [categorie, setCategorie] = useState<ThemeCategory>(themeInitial.categorie);

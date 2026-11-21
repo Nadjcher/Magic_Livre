@@ -839,7 +839,7 @@ export async function illustrateStory(
     const depuis = await illustrerDepuisPlanches(story, req, portrait, errors, story.apercu ? PAGES_APERCU : null);
     if (depuis) {
       let s = depuis;
-      if (opts.controle !== false && controleActif()) s = (await controlerRetouches(s, debut + 268_000)).story;
+      if (opts.controle !== false && controleActif()) s = (await controlerRetouches(s, debut + 268_000, portrait)).story;
       return { story: s, imageReport: imageReportOf(s, errors) };
     }
   }

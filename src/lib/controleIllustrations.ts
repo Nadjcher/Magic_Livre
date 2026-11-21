@@ -340,7 +340,11 @@ export async function controlerIllustrations(
   // Livre fait à partir des planches validées : seules les retouches sont vérifiées (cheveux, doudou).
   if (story.planches?.retouchees?.length) {
     const { controlerRetouches } = await import("./planches");
-    return controlerRetouches(story, limite);
+    // Le portrait validé par le parent : une page refaite garde son vrai visage.
+    const { lireHerosParId, refHeros } = await import("./heros");
+    const h = req.herosId ? await lireHerosParId(req.herosId).catch(() => null) : null;
+    const visage = h ? await refHeros(h).catch(() => null) : null;
+    return controlerRetouches(story, limite, visage);
   }
   const heroImg = enRef(await fetchAsDataUrl(story.fiches?.heros, petit));
   if (!heroImg) return { story, bilan: "contrôle impossible (pas de fiche du héros)" };

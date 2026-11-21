@@ -76,12 +76,26 @@ const avecParent = (t: string) => t.includes("{parent}") || t.includes("{dit_par
 const avecEnfant = (t: string) => t.includes("{prenom}") || t.includes("{Il}") || t.includes("{il}");
 const avecDoudou = (t: string) => t.includes("{doudou}") || t.includes("{son_doudou}");
 
+/**
+ * L'ENFANT est vu de dos (seule sa chevelure sera retouchée). « {parent} (seen
+ * from behind) » ne compte pas : c'est le parent qui est de dos, et l'enfant
+ * doit alors recevoir son vrai visage. On regarde la seule partie de la scène
+ * qui parle de l'enfant.
+ */
+export function enfantDeDos(scene: string): boolean {
+  return scene
+    .split(/[;.]/)
+    // « never a back view » est une interdiction, pas une description : on l'efface avant de chercher.
+    .map((partie) => partie.replace(/\bnever\b[^,;()]*/gi, ""))
+    .some((partie) => avecEnfant(partie) && !avecParent(partie) && /from behind|back view|seen from the back/i.test(partie));
+}
+
 /** Toutes les planches d'une histoire (couverture, pages, variantes du parent). */
 export function clesPlanches(h: HistoireMaitresse): ClePlanche[] {
   const sources = [{ index: -1, scene: h.couverture }, ...h.pages.map((p, i) => ({ index: i, scene: p.scene }))];
   return sources.flatMap(({ index, scene }): ClePlanche[] => {
     const base = index === -1 ? "couverture" : `p${index + 1}`;
-    const commun = { index, enfant: avecEnfant(scene), doudou: avecDoudou(scene), deDos: /from behind/i.test(scene) && avecEnfant(scene) };
+    const commun = { index, enfant: avecEnfant(scene), doudou: avecDoudou(scene), deDos: enfantDeDos(scene) };
     return avecParent(scene)
       ? (["homme", "femme"] as const).map((v) => ({ ...commun, cle: `${base}:${v}`, variante: v }))
       : [{ ...commun, cle: base, variante: null }];
@@ -586,7 +600,7 @@ async function inspecter(
  * (un seul), et les personnages du conte toujours là (Poucet remplacé par le doudou).
  * Une seule reprise par page fautive ; ensuite, le bouton « redessiner » du parent.
  */
-export async function controlerRetouches(story: Story, limite: number): Promise<{ story: Story; bilan: string }> {
+export async function controlerRetouches(story: Story, limite: number, visage: Ref | null = null): Promise<{ story: Story; bilan: string }> {
   const retouchees = story.planches?.retouchees ?? [];
   const heros = await lireRef(story.fiches?.heros);
   if (!heros || !retouchees.length) return { story, bilan: "contrôle : rien à vérifier" };
@@ -643,6 +657,7 @@ export async function controlerRetouches(story: Story, limite: number): Promise<
     const r = await retoucherPlanche({
       planche,
       heros: k.enfant ? heros : undefined,
+      visage: k.enfant && visage ? visage : undefined,
       deDos,
       doudou: k.doudou && doudouRef ? doudouRef : undefined,
       correction: fautes.join("; "),
