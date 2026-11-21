@@ -278,7 +278,9 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
       longueur: input.longueur as LongueurKey,
       style: input.style as IllustrationStyle,
       appearance,
-      photo: herosRetenu ? undefined : photoRef,
+      // La vraie photo accompagne aussi un héros validé : c'est elle qui donne la ressemblance
+      // sur chaque page (le portrait dessiné n'est qu'une copie). Jamais enregistrée.
+      photo: photoRef,
       herosId: herosRetenu?.id,
       premium,
       apercu,

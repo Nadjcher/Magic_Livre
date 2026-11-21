@@ -124,6 +124,7 @@ vi.mock("@/lib/prisma", async () => {
 /* ─── Les modules réels, chargés après les faux ─── */
 
 let portrait = { base64: "", mime: "image/jpeg" };
+let photo = { base64: "", mime: "image/jpeg" };
 beforeAll(async () => {
   process.env.FAL_API_KEY = "test";
   process.env.IMAGE_PROVIDER = "fal";
@@ -131,6 +132,8 @@ beforeAll(async () => {
   process.env.QA_ILLUSTRATIONS = "off";
   await fausseImage("PORTRAIT VALIDÉ");
   portrait = { base64: monde.images.get("PORTRAIT VALIDÉ")!.toString("base64"), mime: "image/jpeg" };
+  await fausseImage("PHOTO DU PARENT");
+  photo = { base64: monde.images.get("PHOTO DU PARENT")!.toString("base64"), mime: "image/jpeg" };
 });
 afterEach(() => {
   monde.appels.length = 0;
@@ -185,7 +188,8 @@ describe("Jack et le haricot magique (classique écrit par l'IA)", () => {
       { texte: "Dans le château, Bougon le géant ronfle. Kamil avance sur la pointe des pieds.", scene: "Kamil tiptoes past Bougon sleeping in a cloud castle.", presents: ["Bougon"] },
       { texte: "Bougon se réveille et sourit : Kamil devient son ami.", scene: "Bougon smiles at Kamil, close-up.", presents: ["Bougon"] },
     ]);
-    const req = { ...reqBase, mode: "theme" as const, themeId: "haricot-magique" };
+    // Héros validé ET vraie photo (elle accompagne désormais le héros validé).
+    const req = { ...reqBase, mode: "theme" as const, themeId: "haricot-magique", herosId: "h1", photo };
     const r = await generateStory(req, { illustrer: false, relire: false });
     expect(r.ok).toBe(true);
     const demande = ecritures().map((a) => String(a.corps.prompt)).join("\n");
@@ -206,7 +210,8 @@ describe("Jack et le haricot magique (classique écrit par l'IA)", () => {
     expect(refs(ficheHeros)).toEqual(["PORTRAIT VALIDÉ"]);
     const pages = d.filter((a) => !String(a.corps.prompt).includes("Character model sheet"));
     expect(pages.length).toBe(5); // couverture + 4 pages
-    for (const a of pages) expect(refs(a)).toContain("PORTRAIT VALIDÉ");
+    // La vraie photo porte la ressemblance de chaque page ; la fiche du héros, sa tenue.
+    for (const a of pages) expect(refs(a)).toContain("PHOTO DU PARENT");
     // La page avec le géant reçoit aussi sa fiche.
     const ficheGeant = d.find((a) => String(a.corps.prompt).includes("Character model sheet of Bougon"))!;
     expect(ficheGeant).toBeTruthy();
@@ -223,7 +228,7 @@ describe("Le Petit Poucet (histoire toute prête, planches validées)", () => {
     const h = maitressePour("petit-poucet", 6)!;
     for (const k of clesPlanches(h)) monde.planches.push({ histoire: h.id, style: "anim3d", cle: k.cle, url: await fausseImage(`planche ${k.cle}`), valide: true });
 
-    const req = { ...reqBase, mode: "theme" as const, themeId: "petit-poucet" };
+    const req = { ...reqBase, mode: "theme" as const, themeId: "petit-poucet", herosId: "h1", photo };
     const story = await histoireDepuisMaitresse(h, req);
     expect(story.titre).toBe("Kamil au pays du Petit Poucet");
     expect(ecritures().filter((a) => !/Doudou \(saisi/.test(String(a.corps.prompt))).length).toBe(0);
@@ -236,8 +241,10 @@ describe("Le Petit Poucet (histoire toute prête, planches validées)", () => {
       const r = refs(a);
       expect(r[0]).toMatch(/^planche /); // on part toujours de la planche validée
       const prompt = String(a.corps.prompt);
-      // Enfant de face : son vrai visage (le portrait validé). Vraiment de dos (page 8) : seulement ses cheveux.
-      if (prompt.includes("the big child") && !prompt.includes("FROM BEHIND")) expect(r).toContain("PORTRAIT VALIDÉ");
+      // Enfant de face : son vrai visage, d'après la vraie photo, sans changer l'expression de la planche.
+      // Vraiment de dos (page 8) : seulement ses cheveux, d'après la photo aussi.
+      if (prompt.includes("the big child")) expect(r).toContain("PHOTO DU PARENT");
+      if (prompt.includes("the big child") && !prompt.includes("FROM BEHIND")) expect(prompt).toContain("KEEP the exact facial expression");
     }
     // Seule la page 8 a l'enfant de dos (le parent de dos de la page 1 ne compte pas).
     expect(retouches.filter((a) => String(a.corps.prompt).includes("FROM BEHIND")).length).toBe(1);
@@ -257,14 +264,14 @@ describe("L'agent fait refaire une page retouchée", () => {
     const { story } = await illustrateStory(await histoireDepuisMaitresse(h, req), req, portrait, { controle: false });
     monde.appels.length = 0;
     monde.sceneRemplacee = true;
-    const { story: controle } = await controlerRetouches(story, Date.now() + 60_000, portrait);
+    const { story: controle } = await controlerRetouches(story, Date.now() + 60_000, portrait, photo);
     const vision = monde.appels.find((a) => a.url.includes("vision"))!;
     expect(String(vision.corps.prompt)).toContain('"same_scene"');
     const refaites = dessins().filter((a) => String(a.corps.prompt).includes("keep EXACTLY the scene of the original page"));
     expect(refaites.length).toBeGreaterThan(0);
     for (const a of refaites) {
       expect(refs(a)[0]).toMatch(/^planche /);
-      if (!String(a.corps.prompt).includes("FROM BEHIND")) expect(refs(a)).toContain("PORTRAIT VALIDÉ");
+      expect(refs(a)).toContain("PHOTO DU PARENT");
     }
     expect(controle.controleImages?.refaites).toBe(refaites.length);
   });

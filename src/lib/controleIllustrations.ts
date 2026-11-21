@@ -344,7 +344,7 @@ export async function controlerIllustrations(
     const { lireHerosParId, refHeros } = await import("./heros");
     const h = req.herosId ? await lireHerosParId(req.herosId).catch(() => null) : null;
     const visage = h ? await refHeros(h).catch(() => null) : null;
-    return controlerRetouches(story, limite, visage);
+    return controlerRetouches(story, limite, visage, req.photo ?? null);
   }
   const heroImg = enRef(await fetchAsDataUrl(story.fiches?.heros, petit));
   if (!heroImg) return { story, bilan: "contrôle impossible (pas de fiche du héros)" };

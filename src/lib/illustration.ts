@@ -555,6 +555,8 @@ export async function retoucherPlanche(opts: {
   heros?: { base64: string; mime: string };
   /** Portrait validé par le parent (visage en gros plan) : la ressemblance, en plus de la fiche en pied. */
   visage?: { base64: string; mime: string };
+  /** La vraie photo de l'enfant (jamais enregistrée) : prioritaire sur le portrait pour le visage et les cheveux. */
+  photo?: { base64: string; mime: string };
   /** Fiche du doudou de ce livre (si le doudou est sur la planche). */
   doudou?: { base64: string; mime: string };
   /** Correction demandée par la relectrice (nouvel essai). */
@@ -578,7 +580,7 @@ export async function retoucherPlanche(opts: {
   const images = [await reduire(opts.planche, 1024)];
   const changements: string[] = [];
   if (opts.heros && opts.deDos) {
-    images.push(await reduire(opts.heros, 704));
+    images.push(await reduire(opts.photo ?? opts.heros, 704));
     changements.push(
       `the big child is seen FROM BEHIND: keep the exact same pose and the head turned away like the body (never show the face, never turn the head); ` +
         `change ONLY the hair (exact color, cut and length) to match the child in image ${images.length}` +
@@ -587,13 +589,19 @@ export async function retoucherPlanche(opts: {
   } else if (opts.heros) {
     images.push(await reduire(opts.heros, 704));
     const fiche = images.length;
-    // Le portrait validé (gros plan du visage) : c'est lui qui porte la ressemblance.
-    if (opts.visage) images.push(await reduire(opts.visage, 704));
+    // La vraie photo (sinon le portrait validé) : c'est elle qui porte la ressemblance.
+    const ressemblance = opts.photo ?? opts.visage;
+    if (ressemblance) images.push(await reduire(ressemblance, 704));
     changements.push(
-      (opts.visage
-        ? `the big child's face becomes exactly the face of the close-up portrait in image ${images.length} (same face shape, eyes, nose, mouth, eyebrows, skin tone), ` +
-          `and the hair (exact color and cut) that of the child in image ${fiche}`
-        : `the big child's face, hair (exact color and cut) and skin tone become exactly those of the child in image ${fiche}`) +
+      (opts.photo
+        ? `the big child becomes clearly recognizable as the real child in the photo of image ${images.length}: same face shape, eyes, eyebrows, nose, mouth, ` +
+          `skin tone, hair color, hair texture (curls stay curls) and cut, drawn in exactly the same 3D animated style as image 1, never photographic; ` +
+          `KEEP the exact facial expression of image 1 (same mood, same mouth, same eyes and gaze direction) and add nothing that is not in the photo (no freckles, no glasses, no marks); ` +
+          `the clothes stay those of the child in image ${fiche}`
+        : opts.visage
+          ? `the big child's face becomes exactly the face of the close-up portrait in image ${images.length} (same face shape, eyes, nose, mouth, eyebrows, skin tone), ` +
+            `and the hair (exact color and cut) that of the child in image ${fiche}`
+          : `the big child's face, hair (exact color and cut) and skin tone become exactly those of the child in image ${fiche}`) +
         (opts.apparence ? ` (${opts.apparence}; the SAME hair shade on every page)` : "") +
         ", " +
         "same art style, SAME head size, same pose, same position, same pyjamas",

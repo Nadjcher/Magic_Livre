@@ -485,6 +485,8 @@ export async function illustrerDepuisPlanches(
       planche: ref,
       heros: k.enfant ? herosRef : undefined,
       visage: k.enfant && portrait ? portrait : undefined,
+      // La vraie photo du parent (jamais enregistrée) : le visage et les cheveux viennent d'elle.
+      photo: k.enfant && req.photo ? req.photo : undefined,
       deDos: planche.deDos ?? k.deDos,
       doudou: k.doudou && doudouRef ? doudouRef : undefined,
       garder: autresPersonnages(h, i).map((c) => `${c.nom} (${c.description})`),
@@ -600,7 +602,12 @@ async function inspecter(
  * (un seul), et les personnages du conte toujours là (Poucet remplacé par le doudou).
  * Une seule reprise par page fautive ; ensuite, le bouton « redessiner » du parent.
  */
-export async function controlerRetouches(story: Story, limite: number, visage: Ref | null = null): Promise<{ story: Story; bilan: string }> {
+export async function controlerRetouches(
+  story: Story,
+  limite: number,
+  visage: Ref | null = null,
+  photo: Ref | null = null,
+): Promise<{ story: Story; bilan: string }> {
   const retouchees = story.planches?.retouchees ?? [];
   const heros = await lireRef(story.fiches?.heros);
   if (!heros || !retouchees.length) return { story, bilan: "contrôle : rien à vérifier" };
@@ -658,6 +665,7 @@ export async function controlerRetouches(story: Story, limite: number, visage: R
       planche,
       heros: k.enfant ? heros : undefined,
       visage: k.enfant && visage ? visage : undefined,
+      photo: k.enfant && photo ? photo : undefined,
       deDos,
       doudou: k.doudou && doudouRef ? doudouRef : undefined,
       correction: fautes.join("; "),

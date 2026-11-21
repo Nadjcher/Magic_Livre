@@ -89,7 +89,8 @@ export async function illustrerLivre({ bookId, req, portrait }: EtapeIllustratio
     if (relire) {
       // Images enregistrées tout de suite (rien n'est perdu), puis relecture dans une nouvelle exécution.
       await prisma.book.update({ where: { id: bookId }, data: { title: story.titre, pages: story } });
-      await lancerControle({ bookId, req: { ...req, photo: undefined }, imageReport: imageReport ?? null });
+      // La photo suit jusqu'à la vérification (une page refaite garde le vrai visage) ; jamais enregistrée.
+      await lancerControle({ bookId, req, imageReport: imageReport ?? null });
       return;
     }
     await terminerLivre(bookId, story, imageReport ?? null, episode);

@@ -534,7 +534,8 @@ export async function generateStory(
   // 20–50 s ne s'ajoutent pas au temps total de génération.
   const style = req.style ?? "feerique";
   const portraitPromise: Promise<{ base64: string; mime: string } | null> =
-    illustrationsEnabled() && faceIdentityEnabled() && req.photo
+    // Héros déjà validé par le parent : son portrait existe, on ne le redessine pas (et on ne le repaie pas).
+    illustrationsEnabled() && faceIdentityEnabled() && req.photo && !req.herosId
       ? generateCharacterPortrait({
           photo: req.photo,
           stylePrompt: ILLUSTRATION_STYLES[style].prompt,
@@ -781,8 +782,8 @@ async function addIllustrations(
         (couvertureFiches.length ? `, together with ${couvertureFiches.map((c) => c.name).join(" and ")}` : "") +
         ", rich setting, inviting composition, full body or medium shot, NOT a plain portrait" +
         (estCarre(style) ? `. ${CONSIGNE_COUVERTURE}` : ""),
-      // Sans fiche du héros (échec), la photo garde la ressemblance.
-      referenceImage: visage ?? (ancre ? undefined : req.photo),
+      // La vraie photo porte la ressemblance ; à défaut, le portrait validé.
+      referenceImage: req.photo ?? visage,
       anchorImage: ancre,
       castRefs: couvertureFiches,
       seed: base,
@@ -793,7 +794,7 @@ async function addIllustrations(
       const { imageUrl, error } = await generateIllustration({
         ...commun,
         scene: indiceFormat ? `${p.scene_illustration}. ${indiceFormat}` : p.scene_illustration,
-        referenceImage: visage ?? (ancre ? undefined : req.photo),
+        referenceImage: req.photo ?? visage,
         anchorImage: ancre,
         castRefs: fichesPresentes(p, fiches),
         seed: base + i + 1,
@@ -839,7 +840,7 @@ export async function illustrateStory(
     const depuis = await illustrerDepuisPlanches(story, req, portrait, errors, story.apercu ? PAGES_APERCU : null);
     if (depuis) {
       let s = depuis;
-      if (opts.controle !== false && controleActif()) s = (await controlerRetouches(s, debut + 268_000, portrait)).story;
+      if (opts.controle !== false && controleActif()) s = (await controlerRetouches(s, debut + 268_000, portrait, req.photo ?? null)).story;
       return { story: s, imageReport: imageReportOf(s, errors) };
     }
   }
