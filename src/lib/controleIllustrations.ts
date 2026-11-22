@@ -48,7 +48,18 @@ const petit = { maxPx: 768, quality: 80 };
 
 /** Ce que la relectrice dit VOIR (inventaire), le code décide ensuite. */
 interface Inventaire {
-  hero?: { count?: number; pose?: string; hair_reference?: string; hair_seen?: string; hair_same_color_as_reference?: boolean; face_and_outfit_match_reference?: boolean };
+  hero?: {
+    count?: number;
+    pose?: string;
+    hair_reference?: string;
+    hair_seen?: string;
+    hair_same_color_as_reference?: boolean;
+    face_and_outfit_match_reference?: boolean;
+    hair_texture_reference?: string;
+    hair_texture_seen?: string;
+    skin_reference?: string;
+    skin_seen?: string;
+  };
   characters?: {
     name?: string;
     count?: number;
@@ -118,7 +129,7 @@ export async function verifier(
       `- "heights": also BEFORE the reference sheets, for every character other than ${heros.nom} that is clearly smaller than him, its height as a fraction of ${heros.nom}'s height if both stood on the same ground (e.g. 0.25 = a quarter of his height; ignore what it stands on): [{"who": "short description", "fraction": 0.25}].`,
       '- "plush_toys": also before looking at the reference sheets, list EVERY plush / cuddly toy visible in the page, with the animal it ACTUALLY looks like (judge by its ears, muzzle, tail and shape: a dog has a long muzzle and floppy ears, a bear has small round ears and a short muzzle, a cat has pointed ears and whiskers, a rabbit has long ears) and its color. Do not assume what it should be.',
       `- "other_humans": every person in the page other than ${heros.nom} and other than the tiny characters listed below, with "adult_or_child" (judge by size and body proportions) and "dressed_like_hero" (true if wearing the same pyjamas or outfit as ${heros.nom}). [] if none.`,
-      `- "hero": how many times ${heros.nom} appears ("count"); his pose ("pose": "standing", "crouching", "kneeling" or "sitting"); the hair color on the REFERENCE sheet ("hair_reference") and on the PAGE ("hair_seen"), each one word among: blond, light brown, chestnut, dark brown, black, red, grey (look at the lit parts of the hair, not the shadows); whether face and outfit match the reference ("face_and_outfit_match_reference").`,
+      `- "hero": how many times ${heros.nom} appears ("count"); his pose ("pose": "standing", "crouching", "kneeling" or "sitting"); the hair color on the REFERENCE sheet ("hair_reference") and on the PAGE ("hair_seen"), each one word among: blond, light brown, chestnut, dark brown, black, red, grey (look at the lit parts of the hair, not the shadows); the hair texture on the REFERENCE sheet ("hair_texture_reference") and on the PAGE ("hair_texture_seen"), each one word among: straight, wavy, curly, coily; the skin tone on the REFERENCE sheet ("skin_reference") and on the PAGE ("skin_seen"), each among: very light, light, medium, tan, brown, dark (judge the lit skin, not the colored light of the scene); whether face and outfit match the reference ("face_and_outfit_match_reference").`,
       `- "characters": for EACH of these characters: ${cast.length ? cast.map((c) => c.nom).join(", ") : "(none)"}: "name", "count" (how many times it appears, 0 if absent), "species_seen" (what it looks like: rabbit, bear, dog, boy, elf…), "same_design_as_reference" (same species, colors and look as its reference sheet), "top_reaches" (where the top of its head or hat reaches on ${heros.nom}'s body as drawn: "below knee", "knee to chest" or "chest or higher"; judge its OWN body height, ignoring what it stands on: imagine it standing on the same ground as ${heros.nom}), "animal_ears_or_animal_head" (true if it has animal ears or an animal head).`,
       '- "explicit_rule_violations": ONLY the rules the scene states explicitly with "never", "no", "not", "only" or "exactly" (e.g. "never a paved path", "Poucet is the only small character") that the picture clearly breaks, quoting the rule; [] if none. Do NOT list differences of pose, action, props or details. Descriptions of characters (in parentheses or after a name, e.g. "never alive") are not rules: a plush toy sitting, propped up or held is NOT alive. A picture INSIDE the picture (an open book, a drawing, a painting) is never checked against the scene rules.',
       '- "unexpected_characters": people or creatures that are neither listed above nor mentioned in the scene; [] if none.',
@@ -179,6 +190,23 @@ export async function verifier(
   }
 }
 
+/** Deux crans d'écart sur une échelle ordonnée = ce n'est plus le même enfant (un cran : l'éclairage de la scène). */
+function ecart(echelle: string[], ref?: string, vu?: string): boolean {
+  const r = (ref ?? "").toLowerCase().trim();
+  const v = (vu ?? "").toLowerCase().trim();
+  const i = echelle.indexOf(r);
+  const j = echelle.indexOf(v);
+  return i >= 0 && j >= 0 && Math.abs(i - j) >= 2;
+}
+/** Cheveux raides devenus bouclés (ou l'inverse) : l'enfant n'est plus reconnaissable. */
+export function texturesDifferentes(ref?: string, vu?: string): boolean {
+  return ecart(["straight", "wavy", "curly", "coily"], ref, vu);
+}
+/** Teint nettement différent de celui de l'enfant (deux crans : la lumière d'une scène ne suffit pas à l'expliquer). */
+export function teintsDifferents(ref?: string, vu?: string): boolean {
+  return ecart(["very light", "light", "medium", "tan", "brown", "dark"], ref, vu);
+}
+
 /** Échelle des couleurs de cheveux : deux crans d'écart (blond → châtain) ou roux d'un côté seulement = différent. */
 const CHEVEUX = ["blond", "light brown", "chestnut", "dark brown", "black"];
 export function cheveuxDifferents(ref?: string, vu?: string): boolean {
@@ -216,6 +244,12 @@ export function jugerInventaire(
       f.push(`${heros.nom}'s hair color must be exactly as on the reference (${h.hair_reference ?? "reference"}), not ${vue ?? "different"}.`);
     }
     if (h.face_and_outfit_match_reference === false) f.push(`${heros.nom}'s face and outfit must match the reference sheet.`);
+    if (texturesDifferentes(h.hair_texture_reference, h.hair_texture_seen)) {
+      f.push(`${heros.nom}'s hair must be ${h.hair_texture_reference} exactly as on the reference, not ${h.hair_texture_seen}.`);
+    }
+    if (teintsDifferents(h.skin_reference, h.skin_seen)) {
+      f.push(`${heros.nom}'s skin tone must be ${h.skin_reference} exactly as on the reference, not ${h.skin_seen}.`);
+    }
   }
   // Peluches : l'inventaire « à l'aveugle » (fait avant de regarder les fiches) fait foi pour l'espèce.
   const peluches = cast.filter((c) => estPeluche(c.description));
@@ -416,6 +450,8 @@ export async function controlerIllustrations(
     premium: req.premium,
     recurringCharacters: story.personnages,
     anchorImage: heroImg,
+    // Une page redessinée garde le vrai visage : la photo du parent, tant qu'elle est de passage.
+    referenceImage: req.photo,
   };
   const graine = Date.now() % 1_000_000;
   /** Dernier recours : la même scène, avec moins de personnages et un décor simple. */
@@ -467,15 +503,24 @@ export async function controlerIllustrations(
   const remplacees = corrigees.filter((x): x is { i: number; url: string; simplifiee: boolean } => x !== null);
   const parIndex = new Map(remplacees.map((x) => [x.i, x.url]));
   const simplifiees = remplacees.filter((x) => x.simplifiee).length;
+  const douteuses = fautives.filter((c) => !parIndex.has(c.i)).map((c) => c.i);
   const nouvelle: Story = {
     ...story,
     couvertureUrl: parIndex.get(-1) ?? story.couvertureUrl,
     pages: story.pages.map((p, i) => (parIndex.has(i) ? { ...p, imageUrl: parIndex.get(i)! } : p)),
     imagesARevoir: undefined,
-    // Suivi du coût : combien d'images la relectrice a fait refaire.
-    controleImages: { verifiees: cibles.length - nonVerifiees, refaites: fautives.length, nonVerifiees },
+    // Suivi du coût : combien d'images la relectrice a fait refaire ; et celles restées fautives.
+    controleImages: { verifiees: cibles.length - nonVerifiees, refaites: fautives.length, nonVerifiees, ...(douteuses.length ? { douteuses } : {}) },
   };
   const detail = fautives.map((c) => `${c.i === -1 ? "couverture" : `p${c.i + 1}`}: ${c.v.fix}`).join(" | ");
+  // Garde-fou : une page restée fautive n'est jamais passée sous silence, l'atelier est prévenu.
+  if (douteuses.length) {
+    const { alerterAdmin } = await import("./notifications");
+    await alerterAdmin(
+      "un livre a des images restées fautives après tous les essais",
+      `« ${story.titre} » : ${douteuses.map((i) => (i === -1 ? "couverture" : `page ${i + 1}`)).join(", ")}. ${detail}`.slice(0, 800),
+    ).catch(() => undefined);
+  }
   return {
     story: nouvelle,
     bilan: `contrôle : ${fautives.length}/${cibles.length} à reprendre, ${remplacees.length} corrigées dont ${simplifiees} simplifiées — ${detail}`.slice(0, 900),

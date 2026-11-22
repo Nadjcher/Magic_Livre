@@ -198,6 +198,10 @@ describe("Jack et le haricot magique (classique écrit par l'IA)", () => {
     expect(demande).not.toMatch(/Poucet/);
 
     const relue = await relireHistoire(histoireDe(r), req);
+    // La relectrice connaît la demande du parent : elle peut refuser une histoire hors sujet.
+    const relecture = monde.appels.find((x) => /éditeur jeunesse exigeant/.test(String(x.corps.system_prompt)))!;
+    expect(String(relecture.corps.system_prompt)).toContain("HORS SUJET (motif éliminatoire)");
+    expect(String(relecture.corps.prompt)).toContain("LA DEMANDE DU PARENT : le thème « Jack et le haricot magique »");
     await livrer({ bookId: "b1", req, portrait, tentative: 1 }, relue);
     const enregistree = monde.enregistre as { titre: string; pages: { scene_illustration: string }[] };
     expect(enregistree.titre).toBe("Kamil et le haricot géant");

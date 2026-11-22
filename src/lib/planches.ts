@@ -23,7 +23,7 @@ import { HISTOIRES_MAITRESSES, type HistoireMaitresse, type Personnalisation } f
 import { construireLivre } from "./maitresseGenerateur";
 import { consoliderFiche, signature } from "./ficheHistoire";
 import { CONSIGNE_COUVERTURE, grillePour } from "./bibleVisuelle";
-import { cheveuxDifferents, especeAttendue, estPeluche, memeEspece, verifier } from "./controleIllustrations";
+import { cheveuxDifferents, especeAttendue, estPeluche, memeEspece, teintsDifferents, texturesDifferentes, verifier } from "./controleIllustrations";
 import { mapLimit } from "./parallele";
 import type { Story } from "./storySchema";
 import type { StoryRequest } from "./storyPrompt";
@@ -548,6 +548,10 @@ interface Inspection {
   head_twisted?: boolean;
   hair_reference?: string;
   hair_length_reference?: string;
+  hair_texture_page?: string;
+  hair_texture_reference?: string;
+  skin_page?: string;
+  skin_reference?: string;
   /** Même scène que la planche d'origine (décor, poses, cadrage) : sinon la retouche a renvoyé autre chose. */
   same_scene?: boolean;
   /** Cadre, bordure ou vignette arrondie autour de l'image. */
@@ -571,11 +575,13 @@ async function inspecter(
       : '"present": {}.',
     `"head_twisted": true if the big child's head faces a different way than the body (for example the face looks at us while the back, the heels or the walking legs show the child is seen from behind), false otherwise.`,
     '"hair_reference" and "hair_length_reference": then, the same two answers for the child in image 2.',
+    '"hair_texture_page" and "hair_texture_reference": the hair texture of the big child in image 1, then of the child in image 2, each one word among: straight, wavy, curly, coily.',
+    '"skin_page" and "skin_reference": the skin tone of the big child in image 1, then of the child in image 2, each among: very light, light, medium, tan, brown, dark (judge the lit skin, not the colored light of the scene).',
     '"frame": true if image 1 has a border, a frame, a margin or a rounded vignette around the picture instead of filling the whole image, false otherwise.',
     origine
       ? `"same_scene": the LAST image (image ${images.length}) is the original page before the child was retouched. true if image 1 shows the same scene (same setting, same poses, same framing, same other characters; only the child's face, hair or clothes and the plush toy may differ), false if image 1 shows a different scene, pose or framing (for example the child standing alone like a character sheet).`
       : '"same_scene": true.',
-    'JSON: {"hair_page": "", "hair_length_page": "", "plush_animal": "", "plush_count": 0, "present": {}, "head_twisted": false, "hair_reference": "", "hair_length_reference": "", "frame": false, "same_scene": true}',
+    'JSON: {"hair_page": "", "hair_length_page": "", "plush_animal": "", "plush_count": 0, "present": {}, "head_twisted": false, "hair_reference": "", "hair_length_reference": "", "hair_texture_page": "", "hair_texture_reference": "", "skin_page": "", "skin_reference": "", "frame": false, "same_scene": true}',
   ].join("\n");
   try {
     const r = await falFetch(
@@ -584,7 +590,7 @@ async function inspecter(
         method: "POST",
         headers: { Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" },
         // Deux questions simples : un modèle sans réflexion suffit (quelques dixièmes de centime).
-        body: JSON.stringify({ model: process.env.QA_RETOUCHE_MODEL || "anthropic/claude-sonnet-4.5", prompt, image_urls: images, max_tokens: 300, temperature: 0 }),
+        body: JSON.stringify({ model: process.env.QA_RETOUCHE_MODEL || "anthropic/claude-sonnet-4.5", prompt, image_urls: images, max_tokens: 450, temperature: 0 }),
       },
       40_000,
     );
@@ -636,6 +642,9 @@ export async function controlerRetouches(
     const v = await inspecter(heros, doudouRef, page, attendus, planche ?? null);
     if (!v) return;
     const fautes: string[] = [];
+    // Ressemblance : des boucles devenues raides ou un teint nettement différent, ce n'est plus cet enfant.
+    if (k?.enfant && texturesDifferentes(v.hair_texture_reference, v.hair_texture_page)) fautes.push(`the child's hair must be ${v.hair_texture_reference} like on the reference, not ${v.hair_texture_page}`);
+    if (k?.enfant && !(ligne?.deDos ?? k.deDos) && teintsDifferents(v.skin_reference, v.skin_page)) fautes.push(`the child's skin tone must be ${v.skin_reference} like on the reference, not ${v.skin_page}`);
     if (v.same_scene === false) fautes.push("keep EXACTLY the scene of the original page: same setting, same poses, same framing, same other characters; only the child (and the plush toy) change");
     if (v.frame === true) fautes.push("full-bleed picture filling the whole image: no border, no frame, no rounded vignette");
     if (k && !k.doudou && typeof v.plush_count === "number" && v.plush_count > 0) {

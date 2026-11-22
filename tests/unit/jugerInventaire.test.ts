@@ -65,3 +65,15 @@ describe("jugerInventaire", () => {
     expect(f).toContain("Poucet is missing");
   });
 });
+
+describe("ressemblance : boucles et teint", () => {
+  it("des boucles devenues raides, ou un teint nettement différent, ne sont plus le même enfant", async () => {
+    const { texturesDifferentes, teintsDifferents } = await import("@/lib/controleIllustrations");
+    expect(texturesDifferentes("curly", "straight")).toBe(true);
+    expect(texturesDifferentes("curly", "wavy")).toBe(false); // un cran : toléré
+    expect(texturesDifferentes("", "straight")).toBe(false); // pas de réponse : on ne conclut rien
+    expect(teintsDifferents("brown", "light")).toBe(true);
+    expect(teintsDifferents("light", "medium")).toBe(false); // la lumière de la scène
+    expect(teintsDifferents("light", "very light")).toBe(false);
+  });
+});

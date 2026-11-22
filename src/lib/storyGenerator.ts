@@ -29,6 +29,7 @@ import { fetchAsDataUrl } from "./imageFetch";
 import { controleActif, controlerIllustrations } from "./controleIllustrations";
 import { correctionsFiche, verifierFiche } from "./ficheHistoire";
 import { blocMaison, HISTOIRE_MAISON } from "./personnagesMaison";
+import { findThemeById } from "./themes";
 import { blocModeles, blocTrames, tramesPour, exemplesParIds, exemplesPour, type Exemple } from "./bibliotheque";
 import { PRIX_ESTIMES, noterDepense } from "./budget";
 import { BIBLE, GRILLE, SEUIL_ACCEPTATION, criteresPetits, reglesAge } from "./bible";
@@ -177,6 +178,8 @@ ${BIBLE}
 
 ${GRILLE}
 
+HORS SUJET (motif éliminatoire) : on te donne LA DEMANDE DU PARENT (un thème, un conte précis ou son idée). Si l'histoire raconte autre chose (un autre conte, d'autres personnages principaux, une autre aventure que celle demandée), écris-le dans "eliminatoire" : « hors sujet : … ». Un conte demandé doit être reconnaissable à ses éléments (Jack : le haricot, la tige jusqu'aux nuages, le géant).
+
 ÉTAPES
 1. Vérifie d'abord les motifs éliminatoires.
 2. Note chaque critère de 1 à 5 et justifie en une phrase qui cite le passage concerné.
@@ -225,8 +228,11 @@ async function relireEtAmeliorer(
     if (Date.now() - debut > 200_000) return null;
     const histoire = JSON.stringify({ titre: s.titre, pages: s.pages.map((p, i) => ({ page: i + 1, texte: p.texte })) });
     const mots = s.pages.map((p) => p.texte.split(/\s+/).filter(Boolean).length);
+    const theme = req.mode === "theme" ? findThemeById(req.themeId) : undefined;
+    const demande = theme ? `le thème « ${theme.titre} » : ${theme.accroche}` : req.prompt ? `son idée : « ${req.prompt} »` : "(non précisée)";
     const message = [
       `Âge de l'enfant : ${req.childAge} ans. Prénom : ${req.childFirstName}.`,
+      `LA DEMANDE DU PARENT : ${demande}`,
       `Règles de longueur : ${reglesAge(req.childAge)}`,
       `COMPTAGE (fait par le code, fiable) : ${mots.reduce((a, b) => a + b, 0)} mots en tout ; par page : ${mots.map((n, i) => `p. ${i + 1} : ${n}`).join(", ")}.`,
       "",

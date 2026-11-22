@@ -5,7 +5,7 @@
   "description": "Application web permettant aux parents de créer des livres illustrés personnalisés pour leurs enfants, en français.",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && vitest run && next build",
     "start": "next start",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",

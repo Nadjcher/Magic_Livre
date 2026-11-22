@@ -169,7 +169,16 @@ export const storySchema = z.object({
     .optional()
     .catch(undefined),
   // Contrôle des illustrations : images vérifiées et refaites (suivi du coût par livre).
-  controleImages: z.object({ verifiees: z.number(), refaites: z.number(), nonVerifiees: z.number().optional() }).optional().catch(undefined),
+  controleImages: z
+    .object({
+      verifiees: z.number(),
+      refaites: z.number(),
+      nonVerifiees: z.number().optional(),
+      /** Pages restées fautives après tous les essais (-1 : la couverture) : à regarder dans l'atelier. */
+      douteuses: z.array(z.number()).optional(),
+    })
+    .optional()
+    .catch(undefined),
   // Illustrations restées fautives après une nouvelle tentative (-1 = couverture) : relecture humaine.
   imagesARevoir: z.array(z.number().int()).optional().catch(undefined),
   // Aperçu gratuit : seules la couverture et les premières pages sont illustrées ;
