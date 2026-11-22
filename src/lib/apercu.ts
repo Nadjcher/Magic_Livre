@@ -73,6 +73,10 @@ export async function noterLivreGratuit(bookId: string): Promise<void> {
 export async function peutDebloquer(userId: string, bookId: string): Promise<boolean> {
   const paye = await prisma.order.findFirst({ where: { bookId, userId, status: "paid" }, select: { id: true } });
   if (paye) return true;
+  // Le Club ne débloque que les histoires toutes prêtes (peu coûteuses) ; un livre sur mesure se débloque par l'achat.
+  const livre = await prisma.book.findFirst({ where: { id: bookId, userId }, select: { pages: true } });
+  const trame = (livre?.pages as { meta?: { trame?: unknown } } | null)?.meta?.trame;
+  if (typeof trame !== "string" || !trame.startsWith("maitresse-")) return false;
   const ab = await getAbonnement(userId);
   return ab.actif;
 }

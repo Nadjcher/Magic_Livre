@@ -31,7 +31,7 @@ import { aMaitresse, findThemeById, reserveClub, themeOuvert } from "@/lib/theme
 import { getAbonnement, inclureLivre } from "@/lib/subscription";
 import type { LongueurKey } from "@/lib/validation";
 import { STYLE_DEFAUT, styleOuvert, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
-import { maitressePour } from "@/lib/histoiresMaitresses";
+import { livreInclusClub, maitressePour } from "@/lib/histoiresMaitresses";
 import { histoireDepuisMaitresse } from "@/lib/maitresseGenerateur";
 
 export interface CreateBookResult {
@@ -214,8 +214,12 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
   // Limite quotidienne pour contrôler les coûts (sauf livres inclus dans le Club,
   // déjà plafonnés par le quota mensuel : un membre peut recevoir sa sélection d'un coup).
   // Livre gratuit (ni Club, ni admin) : un aperçu, dans la limite du plafond du jour.
-  const gratuit = !(abonnement.actif && abonnement.restants > 0) && !estAdmin(user.email);
-  if (!(abonnement.actif && abonnement.restants > 0)) {
+  // Le Club comprend les histoires toutes prêtes (écrites et dessinées une fois pour toutes : peu
+  // coûteuses à fabriquer). Un livre sur mesure (idée libre, thème écrit par l'IA, grand classique)
+  // n'est pas compris : même pour un membre, il se lit gratuitement puis s'achète à l'unité.
+  const inclusClub = livreInclusClub(abonnement, input.mode, input.themeId, child.age);
+  const gratuit = !inclusClub && !estAdmin(user.email);
+  if (!inclusClub) {
     const limit = await checkDailyBookLimit(user.id, user.email);
     if (!limit.allowed) return { ok: false, message: limit.message };
   }
@@ -261,7 +265,7 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
       tier: premium ? "premium" : "standard",
     },
   });
-  const inclus = await inclureLivre(user.id, book.id, abonnement);
+  const inclus = inclusClub ? await inclureLivre(user.id, book.id, abonnement) : false;
   const apercu = !inclus && !estAdmin(user.email);
   if (apercu) await noterLivreGratuit(book.id);
 

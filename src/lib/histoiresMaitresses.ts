@@ -943,6 +943,20 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
 ];
 
 /** L'histoire maîtresse d'un thème, si elle existe pour cet âge. */
+/**
+ * Le Club comprend seulement les histoires toutes prêtes (peu coûteuses à
+ * fabriquer). Un livre sur mesure n'est jamais compris, même s'il reste des
+ * livres au membre ce mois-ci.
+ */
+export function livreInclusClub(
+  abonnement: { actif: boolean; restants: number },
+  mode: "theme" | "libre" | string,
+  themeId: string | undefined,
+  age: number,
+): boolean {
+  return abonnement.actif && abonnement.restants > 0 && mode === "theme" && maitressePour(themeId, age) !== null;
+}
+
 export function maitressePour(themeId: string | undefined, age: number): HistoireMaitresse | null {
   if (!themeId) return null;
   return HISTOIRES_MAITRESSES.find((h) => h.themeId === themeId && age >= h.ageMin && age <= h.ageMax) ?? null;

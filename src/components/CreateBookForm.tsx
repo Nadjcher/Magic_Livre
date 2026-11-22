@@ -397,7 +397,9 @@ export default function CreateBookForm({
       {abonnement.actif && (
         <Notice kind="succes">
           {abonnement.label} :{" "}
-          {abonnement.restants > 0
+          {!histoirePrete
+            ? `les histoires toutes prêtes sont comprises dans votre abonnement (${abonnement.restants} sur ${abonnement.quota} restant${abonnement.restants > 1 ? "s" : ""} ce mois-ci). Ce livre sur mesure n'en fait pas partie : il se lit gratuitement, puis se télécharge à l'unité.`
+            : abonnement.restants > 0
             ? `ce livre est inclus (${abonnement.restants} sur ${abonnement.quota} restant${abonnement.restants > 1 ? "s" : ""} ce mois-ci)${abonnement.premium ? ", en édition premium" : ""}.`
             : "vos livres du mois sont utilisés ; celui-ci sera lisible gratuitement, et téléchargeable à l'unité."}
         </Notice>

@@ -143,8 +143,8 @@ export const PLANS_CLUB: Record<PlanClub, { label: string; priceCents: number; l
     livres: 4,
     premium: false,
     avantages: [
-      "1 nouveau livre par semaine (4 par mois)",
-      "Les grands classiques revisités, avec votre enfant en héros",
+      "4 histoires toutes prêtes par mois, avec votre enfant en héros",
+      "L'accès aux grands classiques revisités (à l'unité)",
       "Le PDF et le kit de chaque livre inclus",
       "Le livre imprimé à 24,90 € (prix public : 39,90 €)",
     ],
@@ -155,9 +155,9 @@ export const PLANS_CLUB: Record<PlanClub, { label: string; priceCents: number; l
     livres: 8,
     premium: true,
     avantages: [
-      "2 nouveaux livres par semaine (8 par mois)",
+      "8 histoires toutes prêtes par mois, avec votre enfant en héros",
       "Tous les livres en édition premium (illustrations haute qualité)",
-      "Les grands classiques revisités",
+      "L'accès aux grands classiques revisités (à l'unité)",
       "Le PDF et le kit de chaque livre inclus",
       "Le livre imprimé à 24,90 € (prix public : 39,90 €)",
     ],

@@ -71,7 +71,9 @@ export default function CgvPage() {
       <p>
         Le Club est un abonnement mensuel sans engagement : {PLANS_CLUB.club.label} ({formatEuros(PLANS_CLUB.club.priceCents)} par
         mois, {PLANS_CLUB.club.livres} livres inclus par période) et {PLANS_CLUB.clubplus.label} ({formatEuros(PLANS_CLUB.clubplus.priceCents)} par
-        mois, {PLANS_CLUB.clubplus.livres} livres inclus par période, en édition premium). Il donne accès aux grands classiques
+        mois, {PLANS_CLUB.clubplus.livres} livres inclus par période, en édition premium). Les livres inclus sont les histoires
+        toutes prêtes du catalogue ; les livres sur mesure (idée libre, thèmes écrits à la demande, grands classiques
+        revisités) ne sont pas compris et s'achètent à l'unité. Il donne accès aux grands classiques
         revisités et au livre imprimé au prix membre de {formatEuros(PRIX_IMPRIME_ABONNE)}. Le prélèvement a lieu à la
         souscription puis à chaque date anniversaire mensuelle. Les livres non utilisés ne sont pas reportés sur la
         période suivante. L'abonnement est résiliable à tout moment depuis l'espace « Mon compte » : la résiliation prend
