@@ -36,8 +36,10 @@ export function falBloque(rapport: string | null | undefined): boolean {
 
 export async function mettreEnAttente(bookId: string, req: StoryRequest, story: Story): Promise<void> {
   await table();
-  const { photo: _photo, ...sansPhoto } = req;
+  const { photo: _photo, ...reste } = req;
   void _photo;
+  // Aucune photo n'est conservée : ni celle de l'enfant, ni celles de sa famille.
+  const sansPhoto = { ...reste, extras: reste.extras?.map(({ photo: _p, ...e }) => (void _p, e)) };
   await prisma.$executeRaw`
     INSERT INTO "LivreEnAttente" ("bookId", req) VALUES (${bookId}, ${JSON.stringify(sansPhoto)}::jsonb)
     ON CONFLICT ("bookId") DO UPDATE SET req = EXCLUDED.req`;

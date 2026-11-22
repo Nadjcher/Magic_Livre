@@ -312,6 +312,85 @@ describe("Idée libre avec maman en photo", () => {
   });
 });
 
+describe("Le style choisi par le parent", () => {
+  it("toutes les images sont demandées dans ce style, y compris pour un grand classique comme Jack", async () => {
+    const { generateStory, illustrateStory } = await import("@/lib/storyGenerator");
+    const { livrer } = await import("@/lib/livraison");
+    const { consigneStylePour } = await import("@/lib/bibleVisuelle");
+    for (const style of ["aquarelle", "bd"] as const) {
+      monde.appels.length = 0;
+      monde.histoireSuivante = histoire("Kamil et le haricot géant", "Kamil", [], [
+        { texte: "Kamil plante un haricot qui brille.", scene: "Kamil plants a glowing bean in the garden", presents: [] },
+      ]);
+      const req = { ...reqBase, style, mode: "theme" as const, themeId: "haricot-magique", photo };
+      const r = await generateStory(req, { illustrer: false, relire: false });
+      await livrer({ bookId: `s-${style}`, req, portrait, tentative: 1 }, histoireDe(r));
+      monde.appels.length = 0;
+      const { story } = await illustrateStory(monde.enregistre as never, req, portrait, { controle: false });
+      expect(story.style).toBe(style);
+      const d = dessins();
+      expect(d.length).toBe(6); // fiche du héros + couverture + 4 pages
+      for (const a of d) expect(String(a.corps.prompt)).toContain(consigneStylePour(style).slice(0, 80));
+    }
+  });
+});
+
+describe("Jusqu'à trois proches avec leur photo", () => {
+  it("chacun a sa fiche dessinée d'après SA photo ; au plus deux à côté de l'enfant par image ; aucune photo gardée en file d'attente", async () => {
+    const { generateStory, illustrateStory } = await import("@/lib/storyGenerator");
+    const { livrer } = await import("@/lib/livraison");
+    const proches = [
+      { nom: "Sarah", role: "maman", visuel: "HUMAN WOMAN: a smiling woman with long curly black hair, green sweater" },
+      { nom: "Karim", role: "papa", visuel: "HUMAN MAN: a tall man with a short beard, blue shirt" },
+      { nom: "Lina", role: "sœur", visuel: "HUMAN GIRL: a little girl with two braids, yellow dress" },
+    ];
+    const photos: Record<string, { base64: string; mime: string }> = {};
+    for (const p of proches) {
+      await fausseImage(`PHOTO DE ${p.nom}`);
+      photos[p.nom] = { base64: monde.images.get(`PHOTO DE ${p.nom}`)!.toString("base64"), mime: "image/jpeg" };
+    }
+    monde.histoireSuivante = histoire("Kamil et le pique-nique des étoiles", "Kamil", proches.map(({ nom, visuel }) => ({ nom, visuel })), [
+      { texte: "Kamil prépare le panier avec Sarah.", scene: "Kamil and Sarah pack a picnic basket", presents: ["Sarah"] },
+      { texte: "Karim porte Lina sur ses épaules, Kamil court devant.", scene: "Kamil runs ahead of Karim carrying Lina", presents: ["Karim", "Lina"] },
+      { texte: "Toute la famille regarde les étoiles : Kamil, Sarah, Karim et Lina.", scene: "Kamil, Sarah, Karim and Lina watch the stars", presents: ["Sarah", "Karim", "Lina"] },
+    ]);
+    const req = {
+      ...reqBase,
+      mode: "libre" as const,
+      prompt: "Kamil part en pique-nique sous les étoiles avec sa famille.",
+      photo,
+      extras: proches.map((p) => ({ name: p.nom, role: p.role, appearance: "décrit depuis la photo", photo: photos[p.nom] })),
+    };
+    const r = await generateStory(req, { illustrer: false, relire: false });
+    await livrer({ bookId: "b5", req, portrait, tentative: 1 }, histoireDe(r));
+    const enregistree = monde.enregistre as { pages: { presents?: string[] }[] };
+    for (const p of enregistree.pages) expect((p.presents ?? []).length).toBeLessThanOrEqual(2);
+    // Rien de ce qui est enregistré dans le livre ne contient une photo.
+    expect(JSON.stringify(enregistree)).not.toContain(photos.Sarah!.base64);
+
+    monde.appels.length = 0;
+    await illustrateStory(enregistree as never, req, portrait, { controle: false });
+    for (const p of proches) {
+      const fiche = dessins().find((a) => String(a.corps.prompt).includes(`Character model sheet of ${p.nom}`))!;
+      expect(refs(fiche)).toEqual([`PHOTO DE ${p.nom}`]);
+      expect(String(fiche.corps.prompt)).toContain(`is a real photo of ${p.nom}`);
+    }
+
+    // Livre mis en file d'attente (crédit de dessin épuisé) : aucune photo n'est conservée.
+    const { mettreEnAttente } = await import("@/lib/attenteIllustrations");
+    const ecrit: string[] = [];
+    const { prisma } = await import("@/lib/prisma");
+    (prisma as unknown as { $executeRaw: unknown }).$executeRaw = async (_s: TemplateStringsArray, ...v: unknown[]) => {
+      ecrit.push(JSON.stringify(v));
+      return 0;
+    };
+    await mettreEnAttente("b5", req, enregistree as never);
+    const garde = ecrit.join(" ");
+    expect(garde).toContain("Sarah");
+    for (const b of [photo.base64, ...Object.values(photos).map((x) => x.base64)]) expect(garde).not.toContain(b);
+  });
+});
+
 describe("Personnages maison", () => {
   it("un dragon maison validé est repris tel quel ; un dragon rouge demandé garde son propre dessin", async () => {
     const { generateStory, illustrateStory } = await import("@/lib/storyGenerator");

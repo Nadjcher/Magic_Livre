@@ -22,7 +22,7 @@ import { groupePourAge } from "@/lib/ageGroups";
 import { useRouter } from "next/navigation";
 import { createBook } from "@/app/actions/books";
 import { preparerHeros, type PortraitResultat } from "@/app/actions/heros";
-import { THEMES, THEME_CATEGORIES, aMaitresse, estClassique, findThemeById, reserveClub, themeDeDepart, themeOuvert, type ThemeCategory } from "@/lib/themes";
+import { THEMES, THEME_CATEGORIES, aMaitresse, findThemeById, reserveClub, themeDeDepart, themeOuvert, type ThemeCategory } from "@/lib/themes";
 import type { ChildView } from "./ChildrenManager";
 import { ILLUSTRATION_STYLES, STYLE_DEFAUT, styleOuvert, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
 import Notice from "./Notice";
@@ -175,7 +175,9 @@ export default function CreateBookForm({
   const [extras, setExtras] = useState<Extra[]>([]);
   const majExtra = (i: number, patch: Partial<Extra>) => setExtras((xs) => xs.map((x, k) => (k === i ? { ...x, ...patch } : x)));
   const groupe = groupePourAge(age);
-  const classiqueChoisi = mode === "theme" && estClassique(findThemeById(themeId));
+  // Une histoire toute prête se dessine dans le style de ses planches validées (la 3D) ;
+  // partout ailleurs, classiques compris, le parent choisit son style.
+  const classiqueChoisi = mode === "theme" && aMaitresse(themeId);
   const sansDoudou = mode === "theme" && Boolean(findThemeById(themeId)?.sansDoudou);
   // Histoire toute prête : ses images partent des planches validées, où seuls l'enfant et son doudou changent.
   const histoirePrete = mode === "theme" && aMaitresse(themeId);
@@ -224,7 +226,7 @@ export default function CreateBookForm({
   function choisirTheme(id: string) {
     setThemeId(id);
     const t = findThemeById(id);
-    if (t && estClassique(t)) setStyle(STYLE_DEFAUT);
+    if (t && aMaitresse(t.id)) setStyle(STYLE_DEFAUT);
   }
 
   // Ce qui manque pour passer à l'étape suivante (null = tout va bien).
@@ -675,7 +677,9 @@ export default function CreateBookForm({
           <div>
             <h2 className="font-serif text-2xl">Le style des dessins</h2>
             <p className="mt-1 text-sm text-magique-texteClair">
-              {styleBibliotheque && styleAffiche === styleBibliotheque
+              {classiqueChoisi
+                ? "Cette histoire toute prête est dessinée en 3D. Pour choisir un autre style de dessin, prenez un autre thème ou « Mon idée à moi »."
+                : styleBibliotheque && styleAffiche === styleBibliotheque
                 ? `Le style de la bibliothèque de ${prenom} est déjà choisi, pour que ses livres se ressemblent. Vous pouvez en changer.`
                 : `Le style conseillé est déjà choisi. Seuls les styles adaptés à ${age} ans sont proposés.`}
             </p>

@@ -39,6 +39,8 @@ export interface IllustrationRequest {
    * générer l'illustration pour capter sa ressemblance. Jamais stockée.
    */
   referenceImage?: { base64: string; mime: string };
+  /** La photo de référence montre ce personnage-là (maman, sœur…), pas le héros : sa fiche lui ressemble. */
+  referenceNom?: string;
   /**
    * Image « ancre » du personnage (généralement la couverture déjà générée) :
    * passée en référence pour garder EXACTEMENT le même héros (visage, tenue,
@@ -199,7 +201,7 @@ export async function generateIllustration(
       let error = "";
       for (let essai = 0; essai < 3 && !img; essai++) {
         if (essai > 0) await new Promise((r) => setTimeout(r, essai * 3000));
-        const r = await falImage(texte, model, req.referenceImage, req.anchorImage, req.castRefs, req.carre ?? estCarre(req.style));
+        const r = await falImage(texte, model, req.referenceImage, req.anchorImage, req.castRefs, req.carre ?? estCarre(req.style), req.referenceNom);
         if ("img" in r) img = r.img;
         else {
           error = r.error;
@@ -378,6 +380,7 @@ async function falImage(
   anchor?: { base64: string; mime: string },
   cast: CastRef[] = [],
   carre = false,
+  referenceNom?: string,
 ): Promise<{ img: { base64: string; mime: string } } | { error: string; retry: boolean }> {
   const key = env.falApiKey();
   if (!key) return { error: "FAL_API_KEY absente", retry: false };
@@ -393,7 +396,13 @@ async function falImage(
       }),
   );
   const consignes: string[] = [];
-  if (reference) {
+  if (reference && referenceNom) {
+    consignes.push(
+      `Reference image 1 is a real photo of ${referenceNom}: the drawn ${referenceNom} MUST clearly look like this person ` +
+        "(same hair color, texture and style, eyes, smile, skin tone, face shape, age), drawn in the requested style, never photographic; " +
+        "add nothing that is not in the photo.",
+    );
+  } else if (reference) {
     consignes.push(
       "Reference image 1 shows the reference character, hero of the book: the drawn hero MUST clearly look like this reference " +
         "character (same hair color and style, eyes, smile, skin tone, face shape, age), drawn in the requested style.",

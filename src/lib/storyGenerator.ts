@@ -738,17 +738,20 @@ async function addIllustrations(
       anchorImage: portrait ?? undefined,
       seed: base + 500,
     }),
-    ...cast.map((c, k) =>
-      generateIllustration({
+    ...cast.map((c, k) => {
+      // Un proche donné avec sa photo (maman, papa, sœur…) : sa fiche est dessinée d'après elle.
+      const sa = req.extras?.find((e) => e.photo && e.name.trim().toLowerCase() === c.nom.trim().toLowerCase())?.photo;
+      return generateIllustration({
         ...commun,
         heroName: undefined,
         appearance: undefined,
         scene:
           `Character model sheet of ${c.nom}: ${c.visuel}. Full body, front view, alone, plain soft light ` +
           "background, nothing else, no text or letters. The species must be unmistakable at first glance.",
+        ...(sa ? { referenceImage: sa, referenceNom: c.nom } : {}),
         seed: base + 600 + k,
-      }),
-    ),
+      });
+    }),
   ]);
   if (ficheHeros.error) errors.push(ficheHeros.error);
   const ancre =

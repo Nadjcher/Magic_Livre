@@ -27,7 +27,7 @@ import { checkDailyBookLimit, estAdmin } from "@/lib/rateLimit";
 import { generateStory } from "@/lib/storyGenerator";
 import { lancerRelecture, livrer } from "@/lib/livraison";
 import { describeChildFromPhoto } from "@/lib/illustration";
-import { estClassique, findThemeById, reserveClub, themeOuvert } from "@/lib/themes";
+import { aMaitresse, findThemeById, reserveClub, themeOuvert } from "@/lib/themes";
 import { getAbonnement, inclureLivre } from "@/lib/subscription";
 import type { LongueurKey } from "@/lib/validation";
 import { STYLE_DEFAUT, styleOuvert, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
@@ -149,8 +149,9 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
   });
   if (!child) return { ok: false, message: "Enfant introuvable." };
 
-  // Les grands classiques (contes de papa et maman) sont toujours dans le style de la maison.
-  if (input.mode === "theme" && estClassique(findThemeById(input.themeId))) input.style = STYLE_DEFAUT;
+  // Une histoire toute prête est dessinée dans le style de ses planches validées (la 3D) ;
+  // partout ailleurs, classiques compris, le parent choisit son style.
+  if (input.mode === "theme" && aMaitresse(input.themeId)) input.style = STYLE_DEFAUT;
   // Seuls les thèmes qui ont une histoire validée sont proposés (les administrateurs peuvent tout tester).
   if (input.mode === "theme" && !themeOuvert(input.themeId, child.age) && !estAdmin(user.email)) {
     return { ok: false, message: "Cette histoire arrive bientôt. Choisissez-en une autre, ou racontez votre idée." };
@@ -339,6 +340,8 @@ async function genererEtEnregistrer(bookId: string, req: GenerationInput): Promi
         role: e.role,
         appearance:
           e.appearance ?? (e.photo ? await describeChildFromPhoto(e.photo, sujetPhoto(e.role)) : undefined),
+        // La vraie photo suit jusqu'au dessin de sa fiche (ressemblance) ; jamais enregistrée.
+        photo: e.photo ?? undefined,
       })),
     );
 

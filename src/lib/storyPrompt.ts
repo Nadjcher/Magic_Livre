@@ -235,7 +235,13 @@ export interface StoryRequest {
    * Autres personnages réels (frère, sœur, parent, doudou, animal…) avec leur
    * apparence (décrite à partir d'une photo ou par le parent).
    */
-  extras?: { name: string; role: string; appearance?: string }[];
+  extras?: {
+    name: string;
+    role: string;
+    appearance?: string;
+    /** Sa vraie photo, pour dessiner sa fiche à sa ressemblance. De passage seulement : jamais enregistrée. */
+    photo?: { base64: string; mime: string };
+  }[];
   /** Fille ou garçon (accords du texte). */
   genre?: "fille" | "garcon";
 }
