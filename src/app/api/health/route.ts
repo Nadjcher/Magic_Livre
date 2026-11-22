@@ -35,7 +35,9 @@ export async function GET(req: Request): Promise<Response> {
     } catch {
       base = false;
     }
-    return NextResponse.json({ ok: base, db: base }, { status: base ? 200 : 503, headers: { "Cache-Control": "no-store" } });
+    // « version » : la révision du code en ligne (référence publique du dépôt, aucun secret) : permet de vérifier une mise en ligne.
+    const version = (process.env.VERCEL_GIT_COMMIT_SHA ?? "").slice(0, 7) || undefined;
+    return NextResponse.json({ ok: base, db: base, version }, { status: base ? 200 : 503, headers: { "Cache-Control": "no-store" } });
   }
 
   const out: {
