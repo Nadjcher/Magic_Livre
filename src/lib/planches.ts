@@ -641,32 +641,31 @@ export async function controlerRetouches(
     // La planche d'origine est montrée aussi : la retouche doit garder SA scène (pas la fiche de l'enfant debout).
     const v = await inspecter(heros, doudouRef, page, attendus, planche ?? null);
     if (!v) return;
+    const nomPage = i === -1 ? "couverture" : `p${i + 1}`;
+    /** Ce que l'agent reproche à une page (la première fois, puis après la reprise). */
+    const releverFautes = (v: Inspection): string[] => {
     const fautes: string[] = [];
     // Ressemblance : des boucles devenues raides ou un teint nettement différent, ce n'est plus cet enfant.
     if (k?.enfant && texturesDifferentes(v.hair_texture_reference, v.hair_texture_page)) fautes.push(`the child's hair must be ${v.hair_texture_reference} like on the reference, not ${v.hair_texture_page}`);
     if (k?.enfant && !(ligne?.deDos ?? k.deDos) && teintsDifferents(v.skin_reference, v.skin_page)) fautes.push(`the child's skin tone must be ${v.skin_reference} like on the reference, not ${v.skin_page}`);
     if (v.same_scene === false) fautes.push("keep EXACTLY the scene of the original page: same setting, same poses, same framing, same other characters; only the child (and the plush toy) change");
     if (v.frame === true) fautes.push("full-bleed picture filling the whole image: no border, no frame, no rounded vignette");
-    if (k && !k.doudou && typeof v.plush_count === "number" && v.plush_count > 0) {
-      fautes.push("no plush toy at all in this picture");
-      aRevoir.set(i, `${i === -1 ? "couverture" : `p${i + 1}`} : une peluche alors que la scène n'en a pas (vérifier la planche)`);
-    }
+    if (k && !k.doudou && typeof v.plush_count === "number" && v.plush_count > 0) fautes.push("no plush toy at all in this picture");
     if (k?.enfant && cheveuxDifferents(v.hair_reference, v.hair_page)) fautes.push(`the child's hair must be ${v.hair_reference}, not ${v.hair_page}`);
     const court = (t?: string) => /short/i.test(t ?? "");
     const long = (t?: string) => /long/i.test(t ?? "");
     if (k?.enfant && ((court(v.hair_length_page) && long(v.hair_length_reference)) || (long(v.hair_length_page) && court(v.hair_length_reference)))) {
       fautes.push(`the child's hair must be ${v.hair_length_reference} like on the reference, not ${v.hair_length_page}`);
     }
-    const doudouFaux = Boolean(k?.doudou && espece && v.plush_animal && !memeEspece(espece, v.plush_animal));
-    if (doudouFaux) {
-      fautes.push(`the plush toy must be a ${espece}, not a ${v.plush_animal}`);
-      aRevoir.set(i, `${i === -1 ? "couverture" : `p${i + 1}`} : doudou vu « ${v.plush_animal} », attendu « ${espece} »`);
-    }
+    if (k?.doudou && espece && v.plush_animal && !memeEspece(espece, v.plush_animal)) fautes.push(`the plush toy must be a ${espece}, not a ${v.plush_animal}`);
     if (typeof v.plush_count === "number" && v.plush_count > 1) fautes.push("only ONE plush toy, the child's");
     if (k?.enfant && v.head_twisted === true) {
       fautes.push((m0.get(k.cle)?.deDos ?? k.deDos) ? "the child is seen from behind: keep the head turned away exactly like the body, show only the back of the hair, no face" : "the child's head must face the same way as the body, never twisted");
     }
     for (const c of attendus) if (v.present?.[c.nom] === false) fautes.push(`${c.nom} (${c.description}) must stay exactly as on the original page, never replaced by the plush toy`);
+      return fautes;
+    };
+    const fautes = releverFautes(v);
     if (!fautes.length || !h || !k) return;
     const deDos = ligne?.deDos ?? k.deDos;
     if (!planche) return;
@@ -683,10 +682,18 @@ export async function controlerRetouches(
       apparence: story.planches?.apparence,
       seed: 9_000 + i * 41 + (Date.now() % 997),
     });
-    if (r.imageUrl) {
-      nouvelles.set(i, r.imageUrl);
-      refaites++;
+    if (!r.imageUrl) {
+      // La reprise a échoué : la page fautive ne part pas telle quelle.
+      aRevoir.set(i, `${nomPage} : ${fautes.join(" ; ")}`.slice(0, 300));
+      return;
     }
+    nouvelles.set(i, r.imageUrl);
+    refaites++;
+    // Garde-fou final : la page refaite est vérifiée à son tour. Encore fautive, le livre attend dans l'atelier.
+    const refaite = r.base64 ? { base64: r.base64, mime: r.mime ?? "image/jpeg" } : await lireRef(r.imageUrl);
+    const v2 = refaite ? await inspecter(heros, doudouRef, refaite, attendus, planche) : null;
+    const restantes = v2 ? releverFautes(v2) : [];
+    if (restantes.length) aRevoir.set(i, `${nomPage} : ${restantes.join(" ; ")}`.slice(0, 300));
   });
   return {
     story: {

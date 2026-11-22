@@ -367,8 +367,9 @@ async function relireEtAmeliorer(
  * exécution : la relectrice reçoit les mêmes extraits que l'autrice.
  */
 export async function relireHistoire(story: Story, req: StoryRequest): Promise<Story> {
-  // Histoires longues (7 ans et plus) : pas de relectrice (trop long), mais le code vérifie la fiche.
-  if (req.childAge >= AGE_CONSIGNE_LONGUE) return corrigerFiche(story, req);
+  // Histoires longues (7 ans et plus) : le code vérifie la fiche, puis un contrôle court
+  // (hors sujet, incohérence, peur…) décide si l'histoire peut partir ou doit être réécrite.
+  if (req.childAge >= AGE_CONSIGNE_LONGUE) return controleEliminatoire(await corrigerFiche(story, req), req);
   const client = createClient();
   const model = req.premium ? env.groqModelPremium() : env.groqModel();
   const ids = story.meta?.modeles ?? [];
@@ -378,6 +379,52 @@ export async function relireHistoire(story: Story, req: StoryRequest): Promise<S
     { prenom: req.childFirstName, parent: req.parent, objet: req.fiche?.objet },
   );
   return relireEtAmeliorer(client, model, story, req, Date.now(), extraits);
+}
+
+/** Contrôle court des histoires longues : la relectrice ne note pas, elle cherche seulement ce qui interdit de livrer. */
+const ELIMINATOIRE_SYSTEM = `Tu es éditeur jeunesse pour Encore une histoire. Tu n'as pas écrit ce texte. Tu ne le notes pas : tu cherches seulement ce qui INTERDIT de le livrer à un enfant.
+Motifs (un seul suffit) :
+- HORS SUJET : l'histoire ne raconte pas LA DEMANDE DU PARENT (un autre conte, d'autres personnages principaux, une autre aventure). Un conte demandé doit être reconnaissable à ses éléments.
+- Une peur non résolue, de la violence, une moquerie, une fin triste ou inquiétante.
+- Une erreur sur le prénom du héros ou sur son genre (il/elle) ; le héros absent ou passif pendant toute l'histoire.
+- Une incohérence qui empêche de comprendre : un personnage qui change de nom ou d'espèce, un problème jamais résolu, une fin qui contredit le début.
+- Un texte qui n'est pas en bon français (phrases cassées, mots anglais, passages répétés mot pour mot d'une page à l'autre).
+- Un personnage ou une marque connus (film, dessin animé, jeu vidéo).
+Ne signale PAS une simple faiblesse de style. Dans le doute, l'histoire passe.
+Réponds uniquement en JSON : {"eliminatoire": null} ou {"eliminatoire": "le motif, en une phrase qui cite le passage"}.`;
+
+/**
+ * 7 ans et plus : un seul appel court. Motif trouvé → l'histoire est marquée
+ * « éliminée » (la livraison lance alors une nouvelle écriture, puis renonce
+ * poliment si la seconde échoue aussi). Contrôle indisponible : l'histoire part.
+ */
+async function controleEliminatoire(story: Story, req: StoryRequest): Promise<Story> {
+  const theme = req.mode === "theme" ? findThemeById(req.themeId) : undefined;
+  const demande = theme ? `le thème « ${theme.titre} » : ${theme.accroche}` : req.prompt ? `son idée : « ${req.prompt} »` : "(non précisée)";
+  try {
+    const raw = await callModel(
+      createClient(),
+      env.groqModel(),
+      ELIMINATOIRE_SYSTEM,
+      [
+        `Âge de l'enfant : ${req.childAge} ans. Prénom du héros : ${req.childFirstName}${req.genre ? ` (${req.genre === "fille" ? "une fille" : "un garçon"})` : ""}.`,
+        `LA DEMANDE DU PARENT : ${demande}`,
+        "",
+        `HISTOIRE\n${JSON.stringify({ titre: story.titre, pages: story.pages.map((p, i) => ({ page: i + 1, texte: p.texte })) })}`,
+      ].join("\n"),
+      0.3,
+      false,
+      undefined,
+      { modele: process.env.STORY_CRITIC_MODEL || "anthropic/claude-sonnet-5.5", delaiMs: 60_000 },
+    );
+    const v = JSON.parse(/\{[\s\S]*\}/.exec(raw)?.[0] ?? "null") as { eliminatoire?: string | null } | null;
+    const motif = v?.eliminatoire && String(v.eliminatoire).toLowerCase() !== "null" ? String(v.eliminatoire).slice(0, 300) : null;
+    console.log("[contrôle 7+]", motif ?? "rien à signaler");
+    return { ...story, qualite: { note: motif ? 0 : 10, problemes: motif ? [`Éliminatoire : ${motif}`] : [], reecrit: false, accepte: !motif, eliminatoire: motif } };
+  } catch (e) {
+    console.error("[contrôle 7+] indisponible :", String(e).slice(0, 160));
+    return story;
+  }
 }
 
 /**

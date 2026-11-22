@@ -25,6 +25,8 @@ const monde = vi.hoisted(() => ({
   enregistre: null as unknown,
   /** L'agent de vérification voit une scène remplacée (la retouche a renvoyé autre chose). */
   sceneRemplacee: false,
+  /** Le contrôle court des 7 ans et plus trouve un motif éliminatoire. */
+  horsSujet: false,
 }));
 
 async function fausseImage(nom: string): Promise<string> {
@@ -55,6 +57,7 @@ vi.mock("@/lib/jetonsFal", () => ({
         const notes = { voix_haute: 5, ritournelle: 5, structure: 5, enfant_agit: 5, personnalisation: 5, feerique: 5, age: 5, fin: 5 };
         return json({ output: JSON.stringify({ eliminatoire: null, notes, justifications: Object.fromEntries(Object.keys(notes).map((k) => [k, "« cité » : bien."])), total: 40, verdict: "accepte", corrections: [] }) });
       }
+      if (/INTERDIT de le livrer/.test(systeme)) return json({ output: JSON.stringify({ eliminatoire: monde.horsSujet ? "hors sujet : l'histoire raconte le Petit Poucet, pas Jack." : null }) });
       if (/Doudou \(saisi par le parent\)/.test(prompt)) return json({ output: JSON.stringify({ fille: false, doudou: { nom: "", son: "son doudou", visuel: "" } }) });
       return json({ output: JSON.stringify(monde.histoireSuivante) });
     }
@@ -140,9 +143,10 @@ afterEach(() => {
   monde.planches.length = 0;
   monde.enregistre = null;
   monde.sceneRemplacee = false;
+  monde.horsSujet = false;
 });
 
-const ecritures = () => monde.appels.filter((a) => a.url.includes("openrouter/router") && !a.url.includes("vision") && !/éditeur jeunesse exigeant/.test(String(a.corps.system_prompt)));
+const ecritures = () => monde.appels.filter((a) => a.url.includes("openrouter/router") && !a.url.includes("vision") && !/éditeur jeunesse exigeant|INTERDIT de le livrer/.test(String(a.corps.system_prompt)));
 const dessins = () => monde.appels.filter((a) => !a.url.includes("openrouter"));
 const refs = (a: Appel) => ((a.corps.image_urls as string[] | undefined) ?? []).map(nomDe);
 
@@ -278,6 +282,17 @@ describe("L'agent fait refaire une page retouchée", () => {
       expect(refs(a)).toContain("PHOTO DU PARENT");
     }
     expect(controle.controleImages?.refaites).toBe(refaites.length);
+    // Ici l'agent refuse aussi la page refaite : le livre est retenu pour l'atelier, jamais envoyé tel quel.
+    expect(controle.imagesARevoir?.length).toBe(refaites.length);
+
+    // Quand la page refaite est bonne, le livre part normalement.
+    monde.appels.length = 0;
+    let vus = 0;
+    Object.defineProperty(monde, "sceneRemplacee", { configurable: true, get: () => vus++ === 0 });
+    const { story: repare } = await controlerRetouches({ ...story, planches: { ...story.planches!, retouchees: [0] } }, Date.now() + 60_000, portrait, photo);
+    Object.defineProperty(monde, "sceneRemplacee", { configurable: true, writable: true, value: false });
+    expect(repare.controleImages?.refaites).toBe(1);
+    expect(repare.imagesARevoir).toBeUndefined();
   });
 });
 
@@ -313,6 +328,27 @@ describe("Idée libre avec maman en photo", () => {
     expect(d.some((a) => String(a.corps.prompt).includes("Character model sheet of Sarah"))).toBe(true);
     // La règle de dessin laisse voir le visage d'un proche qui a sa fiche.
     expect(d.some((a) => String(a.corps.prompt).includes("A family member WITH a reference sheet"))).toBe(true);
+  });
+});
+
+describe("Histoires des 7 ans et plus", () => {
+  it("un contrôle court connaît la demande du parent ; hors sujet : l'histoire est éliminée (elle sera réécrite), sinon elle part", async () => {
+    const { generateStory, relireHistoire } = await import("@/lib/storyGenerator");
+    monde.histoireSuivante = histoire("Kamil et le haricot géant", "Kamil", [], [
+      { texte: "Kamil plante un haricot qui brille dans le jardin de sa grand-mère.", scene: "Kamil plants a glowing bean in the garden", presents: [] },
+    ]);
+    const req = { ...reqBase, childAge: 9, mode: "theme" as const, themeId: "haricot-magique" };
+    const r = await generateStory(req, { illustrer: false, relire: false });
+    const bonne = await relireHistoire(histoireDe(r), req);
+    const controle = monde.appels.find((x) => /INTERDIT de le livrer/.test(String(x.corps.system_prompt)))!;
+    expect(String(controle.corps.prompt)).toContain("LA DEMANDE DU PARENT : le thème « Jack et le haricot magique »");
+    expect(bonne.qualite?.accepte).toBe(true);
+    expect(bonne.qualite?.eliminatoire ?? null).toBeNull();
+
+    monde.horsSujet = true;
+    const mauvaise = await relireHistoire(histoireDe(r), req);
+    expect(mauvaise.qualite?.accepte).toBe(false);
+    expect(mauvaise.qualite?.eliminatoire).toContain("hors sujet");
   });
 });
 

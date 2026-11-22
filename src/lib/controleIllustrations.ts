@@ -76,6 +76,8 @@ interface Inventaire {
   other_humans?: { adult_or_child?: string; dressed_like_hero?: boolean }[];
   parent_is_adult?: boolean | null;
   explicit_rule_violations?: string[];
+  /** Défauts de dessin graves, visibles au premier regard (membre en trop, visage fondu, corps fusionnés). */
+  anatomy_defects?: string[];
   contradictions_with_scene?: string[];
   unexpected_characters?: string[];
   letters_or_text?: boolean;
@@ -133,10 +135,11 @@ export async function verifier(
       `- "characters": for EACH of these characters: ${cast.length ? cast.map((c) => c.nom).join(", ") : "(none)"}: "name", "count" (how many times it appears, 0 if absent), "species_seen" (what it looks like: rabbit, bear, dog, boy, elf…), "same_design_as_reference" (same species, colors and look as its reference sheet), "top_reaches" (where the top of its head or hat reaches on ${heros.nom}'s body as drawn: "below knee", "knee to chest" or "chest or higher"; judge its OWN body height, ignoring what it stands on: imagine it standing on the same ground as ${heros.nom}), "animal_ears_or_animal_head" (true if it has animal ears or an animal head).`,
       '- "explicit_rule_violations": ONLY the rules the scene states explicitly with "never", "no", "not", "only" or "exactly" (e.g. "never a paved path", "Poucet is the only small character") that the picture clearly breaks, quoting the rule; [] if none. Do NOT list differences of pose, action, props or details. Descriptions of characters (in parentheses or after a name, e.g. "never alive") are not rules: a plush toy sitting, propped up or held is NOT alive. A picture INSIDE the picture (an open book, a drawing, a painting) is never checked against the scene rules.',
       '- "unexpected_characters": people or creatures that are neither listed above nor mentioned in the scene; [] if none.',
+      '- "anatomy_defects": ONLY gross drawing accidents that a parent would notice at first glance: an extra or missing arm or leg, two heads, a melted or badly distorted face, eyes at clearly different heights, a body fused with another character or with an object. Name the character and the defect. Do NOT count fingers, do NOT report stylized cartoon proportions (big head, big eyes, small hands). [] if none; when in doubt, [].',
       '- "letters_or_text", "blank_unpainted_area" (a white or empty unpainted part), "frightening": true or false.',
       `- "style_consistent": ${style || "the whole picture keeps one consistent rendering style"} (true or false).`,
       "Ignore small props (a pencil, a lamp, a cup), small patterns on clothes, and everything shown inside an open book or a picture on the wall.",
-      'JSON only, exactly these keys: {"page_hair": "", "heights": [], "plush_toys": [{"animal": "", "color": ""}], "other_humans": [], "hero": {...}, "characters": [...], "explicit_rule_violations": [], "unexpected_characters": [], "letters_or_text": false, "blank_unpainted_area": false, "style_consistent": true, "frightening": false}',
+      'JSON only, exactly these keys: {"page_hair": "", "heights": [], "plush_toys": [{"animal": "", "color": ""}], "other_humans": [], "hero": {...}, "characters": [...], "explicit_rule_violations": [], "unexpected_characters": [], "anatomy_defects": [], "letters_or_text": false, "blank_unpainted_area": false, "style_consistent": true, "frightening": false}',
     );
   } else lignes.push(
     `The LAST image is the page illustration to check. Scene requested: ${scene}`,
@@ -296,6 +299,7 @@ export function jugerInventaire(
     f.push("The parent must be an ADULT, clearly bigger than the child and never dressed like the child.");
   }
   for (const c of (v.explicit_rule_violations ?? []).slice(0, 3)) if (c?.trim()) f.push(`Follow the scene: ${c.trim()}.`);
+  for (const d of (v.anatomy_defects ?? []).slice(0, 2)) if (d?.trim()) f.push(`Fix the drawing accident: ${d.trim()}. Every character has a normal, complete body and a clean face.`);
   const inattendus = (v.unexpected_characters ?? []).filter((x) => x?.trim());
   if (inattendus.length) f.push(`Remove the characters that are not in the scene: ${inattendus.slice(0, 3).join(", ")}.`);
   if (v.letters_or_text === true) f.push("No letters or text anywhere.");
@@ -493,34 +497,30 @@ export async function controlerIllustrations(
       limite,
       generateIllustration({ ...commun, scene: simple.scene, castRefs: simple.cast.map((x) => ({ name: x.nom, ...x.image })), seed: graine + 50 * k + 7 }),
     );
-    // Une image vide de peinture est la seule raison d'écarter la scène simplifiée.
     if (!r?.imageUrl) return null;
     const img = enRef(await fetchAsDataUrl(r.imageUrl, petit));
     if (img && (await zoneVide(img))) return null;
-    return { i: c.i, url: r.imageUrl, simplifiee: true };
+    // La scène simplifiée est vérifiée elle aussi : encore fautive, elle sera retenue pour l'atelier.
+    const v = await avant(limite, controler(r.imageUrl, simple.scene, simple.cast));
+    return { i: c.i, url: r.imageUrl, simplifiee: true, douteuse: Boolean(v && !v.ok) };
   });
 
-  const remplacees = corrigees.filter((x): x is { i: number; url: string; simplifiee: boolean } => x !== null);
+  const remplacees = corrigees.filter((x): x is { i: number; url: string; simplifiee: boolean; douteuse?: boolean } => x !== null);
   const parIndex = new Map(remplacees.map((x) => [x.i, x.url]));
   const simplifiees = remplacees.filter((x) => x.simplifiee).length;
-  const douteuses = fautives.filter((c) => !parIndex.has(c.i)).map((c) => c.i);
+  // Restées fautives : aucune correction n'a abouti, ou la dernière (simplifiée) est encore refusée.
+  const douteuses = [...fautives.filter((c) => !parIndex.has(c.i)).map((c) => c.i), ...remplacees.filter((x) => x.douteuse).map((x) => x.i)];
   const nouvelle: Story = {
     ...story,
     couvertureUrl: parIndex.get(-1) ?? story.couvertureUrl,
     pages: story.pages.map((p, i) => (parIndex.has(i) ? { ...p, imageUrl: parIndex.get(i)! } : p)),
-    imagesARevoir: undefined,
+    // Garde-fou final : un livre dont une image reste fautive n'est JAMAIS envoyé tel quel au parent.
+    // Il attend dans l'atelier (file « Illustrations à relire ») ; le parent est prévenu (sous 48 h).
+    imagesARevoir: douteuses.length ? douteuses : undefined,
     // Suivi du coût : combien d'images la relectrice a fait refaire ; et celles restées fautives.
     controleImages: { verifiees: cibles.length - nonVerifiees, refaites: fautives.length, nonVerifiees, ...(douteuses.length ? { douteuses } : {}) },
   };
   const detail = fautives.map((c) => `${c.i === -1 ? "couverture" : `p${c.i + 1}`}: ${c.v.fix}`).join(" | ");
-  // Garde-fou : une page restée fautive n'est jamais passée sous silence, l'atelier est prévenu.
-  if (douteuses.length) {
-    const { alerterAdmin } = await import("./notifications");
-    await alerterAdmin(
-      "un livre a des images restées fautives après tous les essais",
-      `« ${story.titre} » : ${douteuses.map((i) => (i === -1 ? "couverture" : `page ${i + 1}`)).join(", ")}. ${detail}`.slice(0, 800),
-    ).catch(() => undefined);
-  }
   return {
     story: nouvelle,
     bilan: `contrôle : ${fautives.length}/${cibles.length} à reprendre, ${remplacees.length} corrigées dont ${simplifiees} simplifiées — ${detail}`.slice(0, 900),
