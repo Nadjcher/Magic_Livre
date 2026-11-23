@@ -7,7 +7,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { identiteLegale, VERSION_CGV } from "@/lib/legal";
-import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PAYS_LIVRAISON, PLANS_CLUB, PRIX_IMPRIME_ABONNE, formatEuros, mentionLancementImprime, FORMAT_IMPRIME, DELAI_IMPRIME } from "@/lib/products";
+import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PAYS_LIVRAISON, PLANS_CLUB, CLUB_OUVERT, PRIX_SUR_MESURE_CENTS, VENTE_EXTRAS, formatEuros, mentionLancementImprime, FORMAT_IMPRIME, DELAI_IMPRIME } from "@/lib/products";
 import { env } from "@/lib/env";
 
 export const metadata: Metadata = {
@@ -52,11 +52,16 @@ export default function CgvPage() {
         à l'écran est gratuite : vous voyez l'intégralité du livre avant tout achat. Sont proposés à la vente :
       </p>
       <ul className="list-disc space-y-1 pl-6">
-        <li>le livre au format PDF à imprimer, avec son kit (coloriage, affiche, invitation, autocollants, marque-pages) : {formatEuros(env.bookPriceCents())} (édition premium : {formatEuros(env.bookPricePremiumCents())}) ;</li>
+        <li>
+          le livre au format PDF à imprimer, avec son kit (coloriage, affiche, invitation, autocollants, marque-pages) :{" "}
+          {formatEuros(env.bookPriceCents())} pour une histoire toute prête du catalogue, {formatEuros(Math.max(env.bookPriceCents(), PRIX_SUR_MESURE_CENTS))} pour
+          un livre sur mesure (histoire écrite à la demande : idée du parent, thème ou grand classique)
+          {VENTE_EXTRAS ? ` ; édition premium : ${formatEuros(env.bookPricePremiumCents())}` : ""} ;
+        </li>
         {DELUXE_PRODUCTS.map((p) => (
           <li key={p.sku}>{p.label} : {formatEuros(p.priceCents)} ;</li>
         ))}
-        <li>la {PACK_TOUT.label.toLowerCase()} (livre PDF, kit et produits ci-dessus) : {formatEuros(PACK_TOUT.priceCents)} ;</li>
+        {VENTE_EXTRAS && <li>la {PACK_TOUT.label.toLowerCase()} (livre PDF, kit et produits ci-dessus) : {formatEuros(PACK_TOUT.priceCents)} ;</li>}
         <li>
           le {LIVRE_IMPRIME.label.toLowerCase()} (carré {FORMAT_IMPRIME}, 30 pages), livraison incluse : {formatEuros(LIVRE_IMPRIME.priceCents)}
           {mentionLancementImprime() ? ` (${mentionLancementImprime()!.toLowerCase()})` : ""}.
@@ -73,8 +78,8 @@ export default function CgvPage() {
         mois, {PLANS_CLUB.club.livres} livres inclus par période) et {PLANS_CLUB.clubplus.label} ({formatEuros(PLANS_CLUB.clubplus.priceCents)} par
         mois, {PLANS_CLUB.clubplus.livres} livres inclus par période, en édition premium). Les livres inclus sont les histoires
         toutes prêtes du catalogue ; les livres sur mesure (idée libre, thèmes écrits à la demande, grands classiques
-        revisités) ne sont pas compris et s'achètent à l'unité. Il donne accès aux grands classiques
-        revisités et au livre imprimé au prix membre de {formatEuros(PRIX_IMPRIME_ABONNE)}. Le prélèvement a lieu à la
+        revisités) ne sont pas compris et s'achètent à l'unité.
+        {CLUB_OUVERT ? "" : " Le Club n'est pas ouvert à la souscription pour le moment (liste d'attente)."} Le prélèvement a lieu à la
         souscription puis à chaque date anniversaire mensuelle. Les livres non utilisés ne sont pas reportés sur la
         période suivante. L'abonnement est résiliable à tout moment depuis l'espace « Mon compte » : la résiliation prend
         effet à la fin de la période déjà payée, sans frais. Les livres créés pendant l'abonnement, et leurs fichiers,

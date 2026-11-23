@@ -11,7 +11,7 @@ import { titreCouvertureTheme } from "@/lib/titrePrenom";
 import CouvertureLivre, { prenomExemple } from "@/components/CouvertureLivre";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { DELAI_IMPRIME, DELUXE_PRODUCTS, FORMAT_IMPRIME, LIVRE_IMPRIME, NOEL_LIMITE_DEFAUT, PACK_TOUT, PLANS_CLUB, mentionLancementImprime } from "@/lib/products";
+import { DELAI_IMPRIME, DELUXE_PRODUCTS, FORMAT_IMPRIME, LIVRE_IMPRIME, NOEL_LIMITE_DEFAUT, PACK_TOUT, PLANS_CLUB, CLUB_OUVERT, PRIX_SUR_MESURE_CENTS, VENTE_EXTRAS, mentionLancementImprime } from "@/lib/products";
 import AgeExplorer from "@/components/AgeExplorer";
 import WaitlistForm from "@/components/WaitlistForm";
 import { DATE_OUVERTURE, ventesOuvertes } from "@/lib/lancement";
@@ -86,15 +86,6 @@ const THEMES_VITRINE = [
   "espace",
 ];
 
-const KIT = [
-  "Le livre en PDF à imprimer",
-  "Cahier de coloriage",
-  "Affiche du héros",
-  "Carte d'invitation",
-  "Planche d'autocollants",
-  "Marque-pages",
-];
-
 const FAQ = [
   {
     q: "Que devient la photo de mon enfant ?",
@@ -127,7 +118,7 @@ export default async function AccueilPage() {
   // Visiteur : on l'emmène créer son compte ; parent connecté : droit au studio.
   const cta = session?.user ? "/creer" : "/inscription";
   const prix = euros(env.bookPriceCents());
-  const prixPremium = euros(env.bookPricePremiumCents());
+  const prixSurMesure = euros(Math.max(env.bookPriceCents(), PRIX_SUR_MESURE_CENTS));
   // Avis vérifiés (affichés et transmis à Google uniquement s'il y en a de vrais).
   const avis = await avisPublics(6);
 
@@ -199,7 +190,7 @@ export default async function AccueilPage() {
               </Link>
             </div>
             <p className="mt-4 max-w-[48ch] text-[15px] leading-relaxed text-magique-texte">
-              Vous lisez toute l'histoire avant de payer, sans carte bancaire. Vous la gardez pour {prix}, ou
+              Vous lisez toute l'histoire avant de payer, sans carte bancaire. Vous la gardez à partir de {prix}, ou
               reliée en couverture rigide pour {euros(LIVRE_IMPRIME.priceCents)}
               {mentionLancementImprime() ? " (prix de lancement)" : ""}.
             </p>
@@ -408,25 +399,26 @@ export default async function AccueilPage() {
           </div>
 
           <div className="carte flex flex-col">
-            <h3 className="text-xl">Le livre</h3>
+            <h3 className="text-xl">L'histoire toute prête</h3>
             <p className="mt-2 font-serif text-4xl text-magique-texte">{prix}</p>
             <ul className="mt-5 flex-1 space-y-2.5 text-[15px]">
-              {KIT.map((k) => (
-                <li key={k} className="flex gap-2"><Coche />{k}</li>
-              ))}
+              <li className="flex gap-2"><Coche />Un conte de notre catalogue, avec votre enfant en héros</li>
+              <li className="flex gap-2"><Coche />Son visage d'après sa photo</li>
+              <li className="flex gap-2"><Coche />Le livre PDF et son kit</li>
             </ul>
-            <Link href={cta} className="btn-secondaire mt-6 w-full whitespace-nowrap px-3 text-[15px]">Créer son histoire</Link>
+            <Link href={cta} className="btn-secondaire mt-6 w-full whitespace-nowrap px-3 text-[15px]">Choisir une histoire</Link>
           </div>
 
           <div className="carte flex flex-col">
-            <h3 className="text-xl">Le livre premium</h3>
-            <p className="mt-2 font-serif text-4xl text-magique-texte">{prixPremium}</p>
+            <h3 className="text-xl">Le livre sur mesure</h3>
+            <p className="mt-2 font-serif text-4xl text-magique-texte">{prixSurMesure}</p>
             <ul className="mt-5 flex-1 space-y-2.5 text-[15px]">
-              <li className="flex gap-2"><Coche />Tout le livre PDF et son kit</li>
-              <li className="flex gap-2"><Coche />Illustrations haute qualité</li>
-              <li className="flex gap-2"><Coche />Ressemblance renforcée avec la photo</li>
+              <li className="flex gap-2"><Coche />Votre idée, écrite et illustrée pour lui</li>
+              <li className="flex gap-2"><Coche />Jusqu'à 3 proches, d'après leurs photos</li>
+              <li className="flex gap-2"><Coche />Le style de dessin de votre choix</li>
+              <li className="flex gap-2"><Coche />Le livre PDF et son kit</li>
             </ul>
-            <Link href={cta} className="btn-secondaire mt-6 w-full whitespace-nowrap px-3 text-[15px]">Créer en premium</Link>
+            <Link href={cta} className="btn-secondaire mt-6 w-full whitespace-nowrap px-3 text-[15px]">Raconter mon idée</Link>
           </div>
 
           <div className="relative flex flex-col rounded-3xl border-2 border-magique-primaire bg-white/[0.1] p-6 shadow-douce">
@@ -449,20 +441,35 @@ export default async function AccueilPage() {
         <div className="carte mt-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-[15px]">
             <Picto cle="offres/tout" taille={30} className="mr-1.5 inline-block align-middle" />
-            <strong>Formule Tout compris, {euros(PACK_TOUT.priceCents)}</strong>
-            <span className="text-magique-texteClair">
-              {" "}— le livre et son kit, le Pack Fête d'anniversaire, l'affiche A3 et l'histoire
-              en dessin animé.
-            </span>
+            {VENTE_EXTRAS ? (
+              <>
+                <strong>Formule Tout compris, {euros(PACK_TOUT.priceCents)}</strong>
+                <span className="text-magique-texteClair">
+                  {" "}— le livre et son kit, le Pack Fête d'anniversaire, l'affiche A3 et l'histoire
+                  en dessin animé.
+                </span>
+              </>
+            ) : (
+              <strong>Et pour aller plus loin, à partir de son histoire :</strong>
+            )}
           </p>
           <span className="text-sm text-magique-texteClair">
-            Ou à l'unité : {DELUXE_PRODUCTS.map((d) => `${d.label} ${euros(d.priceCents)}`).join(" · ")}
+            {VENTE_EXTRAS ? "Ou à l'unité : " : ""}
+            {DELUXE_PRODUCTS.map((d) => `${d.label} ${euros(d.priceCents)}`).join(" · ")}
           </span>
         </div>
         <p className="mt-4 flex items-center justify-center gap-3 text-center text-[15px] text-magique-texteClair">
           <Picto cle="offres/club" taille={36} />
           <span>
-            Plusieurs histoires par mois ? <Link href="/club" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">Le Club</Link>, dès {euros(PLANS_CLUB.club.priceCents)} / mois, sans engagement.
+            {CLUB_OUVERT ? (
+              <>
+                Plusieurs histoires par mois ? <Link href="/club" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">Le Club</Link>, dès {euros(PLANS_CLUB.club.priceCents)} / mois, sans engagement.
+              </>
+            ) : (
+              <>
+                Plusieurs histoires par mois ? <Link href="/club" className="font-semibold text-magique-primaire underline-offset-4 hover:underline">Le Club</Link> ouvre bientôt : inscrivez-vous sur la liste d'attente.
+              </>
+            )}
           </span>
         </p>
       </section>

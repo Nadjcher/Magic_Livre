@@ -6,6 +6,8 @@ import { getCurrentUser } from "@/lib/session";
 import { getAbonnement } from "@/lib/subscription";
 import { THEMES } from "@/lib/themes";
 import ClubPlans from "@/components/ClubPlans";
+import WaitlistForm from "@/components/WaitlistForm";
+import { CLUB_OUVERT } from "@/lib/products";
 import BandeauLancement from "@/components/BandeauLancement";
 import { ventesOuvertes } from "@/lib/lancement";
 import { estAdmin } from "@/lib/rateLimit";
@@ -38,6 +40,28 @@ export default async function ClubPage(
       </div>
     );
   }
+  // Club fermé au lancement : une liste d'attente, le temps d'avoir assez d'histoires toutes prêtes.
+  if (!CLUB_OUVERT && !(user && estAdmin(user.email))) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-6 text-center">
+        <h1 className="text-3xl sm:text-5xl">Le Club des histoires</h1>
+        <p className="mx-auto max-w-[52ch] text-lg text-magique-texteClair">
+          Le Club ouvre bientôt : chaque mois, quatre histoires toutes prêtes dont votre enfant est le héros, à petit prix.
+          Nous préparons les premières histoires. Laissez votre email : vous serez prévenu le jour de l'ouverture.
+        </p>
+        <div className="carte mx-auto max-w-md">
+          <WaitlistForm source="club" />
+        </div>
+        <p className="text-magique-texteClair">
+          En attendant,{" "}
+          <Link href="/creer" className="font-semibold text-magique-primaire underline">
+            créez son livre sur mesure
+          </Link>{" "}
+          : vous le lisez gratuitement avant de l'acheter.
+        </p>
+      </div>
+    );
+  }
   const classiques = THEMES.filter((t) => t.categorie === "classiques");
 
   return (
@@ -60,7 +84,7 @@ export default async function ClubPage(
         <h2 className="text-center text-3xl">Les grands classiques, avec votre enfant en héros</h2>
         <p className="mx-auto max-w-[56ch] text-center text-magique-texteClair">
           Les contes que vous connaissez par cœur, réécrits en douceur pour son âge, avec son prénom
-          et son visage. Réservés aux membres du Club.
+          et son visage. Ce sont des livres sur mesure, vendus à l'unité.
         </p>
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {classiques.map((t) => (

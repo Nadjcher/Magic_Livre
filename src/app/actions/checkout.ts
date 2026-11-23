@@ -12,7 +12,7 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { createCheckoutSession } from "@/lib/stripe";
 import { env } from "@/lib/env";
-import { getDeluxeProduct, PACK_TOUT, PAYS_LIVRAISON, PRIX_IMPRIME_ABONNE, skusDonnantAcces } from "@/lib/products";
+import { getDeluxeProduct, PACK_TOUT, PAYS_LIVRAISON, VENTE_EXTRAS, prixLivreCents, skusDonnantAcces } from "@/lib/products";
 import { getAbonnement } from "@/lib/subscription";
 import { MESSAGE_FERME, ventesOuvertes } from "@/lib/lancement";
 import { estAdmin } from "@/lib/rateLimit";
@@ -55,11 +55,14 @@ export async function startCheckout(
 
   if (sku === "book") {
     const premium = book.tier === "premium";
-    amountCents = premium ? env.bookPricePremiumCents() : env.bookPriceCents();
+    // Histoire toute prête : prix de base ; livre sur mesure : 9,90 € (une édition premium déjà créée garde son prix).
+    amountCents = premium ? Math.max(env.bookPricePremiumCents(), prixLivreCents(book.pages, env.bookPriceCents())) : prixLivreCents(book.pages, env.bookPriceCents());
     productName = `${premium ? "Édition premium" : "Livre"} : ${book.title}`;
     productDescription = premium
       ? "PDF imprimable, illustrations haut de gamme + kit inclus (coloriage, affiche, invitation, autocollants, marque-pages)."
       : "Livre PDF imprimable + kit inclus (coloriage, affiche, invitation, autocollants, marque-pages).";
+  } else if ((sku === PACK_TOUT.sku || sku === "video") && !VENTE_EXTRAS) {
+    return { ok: false, message: "Ce produit n'est pas encore en vente." };
   } else if (sku === PACK_TOUT.sku) {
     amountCents = PACK_TOUT.priceCents;
     productName = `${PACK_TOUT.label} — ${book.title}`;
@@ -71,8 +74,6 @@ export async function startCheckout(
       return { ok: false, message: "Le livre imprimé n'est pas encore disponible." };
     }
     amountCents = product.priceCents;
-    // Prix membre du Club pour le livre imprimé.
-    if (product.sku === "imprime" && (await getAbonnement(user.id)).actif) amountCents = PRIX_IMPRIME_ABONNE;
     productName = `${product.label} — ${book.title}`;
     productDescription = product.description;
   }

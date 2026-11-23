@@ -82,8 +82,11 @@ export function themeDeDepart(initialId: string | undefined): { theme: Theme; in
 }
 
 /** Réservé au Club : un classique sans histoire maîtresse (celles-ci sont ouvertes à tous). */
-export function reserveClub(t: Theme | undefined): boolean {
-  return estClassique(t) && !aMaitresse(t?.id);
+export function reserveClub(_t: Theme | undefined): boolean {
+  // Décision du 23 novembre 2026 : les grands classiques écrits à la demande sont des livres
+  // sur mesure, vendus à l'unité à tout le monde. Plus aucun thème n'est réservé au Club.
+  void _t;
+  return false;
 }
 
 /** Consigne commune : relecture libre d'un conte du domaine public. */

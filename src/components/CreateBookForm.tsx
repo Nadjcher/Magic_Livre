@@ -24,6 +24,7 @@ import { createBook } from "@/app/actions/books";
 import { preparerHeros, type PortraitResultat } from "@/app/actions/heros";
 import { THEMES, THEME_CATEGORIES, aMaitresse, findThemeById, reserveClub, themeDeDepart, themeOuvert, type ThemeCategory } from "@/lib/themes";
 import type { ChildView } from "./ChildrenManager";
+import { VENTE_EXTRAS } from "@/lib/products";
 import { ILLUSTRATION_STYLES, STYLE_DEFAUT, styleOuvert, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
 import Notice from "./Notice";
 import GenerationOverlay from "./GenerationOverlay";
@@ -847,7 +848,7 @@ export default function CreateBookForm({
           </div>
         </details>
 
-        <label className={`carte flex cursor-pointer items-start gap-3 ${abonnement.premium ? "hidden" : ""}`}>
+        <label className={`carte flex cursor-pointer items-start gap-3 ${abonnement.premium || !VENTE_EXTRAS ? "hidden" : ""}`}>
           <input type="checkbox" name="premium" className="mt-1 h-5 w-5 accent-magique-primaire" />
           <span>
             <span className="font-serif text-lg">Édition premium</span>

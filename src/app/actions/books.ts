@@ -32,6 +32,7 @@ import { getAbonnement, inclureLivre } from "@/lib/subscription";
 import type { LongueurKey } from "@/lib/validation";
 import { STYLE_DEFAUT, styleOuvert, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
 import { livreInclusClub, maitressePour } from "@/lib/histoiresMaitresses";
+import { VENTE_EXTRAS } from "@/lib/products";
 import { histoireDepuisMaitresse } from "@/lib/maitresseGenerateur";
 
 export interface CreateBookResult {
@@ -241,16 +242,18 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
       : "Aventure personnalisée";
 
   // Édition choisie : premium = illustrations haut de gamme + prix supérieur.
+  // (L'édition premium n'est plus proposée tant que son coût n'est pas mesuré : VENTE_EXTRAS.)
   const premium =
-    abonnement.premium || formData.get("premium") === "on" || formData.get("premium") === "true";
+    abonnement.premium || (VENTE_EXTRAS && (formData.get("premium") === "on" || formData.get("premium") === "true"));
 
   // Un seul livre gratuit par compte, tant qu'il n'est pas acheté.
-  const seraApercu = !estAdmin(user.email) && !(abonnement.actif && abonnement.restants > 0);
+  // (Un membre du Club y est soumis aussi pour un livre sur mesure, qui n'est pas compris dans son abonnement.)
+  const seraApercu = !estAdmin(user.email) && !inclusClub;
   if (seraApercu && (await aUnApercuNonAchete(user.id))) {
     return {
       ok: false,
       message:
-        "Vous avez déjà votre livre gratuit. Pour en créer un nouveau, gardez d'abord celui-ci (PDF ou livre relié), ou rejoignez le Club.",
+        "Vous avez déjà votre livre gratuit. Pour en créer un nouveau, gardez d'abord celui-ci (PDF ou livre relié).",
     };
   }
 

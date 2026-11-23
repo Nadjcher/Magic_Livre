@@ -12,7 +12,7 @@ import { storySchema } from "@/lib/storySchema";
 import AutoRefresh from "@/components/AutoRefresh";
 import { EN_COURS } from "@/lib/illustrationStatus";
 import { lightenStory } from "@/lib/bookImages";
-import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, PRIX_IMPRIME_ABONNE, formatEuros, skusPossedes } from "@/lib/products";
+import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, VENTE_EXTRAS, formatEuros, prixLivreCents, skusPossedes } from "@/lib/products";
 import { getAbonnement } from "@/lib/subscription";
 import { ventesOuvertes } from "@/lib/lancement";
 import { estAdmin } from "@/lib/rateLimit";
@@ -80,14 +80,18 @@ export default async function BoutiquePage(
   const skusPayes = skusPossedes(paidOrders.map((o) => o.sku));
   const paid = skusPayes.includes("book");
   const toutPossede = ["book", ...DELUXE_PRODUCTS.map((p) => p.sku)].every((k) => skusPayes.includes(k));
+  // Histoire toute prête : prix de base ; livre sur mesure : 9,90 € (même calcul qu'au paiement).
+  const prixLivre = premium
+    ? Math.max(env.bookPricePremiumCents(), prixLivreCents(book.pages, env.bookPriceCents()))
+    : prixLivreCents(book.pages, env.bookPriceCents());
   const prixSepares =
-    (premium ? env.bookPricePremiumCents() : env.bookPriceCents()) +
+    prixLivre +
     DELUXE_PRODUCTS.reduce((n, p) => n + p.priceCents, 0);
 
   // Le MP3 n'est proposé que si la synthèse vocale est réellement configurée.
   const audioDisponible = env.voiceProvider() === "elevenlabs" && env.elevenLabsApiKey().length > 0;
   const kit = audioDisponible ? KIT : KIT.filter((k) => !k.nom.includes("MP3"));
-  const prix = formatEuros(premium ? env.bookPricePremiumCents() : env.bookPriceCents());
+  const prix = formatEuros(prixLivre);
 
   return (
     <div className="space-y-6">
@@ -134,7 +138,7 @@ export default async function BoutiquePage(
       )}
 
       {/* Formule complète, mise en avant tant que tout n'est pas acheté */}
-      {!toutPossede && skusPayes.length === 0 && (
+      {VENTE_EXTRAS && !toutPossede && skusPayes.length === 0 && (
         <section className="carte flex flex-col gap-4 border-2 border-magique-primaire sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-bold uppercase tracking-wide text-or">Meilleure offre</p>
@@ -199,9 +203,9 @@ export default async function BoutiquePage(
       {impressionConfiguree() && (
         <DeluxeShop
           bookId={book.id}
-          produits={[abonnement.actif ? { ...LIVRE_IMPRIME, priceCents: PRIX_IMPRIME_ABONNE } : LIVRE_IMPRIME]}
+          produits={[LIVRE_IMPRIME]}
           skusPayes={skusPayes}
-          titre={abonnement.actif ? "Le livre imprimé 📕 (prix membre du Club)" : "Le livre imprimé 📕"}
+          titre="Le livre imprimé 📕"
         />
       )}
 

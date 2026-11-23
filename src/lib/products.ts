@@ -50,7 +50,30 @@ export function skusPossedes(payes: string[]): string[] {
   return payes.includes(PACK_TOUT.sku) ? Array.from(new Set([...payes, ...INCLUS_DANS_TOUT])) : payes;
 }
 
-export const DELUXE_PRODUCTS: DeluxeProduct[] = [
+/* ─── Stratégie de vente (décisions du 23 novembre 2026) ───
+ * - Le livre sur mesure (idée libre, thème écrit à la demande, grand classique) : à l'unité, 9,90 €.
+ * - L'histoire toute prête : 6,99 € (prix de base, BOOK_PRICE_CENTS).
+ * - Le Club est fermé au lancement (liste d'attente) : il rouvrira avec assez d'histoires toutes prêtes.
+ * - Pas d'édition premium, de dessin animé ni de formule « Tout compris » tant que leur coût n'est pas mesuré.
+ * Rouvrir : NEXT_PUBLIC_CLUB_OUVERT=true, NEXT_PUBLIC_VENTE_EXTRAS=true (puis redéploiement).
+ */
+export const PRIX_SUR_MESURE_CENTS = 990;
+/** Le Club se vend (sinon : liste d'attente). Les abonnés existants gardent leur abonnement. */
+export const CLUB_OUVERT = process.env.NEXT_PUBLIC_CLUB_OUVERT === "true";
+/** Édition premium, dessin animé et formule « Tout compris » en vente. */
+export const VENTE_EXTRAS = process.env.NEXT_PUBLIC_VENTE_EXTRAS === "true";
+
+/** Un livre fait à partir d'une histoire toute prête (texte et dessins de base validés une fois pour toutes). */
+export function estHistoirePrete(pages: unknown): boolean {
+  const trame = (pages as { meta?: { trame?: unknown } } | null)?.meta?.trame;
+  return typeof trame === "string" && trame.startsWith("maitresse-");
+}
+/** Prix du livre numérique : histoire toute prête au prix de base, livre sur mesure à 9,90 €. */
+export function prixLivreCents(pages: unknown, baseCents: number): number {
+  return estHistoirePrete(pages) ? baseCents : Math.max(baseCents, PRIX_SUR_MESURE_CENTS);
+}
+
+const TOUS_LES_DELUXE: DeluxeProduct[] = [
   {
     sku: "pack_fete",
     label: "Pack Fête d'anniversaire",
@@ -82,6 +105,8 @@ export const DELUXE_PRODUCTS: DeluxeProduct[] = [
     route: "",
   },
 ];
+/** Les produits en vente : le dessin animé attend que son coût soit mesuré. */
+export const DELUXE_PRODUCTS: DeluxeProduct[] = TOUS_LES_DELUXE.filter((p) => VENTE_EXTRAS || p.sku !== "video");
 
 /** Livre imprimé et relié, expédié chez le client (imprimeur Gelato). */
 /** Le livre relié Gelato : carré 20 × 20 cm, livré de leur atelier en 7 à 12 jours (devis du 13 novembre). */
@@ -126,7 +151,8 @@ export const PAYS_LIVRAISON = ["FR", "BE", "LU", "CH", "MC", "DE", "ES", "IT", "
 /** Retrouve un produit deluxe par son sku. */
 export function getDeluxeProduct(sku: string): DeluxeProduct | undefined {
   if (sku === LIVRE_IMPRIME.sku) return LIVRE_IMPRIME;
-  return DELUXE_PRODUCTS.find((p) => p.sku === sku);
+  // Tous les produits restent connus (un achat passé reste téléchargeable) ; la vente passe par DELUXE_PRODUCTS.
+  return TOUS_LES_DELUXE.find((p) => p.sku === sku);
 }
 
 /** Formate un prix en centimes vers « 4,99 € ». */
@@ -144,9 +170,7 @@ export const PLANS_CLUB: Record<PlanClub, { label: string; priceCents: number; l
     premium: false,
     avantages: [
       "4 histoires toutes prêtes par mois, avec votre enfant en héros",
-      "L'accès aux grands classiques revisités (à l'unité)",
       "Le PDF et le kit de chaque livre inclus",
-      "Le livre imprimé à 24,90 € (prix public : 39,90 €)",
     ],
   },
   clubplus: {
@@ -157,10 +181,7 @@ export const PLANS_CLUB: Record<PlanClub, { label: string; priceCents: number; l
     avantages: [
       "8 histoires toutes prêtes par mois, avec votre enfant en héros",
       "Tous les livres en édition premium (illustrations haute qualité)",
-      "L'accès aux grands classiques revisités (à l'unité)",
       "Le PDF et le kit de chaque livre inclus",
-      "Le livre imprimé à 24,90 € (prix public : 39,90 €)",
     ],
   },
 };
-export const PRIX_IMPRIME_ABONNE = 2490;
