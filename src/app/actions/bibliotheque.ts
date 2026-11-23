@@ -10,7 +10,7 @@ import { storySchema } from "@/lib/storySchema";
 import { findThemeById } from "@/lib/themes";
 import { ajouterExemple, basculerExemple, supprimerExemple } from "@/lib/bibliotheque";
 import { waitUntil } from "@vercel/functions";
-import { EN_RELECTURE, EN_RELECTURE_IMAGES } from "@/lib/illustrationStatus";
+import { EN_COURS, EN_RELECTURE, EN_RELECTURE_IMAGES } from "@/lib/illustrationStatus";
 import { peutDebloquer } from "@/lib/apercu";
 import { lireFiche } from "@/lib/ficheEnfant";
 import { memoire, serieDe } from "@/lib/serie";
@@ -142,7 +142,7 @@ export async function relancerHistoireAction(formData: FormData): Promise<void> 
   const bookId = String(formData.get("bookId") ?? "");
   const r = await requeteDepuisLivre(bookId);
   if (!r) return;
-  await prisma.book.update({ where: { id: bookId }, data: { status: "generating", errorMessage: null } });
+  await prisma.book.update({ where: { id: bookId }, data: { status: "generating", errorMessage: `${EN_COURS}${Date.now()}` } });
   const complement = r.story.serie ? { serie: r.story.serie, style: r.story.style, fiches: r.story.fiches } : undefined;
   waitUntil(secondeGeneration({ bookId, req: r.req, portrait: null, complement, tentative: 2 }));
   revalidatePath("/admin/histoires");
@@ -155,7 +155,7 @@ export async function livrerVersionAction(formData: FormData): Promise<void> {
   const r = await requeteDepuisLivre(bookId);
   if (!r) return;
   const pages = { ...r.story, qualite: r.story.qualite ? { ...r.story.qualite, aRevoir: false } : undefined };
-  await prisma.book.update({ where: { id: bookId }, data: { status: "generating", errorMessage: null, pages } });
+  await prisma.book.update({ where: { id: bookId }, data: { status: "generating", errorMessage: `${EN_COURS}${Date.now()}`, pages } });
   waitUntil(lancerIllustrations({ bookId, req: r.req, portrait: null }));
   revalidatePath("/admin/histoires");
 }
@@ -167,7 +167,8 @@ export async function livrerIllustrationsAction(formData: FormData): Promise<voi
   const book = await prisma.book.findUnique({ where: { id: bookId }, select: { pages: true, errorMessage: true } });
   const st = storySchema.safeParse(book?.pages);
   if (!book || !st.success || book.errorMessage !== EN_RELECTURE_IMAGES) return;
-  const pages = { ...st.data, imagesARevoir: undefined };
+  // L'atelier a regardé : le livre part, et la porte de qualité s'en souvient (PDF, impression).
+  const pages = { ...st.data, imagesARevoir: undefined, retenue: undefined, valideAtelier: true };
   await prisma.book.update({ where: { id: bookId }, data: { status: "ready", errorMessage: null, pages } });
   const { notifierLivrePret } = await import("@/lib/notifications");
   await notifierLivrePret(bookId).catch(() => undefined);

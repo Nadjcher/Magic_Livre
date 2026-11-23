@@ -17,6 +17,9 @@ import { fichesPresentes, illustrerEpisode, imageReportOf } from "@/lib/storyGen
 import { EN_COURS } from "@/lib/illustrationStatus";
 import { debloquerLivre, peutDebloquer } from "@/lib/apercu";
 import { retouchesMax } from "@/lib/validationImpression";
+import { controleActif, controlerIllustrations } from "@/lib/controleIllustrations";
+
+const REFUS_DESSIN = "Le nouveau dessin n'était pas assez réussi : nous ne l'avons pas gardé, et cet essai n'est pas compté. Réessayez dans un instant.";
 
 
 function manquantes(story: Story): number {
@@ -65,99 +68,23 @@ export async function completeIllustrations(
   }
   if (manquantes(parsed.data) === 0) return { ok: true, message: "Toutes les illustrations sont là." };
 
+  // Les images manquantes repassent par la chaîne normale : mêmes fiches (ou mêmes planches validées),
+  // même vérification, même porte de qualité. Le livre redevient « en cours » le temps de les dessiner.
   await prisma.book.update({
     where: { id: book.id },
-    data: { errorMessage: `${EN_COURS}${Date.now()}` },
+    data: { status: "generating", errorMessage: `${EN_COURS}${Date.now()}` },
   });
-
+  const { lancerIllustrations } = await import("@/lib/bookPipeline");
   waitUntil(
-    completer(book.id, parsed.data, book.child.firstName, book.tier === "premium"),
+    lancerIllustrations({
+      bookId: book.id,
+      req: { childFirstName: book.child.firstName, childAge: 6, mode: "theme", longueur: "moyenne", style: parsed.data.style, premium: book.tier === "premium" },
+      portrait: null,
+    }),
   );
   revalidatePath(`/bibliotheque/${book.id}`);
-  return { ok: true, message: "C'est parti ! Les illustrations arrivent dans 1 à 2 minutes." };
+  return { ok: true, message: "C'est parti ! Les illustrations arrivent dans quelques minutes." };
 }
-
-async function completer(
-  bookId: string,
-  story: Story,
-  heroName: string,
-  premium: boolean,
-): Promise<void> {
-  const errors: string[] = [];
-  try {
-    const style = story.style ?? "feerique";
-    // Ancre = une illustration déjà réussie du livre (même héros, même style).
-    const ancreUrl =
-      (await fetchAsDataUrl(story.couvertureUrl, { maxPx: 1024, quality: 85 })) ??
-      (await fetchAsDataUrl(story.pages.find((p) => p.imageUrl)?.imageUrl, {
-        maxPx: 1024,
-        quality: 85,
-      }));
-    const m = ancreUrl ? /^data:([^;]+);base64,(.+)$/.exec(ancreUrl) : null;
-    const anchor = m ? { mime: m[1] as string, base64: m[2] as string } : undefined;
-
-    const base = Date.now() % 1_000_000;
-    const dessiner = (scene: string, seed: number) =>
-      generateIllustration({
-        style,
-        scene,
-        heroName,
-        anchorImage: anchor,
-        premium,
-        recurringCharacters: story.personnages,
-        seed,
-      }).then((r) => {
-        if (r.error) errors.push(r.error);
-        return r.imageUrl;
-      });
-
-    const taches: { cible: "cover" | number; scene: string }[] = [];
-    if (!story.couvertureUrl) {
-      taches.push({
-        cible: "cover",
-        scene:
-          `Book cover illustration for the story "${story.titre}": the hero in an emblematic moment ` +
-          `(${story.pages[Math.floor(story.pages.length / 2)]?.scene_illustration ?? ""}), NOT a plain portrait`,
-      });
-    }
-    story.pages.forEach((p, i) => {
-      if (!p.imageUrl) taches.push({ cible: i, scene: p.scene_illustration });
-    });
-
-    const resultats = new Map<"cover" | number, string | null>();
-    let next = 0;
-    await Promise.all(
-      Array.from({ length: Math.min(4, taches.length) }, async () => {
-        while (next < taches.length) {
-          const t = taches[next++]!;
-          resultats.set(t.cible, await dessiner(t.scene, base + next));
-        }
-      }),
-    );
-
-    // Relit le livre (il a pu être allégé entre-temps) puis complète.
-    const frais = await prisma.book.findUnique({ where: { id: bookId }, select: { pages: true } });
-    const actuel = storySchema.safeParse(frais?.pages);
-    const cible = actuel.success ? actuel.data : story;
-    const complete: Story = {
-      ...cible,
-      couvertureUrl: cible.couvertureUrl ?? resultats.get("cover") ?? null,
-      pages: cible.pages.map((p, i) => ({ ...p, imageUrl: p.imageUrl ?? resultats.get(i) ?? null })),
-    };
-    await prisma.book.update({
-      where: { id: bookId },
-      data: { pages: complete, errorMessage: imageReportOf(complete, errors) ?? null },
-    });
-  } catch (e) {
-    await prisma.book
-      .update({
-        where: { id: bookId },
-        data: { errorMessage: `Illustrations manquantes. ${String(e).slice(0, 200)}` },
-      })
-      .catch(() => undefined);
-  }
-}
-
 
 /**
  * Redessine UNE page (ou la couverture, index -1) avec les mêmes fiches de
@@ -192,7 +119,24 @@ export async function redrawPage(
   // Histoire toute prête avec planches : on retouche à nouveau la planche validée (scène intacte).
   if (story.planches) {
     const { retoucherPage } = await import("@/lib/planches");
-    const url = await retoucherPage(story, index);
+    let url = await retoucherPage(story, index);
+    // Garde-fou : la page refaite est vérifiée comme les autres (et reprise une fois si besoin).
+    // Fautive ou non vérifiée : elle n'entre pas dans le livre, et l'essai n'est pas compté.
+    if (url && controleActif()) {
+      const { controlerRetouches } = await import("@/lib/planches");
+      const essai: Story = {
+        ...story,
+        couvertureUrl: index < 0 ? url : story.couvertureUrl,
+        pages: story.pages.map((p, i) => (i === index ? { ...p, imageUrl: url } : p)),
+        planches: { ...story.planches, retouchees: [index] },
+        imagesARevoir: undefined,
+      };
+      const { story: verifiee } = await controlerRetouches(essai, Date.now() + 150_000);
+      if ((verifiee.imagesARevoir?.length ?? 0) > 0 || (verifiee.controleImages?.nonVerifiees ?? 0) > 0) {
+        return { ok: false, message: REFUS_DESSIN, restantes: RETOUCHES_MAX - faites };
+      }
+      url = (index < 0 ? verifiee.couvertureUrl : verifiee.pages[index]?.imageUrl) ?? url;
+    }
     if (url) {
       const frais = storySchema.safeParse((await prisma.book.findUnique({ where: { id: book.id }, select: { pages: true } }))?.pages);
       const cible = frais.success ? frais.data : story;
@@ -212,6 +156,8 @@ export async function redrawPage(
       revalidatePath(`/bibliotheque/${book.id}`);
       return { ok: true, message: "Nouvelle illustration prête !", restantes: RETOUCHES_MAX - faites - 1 };
     }
+    // Une histoire toute prête ne se redessine jamais « à la main levée » : seulement depuis sa planche validée.
+    return { ok: false, message: "Cette page ne peut pas être refaite pour l'instant. Réessayez plus tard.", restantes: RETOUCHES_MAX - faites };
   }
 
   // Fiches de référence (héros + personnages secondaires présents).
@@ -246,6 +192,28 @@ export async function redrawPage(
   if (!r.imageUrl) {
     return { ok: false, message: "Le dessin n'a pas pu être refait. Réessayez dans un instant.", restantes: RETOUCHES_MAX - faites };
   }
+  // Garde-fou : le nouveau dessin passe la même vérification que le reste du livre (avec ses reprises).
+  // Fautif ou non vérifié : il n'entre pas dans le livre, et l'essai n'est pas compté.
+  let nouvelle = r.imageUrl;
+  if (controleActif() && story.fiches?.heros) {
+    const seul: Story = {
+      ...story,
+      couvertureUrl: index < 0 ? nouvelle : null,
+      pages: story.pages.map((p, i) => ({ ...p, imageUrl: i === index ? nouvelle : null })),
+      controleImages: undefined,
+      imagesARevoir: undefined,
+    };
+    const { story: verifiee } = await controlerIllustrations(
+      seul,
+      { childFirstName: book.child.firstName, childAge: 6, mode: "theme", longueur: "moyenne", style: story.style, premium: book.tier === "premium" },
+      Date.now() + 150_000,
+    );
+    const c = verifiee.controleImages;
+    if (!c || (c.nonVerifiees ?? 0) > 0 || (c.douteuses?.length ?? 0) > 0 || (verifiee.imagesARevoir?.length ?? 0) > 0) {
+      return { ok: false, message: REFUS_DESSIN, restantes: RETOUCHES_MAX - faites };
+    }
+    nouvelle = (index < 0 ? verifiee.couvertureUrl : verifiee.pages[index]?.imageUrl) ?? nouvelle;
+  }
 
   // Relit le livre avant d'écrire (rien d'autre ne doit être écrasé).
   const frais = await prisma.book.findUnique({ where: { id: book.id }, select: { pages: true } });
@@ -254,8 +222,8 @@ export async function redrawPage(
   const maj: Story = {
     ...cible,
     retouches: faites + 1,
-    couvertureUrl: index < 0 ? r.imageUrl : cible.couvertureUrl,
-    pages: cible.pages.map((p, i) => (i === index ? { ...p, imageUrl: r.imageUrl } : p)),
+    couvertureUrl: index < 0 ? nouvelle : cible.couvertureUrl,
+    pages: cible.pages.map((p, i) => (i === index ? { ...p, imageUrl: nouvelle } : p)),
   };
   await prisma.book.update({ where: { id: book.id }, data: { pages: maj } });
   // Boucle d'amélioration : on retient quelle page les parents font redessiner.

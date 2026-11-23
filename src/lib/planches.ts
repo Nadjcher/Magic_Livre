@@ -515,7 +515,8 @@ export async function retoucherPage(story: Story, index: number): Promise<string
   const m = await lirePlanches(h.id, story.style ?? "anim3d");
   const k = clePour(h, index, story.planches.variante);
   const planche = k ? m.get(k.cle) : undefined;
-  if (!k || !planche) return null;
+  // Seule une planche VALIDÉE entre dans un livre (une planche remplacée et pas encore regardée : non).
+  if (!k || !planche || !planche.valide) return null;
   if (!k.enfant && !k.doudou) return planche.url;
   const doudou = (story.cast ?? []).find((c) => estPeluche(c.visuel));
   const [ref, heros, dd] = await Promise.all([
@@ -556,6 +557,10 @@ interface Inspection {
   same_scene?: boolean;
   /** Cadre, bordure ou vignette arrondie autour de l'image. */
   frame?: boolean;
+  /** Mêmes relevés que pour les livres sur mesure : accidents de dessin, lettres, enfant en double. */
+  anatomy_defects?: string[];
+  letters_or_text?: boolean;
+  child_count?: number;
 }
 
 async function inspecter(
@@ -577,11 +582,14 @@ async function inspecter(
     '"hair_reference" and "hair_length_reference": then, the same two answers for the child in image 2.',
     '"hair_texture_page" and "hair_texture_reference": the hair texture of the big child in image 1, then of the child in image 2, each one word among: straight, wavy, curly, coily.',
     '"skin_page" and "skin_reference": the skin tone of the big child in image 1, then of the child in image 2, each among: very light, light, medium, tan, brown, dark (judge the lit skin, not the colored light of the scene).',
+    '"child_count": how many times the big child appears in image 1 (1 normally; 2 if the child is drawn twice).',
+    '"letters_or_text": true if image 1 shows written letters, words or numbers (on a sign, a book cover, a wall), false otherwise; ignore tiny illegible marks inside an open book.',
+    '"anatomy_defects": ONLY gross drawing accidents that a parent would notice at first glance in image 1: an extra or missing arm or leg, two heads, a melted or badly distorted face, eyes at clearly different heights, a body fused with another character or with an object. Name the character and the defect. Do NOT count fingers, do NOT report stylized cartoon proportions. [] if none; when in doubt, [].',
     '"frame": true if image 1 has a border, a frame, a margin or a rounded vignette around the picture instead of filling the whole image, false otherwise.',
     origine
       ? `"same_scene": the LAST image (image ${images.length}) is the original page before the child was retouched. true if image 1 shows the same scene (same setting, same poses, same framing, same other characters; only the child's face, hair or clothes and the plush toy may differ), false if image 1 shows a different scene, pose or framing (for example the child standing alone like a character sheet).`
       : '"same_scene": true.',
-    'JSON: {"hair_page": "", "hair_length_page": "", "plush_animal": "", "plush_count": 0, "present": {}, "head_twisted": false, "hair_reference": "", "hair_length_reference": "", "hair_texture_page": "", "hair_texture_reference": "", "skin_page": "", "skin_reference": "", "frame": false, "same_scene": true}',
+    'JSON: {"hair_page": "", "hair_length_page": "", "plush_animal": "", "plush_count": 0, "present": {}, "head_twisted": false, "hair_reference": "", "hair_length_reference": "", "hair_texture_page": "", "hair_texture_reference": "", "skin_page": "", "skin_reference": "", "child_count": 1, "letters_or_text": false, "anatomy_defects": [], "frame": false, "same_scene": true}',
   ].join("\n");
   try {
     const r = await falFetch(
@@ -590,7 +598,7 @@ async function inspecter(
         method: "POST",
         headers: { Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" },
         // Deux questions simples : un modèle sans réflexion suffit (quelques dixièmes de centime).
-        body: JSON.stringify({ model: process.env.QA_RETOUCHE_MODEL || "anthropic/claude-sonnet-4.5", prompt, image_urls: images, max_tokens: 450, temperature: 0 }),
+        body: JSON.stringify({ model: process.env.QA_RETOUCHE_MODEL || "anthropic/claude-sonnet-4.5", prompt, image_urls: images, max_tokens: 600, temperature: 0 }),
       },
       40_000,
     );
@@ -629,18 +637,30 @@ export async function controlerRetouches(
   // (girafe, éléphant…) : la retouche ne sait pas re-sculpter une telle silhouette. Après ce 2e essai,
   // la page part en relecture humaine (file « Illustrations à relire ») plutôt que d'être envoyée fausse.
   const aRevoir = new Map<number, string>();
+  // Une page que l'agent n'a pas pu regarder (temps, panne, image illisible) n'est jamais comptée « vérifiée ».
+  let nonVerifiees = 0;
   await mapLimit(retouchees, 4, async (i) => {
-    if (Date.now() > limite) return;
+    if (Date.now() > limite) {
+      nonVerifiees++;
+      return;
+    }
     const url = i === -1 ? story.couvertureUrl : story.pages[i]?.imageUrl;
     const page = await lireRef(url);
-    if (!page) return;
+    if (!page) {
+      nonVerifiees++;
+      return;
+    }
     const attendus = h ? autresPersonnages(h, i) : [];
     const k = h && story.planches ? clePour(h, i, story.planches.variante) : undefined;
     const ligne = k ? m0.get(k.cle) : undefined;
     const planche = await lireRef(ligne?.url);
     // La planche d'origine est montrée aussi : la retouche doit garder SA scène (pas la fiche de l'enfant debout).
-    const v = await inspecter(heros, doudouRef, page, attendus, planche ?? null);
-    if (!v) return;
+    // Un second essai si l'agent ne répond pas (panne passagère), comme pour les livres sur mesure.
+    const v = (await inspecter(heros, doudouRef, page, attendus, planche ?? null)) ?? (await inspecter(heros, doudouRef, page, attendus, planche ?? null));
+    if (!v) {
+      nonVerifiees++;
+      return;
+    }
     const nomPage = i === -1 ? "couverture" : `p${i + 1}`;
     /** Ce que l'agent reproche à une page (la première fois, puis après la reprise). */
     const releverFautes = (v: Inspection): string[] => {
@@ -650,6 +670,10 @@ export async function controlerRetouches(
     if (k?.enfant && !(ligne?.deDos ?? k.deDos) && teintsDifferents(v.skin_reference, v.skin_page)) fautes.push(`the child's skin tone must be ${v.skin_reference} like on the reference, not ${v.skin_page}`);
     if (v.same_scene === false) fautes.push("keep EXACTLY the scene of the original page: same setting, same poses, same framing, same other characters; only the child (and the plush toy) change");
     if (v.frame === true) fautes.push("full-bleed picture filling the whole image: no border, no frame, no rounded vignette");
+    if (k?.enfant && typeof v.child_count === "number" && v.child_count > 1) fautes.push("the child appears only ONCE in the picture");
+    // (Les lettres ne sont pas relevées ici : la planche d'origine a été validée à l'œil, et une fausse
+    // alerte sur un livre ouvert retiendrait tous les livres de cette histoire.)
+    for (const d of (v.anatomy_defects ?? []).slice(0, 2)) if (d?.trim()) fautes.push(`fix the drawing accident: ${d.trim()}; every character has a normal, complete body and a clean face`);
     if (k && !k.doudou && typeof v.plush_count === "number" && v.plush_count > 0) fautes.push("no plush toy at all in this picture");
     if (k?.enfant && cheveuxDifferents(v.hair_reference, v.hair_page)) fautes.push(`the child's hair must be ${v.hair_reference}, not ${v.hair_page}`);
     const court = (t?: string) => /short/i.test(t ?? "");
@@ -666,9 +690,13 @@ export async function controlerRetouches(
       return fautes;
     };
     const fautes = releverFautes(v);
-    if (!fautes.length || !h || !k) return;
+    if (!fautes.length) return;
+    // Fautive mais impossible à reprendre (planche illisible, temps écoulé) : la page ne part pas telle quelle.
+    if (!h || !k || !planche || Date.now() > limite) {
+      aRevoir.set(i, `${nomPage} : ${fautes.join(" ; ")}`.slice(0, 300));
+      return;
+    }
     const deDos = ligne?.deDos ?? k.deDos;
-    if (!planche) return;
     const r = await retoucherPlanche({
       planche,
       heros: k.enfant ? heros : undefined,
@@ -692,7 +720,8 @@ export async function controlerRetouches(
     // Garde-fou final : la page refaite est vérifiée à son tour. Encore fautive, le livre attend dans l'atelier.
     const refaite = r.base64 ? { base64: r.base64, mime: r.mime ?? "image/jpeg" } : await lireRef(r.imageUrl);
     const v2 = refaite ? await inspecter(heros, doudouRef, refaite, attendus, planche) : null;
-    const restantes = v2 ? releverFautes(v2) : [];
+    // Page refaite que l'agent n'a pas pu regarder : pas « corrigée », elle reste à revoir.
+    const restantes = v2 ? releverFautes(v2) : ["page refaite non vérifiée"];
     if (restantes.length) aRevoir.set(i, `${nomPage} : ${restantes.join(" ; ")}`.slice(0, 300));
   });
   return {
@@ -700,7 +729,7 @@ export async function controlerRetouches(
       ...story,
       couvertureUrl: nouvelles.get(-1) ?? story.couvertureUrl,
       pages: story.pages.map((p, i) => (nouvelles.has(i) ? { ...p, imageUrl: nouvelles.get(i)! } : p)),
-      controleImages: { verifiees: retouchees.length, refaites, nonVerifiees: 0 },
+      controleImages: { verifiees: retouchees.length - nonVerifiees, refaites, nonVerifiees },
       imagesARevoir: aRevoir.size ? [...aRevoir.keys()] : undefined,
     },
     bilan:

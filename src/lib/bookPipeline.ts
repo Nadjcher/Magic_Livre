@@ -19,6 +19,8 @@ import { storySchema, type Story } from "./storySchema";
 import { PAGES_APERCU, illustrateStory, illustrerEpisode } from "./storyGenerator";
 import type { StoryRequest } from "./storyPrompt";
 import { controleActif, controlerIllustrations } from "./controleIllustrations";
+import { porteQualite } from "./porteQualite";
+import { retenirLivre } from "./retenue";
 import { EN_RELECTURE_IMAGES } from "./illustrationStatus";
 import { illustrationsEnabled } from "./illustration";
 import { alerterAdmin, notifierLivrePret } from "./notifications";
@@ -96,14 +98,9 @@ export async function illustrerLivre({ bookId, req, portrait }: EtapeIllustratio
     await terminerLivre(bookId, story, imageReport ?? null, episode);
   } catch (e) {
     console.error("[livre] illustrations interrompues", bookId, String(e).slice(0, 300));
-    // Le texte est déjà enregistré : le livre devient lisible, et le parent
-    // pourra compléter les illustrations depuis la page du livre.
-    await prisma.book
-      .update({
-        where: { id: bookId },
-        data: { status: "ready", errorMessage: "Illustrations manquantes : la création des images a été interrompue." },
-      })
-      .catch(() => undefined);
+    // Le texte est déjà enregistré, mais un livre aux images interrompues n'est pas « prêt » :
+    // il est retenu dans l'atelier (le parent et l'administrateur sont prévenus).
+    await retenirInterrompu(bookId, `fabrication des images interrompue : ${String(e).slice(0, 200)}`);
   }
 }
 
@@ -150,24 +147,31 @@ export async function controlerLivre({ bookId, req, imageReport }: EtapeControle
   await terminerLivre(bookId, story, imageReport, false);
 }
 
+/** Fabrication interrompue (exception, exécution tuée) : le livre est retenu, jamais marqué « prêt ». */
+export async function retenirInterrompu(bookId: string, raison: string): Promise<void> {
+  try {
+    const book = await prisma.book.findUnique({ where: { id: bookId }, select: { pages: true } });
+    const parsed = storySchema.safeParse(book?.pages);
+    if (!parsed.success) {
+      await prisma.book.update({ where: { id: bookId }, data: { status: "failed", errorMessage: "La création a été interrompue. Supprimez ce livre et réessayez." } });
+      return;
+    }
+    const v = porteQualite(parsed.data, { pagesApercu: PAGES_APERCU, imagesAttendues: illustrationsEnabled(), controleAttendu: controleActif() });
+    await retenirLivre(bookId, parsed.data, { ok: false, raisons: [raison, ...v.raisons], pages: v.pages });
+  } catch (e) {
+    console.error("[livre] retenue impossible", bookId, String(e).slice(0, 200));
+  }
+}
+
 /** Livre prêt : enregistré, parent prévenu, livres en attente relancés. */
 async function terminerLivre(bookId: string, story: Story, imageReport: string | null, episode: boolean): Promise<void> {
-  // Garde-fou : une illustration restée fautive après son 2e essai (doudou de silhouette trop
-  // différente de l'ours neutre de la planche) n'est JAMAIS envoyée telle quelle. Le livre attend
-  // un regard dans l'atelier (file « Illustrations à relire »), et le parent est prévenu (sous 48 h).
-  // Les aperçus gratuits ne sont pas bloqués (la page sera reprise au déblocage complet).
-  if (!story.apercu && (story.imagesARevoir?.length ?? 0) > 0) {
-    await prisma.book.update({
-      where: { id: bookId },
-      data: { status: "draft", title: story.titre, pages: story, errorMessage: EN_RELECTURE_IMAGES },
-    });
-    const { reserver } = await import("./idempotence");
-    const { notifierRelecture } = await import("./notifications");
-    if (await reserver(`relecture-email:${bookId}`)) await notifierRelecture(bookId).catch(() => undefined);
-    await alerterAdmin(
-      "une illustration reste à revoir avant l'envoi",
-      `Livre ${bookId} : ${imageReport ?? "doudou à vérifier sur la couverture"}. Ouvrez l'atelier : ${getAppUrl()}/admin/histoires`,
-    );
+  // LA porte de qualité (porteQualite.ts) : image manquante, image restée fautive ou image non
+  // vérifiée → le livre n'est JAMAIS montré au parent tel quel, aperçu gratuit compris. Il attend
+  // dans l'atelier (« Illustrations à relire ») ; le parent est prévenu (sous 48 h).
+  const verdict = porteQualite(story, { pagesApercu: PAGES_APERCU, imagesAttendues: illustrationsEnabled(), controleAttendu: controleActif() });
+  if (!verdict.ok) {
+    console.error("[livre] retenu par la porte de qualité", bookId, verdict.raisons.join(" ; "), imageReport ?? "");
+    await retenirLivre(bookId, story, verdict);
     return;
   }
   await prisma.book.update({

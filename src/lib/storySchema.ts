@@ -181,6 +181,10 @@ export const storySchema = z.object({
     .catch(undefined),
   // Illustrations restées fautives après une nouvelle tentative (-1 = couverture) : relecture humaine.
   imagesARevoir: z.array(z.number().int()).optional().catch(undefined),
+  /** Pourquoi le livre est retenu dans l'atelier (porte de qualité). */
+  retenue: z.array(z.string().max(400)).max(8).optional().catch(undefined),
+  /** L'atelier a regardé le livre retenu et l'a laissé partir : la porte ne le retient plus pour ses images. */
+  valideAtelier: z.boolean().optional().catch(undefined),
   // Aperçu gratuit : seules la couverture et les premières pages sont illustrées ;
   // le reste est dessiné à l'achat ou pour les membres du Club.
   apercu: z.boolean().optional(),

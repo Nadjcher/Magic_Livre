@@ -14,7 +14,7 @@ import { signer, lancerIllustrations } from "./bookPipeline";
 import { generateStory, relireHistoire } from "./storyGenerator";
 import { EN_RELECTURE } from "./illustrationStatus";
 import { reserver } from "./idempotence";
-import { cadrerScenes, consoliderFiche } from "./ficheHistoire";
+import { cadrerScenes, consoliderFiche, correctionsFiche, verifierFiche } from "./ficheHistoire";
 import { harmoniserCast } from "./personnagesMaison";
 import type { Story } from "./storySchema";
 import type { StoryRequest } from "./storyPrompt";
@@ -41,7 +41,35 @@ export async function livrer(l: Livraison, story: Story): Promise<void> {
   const harmonisee = maitresse ? brute : await harmoniserCast(brute, l.req.style ?? "feerique").catch(() => brute);
   const consolidee = consoliderFiche(harmonisee);
   // Idée libre et thèmes écrits par l'IA : chaque image cadrée par le code (les histoires toutes prêtes ont leurs scènes validées).
-  const complete = maitresse ? consolidee : cadrerScenes(consolidee);
+  let complete = maitresse ? consolidee : cadrerScenes(consolidee);
+
+  // Ce que le lecteur verrait tout de suite : un marqueur oublié ({prenom}…), un personnage protégé,
+  // le prénom absent. Vérifié par le code pour TOUTES les histoires, toutes prêtes comprises.
+  const bloquants = correctionsFiche(verifierFiche(complete, { age: l.req.childAge, prenom: l.req.childFirstName })).filter((m) => /marqueur|protég|prénom/i.test(m));
+  if (maitresse && bloquants.length) {
+    // Une histoire toute prête fautive est une erreur de notre côté : elle ne part pas, l'atelier est prévenu.
+    await prisma.book.update({
+      where: { id: l.bookId },
+      data: { status: "failed", title: complete.titre, errorMessage: "Cette histoire n'a pas pu être préparée. Nous sommes prévenus ; votre essai gratuit reste disponible." },
+    });
+    const { alerterAdmin } = await import("./notifications");
+    await alerterAdmin("une histoire toute prête a une fiche fautive", `Livre ${l.bookId} (${complete.meta?.trame}) : ${bloquants.join(" | ")}`).catch(() => undefined);
+    return;
+  }
+  if (!maitresse) {
+    // Une histoire écrite par l'IA ne part jamais sans avoir été relue : relecture en panne → atelier.
+    if (!complete.qualite) {
+      await mettreEnRelecture(l.bookId, complete, "la relecture automatique n'a pas pu avoir lieu");
+      return;
+    }
+    // Refusée aussi : une note sous 60 % du total, ou une faute visible restée après la réécriture.
+    const q = complete.qualite;
+    const tropBas = Boolean(q.max && q.total !== undefined && q.total < 0.6 * q.max);
+    if (!q.eliminatoire && (tropBas || bloquants.length)) {
+      const motif = bloquants.length ? bloquants.join(" | ") : `note trop basse (${q.total}/${q.max})`;
+      complete = { ...complete, qualite: { ...q, accepte: false, eliminatoire: motif.slice(0, 300) } };
+    }
+  }
   if (!eliminee(complete)) {
     await prisma.book.update({ where: { id: l.bookId }, data: { title: complete.titre, pages: complete } });
     await lancerIllustrations({ bookId: l.bookId, req: l.req, portrait: l.portrait });
@@ -136,7 +164,7 @@ export async function relireEtLivrer(l: Livraison, story: Story): Promise<void> 
 }
 
 /** Rien n'est livré : relecture humaine, parent et admin prévenus. */
-export async function mettreEnRelecture(bookId: string, story: Story): Promise<void> {
+export async function mettreEnRelecture(bookId: string, story: Story, motif?: string): Promise<void> {
   await prisma.book.update({
     where: { id: bookId },
     data: {
@@ -151,7 +179,7 @@ export async function mettreEnRelecture(bookId: string, story: Story): Promise<v
   if (await reserver(`relecture-email:${bookId}`)) await notifierRelecture(bookId).catch(() => undefined);
   await alerterAdmin(
     "une histoire attend votre relecture (sous 48 h)",
-    `Motif éliminatoire après deux générations : ${story.qualite?.eliminatoire ?? "?"}. Ouvrez l'atelier : ${getAppUrl()}/admin/histoires`,
+    `${motif ? `Motif : ${motif}` : `Motif éliminatoire après deux générations : ${story.qualite?.eliminatoire ?? "?"}`}. Livre ${bookId}. Ouvrez l'atelier : ${getAppUrl()}/admin/histoires`,
   );
 }
 

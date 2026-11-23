@@ -4,6 +4,7 @@
  * statut « ready » et l'existence d'un paiement validé.
  */
 
+import { EN_COURS } from "./illustrationStatus";
 import "server-only";
 import { getCurrentUser } from "./session";
 import { prisma } from "./prisma";
@@ -34,6 +35,10 @@ export async function getPaidProductStory(
   if (!book) return { ok: false, status: 404, error: "Livre introuvable." };
   if (book.status !== "ready" || !book.pages) {
     return { ok: false, status: 409, error: "Le livre n'est pas encore prêt." };
+  }
+  // Livre acheté mais encore en cours de complétion (ou resté en aperçu) : pas de PDF incomplet.
+  if (book.errorMessage?.startsWith(EN_COURS) || (book.pages as { apercu?: unknown }).apercu === true) {
+    return { ok: false, status: 409, error: "Les dernières pages sont en cours de dessin. Réessayez dans quelques minutes." };
   }
 
   const paid = await prisma.order.findFirst({

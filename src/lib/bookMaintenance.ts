@@ -13,6 +13,7 @@
 import "server-only";
 import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
+import { EN_COURS } from "./illustrationStatus";
 
 // Deux étapes de 5 min au plus (texte, puis illustrations) : au-delà de 12 min,
 // la création est forcément interrompue.
@@ -24,17 +25,22 @@ export const STALE_GENERATING_MS = 25 * 60 * 1000;
 export async function failStaleBooks(userId: string): Promise<void> {
   const cutoff = new Date(Date.now() - STALE_GENERATING_MS);
   try {
-    // Texte déjà écrit : le livre devient lisible, les illustrations pourront
-    // être complétées depuis sa page.
-    await prisma.book.updateMany({
+    // Texte déjà écrit mais fabrication morte : le livre n'est PAS « prêt » (ses images manquent ou n'ont
+    // pas été vérifiées). Il est retenu dans l'atelier ; l'administrateur est prévenu.
+    // Un livre relancé (file d'attente, atelier) porte la date de sa relance : on ne le coupe pas en plein travail.
+    const bloques = await prisma.book.findMany({
       where: { userId, status: "generating", createdAt: { lt: cutoff }, NOT: { pages: { equals: Prisma.DbNull } } },
-      data: {
-        status: "ready",
-        errorMessage: "Illustrations manquantes : la création des images a été interrompue.",
-      },
+      select: { id: true, errorMessage: true },
     });
+    for (const b of bloques) {
+      const relance = b.errorMessage?.startsWith(EN_COURS) ? Number(b.errorMessage.slice(EN_COURS.length)) : 0;
+      if (relance > cutoff.getTime()) continue;
+      const { retenirInterrompu } = await import("./bookPipeline");
+      await retenirInterrompu(b.id, "fabrication restée bloquée plus de 25 minutes");
+    }
+    const enCours = bloques.map((b) => b.id);
     await prisma.book.updateMany({
-      where: { userId, status: "generating", createdAt: { lt: cutoff } },
+      where: { userId, status: "generating", createdAt: { lt: cutoff }, id: { notIn: enCours } },
       data: {
         status: "failed",
         errorMessage:

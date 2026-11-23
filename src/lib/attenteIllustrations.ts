@@ -12,7 +12,7 @@
 
 import "server-only";
 import { prisma } from "./prisma";
-import { EN_ATTENTE_ILLUSTRATIONS } from "./illustrationStatus";
+import { EN_ATTENTE_ILLUSTRATIONS, EN_COURS } from "./illustrationStatus";
 import type { StoryRequest } from "./storyPrompt";
 import type { Story } from "./storySchema";
 
@@ -75,7 +75,8 @@ export async function relancerEnAttente(max = 6): Promise<number> {
   for (const { bookId, req } of rows) {
     const ok = await prisma.book.updateMany({
       where: { id: bookId, deletedAt: null, errorMessage: EN_ATTENTE_ILLUSTRATIONS },
-      data: { status: "generating", errorMessage: null },
+      // Date de la relance : l'entretien ne coupe pas un livre qui vient de repartir (bookMaintenance.ts).
+      data: { status: "generating", errorMessage: `${EN_COURS}${Date.now()}` },
     });
     if (ok.count === 0) continue; // supprimé entre-temps
     const heros = req.herosId ? await lireHerosParId(req.herosId).catch(() => null) : null;

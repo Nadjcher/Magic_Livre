@@ -241,6 +241,8 @@ export function jugerInventaire(
   const f: string[] = [];
   const h = v.hero ?? {};
   if ((h.count ?? 1) > 1) f.push(`Draw ${heros.nom} only ONCE.`);
+  // Le héros est sur chaque image (cadrerScenes l'impose) : absent, la page n'est pas la bonne.
+  if (h.count === 0) f.push(`${heros.nom} is missing: draw ${heros.nom}, clearly visible, exactly as on the reference sheet.`);
   if ((h.count ?? 1) >= 1) {
     const vue = v.page_hair || h.hair_seen;
     if (h.hair_same_color_as_reference === false || cheveuxDifferents(h.hair_reference, h.hair_seen) || cheveuxDifferents(h.hair_reference, vue)) {
@@ -419,7 +421,8 @@ export async function controlerIllustrations(
   const grille = estCarre(story.style) ? grillePour(story.style) : null;
   const controler = async (url: string, scene: string, cast: ReturnType<typeof presentsSur>) => {
     const img = enRef(await fetchAsDataUrl(url, petit));
-    if (!img) return { ok: true, fix: "" };
+    // Image illisible : jamais comptée « conforme » (la porte de qualité retient une image non vérifiée).
+    if (!img) return { ok: true, fix: "", nonVerifiee: true };
     if (grille && (await zoneVide(img))) {
       return { ok: false, fix: "The picture has a blank, unpainted white area: paint the whole scene to every edge, no empty rectangle." };
     }
@@ -488,7 +491,8 @@ export async function controlerIllustrations(
       if (!r?.imageUrl) break;
       const v = await avant(limite, controler(r.imageUrl, c.scene, c.cast));
       if (v === null) return null;
-      if (v.ok) return { i: c.i, url: r.imageUrl, simplifiee: false };
+      // Une reprise que la relectrice n'a pas pu relire n'est pas « corrigée » : elle reste douteuse.
+      if (v.ok) return { i: c.i, url: r.imageUrl, simplifiee: false, douteuse: Boolean("nonVerifiee" in v && v.nonVerifiee) };
       fix = v.fix || fix;
     }
     if (!grille) return null;
@@ -502,10 +506,10 @@ export async function controlerIllustrations(
     if (img && (await zoneVide(img))) return null;
     // La scène simplifiée est vérifiée elle aussi : encore fautive, elle sera retenue pour l'atelier.
     const v = await avant(limite, controler(r.imageUrl, simple.scene, simple.cast));
-    return { i: c.i, url: r.imageUrl, simplifiee: true, douteuse: Boolean(v && !v.ok) };
+    return { i: c.i, url: r.imageUrl, simplifiee: true, douteuse: !v || !v.ok || Boolean("nonVerifiee" in v && v.nonVerifiee) };
   });
 
-  const remplacees = corrigees.filter((x): x is { i: number; url: string; simplifiee: boolean; douteuse?: boolean } => x !== null);
+  const remplacees = corrigees.filter((x): x is { i: number; url: string; simplifiee: boolean; douteuse: boolean } => x !== null);
   const parIndex = new Map(remplacees.map((x) => [x.i, x.url]));
   const simplifiees = remplacees.filter((x) => x.simplifiee).length;
   // Restées fautives : aucune correction n'a abouti, ou la dernière (simplifiée) est encore refusée.

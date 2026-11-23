@@ -27,6 +27,8 @@ const monde = vi.hoisted(() => ({
   sceneRemplacee: false,
   /** Le contrôle court des 7 ans et plus trouve un motif éliminatoire. */
   horsSujet: false,
+  alertes: [] as string[],
+  statut: null as string | null,
 }));
 
 async function fausseImage(nom: string): Promise<string> {
@@ -91,7 +93,12 @@ vi.mock("@/lib/blobStore", () => ({
 }));
 
 vi.mock("@/lib/budget", async (orig) => ({ ...(await orig<object>()), noterDepense: async () => undefined, budgetDepasse: async () => false }));
-vi.mock("@/lib/notifications", () => ({ alerterAdmin: async () => undefined }));
+vi.mock("@/lib/notifications", () => ({
+  alerterAdmin: async (sujet: string) => void monde.alertes.push(sujet),
+  notifierRelecture: async () => undefined,
+  notifierLivrePret: async () => undefined,
+  notifierEchecHistoire: async () => undefined,
+}));
 vi.mock("@/lib/bookPipeline", () => ({ signer: () => "", lancerIllustrations: async () => undefined }));
 
 vi.mock("@/lib/prisma", async () => {
@@ -114,8 +121,9 @@ vi.mock("@/lib/prisma", async () => {
         return [];
       },
       book: {
-        update: async ({ data }: { data: { pages?: unknown } }) => {
+        update: async ({ data }: { data: { pages?: unknown; status?: string } }) => {
           if (data.pages) monde.enregistre = data.pages;
+          if (data.status) monde.statut = data.status;
           return {};
         },
         findMany: async () => [],
@@ -144,6 +152,8 @@ afterEach(() => {
   monde.enregistre = null;
   monde.sceneRemplacee = false;
   monde.horsSujet = false;
+  monde.alertes.length = 0;
+  monde.statut = null;
 });
 
 const ecritures = () => monde.appels.filter((a) => a.url.includes("openrouter/router") && !a.url.includes("vision") && !/éditeur jeunesse exigeant|INTERDIT de le livrer/.test(String(a.corps.system_prompt)));
@@ -174,6 +184,12 @@ function histoire(titre: string, prenom: string, cast: { nom: string; visuel: st
 function histoireDe(r: { ok: true; story: unknown } | { ok: false; message: string }): never {
   if (!r.ok) throw new Error(r.message);
   return r.story as never;
+}
+
+/** Comme le site : une histoire écrite par l'IA est relue avant d'être livrée. */
+async function relire(story: never, req: unknown): Promise<never> {
+  const { relireHistoire } = await import("@/lib/storyGenerator");
+  return (await relireHistoire(story, req as never)) as never;
 }
 
 const reqBase = { childFirstName: "Kamil", childAge: 6, longueur: "moyenne" as const, style: "anim3d" as const, parent: "Papa", genre: "garcon" as const };
@@ -317,7 +333,7 @@ describe("Idée libre avec maman en photo", () => {
     const demande = ecritures().map((a) => String(a.corps.prompt)).join("\n");
     expect(demande).toContain("AUTRES PERSONNAGES RÉELS");
     expect(demande).toContain("HUMAN WOMAN");
-    await livrer({ bookId: "b2", req, portrait, tentative: 1 }, histoireDe(r));
+    await livrer({ bookId: "b2", req, portrait, tentative: 1 }, await relire(histoireDe(r), req));
     const enregistree = monde.enregistre as { pages: { presents?: string[]; scene_illustration: string }[] };
     expect(enregistree.pages[1]!.presents!.length).toBeLessThanOrEqual(2);
     expect(enregistree.pages[1]!.scene_illustration).toContain("no crowd");
@@ -328,6 +344,23 @@ describe("Idée libre avec maman en photo", () => {
     expect(d.some((a) => String(a.corps.prompt).includes("Character model sheet of Sarah"))).toBe(true);
     // La règle de dessin laisse voir le visage d'un proche qui a sa fiche.
     expect(d.some((a) => String(a.corps.prompt).includes("A family member WITH a reference sheet"))).toBe(true);
+  });
+});
+
+describe("Une histoire écrite par l'IA ne part jamais sans relecture", () => {
+  it("relecture en panne : l'histoire est retenue dans l'atelier, aucune image n'est dessinée", async () => {
+    const { generateStory } = await import("@/lib/storyGenerator");
+    const { livrer } = await import("@/lib/livraison");
+    monde.histoireSuivante = histoire("Kamil et le nuage", "Kamil", [], [
+      { texte: "Kamil regarde un nuage qui descend dans le jardin.", scene: "Kamil watches a soft cloud landing in the garden", presents: [] },
+    ]);
+    const req = { ...reqBase, mode: "libre" as const, prompt: "Kamil et un nuage qui descend dans le jardin." };
+    const r = await generateStory(req, { illustrer: false, relire: false });
+    monde.appels.length = 0;
+    await livrer({ bookId: "b-non-relu", req, portrait, tentative: 1 }, histoireDe(r)); // pas de relecture
+    expect(monde.statut).toBe("draft");
+    expect(monde.alertes.join(" ")).toContain("relecture");
+    expect(dessins().length).toBe(0);
   });
 });
 
@@ -364,7 +397,7 @@ describe("Le style choisi par le parent", () => {
       ]);
       const req = { ...reqBase, style, mode: "theme" as const, themeId: "haricot-magique", photo };
       const r = await generateStory(req, { illustrer: false, relire: false });
-      await livrer({ bookId: `s-${style}`, req, portrait, tentative: 1 }, histoireDe(r));
+      await livrer({ bookId: `s-${style}`, req, portrait, tentative: 1 }, await relire(histoireDe(r), req));
       monde.appels.length = 0;
       const { story } = await illustrateStory(monde.enregistre as never, req, portrait, { controle: false });
       expect(story.style).toBe(style);
@@ -402,7 +435,7 @@ describe("Jusqu'à trois proches avec leur photo", () => {
       extras: proches.map((p) => ({ name: p.nom, role: p.role, appearance: "décrit depuis la photo", photo: photos[p.nom] })),
     };
     const r = await generateStory(req, { illustrer: false, relire: false });
-    await livrer({ bookId: "b5", req, portrait, tentative: 1 }, histoireDe(r));
+    await livrer({ bookId: "b5", req, portrait, tentative: 1 }, await relire(histoireDe(r), req));
     const enregistree = monde.enregistre as { pages: { presents?: string[] }[] };
     for (const p of enregistree.pages) expect((p.presents ?? []).length).toBeLessThanOrEqual(2);
     // Rien de ce qui est enregistré dans le livre ne contient une photo.
@@ -447,7 +480,7 @@ describe("Personnages maison", () => {
     const req = { ...reqBase, mode: "libre" as const, prompt: "Kamil trouve un bébé dragon dans le jardin." };
     let r = await generateStory(req, { illustrer: false, relire: false });
     expect(ecritures().map((a) => String(a.corps.prompt)).join("\n")).toContain("PERSONNAGES DE LA MAISON");
-    await livrer({ bookId: "b3", req, portrait, tentative: 1 }, histoireDe(r));
+    await livrer({ bookId: "b3", req, portrait, tentative: 1 }, await relire(histoireDe(r), req));
     const avecMaison = monde.enregistre as { cast: { maison?: string }[] };
     expect(avecMaison.cast[0]!.maison).toBe("dragon");
     monde.appels.length = 0;
@@ -463,7 +496,7 @@ describe("Personnages maison", () => {
       { texte: "Kamil rencontre Braise, un grand dragon rouge.", scene: "Kamil meets Braise.", presents: ["Braise"] },
     ]);
     r = await generateStory({ ...req, prompt: "Kamil et un dragon rouge" }, { illustrer: false, relire: false });
-    await livrer({ bookId: "b4", req, portrait, tentative: 1 }, histoireDe(r));
+    await livrer({ bookId: "b4", req, portrait, tentative: 1 }, await relire(histoireDe(r), req));
     expect((monde.enregistre as { cast: { maison?: string }[] }).cast[0]!.maison).toBeUndefined();
   });
 });

@@ -157,6 +157,24 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
   if (input.mode === "theme" && !themeOuvert(input.themeId, child.age) && !estAdmin(user.email)) {
     return { ok: false, message: "Cette histoire arrive bientôt. Choisissez-en une autre, ou racontez votre idée." };
   }
+  // Une histoire toute prête ne se fabrique qu'avec TOUTES ses planches validées (sinon ses images ne
+  // pourraient pas être faites : le livre serait retenu). Le parent est prévenu avant, l'atelier aussi.
+  const prete = input.mode === "theme" ? maitressePour(input.themeId, child.age) : null;
+  // Le texte d'une histoire toute prête s'accorde (il/elle) : on ne devine jamais, le parent le dit.
+  if (prete && formData.get("genre") !== "fille" && formData.get("genre") !== "garcon") {
+    return { ok: false, message: `Indiquez si ${child.firstName} est une fille ou un garçon (étape « Le héros ») : le texte de cette histoire s'accorde avec.` };
+  }
+  if (prete && !estAdmin(user.email)) {
+    const { planchesPretes } = await import("@/lib/planches");
+    if (!(await planchesPretes(prete, STYLE_DEFAUT))) {
+      const { alerterAdmin } = await import("@/lib/notifications");
+      await alerterAdmin(
+        "une histoire toute prête est demandée mais ses planches ne sont pas toutes validées",
+        `« ${prete.id} » : validez ses planches dans l'atelier (/admin/planches). En attendant, les parents ne peuvent pas la créer.`,
+      ).catch(() => undefined);
+      return { ok: false, message: "Cette histoire est en cours de préparation. Choisissez-en une autre, ou racontez votre idée." };
+    }
+  }
   // Seuls les styles validés au test d'entrée sont proposés (les administrateurs peuvent tout tester).
   if (!styleOuvert(input.style) && !estAdmin(user.email)) {
     return { ok: false, message: "Ce style arrive bientôt. Choisissez-en un autre." };

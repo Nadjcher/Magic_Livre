@@ -9,8 +9,12 @@ import "server-only";
 import { prisma } from "./prisma";
 import { budgetDepasse } from "./budget";
 import { reserver, liberer } from "./idempotence";
-import { storySchema } from "./storySchema";
-import { illustrerLivreComplet } from "./storyGenerator";
+import { storySchema, type Story } from "./storySchema";
+import { PAGES_APERCU, illustrerLivreComplet } from "./storyGenerator";
+import { illustrationsEnabled } from "./illustration";
+import { controleActif } from "./controleIllustrations";
+import { porteQualite } from "./porteQualite";
+import { retenirLivre } from "./retenue";
 import { EN_COURS } from "./illustrationStatus";
 import { getAbonnement } from "./subscription";
 import { alerterAdmin } from "./notifications";
@@ -108,16 +112,32 @@ export async function debloquerLivre(bookId: string): Promise<void> {
     // Relit le livre avant d'écrire (une retouche a pu arriver entre-temps).
     const frais = storySchema.safeParse((await prisma.book.findUnique({ where: { id: bookId }, select: { pages: true } }))?.pages);
     const base = frais.success ? frais.data : story;
-    const fusion = {
+    const fusion: Story = {
       ...base,
       apercu: false,
-      couvertureUrl: base.couvertureUrl ?? complet.couvertureUrl ?? null,
+      // La couverture corrigée par la vérification remplace l'ancienne.
+      couvertureUrl: complet.couvertureUrl ?? base.couvertureUrl ?? null,
       pages: base.pages.map((p, i) => ({ ...p, imageUrl: complet.pages[i]?.imageUrl ?? p.imageUrl ?? null })),
+      // Ce que la vérification a constaté suit le livre (sinon un défaut signalé disparaissait à l'achat).
+      imagesARevoir: complet.imagesARevoir,
+      controleImages: complet.controleImages,
+      planches: complet.planches ?? base.planches,
+      fiches: complet.fiches ?? base.fiches,
     };
+    // La porte de qualité : un livre acheté dont une image manque, est fautive ou n'a pas été vérifiée
+    // n'est pas remis tel quel. Il attend dans l'atelier ; le parent et l'administrateur sont prévenus.
+    const verdict = porteQualite(fusion, { pagesApercu: PAGES_APERCU, imagesAttendues: illustrationsEnabled(), controleAttendu: controleActif() });
+    if (!verdict.ok) {
+      console.error("[aperçu] livre débloqué retenu", bookId, verdict.raisons.join(" ; "));
+      await retenirLivre(bookId, fusion, verdict);
+      return;
+    }
     await prisma.book.update({ where: { id: bookId }, data: { pages: fusion, errorMessage: imageReport ?? null } });
   } catch (e) {
     await liberer(cle);
     await prisma.book.update({ where: { id: bookId }, data: { errorMessage: null } }).catch(() => undefined);
     console.error("[aperçu] déblocage interrompu", bookId, String(e).slice(0, 200));
+    // Un achat dont le livre n'a pas pu être complété ne reste jamais sans suite.
+    await alerterAdmin("un livre acheté n'a pas pu être complété", `Livre ${bookId} : ${String(e).slice(0, 200)}. Il reste en aperçu ; relancez-le depuis l'atelier.`).catch(() => undefined);
   }
 }

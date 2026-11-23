@@ -16,6 +16,7 @@ import { noterDepense } from "./budget";
 import { getStripe } from "./stripe";
 import { fetchAsDataUrl } from "./imageFetch";
 import { storySchema, type Story } from "./storySchema";
+import { porteQualite } from "./porteQualite";
 import { renderPrintPdf, PAGES_INTERIEURES, PRODUIT_GELATO_CARRE, type ImagesImpression } from "./printBook";
 import { alerterAdmin } from "./notifications";
 import { emailAvecBouton } from "./mailer";
@@ -54,6 +55,13 @@ export async function agrandir(dataUrl: string | null): Promise<string | null> {
   } catch {
     return dataUrl;
   }
+}
+
+/** Pourquoi ce livre ne peut pas partir chez l'imprimeur (null : il peut). */
+export function refusImpression(story: Story): string | null {
+  if (story.apercu) return "le livre est encore en aperçu (toutes les pages ne sont pas dessinées)";
+  const v = porteQualite(story, { pagesApercu: 0, imagesAttendues: true, controleAttendu: false });
+  return v.ok ? null : v.raisons.join(" ; ");
 }
 
 /** Rassemble les images du livre (agrandies pour l'impression si `hd`). */
@@ -196,6 +204,10 @@ export async function lancerImpression(orderId: string): Promise<void> {
     const parsed = storySchema.safeParse(book?.pages);
     if (!book || !parsed.success) throw new Error("livre illisible");
     if (parsed.data.impressions?.some((i) => i.orderId === orderId)) return; // déjà lancée
+    // Porte de qualité avant l'imprimeur : un livre encore en aperçu, avec une image manquante ou restée
+    // fautive ne part JAMAIS à l'impression (l'erreur prévient l'administrateur, la commande reste payée).
+    const refus = refusImpression(parsed.data);
+    if (refus) throw new Error(`impression refusée : ${refus}`);
 
     // Adresse saisie par le client sur la page de paiement.
     const session = await getStripe().checkout.sessions.retrieve(order.stripeSessionId);
@@ -217,6 +229,9 @@ export async function lancerImpression(orderId: string): Promise<void> {
     };
 
     const images = await imagesDuLivre(parsed.data, book.child.firstName, true);
+    // Une image qui ne se télécharge pas deviendrait une page vide imprimée : on arrête là.
+    const illisibles = [...(images.couverture ? [] : ["couverture"]), ...images.pages.map((p, i) => (p ? null : `page ${i + 1}`)).filter(Boolean)];
+    if (illisibles.length) throw new Error(`impression refusée : image illisible (${illisibles.join(", ")})`);
     const pdf = await renderPrintPdf(parsed.data, book.child.firstName, images);
     const fichier = await deposerPdf(pdf, `encoreunehistoire-${orderId}.pdf`);
     const gelatoId = await commanderGelato(orderId, order.userId, fichier, adresse);

@@ -418,6 +418,8 @@ async function controleEliminatoire(story: Story, req: StoryRequest): Promise<St
       { modele: process.env.STORY_CRITIC_MODEL || "anthropic/claude-sonnet-5.5", delaiMs: 60_000 },
     );
     const v = JSON.parse(/\{[\s\S]*\}/.exec(raw)?.[0] ?? "null") as { eliminatoire?: string | null } | null;
+    // Une réponse illisible n'est pas une acceptation : l'histoire reste « non relue » (elle sera retenue).
+    if (!v || !("eliminatoire" in v)) throw new Error("réponse illisible");
     const motif = v?.eliminatoire && String(v.eliminatoire).toLowerCase() !== "null" ? String(v.eliminatoire).slice(0, 300) : null;
     console.log("[contrôle 7+]", motif ?? "rien à signaler");
     return { ...story, qualite: { note: motif ? 0 : 10, problemes: motif ? [`Éliminatoire : ${motif}`] : [], reecrit: false, accepte: !motif, eliminatoire: motif } };
@@ -896,9 +898,19 @@ export async function illustrateStory(
     const depuis = await illustrerDepuisPlanches(story, req, portrait, errors, story.apercu ? PAGES_APERCU : null);
     if (depuis) {
       let s = depuis;
+      // Une retouche a échoué : un second passage ne refait que les pages restées sans image.
+      const sansImage = (x: Story) => (x.couvertureUrl ? 0 : 1) + x.pages.filter((p, i) => !p.imageUrl && !(x.apercu && i >= PAGES_APERCU)).length;
+      if (sansImage(s) > 0 && Date.now() - debut < 150_000) {
+        s = (await illustrerDepuisPlanches(s, req, portrait, errors, s.apercu ? PAGES_APERCU : null)) ?? s;
+      }
       if (opts.controle !== false && controleActif()) s = (await controlerRetouches(s, debut + 268_000, portrait, req.photo ?? null)).story;
       return { story: s, imageReport: imageReportOf(s, errors) };
     }
+    // Histoire toute prête dont les planches ne sont pas toutes validées : JAMAIS de dessin « à main levée »
+    // à la place (règle : ses images partent des planches validées). Le livre reste sans image : la porte
+    // de qualité le retient et l'atelier est prévenu.
+    errors.push("planches de cette histoire non validées : aucun dessin lancé");
+    return { story, imageReport: imageReportOf(story, errors) ?? "planches de cette histoire non validées" };
   }
   let illustre = story.fiches?.heros ? await reparer(story, req, errors) : await addIllustrations(story, req, portrait, errors);
 
@@ -923,9 +935,12 @@ export async function illustrateStory(
  * Livre gratuit débloqué (achat ou Club) : dessine toutes les pages restantes
  * avec les mêmes fiches de personnages, puis contrôle les nouvelles images.
  */
-export async function illustrerLivreComplet(story: Story, req: StoryRequest): Promise<{ story: Story; imageReport?: string }> {
+export async function illustrerLivreComplet(histoire: Story, req: StoryRequest): Promise<{ story: Story; imageReport?: string }> {
   const debut = Date.now();
   const errors: string[] = [];
+  // Le bilan de vérification de l'aperçu ne vaut pas pour le livre complet : il est refait pour toutes
+  // les pages. S'il ne peut pas l'être (temps, panne), son absence retient le livre (porte de qualité).
+  const story: Story = { ...histoire, controleImages: undefined, imagesARevoir: undefined };
   if (story.planches) {
     const { illustrerDepuisPlanches, controlerRetouches } = await import("./planches");
     const depuis = await illustrerDepuisPlanches({ ...story, apercu: false }, req, null, errors, null);
@@ -933,6 +948,9 @@ export async function illustrerLivreComplet(story: Story, req: StoryRequest): Pr
       const s = controleActif() ? (await controlerRetouches(depuis, debut + 260_000)).story : depuis;
       return { story: s, imageReport: imageReportOf(s, errors) };
     }
+    // Planches non validées : pas de dessin « à main levée » (la porte de qualité retiendra le livre).
+    errors.push("planches de cette histoire non validées : aucun dessin lancé");
+    return { story: { ...story, apercu: false }, imageReport: "planches de cette histoire non validées" };
   }
   let complet = await reparer({ ...story, apercu: false }, req, errors);
   if (controleActif() && Date.now() - debut < 150_000) {
