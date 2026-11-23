@@ -121,6 +121,15 @@ export function buildPrintDocument(story: Story, prenom: string, images: ImagesI
       <Text style={{ fontFamily: f.texte, fontSize: 15, color: "#5B6598" }}>
         Une histoire écrite pour toi.
       </Text>
+      {/* Le mot du parent */}
+      {story.dedicace?.texte ? (
+        <View style={{ marginTop: 36, maxWidth: 380, alignItems: "center" }}>
+          <Text style={{ fontFamily: f.italique, fontSize: 17, color: ENCRE, textAlign: "center", lineHeight: 1.6 }}>{sur(story.dedicace.texte)}</Text>
+          {story.dedicace.signature ? (
+            <Text style={{ fontFamily: f.texte, fontSize: 14, color: "#5B6598", marginTop: 10 }}>— {sur(story.dedicace.signature)}</Text>
+          ) : null}
+        </View>
+      ) : null}
     </Page>,
   );
   // p2 (gauche) : la couverture en grand, sans texte
@@ -248,6 +257,9 @@ export function buildPrintDocument(story: Story, prenom: string, images: ImagesI
       <Text style={{ fontFamily: f.titre, fontSize: 70, color: NUIT }}>Fin</Text>
       <Ornement />
       <Text style={{ fontFamily: f.italique, fontSize: 18, color: ENCRE }}>Et toi, {nom}, quelle sera ta prochaine aventure ?</Text>
+      {story.imaginePar ? (
+        <Text style={{ fontFamily: f.texte, fontSize: 14, color: "#5B6598", marginTop: 28 }}>Une histoire imaginée par {sur(story.imaginePar)}.</Text>
+      ) : null}
     </Page>,
   );
 

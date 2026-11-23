@@ -12,7 +12,7 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { createCheckoutSession } from "@/lib/stripe";
 import { env } from "@/lib/env";
-import { getDeluxeProduct, PACK_TOUT, PAYS_LIVRAISON, VENTE_EXTRAS, prixLivreCents, skusDonnantAcces } from "@/lib/products";
+import { getDeluxeProduct, PACK_TOUT, PAYS_LIVRAISON, VENTE_EXTRAS, prixImprimeApresDeduction, prixLivreCents, skusDonnantAcces } from "@/lib/products";
 import { getAbonnement } from "@/lib/subscription";
 import { MESSAGE_FERME, ventesOuvertes } from "@/lib/lancement";
 import { estAdmin } from "@/lib/rateLimit";
@@ -74,6 +74,15 @@ export async function startCheckout(
       return { ok: false, message: "Le livre imprimé n'est pas encore disponible." };
     }
     amountCents = product.priceCents;
+    // Le livre numérique déjà payé pour CE livre est déduit du livre relié.
+    if (product.sku === "imprime") {
+      const numerique = await prisma.order.findFirst({
+        where: { bookId: book.id, userId: user.id, sku: "book", status: "paid", amount: { gt: 0 } },
+        orderBy: { amount: "desc" },
+        select: { amount: true },
+      });
+      if (numerique) amountCents = prixImprimeApresDeduction(product.priceCents, numerique.amount);
+    }
     productName = `${product.label} — ${book.title}`;
     productDescription = product.description;
   }

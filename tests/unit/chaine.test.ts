@@ -411,6 +411,40 @@ describe("La fiche de l'enfant est comparée à sa photo avant de dessiner les p
   });
 });
 
+describe("Les mots de l'enfant et le mot du parent", () => {
+  it("les réponses de l'enfant sont données à l'autrice ; la dédicace et « imaginée par » suivent le livre", async () => {
+    const { generateStory } = await import("@/lib/storyGenerator");
+    const { livrer } = await import("@/lib/livraison");
+    monde.histoireSuivante = histoire("Kamil et Biscotte", "Kamil", [{ nom: "Biscotte", visuel: "DRAGON: a small orange dragon with a round belly" }], [
+      { texte: "Kamil rencontre Biscotte, un dragon qui a peur du noir sous le lit.", scene: "Kamil meets Biscotte the small orange dragon in his bedroom", presents: ["Biscotte"] },
+    ]);
+    const req = {
+      ...reqBase,
+      mode: "libre" as const,
+      prompt: "Kamil et son dragon chassent le noir sous le lit.",
+      motsEnfant: { compagnon: "un dragon qui s'appelle Biscotte", peur: "du noir sous le lit", rire: "quand papa fait le singe" },
+    };
+    const r = await generateStory(req, { illustrer: false, relire: false });
+    const demande = ecritures().map((a) => String(a.corps.prompt)).join("\n");
+    expect(demande).toContain("LES MOTS DE KAMIL");
+    expect(demande).toContain("un dragon qui s'appelle Biscotte");
+    expect(demande).toContain("du noir sous le lit");
+    expect(demande).toContain("quand papa fait le singe");
+    const complement = { dedicace: { texte: "Pour Kamil, qui n'a peur de rien.", signature: "Papa et Maman" }, imaginePar: "Kamil" };
+    await livrer({ bookId: "b-mots", req, portrait, complement, tentative: 1 }, await relire(histoireDe(r), req));
+    const enregistre = monde.enregistre as { dedicace?: { texte: string; signature?: string }; imaginePar?: string };
+    expect(enregistre.dedicace).toEqual(complement.dedicace);
+    expect(enregistre.imaginePar).toBe("Kamil");
+  });
+  it("le livre numérique déjà payé est déduit du livre relié", async () => {
+    const { prixImprimeApresDeduction } = await import("@/lib/products");
+    expect(prixImprimeApresDeduction(3990, 699)).toBe(3291);
+    expect(prixImprimeApresDeduction(3990, 990)).toBe(3000);
+    expect(prixImprimeApresDeduction(3990, 0)).toBe(3990);
+    expect(prixImprimeApresDeduction(3990, 99999)).toBe(100);
+  });
+});
+
 describe("Une histoire écrite par l'IA ne part jamais sans relecture", () => {
   it("relecture en panne : l'histoire est retenue dans l'atelier, aucune image n'est dessinée", async () => {
     const { generateStory } = await import("@/lib/storyGenerator");

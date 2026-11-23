@@ -64,7 +64,8 @@ export default function CgvPage() {
         {VENTE_EXTRAS && <li>la {PACK_TOUT.label.toLowerCase()} (livre PDF, kit et produits ci-dessus) : {formatEuros(PACK_TOUT.priceCents)} ;</li>}
         <li>
           le {LIVRE_IMPRIME.label.toLowerCase()} (carré {FORMAT_IMPRIME}, 30 pages), livraison incluse : {formatEuros(LIVRE_IMPRIME.priceCents)}
-          {mentionLancementImprime() ? ` (${mentionLancementImprime()!.toLowerCase()})` : ""}.
+          {mentionLancementImprime() ? ` (${mentionLancementImprime()!.toLowerCase()})` : ""}. Le prix du livre numérique déjà acheté
+          pour ce même livre est déduit du prix du livre imprimé.
         </li>
       </ul>
       <p>

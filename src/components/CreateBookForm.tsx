@@ -631,6 +631,31 @@ export default function CreateBookForm({
           )}
         </div>
 
+        {/* Les mots de l'enfant : ses réponses entrent dans l'histoire (pas pour une histoire toute prête, dont le texte ne change pas). */}
+        {!histoirePrete && (
+          <div className="carte space-y-3">
+            <div>
+              <h2 className="font-serif text-2xl">Posez-lui trois questions <span className="text-base text-magique-texteClair">(facultatif)</span></h2>
+              <p className="mt-1 text-sm text-magique-texteClair">
+                Demandez à {prenom || "votre enfant"} et écrivez ses réponses, avec ses mots à lui : elles entrent dans l'histoire, et le livre
+                dira qu'il l'a imaginée.
+              </p>
+            </div>
+            {(
+              [
+                ["mot_compagnon", "Qui l'accompagne dans l'aventure ?", "Ex : un dragon qui s'appelle Biscotte"],
+                ["mot_peur", "De quoi a-t-il un tout petit peu peur ?", "Ex : du noir sous le lit"],
+                ["mot_rire", "Qu'est-ce qui le fait rire ?", "Ex : quand papa fait le singe"],
+              ] as const
+            ).map(([nom, question, exemple]) => (
+              <label key={nom} className="block text-sm font-semibold">
+                {question}
+                <input name={nom} maxLength={80} placeholder={exemple} className="champ mt-1" />
+              </label>
+            ))}
+          </div>
+        )}
+
         {/* Type de livre : réglé selon l'âge, modifiable */}
         <div className="carte space-y-3">
           <input type="hidden" name="format" value={formatValide} />
@@ -748,6 +773,19 @@ export default function CreateBookForm({
             </div>
           </div>
         )}
+
+        {/* Le mot du parent, imprimé au début du livre */}
+        <div className="carte space-y-3">
+          <div>
+            <h2 className="font-serif text-2xl">Un mot pour {prenom || "lui"} <span className="text-base text-magique-texteClair">(facultatif)</span></h2>
+            <p className="mt-1 text-sm text-magique-texteClair">Votre dédicace, imprimée sur la première page du livre.</p>
+          </div>
+          <textarea name="dedicace" maxLength={280} rows={3} placeholder={`Ex : Pour ${prenom || "toi"}, qui n'a peur de rien. Avec tout notre amour.`} className="champ" />
+          <label className="block text-sm font-semibold">
+            Signé
+            <input name="signature" maxLength={40} placeholder="Ex : Papa et Maman" className="champ mt-1" />
+          </label>
+        </div>
 
         <details className="carte" open={extras.length > 0 || !histoirePrete}>
           <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3">

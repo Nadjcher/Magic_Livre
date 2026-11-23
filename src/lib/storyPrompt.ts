@@ -244,6 +244,11 @@ export interface StoryRequest {
   }[];
   /** Fille ou garçon (accords du texte). */
   genre?: "fille" | "garcon";
+  /**
+   * Les mots de l'enfant : ses réponses aux trois questions posées par le parent pendant la création
+   * (son compagnon, ce qui lui fait un peu peur, ce qui le fait rire). Ils entrent dans l'histoire.
+   */
+  motsEnfant?: { compagnon?: string; peur?: string; rire?: string };
 }
 
 /**
@@ -377,6 +382,17 @@ export function buildUserMessage(req: StoryRequest, modeles = ""): string {
         "ET dans « cast » (nom = son prénom tel quel ; visuel qui commence par HUMAN WOMAN, HUMAN MAN, HUMAN GIRL, HUMAN BOY, " +
         "OLD WOMAN ou OLD MAN, puis cette apparence) : il aura sa fiche dessinée et sera ressemblant. " +
         "Nomme-les dans les scene_illustration où ils apparaissent (au plus deux personnages à côté du héros sur une même image).",
+      "",
+    );
+  }
+
+  const mots = req.motsEnfant;
+  if (mots && (mots.compagnon || mots.peur || mots.rire)) {
+    lignes.push(
+      `LES MOTS DE ${req.childFirstName.toUpperCase()} (ses propres réponses : elles DOIVENT vivre dans l'histoire, avec ses mots à lui, sans les corriger ni les expliquer) :`,
+      ...(mots.compagnon ? [`- Qui l'accompagne dans l'aventure : « ${mots.compagnon} ». C'est LE compagnon de l'histoire (ajoute-le dans "cast" s'il n'est pas déjà donné plus haut).`] : []),
+      ...(mots.peur ? [`- Ce qui lui fait un peu peur : « ${mots.peur} ». L'histoire le lui fait rencontrer doucement, et il en sort plus fort (jamais effrayant, toujours résolu).`] : []),
+      ...(mots.rire ? [`- Ce qui le fait rire : « ${mots.rire} ». Un moment de l'histoire en est fait.`] : []),
       "",
     );
   }

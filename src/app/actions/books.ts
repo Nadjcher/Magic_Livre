@@ -33,6 +33,7 @@ import type { LongueurKey } from "@/lib/validation";
 import { STYLE_DEFAUT, styleOuvert, stylesPourAge, type IllustrationStyle } from "@/lib/style_config";
 import { livreInclusClub, maitressePour } from "@/lib/histoiresMaitresses";
 import { VENTE_EXTRAS } from "@/lib/products";
+import type { Story } from "@/lib/storySchema";
 import { histoireDepuisMaitresse } from "@/lib/maitresseGenerateur";
 
 export interface CreateBookResult {
@@ -143,6 +144,18 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
     extras.push({ ...e.data, photo: await lirePhoto(formData.get(`extra_${i}_photo`)) });
   }
 
+
+  // Le mot du parent (dédicace) et les mots de l'enfant (ses réponses aux trois questions) : facultatifs,
+  // courts, passés au même filtre que le reste de la saisie.
+  const court = (cle: string, max: number) => String(formData.get(cle) ?? "").replace(/\s+/g, " ").trim().slice(0, max);
+  const dedicaceTexte = court("dedicace", 280);
+  const dedicaceSignature = court("signature", 40);
+  const motsEnfant = { compagnon: court("mot_compagnon", 80), peur: court("mot_peur", 80), rire: court("mot_rire", 80) };
+  for (const t of [dedicaceTexte, dedicaceSignature, motsEnfant.compagnon, motsEnfant.peur, motsEnfant.rire].filter(Boolean)) {
+    const check = checkUserText(t);
+    if (!check.ok) return { ok: false, message: check.message };
+  }
+  const aDesMots = Boolean(motsEnfant.compagnon || motsEnfant.peur || motsEnfant.rire);
 
   // Vérifie que l'enfant appartient bien à l'utilisateur.
   const child = await prisma.child.findFirst({
@@ -315,6 +328,11 @@ export async function createBook(formData: FormData): Promise<CreateBookResult> 
       childId: child.id,
       fiche: await lireFiche(child.id),
       genre: formData.get("genre") === "fille" ? "fille" : formData.get("genre") === "garcon" ? "garcon" : undefined,
+      // Les mots de l'enfant n'entrent que dans une histoire écrite pour lui (une histoire toute prête ne change pas).
+      motsEnfant: aDesMots && !prete ? motsEnfant : undefined,
+    }, {
+      ...(dedicaceTexte ? { dedicace: { texte: dedicaceTexte, ...(dedicaceSignature ? { signature: dedicaceSignature } : {}) } } : {}),
+      ...(aDesMots && !prete ? { imaginePar: child.firstName } : {}),
     }),
   );
 
@@ -346,7 +364,7 @@ function sujetPhoto(role: string): string {
  * Ne jette jamais : toute erreur inattendue marque le livre « failed » pour que
  * l'utilisateur ne reste pas bloqué devant un livre « en cours » éternel.
  */
-async function genererEtEnregistrer(bookId: string, req: GenerationInput): Promise<void> {
+async function genererEtEnregistrer(bookId: string, req: GenerationInput, complement: Partial<Story> = {}): Promise<void> {
   try {
     // Héros validé : son portrait sert d'ancre à toutes les pages, ses traits sont imposés.
     const heros = req.herosId ? await lireHerosParId(req.herosId) : null;
@@ -381,7 +399,7 @@ async function genererEtEnregistrer(bookId: string, req: GenerationInput): Promi
     const maitresse = req.mode === "theme" ? maitressePour(req.themeId, req.childAge) : null;
     if (maitresse) {
       const story = await histoireDepuisMaitresse(maitresse, reqGeneration);
-      await livrer({ bookId, req: reqGeneration, portrait: portraitHeros ?? null, tentative: 1 }, story);
+      await livrer({ bookId, req: reqGeneration, portrait: portraitHeros ?? null, complement, tentative: 1 }, story);
       return;
     }
 
@@ -398,7 +416,7 @@ async function genererEtEnregistrer(bookId: string, req: GenerationInput): Promi
     // Étape 2 : livraison (illustrations dans une nouvelle exécution), ou nouvelle
     // génération / relecture humaine si la relecture a trouvé un motif éliminatoire.
     await lancerRelecture(
-      { bookId, req: { ...reqGeneration, extras: reqGeneration.extras }, portrait: portraitHeros ?? result.portrait ?? null, tentative: 1 },
+      { bookId, req: { ...reqGeneration, extras: reqGeneration.extras }, portrait: portraitHeros ?? result.portrait ?? null, complement, tentative: 1 },
       result.story,
     );
   } catch (e) {

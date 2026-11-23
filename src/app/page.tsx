@@ -434,7 +434,8 @@ export default async function AccueilPage() {
               <li className="flex gap-2"><Coche />Relu et validé par vous avant l'impression</li>
               <li className="flex gap-2"><Coche />Livré chez vous en {DELAI_IMPRIME}</li>
             </ul>
-            <p className="mt-4 text-sm text-or-clair">Commandé avant le {NOEL_LIMITE_DEFAUT} : sous le sapin.</p>
+            <p className="mt-4 text-sm text-magique-texteClair">Déjà acheté en numérique ? Son prix est déduit du livre relié.</p>
+            <p className="mt-2 text-sm text-or-clair">Commandé avant le {NOEL_LIMITE_DEFAUT} : sous le sapin.</p>
             <Link href={cta} className="btn-primaire mt-4 w-full whitespace-nowrap px-3 text-[15px]">Créer son livre</Link>
           </div>
         </div>

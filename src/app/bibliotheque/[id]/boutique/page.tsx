@@ -12,7 +12,7 @@ import { storySchema } from "@/lib/storySchema";
 import AutoRefresh from "@/components/AutoRefresh";
 import { EN_COURS } from "@/lib/illustrationStatus";
 import { lightenStory } from "@/lib/bookImages";
-import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, VENTE_EXTRAS, formatEuros, prixLivreCents, skusPossedes } from "@/lib/products";
+import { DELUXE_PRODUCTS, LIVRE_IMPRIME, PACK_TOUT, VENTE_EXTRAS, formatEuros, prixImprimeApresDeduction, prixLivreCents, skusPossedes } from "@/lib/products";
 import { getAbonnement } from "@/lib/subscription";
 import { ventesOuvertes } from "@/lib/lancement";
 import { estAdmin } from "@/lib/rateLimit";
@@ -74,8 +74,11 @@ export default async function BoutiquePage(
 
   const paidOrders = await prisma.order.findMany({
     where: { bookId: book.id, userId: user.id, status: "paid" },
-    select: { sku: true },
+    select: { sku: true, amount: true },
   });
+  // Le livre numérique déjà payé est déduit du livre relié (même calcul qu'au paiement).
+  const numeriquePaye = Math.max(0, ...paidOrders.filter((o) => o.sku === "book").map((o) => o.amount));
+  const imprime = numeriquePaye > 0 ? { ...LIVRE_IMPRIME, priceCents: prixImprimeApresDeduction(LIVRE_IMPRIME.priceCents, numeriquePaye) } : LIVRE_IMPRIME;
   // La formule « Tout compris » débloque le livre et tous les produits deluxe.
   const skusPayes = skusPossedes(paidOrders.map((o) => o.sku));
   const paid = skusPayes.includes("book");
@@ -203,9 +206,9 @@ export default async function BoutiquePage(
       {impressionConfiguree() && (
         <DeluxeShop
           bookId={book.id}
-          produits={[LIVRE_IMPRIME]}
+          produits={[imprime]}
           skusPayes={skusPayes}
-          titre="Le livre imprimé 📕"
+          titre={numeriquePaye > 0 ? `Le livre imprimé 📕 (votre livre numérique de ${formatEuros(numeriquePaye)} est déduit)` : "Le livre imprimé 📕"}
         />
       )}
 

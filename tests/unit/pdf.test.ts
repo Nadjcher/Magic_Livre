@@ -49,3 +49,13 @@ describe("construction du PDF", () => {
     expect(doc.props.title).toBe("Le voyage de Sami");
   });
 });
+
+describe("dédicace du parent et « imaginée par »", () => {
+  it("le livre se construit avec ou sans, et le rendu PDF réel ne casse pas", async () => {
+    const { renderStoryPdf } = await import("@/lib/pdf");
+    const avec: Story = { ...histoire(4), dedicace: { texte: "Pour Sami, qui n'a peur de rien. Avec tout notre amour.", signature: "Papa et Maman" }, imaginePar: "Sami" };
+    expect(countPages(buildStoryDocument(avec, "Sami"))).toBe(countPages(buildStoryDocument(histoire(4), "Sami")));
+    const pdf = await renderStoryPdf(avec, "Sami");
+    expect(pdf.length).toBeGreaterThan(1000);
+  });
+});

@@ -145,6 +145,14 @@ export const LIVRE_IMPRIME: DeluxeProduct = {
   physique: true,
 };
 
+/**
+ * Le livre numérique déjà acheté est déduit du livre relié du même livre (décision du 23 novembre
+ * 2026) : le parent qui a payé 6,99 € ou 9,90 € ne les paie pas deux fois. Jamais sous 1 €.
+ */
+export function prixImprimeApresDeduction(prixImprimeCents: number, dejaPayeCents: number): number {
+  return Math.max(100, prixImprimeCents - Math.max(0, dejaPayeCents));
+}
+
 /** Pays de livraison du livre imprimé. */
 export const PAYS_LIVRAISON = ["FR", "BE", "LU", "CH", "MC", "DE", "ES", "IT", "NL", "PT", "AT", "IE"] as const;
 

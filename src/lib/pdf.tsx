@@ -185,6 +185,8 @@ export function buildStoryDocument(story: Story, childName?: string): JSX.Elemen
       ? { ...story, titre: texteLivre(story.titre), resume: story.resume ? texteLivre(story.resume) : story.resume, pages: story.pages.map((p) => ({ ...p, texte: texteLivre(p.texte) })) }
       : pdfSafe(story);
   const prenom = childName ? pdfText(childName) : "";
+  // Même nettoyage que le texte du livre (caractères que la police sait dessiner).
+  const sur = (t: string) => (f.texte === "Nunito" ? texteLivre(t) : pdfText(t));
   const date = new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
   // Images carrées (styles de la bible visuelle) : pleine page ; sinon l'image entière, centrée.
   const carre = estCarre(story.style);
@@ -227,6 +229,15 @@ export function buildStoryDocument(story: Story, childName?: string): JSX.Elemen
         <Text style={{ fontFamily: f.texte, fontSize: 14, color: "#5B6598", textAlign: "center", lineHeight: 1.6 }}>
           Une histoire écrite pour toi, en {date}.
         </Text>
+        {/* Le mot du parent */}
+        {story.dedicace?.texte ? (
+          <View style={{ marginTop: 34, maxWidth: 420, alignItems: "center" }}>
+            <Text style={{ fontFamily: f.italique, fontSize: 16, color: ENCRE, textAlign: "center", lineHeight: 1.6 }}>{sur(story.dedicace.texte)}</Text>
+            {story.dedicace.signature ? (
+              <Text style={{ fontFamily: f.texte, fontSize: 13, color: "#5B6598", marginTop: 10 }}>— {sur(story.dedicace.signature)}</Text>
+            ) : null}
+          </View>
+        ) : null}
       </Page>
 
       {/* L'histoire, comme un album ouvert : le texte à gauche, l'illustration en face */}
@@ -268,6 +279,9 @@ export function buildStoryDocument(story: Story, childName?: string): JSX.Elemen
         <Text style={{ fontFamily: f.italique, fontSize: 16, color: ENCRE, textAlign: "center", lineHeight: 1.5 }}>
           {prenom ? `Et toi, ${prenom}, quelle sera ta prochaine aventure ?` : "Et toi, quelle sera ta prochaine aventure ?"}
         </Text>
+        {story.imaginePar ? (
+          <Text style={{ fontFamily: f.texte, fontSize: 13, color: "#5B6598", marginTop: 26 }}>Une histoire imaginée par {sur(story.imaginePar)}.</Text>
+        ) : null}
       </Page>
 
       {/* 4e de couverture : le résumé de l'histoire */}
