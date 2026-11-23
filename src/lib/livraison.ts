@@ -65,8 +65,10 @@ export async function livrer(l: Livraison, story: Story): Promise<void> {
     // Refusée aussi : une note sous 60 % du total, ou une faute visible restée après la réécriture.
     const q = complete.qualite;
     const tropBas = Boolean(q.max && q.total !== undefined && q.total < 0.6 * q.max);
-    if (!q.eliminatoire && (tropBas || bloquants.length)) {
-      const motif = bloquants.length ? bloquants.join(" | ") : `note trop basse (${q.total}/${q.max})`;
+    // Refusée sans aucune note (la relectrice n'a rien noté) : ce n'est pas une acceptation.
+    const sansNote = q.accepte === false && !q.max;
+    if (!q.eliminatoire && (tropBas || sansNote || bloquants.length)) {
+      const motif = bloquants.length ? bloquants.join(" | ") : sansNote ? "relecture sans note" : `note trop basse (${q.total}/${q.max})`;
       complete = { ...complete, qualite: { ...q, accepte: false, eliminatoire: motif.slice(0, 300) } };
     }
   }
@@ -159,7 +161,7 @@ export async function relireEtLivrer(l: Livraison, story: Story): Promise<void> 
     await livrer(l, relue);
   } catch (e) {
     console.error("[livraison] relecture interrompue", l.bookId, String(e).slice(0, 200));
-    await livrer(l, story); // jamais bloquant : l'histoire non relue part quand même
+    await livrer(l, story); // l'histoire non relue n'est pas livrée : `livrer` la confie à l'atelier
   }
 }
 

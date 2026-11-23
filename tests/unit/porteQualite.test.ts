@@ -53,5 +53,9 @@ describe("Avant l'imprimeur", () => {
     expect(refusImpression(livre({ apercu: true }))).toContain("aperçu");
     expect(refusImpression(livre({ pages: [page("a"), page(null), page("c"), page("d")] }))).toContain("image manquante");
     expect(refusImpression(livre({ imagesARevoir: [0] }))).toContain("fautive");
+    // Un livre retenu (même sans page précise) ou à la fiche douteuse ne s'imprime pas, sauf accord de l'atelier.
+    expect(refusImpression(livre({ retenue: ["2 image(s) non vérifiée(s)"] }))).toContain("retenu");
+    expect(refusImpression(livre({ ficheEcart: "the hair must be curly" }))).toContain("fiche");
+    expect(refusImpression(livre({ retenue: ["x"], ficheEcart: "y", valideAtelier: true }))).toBeNull();
   });
 });

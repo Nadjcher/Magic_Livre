@@ -181,6 +181,8 @@ export const storySchema = z.object({
     .catch(undefined),
   // Illustrations restées fautives après une nouvelle tentative (-1 = couverture) : relecture humaine.
   imagesARevoir: z.array(z.number().int()).optional().catch(undefined),
+  /** Dessins refaits par le parent et refusés par la vérification (plafonné : chaque essai coûte des dessins). */
+  refusDessin: z.number().int().optional().catch(undefined),
   /** La fiche de l'enfant ne ressemble pas à sa photo (ou n'a pas pu lui être comparée) : le livre est retenu. */
   ficheEcart: z.string().max(400).optional().catch(undefined),
   /** Pourquoi le livre est retenu dans l'atelier (porte de qualité). */

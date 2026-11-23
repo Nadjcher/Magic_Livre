@@ -20,7 +20,7 @@ import { PAGES_APERCU, illustrateStory, illustrerEpisode } from "./storyGenerato
 import type { StoryRequest } from "./storyPrompt";
 import { controleActif, controlerIllustrations } from "./controleIllustrations";
 import { porteQualite } from "./porteQualite";
-import { retenirLivre } from "./retenue";
+import { avecDonneesFraiches, retenirLivre } from "./retenue";
 import { EN_RELECTURE_IMAGES } from "./illustrationStatus";
 import { illustrationsEnabled } from "./illustration";
 import { alerterAdmin, notifierLivrePret } from "./notifications";
@@ -90,7 +90,7 @@ export async function illustrerLivre({ bookId, req, portrait }: EtapeIllustratio
     }
     if (relire) {
       // Images enregistrées tout de suite (rien n'est perdu), puis relecture dans une nouvelle exécution.
-      await prisma.book.update({ where: { id: bookId }, data: { title: story.titre, pages: story } });
+      await prisma.book.update({ where: { id: bookId }, data: { title: story.titre, pages: await avecDonneesFraiches(bookId, story) } });
       // La photo suit jusqu'à la vérification (une page refaite garde le vrai visage) ; jamais enregistrée.
       await lancerControle({ bookId, req, imageReport: imageReport ?? null });
       return;
@@ -174,9 +174,10 @@ async function terminerLivre(bookId: string, story: Story, imageReport: string |
     await retenirLivre(bookId, story, verdict);
     return;
   }
+  // Relu juste avant d'écrire : une commande d'impression enregistrée pendant la vérification n'est pas effacée.
   await prisma.book.update({
     where: { id: bookId },
-    data: { status: "ready", title: story.titre, pages: story, errorMessage: imageReport },
+    data: { status: "ready", title: story.titre, pages: await avecDonneesFraiches(bookId, story), errorMessage: imageReport },
   });
   if (episode) {
     // Un épisode se lit tout de suite dans l'application : pas d'email, sauf

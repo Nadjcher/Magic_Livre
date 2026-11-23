@@ -397,7 +397,11 @@ describe("La fiche de l'enfant est comparée à sa photo avant de dessiner les p
       const fausse = await ficheHerosVerifiee(f.dessiner, photo);
       expect(fausse.ecart).toContain("curly");
       f = dessinerFiche();
-      monde.fiches.push("panne");
+      // Une panne passagère ne retient pas un livre : second essai. Deux pannes de suite : l'écart est noté.
+      monde.fiches.push("panne", "bonne");
+      expect((await ficheHerosVerifiee(f.dessiner, photo)).ecart).toBeUndefined();
+      f = dessinerFiche();
+      monde.fiches.push("panne", "panne");
       expect((await ficheHerosVerifiee(f.dessiner, photo)).ecart).toContain("n'a pas pu");
       const livre = { titre: "t", couvertureUrl: "c", pages: [{ texte: "a", scene_illustration: "b", imageUrl: "i" }], controleImages: { verifiees: 2, refaites: 0 }, ficheEcart: fausse.ecart };
       expect(porteQualite(livre as never, { pagesApercu: 3, imagesAttendues: true, controleAttendu: true }).ok).toBe(false);

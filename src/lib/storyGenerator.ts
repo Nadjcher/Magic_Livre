@@ -735,13 +735,15 @@ export async function ficheHerosVerifiee(
   if (!reference || !controleActif() || !fiche.base64) return { fiche };
   const { ficheRessemble } = await import("./controleIllustrations");
   const ref = (f: typeof fiche) => ({ base64: f.base64!, mime: f.mime ?? "image/jpeg" });
-  let v = await ficheRessemble(reference, ref(fiche));
+  // Une panne passagère de l'agent ne doit pas faire retenir tout un livre : un second essai.
+  const comparer = async (f: typeof fiche) => (await ficheRessemble(reference, ref(f))) ?? (await ficheRessemble(reference, ref(f)));
+  let v = await comparer(fiche);
   if (v && !v.ok) {
     console.log("[fiche héros] écart avec la photo, second dessin :", v.fix);
     const seconde = await dessiner(v.fix);
     if (seconde.base64) {
       fiche = seconde;
-      v = await ficheRessemble(reference, ref(fiche));
+      v = await comparer(fiche);
     }
   }
   if (!v) return { fiche, ecart: "la comparaison avec la photo n'a pas pu être faite" };
@@ -944,7 +946,9 @@ export async function illustrateStory(
     errors.push("planches de cette histoire non validées : aucun dessin lancé");
     return { story, imageReport: imageReportOf(story, errors) ?? "planches de cette histoire non validées" };
   }
-  let illustre = story.fiches?.heros ? await reparer(story, req, errors) : await addIllustrations(story, req, portrait, errors);
+  // Des images existent déjà (reprise, complétion) : on ne dessine que ce qui manque, jamais tout le livre.
+  const dejaIllustre = Boolean(story.fiches?.heros || story.couvertureUrl || story.pages.some((p) => p.imageUrl));
+  let illustre = dejaIllustre ? await reparer(story, req, errors) : await addIllustrations(story, req, portrait, errors);
 
   const manquantes = () =>
     (illustre.couvertureUrl ? 0 : 1) +
@@ -972,7 +976,8 @@ export async function illustrerLivreComplet(histoire: Story, req: StoryRequest):
   const errors: string[] = [];
   // Le bilan de vérification de l'aperçu ne vaut pas pour le livre complet : il est refait pour toutes
   // les pages. S'il ne peut pas l'être (temps, panne), son absence retient le livre (porte de qualité).
-  const story: Story = { ...histoire, controleImages: undefined, imagesARevoir: undefined };
+  // (L'accord donné par l'atelier portait sur l'aperçu : il ne vaut pas pour les pages dessinées ensuite.)
+  const story: Story = { ...histoire, controleImages: undefined, imagesARevoir: undefined, valideAtelier: undefined, retenue: undefined };
   if (story.planches) {
     const { illustrerDepuisPlanches, controlerRetouches } = await import("./planches");
     const depuis = await illustrerDepuisPlanches({ ...story, apercu: false }, req, null, errors, null);

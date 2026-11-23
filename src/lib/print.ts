@@ -60,6 +60,9 @@ export async function agrandir(dataUrl: string | null): Promise<string | null> {
 /** Pourquoi ce livre ne peut pas partir chez l'imprimeur (null : il peut). */
 export function refusImpression(story: Story): string | null {
   if (story.apercu) return "le livre est encore en aperçu (toutes les pages ne sont pas dessinées)";
+  // Un livre retenu par la porte de qualité (et pas encore libéré par l'atelier) ne s'imprime pas.
+  if (!story.valideAtelier && story.retenue?.length) return `le livre est retenu dans l'atelier : ${story.retenue.join(" ; ")}`;
+  if (!story.valideAtelier && story.ficheEcart) return `la fiche de l'enfant ne ressemble pas assez à sa photo : ${story.ficheEcart}`;
   const v = porteQualite(story, { pagesApercu: 0, imagesAttendues: true, controleAttendu: false });
   return v.ok ? null : v.raisons.join(" ; ");
 }
@@ -199,10 +202,12 @@ export async function lancerImpression(orderId: string): Promise<void> {
     if (!impressionConfiguree()) throw new Error("GELATO_API_KEY absente");
     const book = await prisma.book.findUnique({
       where: { id: order.bookId },
-      select: { pages: true, child: { select: { firstName: true } } },
+      select: { pages: true, status: true, child: { select: { firstName: true } } },
     });
     const parsed = storySchema.safeParse(book?.pages);
     if (!book || !parsed.success) throw new Error("livre illisible");
+    // Seul un livre « prêt » (sorti par la porte de qualité) part chez l'imprimeur.
+    if (book.status !== "ready") throw new Error(`impression refusée : le livre n'est pas prêt (statut « ${book.status} »)`);
     if (parsed.data.impressions?.some((i) => i.orderId === orderId)) return; // déjà lancée
     // Porte de qualité avant l'imprimeur : un livre encore en aperçu, avec une image manquante ou restée
     // fautive ne part JAMAIS à l'impression (l'erreur prévient l'administrateur, la commande reste payée).

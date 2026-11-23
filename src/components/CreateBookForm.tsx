@@ -239,6 +239,8 @@ export default function CreateBookForm({
       : etape === 1
         ? mode === "theme" && !themeOuvert(themeId, age)
           ? "Choisissez une histoire disponible pour son âge, ou racontez votre idée."
+          : histoirePrete && !genre
+          ? `Revenez à l'étape « Le héros » et indiquez si on dit « il » ou « elle » pour ${prenom || "votre enfant"} : le texte de cette histoire s'accorde avec.`
           : classiqueVerrouille
           ? "Ce grand classique est réservé aux membres du Club."
           : mode === "libre" && prompt.trim().length < 10
@@ -451,7 +453,7 @@ export default function CreateBookForm({
               </label>
             </div>
           )}
-          {/* Pour accorder l'histoire (« il » ou « elle ») ; facultatif. */}
+          {/* Pour accorder l'histoire (« il » ou « elle ») : demandé pour les histoires toutes prêtes. */}
           <input type="hidden" name="genre" value={genre} />
           <div className="flex flex-wrap items-center gap-3" role="radiogroup" aria-label="Fille ou garçon">
             <span className="text-sm font-semibold">Dans l'histoire, on dit&nbsp;:</span>

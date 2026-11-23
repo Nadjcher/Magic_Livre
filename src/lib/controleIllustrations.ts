@@ -265,16 +265,26 @@ const FAMILLES_COULEUR: [string, RegExp][] = [
   ["purple", /\b(purple|lilac|violet|mauve)\b/],
   ["black", /\b(black)\b/],
 ];
-const famille = (t: string) => FAMILLES_COULEUR.find(([, re]) => re.test(t.toLowerCase()))?.[0];
+/** Les familles de couleurs citées dans un texte, dans l'ordre où elles apparaissent. */
+function famillesCitees(t: string): string[] {
+  const bas = t.toLowerCase();
+  return FAMILLES_COULEUR.map(([nom, re]) => ({ nom, pos: bas.search(re) }))
+    .filter((x) => x.pos >= 0)
+    .sort((x, y) => x.pos - y.pos)
+    .map((x) => x.nom);
+}
 /**
- * Le doudou n'a pas la couleur attendue. Tolérés : les voisins clairs (blanc ↔ beige ↔ brun), que la
- * lumière d'une scène confond. Sans couleur reconnue d'un côté ou de l'autre : on ne conclut rien.
+ * Le doudou n'a pas la couleur attendue. La couleur attendue est la PREMIÈRE citée dans sa fiche
+ * (« light-brown teddy bear with a cream muzzle and black eyes » : brun clair, pas crème ni noir).
+ * Si la couleur vue la contient (« grey and white » pour un lapin gris), tout va bien. Tolérés : les
+ * voisins clairs (blanc ↔ beige ↔ brun), que la lumière confond. Sans couleur reconnue : on ne conclut rien.
  */
 export function couleursDifferentes(attendue?: string, vue?: string): boolean {
-  const a = famille(attendue ?? "");
-  const v = famille(vue ?? "");
-  if (!a || !v || a === v) return false;
+  const a = famillesCitees(attendue ?? "")[0];
+  const vues = famillesCitees(vue ?? "");
+  if (!a || !vues.length || vues.includes(a)) return false;
   const clairs = ["white", "beige", "brown"];
+  const v = vues[0]!;
   if (clairs.includes(a) && clairs.includes(v)) return Math.abs(clairs.indexOf(a) - clairs.indexOf(v)) >= 2;
   return true;
 }

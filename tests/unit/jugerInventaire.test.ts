@@ -97,5 +97,14 @@ describe("ressemblance de la fiche et couleur du doudou", () => {
     expect(couleursDifferentes("a plain soft white plush rabbit", "cream")).toBe(false);
     expect(couleursDifferentes("a plain soft white plush rabbit", "dark brown")).toBe(true);
     expect(couleursDifferentes("a plush toy", "pink")).toBe(false); // couleur attendue inconnue : on ne conclut rien
+    // La couleur attendue est la PREMIÈRE citée dans la fiche, pas un détail (museau crème, yeux noirs, queue blanche).
+    const ours = "a soft light-brown plush teddy bear with round ears, a cream muzzle and small black eyes";
+    expect(couleursDifferentes(ours, "brown")).toBe(false);
+    expect(couleursDifferentes(ours, "light brown")).toBe(false);
+    expect(couleursDifferentes(ours, "grey")).toBe(true);
+    const lapin = "PLUSH RABBIT: soft grey fur, pink inner ears, white tail";
+    expect(couleursDifferentes(lapin, "grey")).toBe(false);
+    expect(couleursDifferentes(lapin, "grey and white")).toBe(false);
+    expect(couleursDifferentes(lapin, "brown")).toBe(true);
   });
 });

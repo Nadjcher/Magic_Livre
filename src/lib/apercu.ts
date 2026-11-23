@@ -123,6 +123,10 @@ export async function debloquerLivre(bookId: string): Promise<void> {
       imagesARevoir: complet.imagesARevoir,
       controleImages: complet.controleImages,
       planches: complet.planches ?? base.planches,
+      // L'accord de l'atelier portait sur l'aperçu, pas sur les pages dessinées après l'achat.
+      valideAtelier: undefined,
+      retenue: undefined,
+      ficheEcart: complet.ficheEcart ?? base.ficheEcart,
       fiches: complet.fiches ?? base.fiches,
     };
     // Les pages sont dessinées mais la vérification n'a pas eu le temps de tourner : elle se fait dans sa

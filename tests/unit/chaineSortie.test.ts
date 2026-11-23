@@ -25,6 +25,8 @@ const monde = vi.hoisted(() => ({
   vision: "ok" as "ok" | "double" | "panne",
   /** Le dessin échoue pour les scènes qui contiennent ce mot. */
   dessinEchoue: "" as string,
+  /** Une commande d'impression est enregistrée sur ce livre PENDANT sa vérification. */
+  commandePendant: "" as string,
 }));
 
 async function fausseImage(nom: string): Promise<string> {
@@ -49,6 +51,11 @@ vi.mock("@/lib/jetonsFal", () => ({
     const json = (j: unknown) => new Response(JSON.stringify(j), { status: 200, headers: { "Content-Type": "application/json" } });
     const prompt = String(corps.prompt ?? "");
     if (url.includes("openrouter/router/vision")) {
+      const enCours = monde.commandePendant ? monde.livres.get(monde.commandePendant) : undefined;
+      if (enCours) {
+        monde.livres.set(enCours.id, { ...enCours, pages: { ...(enCours.pages as object), impressionsAValider: [{ orderId: "cmd1", depuis: 1, retouchesAuDebut: 0 }] } });
+        monde.commandePendant = "";
+      }
       if (monde.vision === "panne") return new Response("{}", { status: 503 });
       if (/real photo of a child/.test(prompt)) {
         const t = { hair: "black", texture: "straight", length: "short", skin: "light", glasses: false };
@@ -145,6 +152,7 @@ afterEach(() => {
   monde.emails.length = 0;
   monde.vision = "ok";
   monde.dessinEchoue = "";
+  monde.commandePendant = "";
 });
 
 /** Un livre sur mesure écrit, relu et cadré, prêt à être dessiné. */
@@ -227,6 +235,26 @@ describe("Fin de fabrication d'un livre sur mesure", () => {
     expect(etat("troue").status).toBe("draft");
     expect(pagesDe("troue").retenue?.join(" ")).toContain("image manquante");
     expect(pagesDe("troue").imagesARevoir).toContain(2);
+  });
+});
+
+describe("Une commande d'impression enregistrée pendant la vérification", () => {
+  it("n'est pas effacée quand le livre devient « prêt » (sinon : commande payée, jamais imprimée)", async () => {
+    const { illustrerLivre } = await import("@/lib/bookPipeline");
+    livreEcrit("commande");
+    monde.commandePendant = "commande";
+    await illustrerLivre({ bookId: "commande", req: req(), portrait: null });
+    expect(etat("commande").status).toBe("ready");
+    expect((etat("commande").pages as { impressionsAValider?: { orderId: string }[] }).impressionsAValider?.[0]?.orderId).toBe("cmd1");
+  });
+  it("ni quand le livre est retenu", async () => {
+    const { illustrerLivre } = await import("@/lib/bookPipeline");
+    livreEcrit("commande2");
+    monde.vision = "double";
+    monde.commandePendant = "commande2";
+    await illustrerLivre({ bookId: "commande2", req: req(), portrait: null });
+    expect(etat("commande2").status).toBe("draft");
+    expect((etat("commande2").pages as { impressionsAValider?: { orderId: string }[] }).impressionsAValider?.[0]?.orderId).toBe("cmd1");
   });
 });
 

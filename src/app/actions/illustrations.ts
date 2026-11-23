@@ -13,12 +13,13 @@ import { prisma } from "@/lib/prisma";
 import { storySchema, type Story } from "@/lib/storySchema";
 import { generateIllustration } from "@/lib/illustration";
 import { fetchAsDataUrl } from "@/lib/imageFetch";
-import { fichesPresentes, illustrerEpisode, imageReportOf } from "@/lib/storyGenerator";
+import { fichesPresentes, illustrerEpisode } from "@/lib/storyGenerator";
 import { EN_COURS } from "@/lib/illustrationStatus";
 import { debloquerLivre, peutDebloquer } from "@/lib/apercu";
 import { retouchesMax } from "@/lib/validationImpression";
 import { controleActif, controlerIllustrations } from "@/lib/controleIllustrations";
 
+const REFUS_MAX = 3;
 const REFUS_DESSIN = "Le nouveau dessin n'était pas assez réussi : nous ne l'avons pas gardé, et cet essai n'est pas compté. Réessayez dans un instant.";
 
 
@@ -70,9 +71,10 @@ export async function completeIllustrations(
 
   // Les images manquantes repassent par la chaîne normale : mêmes fiches (ou mêmes planches validées),
   // même vérification, même porte de qualité. Le livre redevient « en cours » le temps de les dessiner.
+  // (L'accord éventuel de l'atelier portait sur le livre tel qu'il était : les nouvelles images sont revérifiées.)
   await prisma.book.update({
     where: { id: book.id },
-    data: { status: "generating", errorMessage: `${EN_COURS}${Date.now()}` },
+    data: { status: "generating", errorMessage: `${EN_COURS}${Date.now()}`, pages: { ...parsed.data, valideAtelier: undefined, retenue: undefined } },
   });
   const { lancerIllustrations } = await import("@/lib/bookPipeline");
   waitUntil(
@@ -108,6 +110,24 @@ export async function redrawPage(
     return { ok: false, message: "Les dernières pages de ce livre sont en cours de dessin. Réessayez dans quelques minutes." };
   }
   const story = parsed.data;
+  // Chaque dessin refusé par la vérification a coûté plusieurs dessins : trois refus au plus par livre.
+  if ((story.refusDessin ?? 0) >= REFUS_MAX) {
+    return { ok: false, message: "Nous n'arrivons pas à refaire ce dessin correctement pour l'instant. Notre équipe est prévenue et s'en occupe." };
+  }
+  /** Le nouveau dessin est refusé : il n'entre pas dans le livre, l'essai gratuit n'est pas compté, mais le refus l'est. */
+  const refuser = async (restantes: number) => {
+    const n = (story.refusDessin ?? 0) + 1;
+    const frais = storySchema.safeParse((await prisma.book.findUnique({ where: { id: book.id }, select: { pages: true } }))?.pages);
+    await prisma.book.update({ where: { id: book.id }, data: { pages: { ...(frais.success ? frais.data : story), refusDessin: n } } });
+    if (n >= REFUS_MAX) {
+      const { alerterAdmin } = await import("@/lib/notifications");
+      await alerterAdmin(
+        "un parent n'arrive pas à faire refaire un dessin",
+        `Livre ${book.id} (« ${book.title} »), ${index < 0 ? "couverture" : `page ${index + 1}`} : ${n} nouveaux dessins refusés par la vérification.`,
+      ).catch(() => undefined);
+    }
+    return { ok: false, message: REFUS_DESSIN, restantes };
+  };
   const faites = story.retouches ?? 0;
   // 5 retouches par livre, et 2 de plus offertes pendant la validation du livre imprimé.
   const RETOUCHES_MAX = retouchesMax(story);
@@ -137,7 +157,7 @@ export async function redrawPage(
       };
       const { story: verifiee } = await controlerRetouches(essai, Date.now() + 150_000);
       if ((verifiee.imagesARevoir?.length ?? 0) > 0 || (verifiee.controleImages?.nonVerifiees ?? 0) > 0) {
-        return { ok: false, message: REFUS_DESSIN, restantes: RETOUCHES_MAX - faites };
+        return refuser(RETOUCHES_MAX - faites);
       }
       url = (index < 0 ? verifiee.couvertureUrl : verifiee.pages[index]?.imageUrl) ?? url;
     }
@@ -214,7 +234,7 @@ export async function redrawPage(
     );
     const c = verifiee.controleImages;
     if (!c || (c.nonVerifiees ?? 0) > 0 || (c.douteuses?.length ?? 0) > 0 || (verifiee.imagesARevoir?.length ?? 0) > 0) {
-      return { ok: false, message: REFUS_DESSIN, restantes: RETOUCHES_MAX - faites };
+      return refuser(RETOUCHES_MAX - faites);
     }
     nouvelle = (index < 0 ? verifiee.couvertureUrl : verifiee.pages[index]?.imageUrl) ?? nouvelle;
   }
