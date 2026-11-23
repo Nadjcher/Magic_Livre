@@ -47,6 +47,24 @@ export async function failStaleBooks(userId: string): Promise<void> {
           "La génération a pris trop de temps et a été interrompue. Supprimez ce livre et réessayez.",
       },
     });
+    // Un livre acheté dont la complétion a été interrompue (exécution tuée) reste « en cours » pour
+    // toujours, et sa clé de déblocage reste prise. Après 12 minutes : on libère, et l'atelier est prévenu.
+    const figes = await prisma.book.findMany({
+      where: { userId, status: "ready", errorMessage: { startsWith: EN_COURS } },
+      select: { id: true, errorMessage: true },
+    });
+    for (const b of figes) {
+      const depuis = Number(b.errorMessage!.slice(EN_COURS.length));
+      if (!depuis || Date.now() - depuis < 12 * 60 * 1000) continue;
+      const { liberer } = await import("./idempotence");
+      await liberer(`debloquer:${b.id}`);
+      await prisma.book.update({ where: { id: b.id }, data: { errorMessage: null } });
+      const { alerterAdmin } = await import("./notifications");
+      await alerterAdmin(
+        "la complétion d'un livre a été interrompue",
+        `Livre ${b.id} : ses dernières pages n'ont pas été dessinées. Le parent peut la relancer depuis la page du livre ; vérifiez aussi sa commande.`,
+      ).catch(() => undefined);
+    }
   } catch {
     /* non bloquant */
   }

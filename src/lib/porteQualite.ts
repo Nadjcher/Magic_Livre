@@ -58,6 +58,9 @@ export function porteQualite(
     signalees.forEach((i) => pages.add(i));
   }
 
+  // La fiche de l'enfant, dont tout le livre découle, ressemble à sa photo.
+  if (o.controleAttendu && story.ficheEcart) raisons.push(`la fiche de l'enfant ne ressemble pas assez à sa photo : ${story.ficheEcart}`);
+
   // 3. La vérification a réellement eu lieu, sur toutes les images.
   if (o.controleAttendu && !story.serie) {
     const c = story.controleImages;

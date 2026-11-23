@@ -722,6 +722,32 @@ function hashSeed(text: string): number {
   return Math.abs(h) % 1_000_000;
 }
 
+/**
+ * La fiche de l'enfant, vérifiée contre sa photo (ou son portrait validé) AVANT de dessiner les pages :
+ * tout le livre découle d'elle. Écart constaté → un second dessin avec la correction ; encore un écart,
+ * ou vérification impossible → `ecart` (la porte de qualité retiendra le livre).
+ */
+export async function ficheHerosVerifiee(
+  dessiner: (correction?: string) => ReturnType<typeof generateIllustration>,
+  reference: { base64: string; mime: string } | undefined,
+): Promise<{ fiche: Awaited<ReturnType<typeof generateIllustration>>; ecart?: string }> {
+  let fiche = await dessiner();
+  if (!reference || !controleActif() || !fiche.base64) return { fiche };
+  const { ficheRessemble } = await import("./controleIllustrations");
+  const ref = (f: typeof fiche) => ({ base64: f.base64!, mime: f.mime ?? "image/jpeg" });
+  let v = await ficheRessemble(reference, ref(fiche));
+  if (v && !v.ok) {
+    console.log("[fiche héros] écart avec la photo, second dessin :", v.fix);
+    const seconde = await dessiner(v.fix);
+    if (seconde.base64) {
+      fiche = seconde;
+      v = await ficheRessemble(reference, ref(fiche));
+    }
+  }
+  if (!v) return { fiche, ecart: "la comparaison avec la photo n'a pas pu être faite" };
+  return v.ok ? { fiche } : { fiche, ecart: v.fix.slice(0, 380) };
+}
+
 /** Retrouve les fiches des personnages présents sur une page (par nom). */
 function fichesPresentes(
   page: Story["pages"][number],
@@ -783,16 +809,21 @@ async function addIllustrations(
     if (ref && l) fichesMaison.set(c.nom, { ...ref, url: l.url });
   }
   const cast = tousCast.filter((c) => !fichesMaison.has(c.nom));
-  const [ficheHeros, ...fichesCast] = await Promise.all([
-    generateIllustration({
-      ...commun,
-      scene:
-        `Character model sheet of the hero ${heroName}: full body, front view, standing in a friendly relaxed ` +
-        "pose, wearing EXACTLY the hero outfit from the character sheet, plain soft light background, nothing else, no text or letters",
-      referenceImage: portrait ? undefined : req.photo,
-      anchorImage: portrait ?? undefined,
-      seed: base + 500,
-    }),
+  const [{ fiche: ficheHeros, ecart: ficheEcart }, ...fichesCast] = await Promise.all([
+    ficheHerosVerifiee(
+      (correction) =>
+        generateIllustration({
+          ...commun,
+          scene:
+            `Character model sheet of the hero ${heroName}: full body, front view, standing in a friendly relaxed ` +
+            "pose, wearing EXACTLY the hero outfit from the character sheet, plain soft light background, nothing else, no text or letters" +
+            (correction ? `. IMPORTANT CORRECTION to match the child's photo: ${correction}` : ""),
+          referenceImage: portrait ? undefined : req.photo,
+          anchorImage: portrait ?? undefined,
+          seed: base + 500 + (correction ? 17 : 0),
+        }),
+      req.photo ?? portrait ?? undefined,
+    ),
     ...cast.map((c, k) => {
       // Un proche donné avec sa photo (maman, papa, sœur…) : sa fiche est dessinée d'après elle.
       const sa = req.extras?.find((e) => e.photo && e.name.trim().toLowerCase() === c.nom.trim().toLowerCase())?.photo;
@@ -874,6 +905,7 @@ async function addIllustrations(
     couvertureUrl: cover.imageUrl,
     style,
     fiches: { heros: ficheHeros.imageUrl ?? null, cast: fichesUrls },
+    ...(ficheEcart ? { ficheEcart } : {}),
     ...(req.apercu ? { apercu: true } : {}),
   };
 }

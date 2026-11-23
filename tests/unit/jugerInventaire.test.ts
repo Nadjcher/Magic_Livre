@@ -77,3 +77,25 @@ describe("ressemblance : boucles et teint", () => {
     expect(teintsDifferents("light", "very light")).toBe(false);
   });
 });
+
+describe("ressemblance de la fiche et couleur du doudou", () => {
+  it("écarts entre la photo et la fiche dessinée", async () => {
+    const { ecartsFiche } = await import("@/lib/controleIllustrations");
+    const photo = { hair: "dark brown", texture: "curly", length: "short", skin: "tan", glasses: true };
+    expect(ecartsFiche({ photo, drawing: photo })).toEqual([]);
+    expect(ecartsFiche({ photo, drawing: { ...photo, texture: "straight" } }).join(" ")).toContain("curly");
+    expect(ecartsFiche({ photo, drawing: { ...photo, hair: "blond" } }).length).toBe(1);
+    expect(ecartsFiche({ photo, drawing: { ...photo, skin: "very light" } }).length).toBe(1);
+    expect(ecartsFiche({ photo, drawing: { ...photo, glasses: false } }).join(" ")).toContain("glasses");
+    // Un cran d'écart (lumière, coiffure du jour) : toléré.
+    expect(ecartsFiche({ photo, drawing: { ...photo, texture: "wavy", hair: "chestnut", skin: "medium" } })).toEqual([]);
+  });
+  it("le doudou garde sa couleur ; les voisins clairs sont tolérés", async () => {
+    const { couleursDifferentes } = await import("@/lib/controleIllustrations");
+    expect(couleursDifferentes("PLUSH TOY: a soft plush grey rabbit", "brown")).toBe(true);
+    expect(couleursDifferentes("a soft light-brown plush teddy bear", "beige")).toBe(false);
+    expect(couleursDifferentes("a plain soft white plush rabbit", "cream")).toBe(false);
+    expect(couleursDifferentes("a plain soft white plush rabbit", "dark brown")).toBe(true);
+    expect(couleursDifferentes("a plush toy", "pink")).toBe(false); // couleur attendue inconnue : on ne conclut rien
+  });
+});

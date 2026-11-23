@@ -111,7 +111,7 @@ export interface EtapeControle {
 }
 
 /** Déclenche l'étape 3 (relecture des images) dans une nouvelle exécution ; sinon sur place. */
-async function lancerControle(etape: EtapeControle): Promise<void> {
+export async function lancerControle(etape: EtapeControle): Promise<void> {
   const corps = JSON.stringify(etape);
   try {
     const r = await fetch(`${getAppUrl()}/api/internal/controler`, {

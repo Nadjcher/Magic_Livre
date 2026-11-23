@@ -23,7 +23,7 @@ import { HISTOIRES_MAITRESSES, type HistoireMaitresse, type Personnalisation } f
 import { construireLivre } from "./maitresseGenerateur";
 import { consoliderFiche, signature } from "./ficheHistoire";
 import { CONSIGNE_COUVERTURE, grillePour } from "./bibleVisuelle";
-import { cheveuxDifferents, especeAttendue, estPeluche, memeEspece, teintsDifferents, texturesDifferentes, verifier } from "./controleIllustrations";
+import { couleursDifferentes, cheveuxDifferents, especeAttendue, estPeluche, memeEspece, teintsDifferents, texturesDifferentes, verifier } from "./controleIllustrations";
 import { mapLimit } from "./parallele";
 import type { Story } from "./storySchema";
 import type { StoryRequest } from "./storyPrompt";
@@ -440,15 +440,26 @@ export async function illustrerDepuisPlanches(
   // Fiches de ce livre : gardées si elles existent déjà (déblocage), sinon dessinées une fois.
   let herosUrl = story.fiches?.heros ?? null;
   let doudouUrl = doudou ? story.fiches?.cast?.[doudou.nom] ?? null : null;
+  const { ficheHerosVerifiee } = await import("./storyGenerator");
+  let ficheEcart = story.ficheEcart;
   const [fh, fd] = await Promise.all([
     herosUrl
       ? null
-      : generateIllustration({
-          ...commun,
-          scene: `Character model sheet of the hero ${req.childFirstName}: full body, front view, standing in a friendly relaxed pose, wearing EXACTLY the hero outfit from the character sheet, plain soft light background, nothing else, no text`,
-          referenceImage: portrait ? undefined : req.photo,
-          anchorImage: portrait ?? undefined,
-          seed: 7_000 + (Date.now() % 1000),
+      : ficheHerosVerifiee(
+          (correction) =>
+            generateIllustration({
+              ...commun,
+              scene:
+                `Character model sheet of the hero ${req.childFirstName}: full body, front view, standing in a friendly relaxed pose, wearing EXACTLY the hero outfit from the character sheet, plain soft light background, nothing else, no text` +
+                (correction ? `. IMPORTANT CORRECTION to match the child's photo: ${correction}` : ""),
+              referenceImage: portrait ? undefined : req.photo,
+              anchorImage: portrait ?? undefined,
+              seed: 7_000 + (Date.now() % 1000),
+            }),
+          req.photo ?? portrait ?? undefined,
+        ).then((r) => {
+          ficheEcart = r.ecart;
+          return r.fiche;
         }),
     doudou && !doudouUrl
       ? generateIllustration({
@@ -505,6 +516,7 @@ export async function illustrerDepuisPlanches(
     pages: story.pages.map((p, i) => (p.imageUrl ? p : { ...p, imageUrl: par.get(i) ?? null })),
     fiches: { heros: herosUrl, cast: { ...(story.fiches?.cast ?? {}), ...(doudou && doudouUrl ? { [doudou.nom]: doudouUrl } : {}) } },
     planches: { ...story.planches, retouchees: [...retouchees], apparence: story.planches.apparence ?? req.appearance?.slice(0, 400) },
+    ...(ficheEcart ? { ficheEcart } : {}),
   };
 }
 
@@ -544,6 +556,7 @@ interface Inspection {
   hair_page?: string;
   hair_length_page?: string;
   plush_animal?: string;
+  plush_color?: string;
   plush_count?: number;
   present?: Record<string, boolean>;
   head_twisted?: boolean;
@@ -574,7 +587,7 @@ async function inspecter(
   const prompt = [
     "Image 1 is a book page. Answer in JSON only.",
     '"hair_page": FIRST, looking only at image 1, the hair color of the big child, one word among: blond, light brown, chestnut, dark brown, black, red, grey (lit parts, not shadows); "hair_length_page": short, medium (chin to shoulders) or long (below the shoulders).',
-    '"plush_animal": looking only at image 1, the animal the plush toy ACTUALLY looks like (ears, muzzle, tail), "" if there is no plush toy; "plush_count": how many plush toys in image 1.',
+    '"plush_animal": looking only at image 1, the animal the plush toy ACTUALLY looks like (ears, muzzle, tail), "" if there is no plush toy; "plush_color": its main colour in one or two words ("" if none); "plush_count": how many plush toys in image 1.',
     attendus.length
       ? `"present": for each of these characters, true if it is clearly visible in image 1, false otherwise: ${attendus.map((c) => `"${c.nom}" (${c.description})`).join(", ")}.`
       : '"present": {}.',
@@ -589,7 +602,7 @@ async function inspecter(
     origine
       ? `"same_scene": the LAST image (image ${images.length}) is the original page before the child was retouched. true if image 1 shows the same scene (same setting, same poses, same framing, same other characters; only the child's face, hair or clothes and the plush toy may differ), false if image 1 shows a different scene, pose or framing (for example the child standing alone like a character sheet).`
       : '"same_scene": true.',
-    'JSON: {"hair_page": "", "hair_length_page": "", "plush_animal": "", "plush_count": 0, "present": {}, "head_twisted": false, "hair_reference": "", "hair_length_reference": "", "hair_texture_page": "", "hair_texture_reference": "", "skin_page": "", "skin_reference": "", "child_count": 1, "letters_or_text": false, "anatomy_defects": [], "frame": false, "same_scene": true}',
+    'JSON: {"hair_page": "", "hair_length_page": "", "plush_animal": "", "plush_color": "", "plush_count": 0, "present": {}, "head_twisted": false, "hair_reference": "", "hair_length_reference": "", "hair_texture_page": "", "hair_texture_reference": "", "skin_page": "", "skin_reference": "", "child_count": 1, "letters_or_text": false, "anatomy_defects": [], "frame": false, "same_scene": true}',
   ].join("\n");
   try {
     const r = await falFetch(
@@ -682,6 +695,9 @@ export async function controlerRetouches(
       fautes.push(`the child's hair must be ${v.hair_length_reference} like on the reference, not ${v.hair_length_page}`);
     }
     if (k?.doudou && espece && v.plush_animal && !memeEspece(espece, v.plush_animal)) fautes.push(`the plush toy must be a ${espece}, not a ${v.plush_animal}`);
+    // La couleur aussi : un lapin gris devenu brun n'est plus SON doudou. Et un doudou attendu doit être là.
+    if (k?.doudou && doudou && couleursDifferentes(doudou.visuel, v.plush_color)) fautes.push(`the plush toy must keep the colour of its reference sheet, not ${v.plush_color}`);
+    if (k?.doudou && doudou && typeof v.plush_count === "number" && v.plush_count === 0) fautes.push("the child's plush toy is missing: draw it exactly as on its reference sheet, held or placed like the plush of the original page");
     if (typeof v.plush_count === "number" && v.plush_count > 1) fautes.push("only ONE plush toy, the child's");
     if (k?.enfant && v.head_twisted === true) {
       fautes.push((m0.get(k.cle)?.deDos ?? k.deDos) ? "the child is seen from behind: keep the head turned away exactly like the body, show only the back of the hair, no face" : "the child's head must face the same way as the body, never twisted");

@@ -103,6 +103,10 @@ export async function redrawPage(
   if (!book) return { ok: false, message: "Livre introuvable." };
   const parsed = storySchema.safeParse(book.pages);
   if (!parsed.success) return { ok: false, message: "Le contenu de ce livre est illisible." };
+  // Le livre est en train d'être complété ou vérifié : une page refaite maintenant serait écrasée.
+  if (book.errorMessage?.startsWith(EN_COURS)) {
+    return { ok: false, message: "Les dernières pages de ce livre sont en cours de dessin. Réessayez dans quelques minutes." };
+  }
   const story = parsed.data;
   const faites = story.retouches ?? 0;
   // 5 retouches par livre, et 2 de plus offertes pendant la validation du livre imprimé.

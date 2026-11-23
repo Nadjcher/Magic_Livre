@@ -28,6 +28,10 @@ const monde = vi.hoisted(() => ({
   /** Le contrôle court des 7 ans et plus trouve un motif éliminatoire. */
   horsSujet: false,
   alertes: [] as string[],
+  /** Ce que l'agent voit sur la fiche de l'enfant, essai après essai ("panne" : pas de réponse). */
+  fiches: [] as ("bonne" | "fausse" | "panne")[],
+  /** Nombre de peluches que l'agent voit sur la page (l'ours brun clair de l'enfant). */
+  peluches: 0,
   statut: null as string | null,
 }));
 
@@ -49,8 +53,14 @@ vi.mock("@/lib/jetonsFal", () => ({
     const corps = JSON.parse(init.body ?? "{}") as Record<string, unknown>;
     monde.appels.push({ url, corps });
     const json = (j: unknown) => new Response(JSON.stringify(j), { status: 200, headers: { "Content-Type": "application/json" } });
+    if (url.includes("openrouter/router/vision") && /real photo of a child/.test(String(corps.prompt))) {
+      const vu = monde.fiches.shift() ?? "bonne";
+      if (vu === "panne") return new Response("{}", { status: 503 });
+      const photo = { hair: "dark brown", texture: "curly", length: "short", skin: "tan", glasses: false };
+      return json({ output: JSON.stringify({ photo, drawing: vu === "bonne" ? photo : { ...photo, texture: "straight", hair: "blond" } }) });
+    }
     if (url.includes("openrouter/router/vision")) {
-      return json({ output: JSON.stringify({ hair_page: "black", hair_length_page: "short", hair_reference: "black", hair_length_reference: "short", plush_animal: "", plush_count: 0, present: {}, head_twisted: false, frame: false, same_scene: !monde.sceneRemplacee }) });
+      return json({ output: JSON.stringify({ hair_page: "black", hair_length_page: "short", hair_reference: "black", hair_length_reference: "short", plush_animal: monde.peluches ? "bear" : "", plush_color: monde.peluches ? "light brown" : "", plush_count: monde.peluches, present: {}, head_twisted: false, frame: false, same_scene: !monde.sceneRemplacee }) });
     }
     if (url.includes("openrouter/router")) {
       const systeme = String(corps.system_prompt ?? "");
@@ -153,6 +163,8 @@ afterEach(() => {
   monde.sceneRemplacee = false;
   monde.horsSujet = false;
   monde.alertes.length = 0;
+  monde.fiches.length = 0;
+  monde.peluches = 0;
   monde.statut = null;
 });
 
@@ -301,8 +313,9 @@ describe("L'agent fait refaire une page retouchée", () => {
     // Ici l'agent refuse aussi la page refaite : le livre est retenu pour l'atelier, jamais envoyé tel quel.
     expect(controle.imagesARevoir?.length).toBe(refaites.length);
 
-    // Quand la page refaite est bonne, le livre part normalement.
+    // Quand la page refaite est bonne, le livre part normalement (page 1 : l'enfant et son ours).
     monde.appels.length = 0;
+    monde.peluches = 1;
     let vus = 0;
     Object.defineProperty(monde, "sceneRemplacee", { configurable: true, get: () => vus++ === 0 });
     const { story: repare } = await controlerRetouches({ ...story, planches: { ...story.planches!, retouchees: [0] } }, Date.now() + 60_000, portrait, photo);
@@ -344,6 +357,53 @@ describe("Idée libre avec maman en photo", () => {
     expect(d.some((a) => String(a.corps.prompt).includes("Character model sheet of Sarah"))).toBe(true);
     // La règle de dessin laisse voir le visage d'un proche qui a sa fiche.
     expect(d.some((a) => String(a.corps.prompt).includes("A family member WITH a reference sheet"))).toBe(true);
+  });
+});
+
+describe("La fiche de l'enfant est comparée à sa photo avant de dessiner les pages", () => {
+  const dessinerFiche = () => {
+    const corrections: (string | undefined)[] = [];
+    const dessiner = async (correction?: string) => {
+      corrections.push(correction);
+      return { imageUrl: "data:image/jpeg;base64,xx", base64: portrait.base64, mime: "image/jpeg" };
+    };
+    return { corrections, dessiner };
+  };
+  it("fiche ressemblante : un seul dessin ; boucles devenues raides : un second dessin avec la correction", async () => {
+    const { ficheHerosVerifiee } = await import("@/lib/storyGenerator");
+    process.env.QA_ILLUSTRATIONS = "";
+    try {
+      let f = dessinerFiche();
+      monde.fiches.push("bonne");
+      expect((await ficheHerosVerifiee(f.dessiner, photo)).ecart).toBeUndefined();
+      expect(f.corrections.length).toBe(1);
+
+      f = dessinerFiche();
+      monde.fiches.push("fausse", "bonne");
+      expect((await ficheHerosVerifiee(f.dessiner, photo)).ecart).toBeUndefined();
+      expect(f.corrections.length).toBe(2);
+      expect(f.corrections[1]).toContain("curly");
+    } finally {
+      process.env.QA_ILLUSTRATIONS = "off";
+    }
+  });
+  it("toujours fausse, ou comparaison en panne : l'écart est noté et la porte de qualité retient le livre", async () => {
+    const { ficheHerosVerifiee } = await import("@/lib/storyGenerator");
+    const { porteQualite } = await import("@/lib/porteQualite");
+    process.env.QA_ILLUSTRATIONS = "";
+    try {
+      let f = dessinerFiche();
+      monde.fiches.push("fausse", "fausse");
+      const fausse = await ficheHerosVerifiee(f.dessiner, photo);
+      expect(fausse.ecart).toContain("curly");
+      f = dessinerFiche();
+      monde.fiches.push("panne");
+      expect((await ficheHerosVerifiee(f.dessiner, photo)).ecart).toContain("n'a pas pu");
+      const livre = { titre: "t", couvertureUrl: "c", pages: [{ texte: "a", scene_illustration: "b", imageUrl: "i" }], controleImages: { verifiees: 2, refaites: 0 }, ficheEcart: fausse.ecart };
+      expect(porteQualite(livre as never, { pagesApercu: 3, imagesAttendues: true, controleAttendu: true }).ok).toBe(false);
+    } finally {
+      process.env.QA_ILLUSTRATIONS = "off";
+    }
   });
 });
 

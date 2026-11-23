@@ -193,6 +193,92 @@ export async function verifier(
   }
 }
 
+/**
+ * La fiche de l'enfant ressemble-t-elle à sa photo ? Tout le livre est dessiné
+ * d'après cette fiche : si elle est fausse (boucles devenues raides, cheveux
+ * d'une autre couleur, teint différent), chaque page serait « conforme » à un
+ * autre enfant. Inventaire à l'aveugle des deux images, règles dans le code.
+ * `null` : la vérification n'a pas pu avoir lieu (jamais comptée comme un oui).
+ */
+export async function ficheRessemble(photo: Ref, fiche: Ref): Promise<{ ok: boolean; fix: string } | null> {
+  const prompt = [
+    "Image 1 is a real photo of a child. Image 2 is a drawing of the same child for a picture book. Do NOT judge the drawing. Only REPORT what you see, as JSON.",
+    'For EACH image: "hair" (one word among: blond, light brown, chestnut, dark brown, black, red, grey; look at the lit parts, not the shadows), "texture" (straight, wavy, curly or coily), "length" (short, medium = chin to shoulders, long = below the shoulders), "skin" (very light, light, medium, tan, brown or dark; judge the lit skin), "glasses" (true or false).',
+    'JSON only: {"photo": {"hair": "", "texture": "", "length": "", "skin": "", "glasses": false}, "drawing": {"hair": "", "texture": "", "length": "", "skin": "", "glasses": false}}',
+  ].join("\n");
+  try {
+    const r = await falFetch(
+      "https://fal.run/openrouter/router/vision",
+      {
+        method: "POST",
+        headers: { Authorization: `Key ${env.falApiKey()}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: process.env.QA_RETOUCHE_MODEL || "anthropic/claude-sonnet-4.5", prompt, image_urls: [photo, fiche].map((x) => `data:${x.mime};base64,${x.base64}`), max_tokens: 300, temperature: 0 }),
+      },
+      40_000,
+    );
+    const j = (await r.json().catch(() => ({}))) as { output?: string; usage?: { cost?: number } };
+    if (r.ok) await noterDepense(j.usage?.cost ?? PRIX_ESTIMES.vision);
+    const json = /\{[\s\S]*\}/.exec(j.output ?? "")?.[0];
+    if (!r.ok || !json) return null;
+    const fautes = ecartsFiche(JSON.parse(json) as { photo?: Traits; drawing?: Traits });
+    return { ok: fautes.length === 0, fix: fautes.join("; ") };
+  } catch {
+    return null;
+  }
+}
+
+export interface Traits {
+  hair?: string;
+  texture?: string;
+  length?: string;
+  skin?: string;
+  glasses?: boolean;
+}
+/** Ce qui sépare la fiche dessinée de la photo (règles du code, testées). */
+export function ecartsFiche(v: { photo?: Traits; drawing?: Traits }): string[] {
+  const p = v.photo ?? {};
+  const d = v.drawing ?? {};
+  const f: string[] = [];
+  if (cheveuxDifferents(p.hair, d.hair)) f.push(`the hair color must be ${p.hair} like in the photo, not ${d.hair}`);
+  if (texturesDifferentes(p.texture, d.texture)) f.push(`the hair must be ${p.texture} like in the photo, not ${d.texture}`);
+  const court = (t?: string) => /short/i.test(t ?? "");
+  const long = (t?: string) => /long/i.test(t ?? "");
+  if ((court(p.length) && long(d.length)) || (long(p.length) && court(d.length))) f.push(`the hair must be ${p.length} like in the photo, not ${d.length}`);
+  if (teintsDifferents(p.skin, d.skin)) f.push(`the skin tone must be ${p.skin} like in the photo, not ${d.skin}`);
+  if (p.glasses === true && d.glasses === false) f.push("the child wears glasses like in the photo");
+  if (p.glasses === false && d.glasses === true) f.push("no glasses: the child wears none in the photo");
+  return f;
+}
+
+/** Familles de couleurs d'un doudou (les voisins clairs se confondent selon la lumière : blanc, crème, beige). */
+const FAMILLES_COULEUR: [string, RegExp][] = [
+  ["white", /\b(white|cream|ivory|off-white)\b/],
+  ["beige", /\b(beige|tan|sand|light[- ]brown|caramel|honey|golden)\b/],
+  ["brown", /\b(brown|chocolate|chestnut)\b/],
+  ["grey", /\b(gr[ae]y|silver)\b/],
+  ["pink", /\b(pink|rose)\b/],
+  ["blue", /\b(blue|navy|turquoise)\b/],
+  ["yellow", /\b(yellow)\b/],
+  ["green", /\b(green|mint)\b/],
+  ["red", /\b(red)\b/],
+  ["orange", /\b(orange|ginger)\b/],
+  ["purple", /\b(purple|lilac|violet|mauve)\b/],
+  ["black", /\b(black)\b/],
+];
+const famille = (t: string) => FAMILLES_COULEUR.find(([, re]) => re.test(t.toLowerCase()))?.[0];
+/**
+ * Le doudou n'a pas la couleur attendue. Tolérés : les voisins clairs (blanc ↔ beige ↔ brun), que la
+ * lumière d'une scène confond. Sans couleur reconnue d'un côté ou de l'autre : on ne conclut rien.
+ */
+export function couleursDifferentes(attendue?: string, vue?: string): boolean {
+  const a = famille(attendue ?? "");
+  const v = famille(vue ?? "");
+  if (!a || !v || a === v) return false;
+  const clairs = ["white", "beige", "brown"];
+  if (clairs.includes(a) && clairs.includes(v)) return Math.abs(clairs.indexOf(a) - clairs.indexOf(v)) >= 2;
+  return true;
+}
+
 /** Deux crans d'écart sur une échelle ordonnée = ce n'est plus le même enfant (un cran : l'éclairage de la scène). */
 function ecart(echelle: string[], ref?: string, vu?: string): boolean {
   const r = (ref ?? "").toLowerCase().trim();
@@ -266,6 +352,11 @@ export function jugerInventaire(
     const fausse = attendue ? vuesPeluches.find((x) => !memeEspece(attendue, x.animal ?? "")) : undefined;
     if (attendue && fausse && !vuesPeluches.some((x) => memeEspece(attendue, x.animal ?? ""))) {
       f.push(`The plush toy ${c.nom} must be the plush ${attendue} of its reference sheet, not a ${fausse.animal}.`);
+    }
+    // La couleur aussi : un lapin gris devenu brun n'est plus SON doudou.
+    const bonne = attendue ? vuesPeluches.find((x) => memeEspece(attendue, x.animal ?? "")) : vuesPeluches[0];
+    if (bonne && couleursDifferentes(c.description, bonne.color)) {
+      f.push(`The plush toy ${c.nom} must keep the colour of its reference sheet, not ${bonne.color}.`);
     }
   }
   const vus = v.characters ?? [];

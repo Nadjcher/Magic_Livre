@@ -101,14 +101,15 @@ export async function debloquerLivre(bookId: string): Promise<void> {
   try {
     await prisma.book.update({ where: { id: bookId }, data: { errorMessage: `${EN_COURS}${Date.now()}` } });
     const story = parsed.data;
-    const { story: complet, imageReport } = await illustrerLivreComplet(story, {
+    const req = {
       childFirstName: book.child.firstName,
       childAge: book.child.age,
-      mode: "theme",
-      longueur: "moyenne",
+      mode: "theme" as const,
+      longueur: "moyenne" as const,
       style: (story.style ?? "feerique") as IllustrationStyle,
       premium: book.tier === "premium",
-    });
+    };
+    const { story: complet, imageReport } = await illustrerLivreComplet(story, req);
     // Relit le livre avant d'écrire (une retouche a pu arriver entre-temps).
     const frais = storySchema.safeParse((await prisma.book.findUnique({ where: { id: bookId }, select: { pages: true } }))?.pages);
     const base = frais.success ? frais.data : story;
@@ -124,6 +125,15 @@ export async function debloquerLivre(bookId: string): Promise<void> {
       planches: complet.planches ?? base.planches,
       fiches: complet.fiches ?? base.fiches,
     };
+    // Les pages sont dessinées mais la vérification n'a pas eu le temps de tourner : elle se fait dans sa
+    // propre exécution (5 minutes à elle), qui applique ensuite la porte de qualité. Le livre repasse
+    // « en cours » quelques minutes, au lieu d'être retenu faute de temps.
+    if (controleActif() && !fusion.controleImages && !fusion.serie) {
+      await prisma.book.update({ where: { id: bookId }, data: { status: "generating", pages: fusion, errorMessage: `${EN_COURS}${Date.now()}` } });
+      const { lancerControle } = await import("./bookPipeline");
+      await lancerControle({ bookId, req, imageReport: imageReport ?? null });
+      return;
+    }
     // La porte de qualité : un livre acheté dont une image manque, est fautive ou n'a pas été vérifiée
     // n'est pas remis tel quel. Il attend dans l'atelier ; le parent et l'administrateur sont prévenus.
     const verdict = porteQualite(fusion, { pagesApercu: PAGES_APERCU, imagesAttendues: illustrationsEnabled(), controleAttendu: controleActif() });
