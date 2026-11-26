@@ -19,7 +19,8 @@ export const dynamic = "force-dynamic";
 // Le dessin des planches tourne en arrière-plan depuis cette page (jusqu'à 5 minutes).
 export const maxDuration = 300;
 
-export default async function PlanchesPage() {
+export default async function PlanchesPage(props: { searchParams: Promise<{ redessin?: string }> }) {
+  const { redessin } = await props.searchParams;
   const user = await getCurrentUser();
   if (!user || !estAdmin(user.email)) notFound();
   const style = STYLE_DEFAUT;
@@ -29,6 +30,13 @@ export default async function PlanchesPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-10">
+      {/* Confirmation visible après « Oui, effacer et redessiner » */}
+      {redessin && (
+        <p role="status" className="rounded-2xl border-2 border-emerald-300 bg-emerald-900/40 p-4 text-base font-semibold">
+          ✓ C'est parti : {redessin === "couverture" ? "la couverture" : `la planche « ${redessin} »`} a été effacée et son nouveau dessin est en
+          cours. Rechargez cette page dans 3 à 5 minutes, puis regardez-la en grand avant de la valider.
+        </p>
+      )}
       <header className="space-y-2">
         <h1 className="text-3xl">Planches des histoires</h1>
         <p className="text-magique-texteClair">
@@ -184,12 +192,12 @@ export default async function PlanchesPage() {
                     {/* Effacer une planche se confirme : un toucher par erreur ne doit pas la supprimer. */}
                     <details className="text-xs">
                       <summary className="cursor-pointer list-none rounded-full border border-magique-trait px-3 py-1">Redessiner…</summary>
-                      <form action={redessinerPlancheAction} className="mt-2 space-y-1">
+                      <form action={redessinerPlancheAction} className="mt-2 space-y-2 rounded-xl border-2 border-rose-300 bg-rose-950/40 p-3">
                         <input type="hidden" name="histoire" value={h.id} />
                         <input type="hidden" name="style" value={style} />
                         <input type="hidden" name="cle" value={p.cle} />
-                        <p className="text-magique-texteClair">La planche est effacée tout de suite, puis redessinée (payant).</p>
-                        <button className="rounded-full border border-rose-300 px-3 py-1 text-rose-300">Oui, effacer cette planche</button>
+                        <p className="text-sm text-white">Cette planche est effacée et un nouveau dessin est lancé tout de suite (environ 0,05 à 0,10 $).</p>
+                        <button className="w-full rounded-full bg-rose-300 px-3 py-2 text-sm font-bold text-nuit">Oui, effacer et redessiner</button>
                       </form>
                     </details>
                   </div>
