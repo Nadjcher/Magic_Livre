@@ -578,6 +578,8 @@ export async function retoucherPlanche(opts: {
   apparence?: string;
   /** L'enfant est vu de dos sur la planche : ne changer que les cheveux, sans jamais montrer le visage. */
   deDos?: boolean;
+  /** Autre dessinateur pour cette retouche (essai comparatif) ; par défaut celui du site. */
+  modele?: string;
   seed: number;
 }): Promise<IllustrationResult> {
   const key = env.falApiKey();
@@ -637,18 +639,24 @@ export async function retoucherPlanche(opts: {
     (opts.correction ? ` Correction requested: ${opts.correction}` : "") +
     " No text, no letters.";
   try {
+    const modele = opts.modele ?? (env.falImageModel().endsWith("/edit") ? env.falImageModel() : "fal-ai/flux-2-pro/edit");
+    const gemini = /nano-banana|gemini/.test(modele);
     const res = await falFetch(
-      `https://fal.run/${env.falImageModel().endsWith("/edit") ? env.falImageModel() : "fal-ai/flux-2-pro/edit"}`,
+      `https://fal.run/${modele}`,
       {
         method: "POST",
         headers: { Authorization: `Key ${key}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, image_urls: images, image_size: "square_hd", output_format: "jpeg", seed: opts.seed }),
+        body: JSON.stringify(
+          gemini
+            ? { prompt, image_urls: images, aspect_ratio: "1:1", output_format: "jpeg" }
+            : { prompt, image_urls: images, image_size: "square_hd", output_format: "jpeg", seed: opts.seed },
+        ),
       },
       150_000,
     );
     const j = (await res.json().catch(() => ({}))) as { images?: { url?: string }[]; detail?: unknown };
     if (!res.ok) return { imageUrl: null, error: `HTTP ${res.status} ${JSON.stringify(j.detail ?? j).slice(0, 160)}` };
-    await noterDepense(PRIX_ESTIMES.image);
+    await noterDepense(gemini ? PRIX_ESTIMES.imagePremium : PRIX_ESTIMES.image);
     const url = j.images?.[0]?.url;
     if (!url) return { imageUrl: null, error: "pas d'image renvoyée" };
     const dl = await fetchAllWithTimeout(url, {}, { timeoutMs: 30_000, maxBytes: 20_000_000 }).catch(() => null);
