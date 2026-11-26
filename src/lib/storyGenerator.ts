@@ -818,7 +818,7 @@ async function addIllustrations(
           ...commun,
           scene:
             `Character model sheet of the hero ${heroName}: full body, front view, standing in a friendly relaxed ` +
-            "pose, wearing EXACTLY the hero outfit from the character sheet, plain soft light background, nothing else, no text or letters" +
+            "pose with a soft gentle smile, wearing EXACTLY the hero outfit from the character sheet, plain soft light background, nothing else, no text or letters" +
             (correction ? `. IMPORTANT CORRECTION to match the child's photo: ${correction}` : ""),
           referenceImage: portrait ? undefined : req.photo,
           anchorImage: portrait ?? undefined,

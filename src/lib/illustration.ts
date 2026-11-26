@@ -607,7 +607,9 @@ export async function retoucherPlanche(opts: {
       (opts.photo
         ? `the big child becomes clearly recognizable as the real child in the photo of image ${images.length}: same face shape, eyes, eyebrows, nose, mouth, ` +
           `skin tone, hair color, hair texture (curls stay curls) and cut, drawn in exactly the same 3D animated style as image 1, never photographic; ` +
-          `KEEP the exact facial expression of image 1 (same mood, same mouth, same eyes and gaze direction) and add nothing that is not in the photo (no freckles, no glasses, no marks); ` +
+          `KEEP the facial expression of image 1 (same mood, same mouth, same eyes and gaze direction), always soft and childlike: a worried or sad child looks gently worried ` +
+          `(raised inner eyebrows, mouth closed), NEVER angry, never scowling, never frowning hard, never bared or clenched teeth; ` +
+          `add nothing that is not in the photo (no freckles, no glasses, no marks); ` +
           `the clothes stay those of the child in image ${fiche}`
         : opts.visage
           ? `the big child's face becomes exactly the face of the close-up portrait in image ${images.length} (same face shape, eyes, nose, mouth, eyebrows, skin tone), ` +

@@ -280,7 +280,7 @@ describe("Le Petit Poucet (histoire toute prête, planches validées)", () => {
       // Enfant de face : son vrai visage, d'après la vraie photo, sans changer l'expression de la planche.
       // Vraiment de dos (page 8) : seulement ses cheveux, d'après la photo aussi.
       if (prompt.includes("the big child")) expect(r).toContain("PHOTO DU PARENT");
-      if (prompt.includes("the big child") && !prompt.includes("FROM BEHIND")) expect(prompt).toContain("KEEP the exact facial expression");
+      if (prompt.includes("the big child") && !prompt.includes("FROM BEHIND")) expect(prompt).toContain("KEEP the facial expression");
     }
     // Seule la page 8 a l'enfant de dos (le parent de dos de la page 1 ne compte pas).
     expect(retouches.filter((a) => String(a.corps.prompt).includes("FROM BEHIND")).length).toBe(1);
