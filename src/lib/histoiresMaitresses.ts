@@ -384,7 +384,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "Boucle d'or sursauta. « Je voulais juste goûter, m'asseoir, me reposer. Mais tout était trop chaud, trop dur, trop grand… sauf ce qui était à Petit Ours. Et maintenant, sa chaise est cassée ! » Elle regarda la fenêtre. « Dans le livre, je m'enfuis toujours par là. »",
         scene:
-          "Inside a cosy wooden cottage in the woods: Boucle d'or, a little HUMAN GIRL with long golden curls in a sky-blue dress, stands by a tiny broken wooden chair whose leg lies on the floor, sad, glancing at the open window; {prenom} stands in front of her holding {doudou} in both arms, listening; on the table three bowls of three sizes; warm light from the window; no bears in this picture.",
+          "Inside a cosy wooden cottage in the woods: Boucle d'or, a little HUMAN GIRL with long golden curls in a sky-blue dress, stands sadly by a tiny broken wooden chair; {prenom} stands in front of her holding {doudou} in both arms, listening; a wooden table with bowls in the background; warm light from the window; no bears in this picture.",
         presents: ["Boucle d'or"],
       },
       {
@@ -398,7 +398,7 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "Boum, boum, boum. Les pas se rapprochaient. Boucle d'or tremblait comme une feuille. {prenom} lui tendit {doudou} : « Tiens. On a moins peur quand on serre quelqu'un. » Ensemble, ils posèrent la petite chaise bien droite, à sa place, au bout de la table.",
         scene:
-          "Inside the cottage near the closed wooden door: Boucle d'or (little HUMAN GIRL, golden curls, sky-blue dress) hugs {doudou}, the ONLY plush toy, a little scared; {prenom} stands beside her with a reassuring smile, one hand on her shoulder; the repaired tiny chair stands straight at the end of the table; no bears visible, only big soft shadows of paws under the door.",
+          "Inside the cottage near the closed wooden door: Boucle d'or (little HUMAN GIRL, golden curls, sky-blue dress) hugs {doudou}, the ONLY plush toy, a little scared; {prenom} stands beside her with a reassuring smile; the repaired tiny chair stands straight by the table; no bears visible, only big soft shadows under the door.",
         presents: ["Boucle d'or"],
       },
       {
@@ -412,15 +412,15 @@ export const HISTOIRES_MAITRESSES: HistoireMaitresse[] = [
         texte:
           "Boucle d'or rendit {doudou} et fit un pas en avant, toute rouge. « C'est moi. Pardon, Petit Ours. J'ai mangé ta bouillie et cassé ta chaise… alors on l'a réparée. » Petit Ours regarda le pied neuf, un peu tordu. Il s'assit dessus, gigota… et sourit : « Ni trop dur, ni trop mou. Juste comme il faut ! »",
         scene:
-          "Inside the cottage: Petit Ours, a small brown bear cub with a red scarf, sits proudly on the tiny repaired wooden chair (one leg a little crooked), smiling; Boucle d'or (little HUMAN GIRL, golden curls, sky-blue dress) stands beside him, cheeks pink, saying sorry; {prenom} stands a step behind holding {doudou} in both arms, smiling; Papa Ours and Maman Ourse are not in this picture.",
+          "Inside the cottage: Petit Ours, a small brown bear cub with a red scarf, sits proudly on the tiny repaired wooden chair, smiling; Boucle d'or (little HUMAN GIRL, golden curls, sky-blue dress) stands beside him, cheeks pink; {prenom} stands next to them holding {doudou}, smiling; Papa Ours and Maman Ourse are not in this picture.",
         presents: ["Petit Ours", "Boucle d'or"],
       },
       {
         texte:
           "Maman Ourse remit de la bouillie à chauffer, juste comme il faut, pour tout le monde. On mangea, on rit, on goûta trois fois. Au moment de partir, Petit Ours glissa dans la main {de_prenom} une toute petite cuillère en bois. « Pour que tu reviennes goûter », dit-il.",
         scene:
-          "A warm close scene at the wooden table of the cottage: Petit Ours (small brown cub, red scarf) places a tiny wooden spoon in {prenom}'s open hand; {prenom} holds {doudou} in the other arm; Boucle d'or (little HUMAN GIRL, golden curls, sky-blue dress) eats porridge from a bowl beside them, smiling; Papa Ours and Maman Ourse only seen from behind at the stove in the background; warm golden light.",
-        presents: ["Petit Ours", "Boucle d'or"],
+          "A warm close-up at the wooden table of the cottage: Petit Ours (small brown cub, red scarf) smiles at {prenom}, who holds a tiny wooden spoon in one open hand and {doudou} in the other arm; nobody else in the picture; warm golden light.",
+        presents: ["Petit Ours"],
       },
       {
         texte:
