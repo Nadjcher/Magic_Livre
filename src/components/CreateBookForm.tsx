@@ -474,7 +474,8 @@ export default function CreateBookForm({
           <div>
             <h2 className="font-serif text-2xl">Sa photo, pour qu'il lui ressemble</h2>
             <p className="mt-1 text-sm text-magique-texteClair">
-              Conseillé : de face, en lumière du jour, sans filtre (un coucher de soleil change la couleur des cheveux).
+              Conseillé : de face, visage bien visible en gros plan, à la lumière du jour, sans filtre ni contre-jour, avec un
+              sourire doux plutôt qu'une grimace.
               Vous validerez son portrait avant le livre. La photo sert seulement à dessiner le héros et n'est{" "}
               <strong>jamais conservée</strong>.
             </p>
